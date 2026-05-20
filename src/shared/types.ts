@@ -133,6 +133,7 @@ export type Message =
   | { type: "DELETE_CHROME_PATTERN"; id: string }
   | { type: "AI_REORGANIZE" }
   | { type: "AI_REORGANIZE_STATUS" }
+  | { type: "RECOMMEND_SITES"; keyword: string }
   | { type: "GET_SETTINGS" }
   | { type: "SAVE_SETTINGS"; settings: AppSettings };
 

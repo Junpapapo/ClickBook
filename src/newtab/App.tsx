@@ -223,6 +223,7 @@ function AppContent() {
                   setShowGitHubRanking(false);
                 }}
                 onRefresh={loadData}
+                searchQuery={deferredQuery}
               />
             ) : (
               <FolderView

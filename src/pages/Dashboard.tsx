@@ -2,11 +2,13 @@ import { useState, useRef } from "react";
 import { Check, X, Pencil, Lock, LockOpen, Trash2 } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
+import RecommendWidget from "@/components/RecommendWidget";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { getLocalizedFolderName, DEFAULT_FOLDER_ID } from "@/shared/categories";
+import { isAIAvailable } from "@/shared/categorizer";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -16,6 +18,7 @@ interface Props {
   onRefresh: () => void;
   recentCount: number;
   rankingCount: number;
+  searchQuery?: string;
 }
 
 const EMOJI_MAP: Record<string, string> = {
@@ -29,7 +32,7 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, onSelectFolder, onRefresh }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, onSelectFolder, onRefresh, searchQuery }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
@@ -88,6 +91,12 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
   return (
     <div className="flex flex-col gap-8">
       {DialogEl}
+      
+      {/* AI 추천 검색 (검색어 있을 때만) */}
+      {isAIAvailable() && searchQuery && (
+        <RecommendWidget keyword={searchQuery} onRefresh={onRefresh} />
+      )}
+
       {/* フォルダーサマリー */}
       <section>
         <h2 className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-600 font-semibold mb-3">

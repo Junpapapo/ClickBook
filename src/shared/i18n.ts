@@ -64,6 +64,7 @@ const en = {
 
   // ── Recent widget ────────────────────────────────────────
   recentTitle: "Recently Added",
+  recommendTitle: "AI Recommended Sites",
   recentEmpty: "No bookmarks yet.",
 
   // ── Ranking widget ───────────────────────────────────────
@@ -371,6 +372,7 @@ const ja: typeof en = {
 
   // ── Recent widget ────────────────────────────────────────
   recentTitle: "最近追加",
+  recommendTitle: "AI おすすめサイト",
   recentEmpty: "まだブックマークがありません。",
 
   // ── Ranking widget ───────────────────────────────────────
@@ -676,6 +678,7 @@ const ko: typeof en = {
 
   // ── Recent widget ────────────────────────────────────────
   recentTitle: "최근 추가",
+  recommendTitle: "AI 추천 검색 결과",
   recentEmpty: "아직 북마크가 없습니다.",
 
   // ── Ranking widget ───────────────────────────────────────

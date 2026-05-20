@@ -1,5 +1,5 @@
 import type { Bookmark, Message, MessageResponse } from "@/shared/types";
-import { categorize } from "@/shared/categorizer";
+import { categorize, recommendSites } from "@/shared/categorizer";
 import { getBookmarks, addBookmark, getAllData } from "@/shared/storage";
 import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
 
@@ -267,6 +267,10 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       const { deleteMemo } = await import("@/shared/storage");
       await deleteMemo(message.bookmarkId);
       return { success: true };
+    }
+    case "RECOMMEND_SITES": {
+      const data = await recommendSites(message.keyword);
+      return { success: true, data };
     }
     case "GET_SETTINGS": {
       const { getSettings } = await import("@/shared/storage");
