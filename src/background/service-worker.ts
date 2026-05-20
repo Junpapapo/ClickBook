@@ -1,5 +1,5 @@
 import type { Bookmark, Message, MessageResponse } from "@/shared/types";
-import { categorize, recommendSites } from "@/shared/categorizer";
+import { categorize, recommendSites, expandSearchQuery } from "@/shared/categorizer";
 import { getBookmarks, addBookmark, getAllData } from "@/shared/storage";
 import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
 
@@ -270,6 +270,10 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     }
     case "RECOMMEND_SITES": {
       const data = await recommendSites(message.keyword, message.count);
+      return { success: true, data };
+    }
+    case "EXPAND_SEARCH": {
+      const data = await expandSearchQuery(message.query);
       return { success: true, data };
     }
     case "FACTORY_RESET": {

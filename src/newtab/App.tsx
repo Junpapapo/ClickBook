@@ -33,6 +33,7 @@ function AppContent() {
   const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [expandedKeywords, setExpandedKeywords] = useState<string[]>([]);
 
   // 언어가 바뀌면 탭 제목도 업데이트
   useEffect(() => {
@@ -132,16 +133,49 @@ function AppContent() {
 
   const deferredQuery = useDeferredValue(searchQuery);
 
+  // AI 검색어 확장 (시맨틱 검색 보조)
+  useEffect(() => {
+    if (!deferredQuery || deferredQuery.length < 3) {
+      setExpandedKeywords([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setAiLoading(true);
+      try {
+        const res = await chrome.runtime.sendMessage({ type: "EXPAND_SEARCH", query: deferredQuery }) as MessageResponse;
+        if (res.success && Array.isArray(res.data)) {
+          setExpandedKeywords(res.data);
+        }
+      } finally {
+        setAiLoading(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [deferredQuery]);
+
   const filtered = useMemo(
-    () =>
-      deferredQuery
-        ? bookmarks.filter(
-            (b) =>
-              b.title.toLowerCase().includes(deferredQuery.toLowerCase()) ||
-              b.url.toLowerCase().includes(deferredQuery.toLowerCase())
-          )
-        : bookmarks,
-    [bookmarks, deferredQuery]
+    () => {
+      if (!deferredQuery) return bookmarks;
+      
+      const q = deferredQuery.toLowerCase();
+      return bookmarks.filter((b) => {
+        const title = b.title.toLowerCase();
+        const url = b.url.toLowerCase();
+        
+        // 1. 직접 포함 확인
+        if (title.includes(q) || url.includes(q)) return true;
+        
+        // 2. AI 확장 키워드 매칭
+        if (expandedKeywords.length > 0) {
+          return expandedKeywords.some(kw => title.includes(kw) || url.includes(kw));
+        }
+        
+        return false;
+      });
+    },
+    [bookmarks, deferredQuery, expandedKeywords]
   );
 
   const getBookmarksForFolder = useCallback(

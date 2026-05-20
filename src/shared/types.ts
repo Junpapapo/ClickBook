@@ -135,6 +135,7 @@ export type Message =
   | { type: "AI_REORGANIZE" }
   | { type: "AI_REORGANIZE_STATUS" }
   | { type: "RECOMMEND_SITES"; keyword: string; count?: number }
+  | { type: "EXPAND_SEARCH"; query: string }
   | { type: "FACTORY_RESET" }
   | { type: "GET_SETTINGS" }
   | { type: "SAVE_SETTINGS"; settings: AppSettings };
