@@ -410,3 +410,22 @@ export async function getSettings(): Promise<import("./types").AppSettings> {
 export async function saveSettings(settings: import("./types").AppSettings): Promise<void> {
   await chrome.storage.local.set({ [SETTINGS_KEY]: settings });
 }
+
+export async function factoryReset(): Promise<void> {
+  // 모든 ClickBook 관련 키를 명시적으로 삭제 (크롬 브라우저 북마크는 건드리지 않음)
+  const keys = [
+    STORAGE_KEY,
+    SETTINGS_KEY,
+    PATTERNS_KEY,
+    MEMOS_KEY,
+    SNAPSHOT_KEY,
+    CHROME_PATTERNS_KEY,
+    GITHUB_RANKING_KEY,
+    "clickbook_onboarded",
+    "clickbook_lang",
+    "clickbook_theme",
+    "clickbook_sidebar_chrome",
+    "clickbook_show_github_ranking",
+  ];
+  await chrome.storage.local.remove(keys);
+}

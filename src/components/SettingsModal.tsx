@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive } from "lucide-react";
+import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2 } from "lucide-react";
 import type { AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useDialog } from "@/shared/useDialog";
 import type { Lang } from "@/shared/i18n";
 
 interface Props {
@@ -117,6 +118,7 @@ const LANG_OPTIONS: { value: Lang; label: string; native: string }[] = [
 
 export default function SettingsModal({ settings, onSave, onClose, onExportJSON, onExportHTML, onImport, sidebarChromeOpen, onToggleSidebarChrome, showGitHubRankingMenu, onToggleGitHubRankingMenu }: Props) {
   const { t, lang, setLang } = useLang();
+  const { showConfirm } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
   const [saving, setSaving] = useState(false);
   const [storageBytes, setStorageBytes] = useState<number>(0);
@@ -139,6 +141,19 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleFactoryReset() {
+    const ok = await showConfirm(
+      t("settingsFactoryResetConfirm"),
+      t("settingsFactoryResetLabel"),
+      t("cancelBtn"),
+      "warn"
+    );
+    if (!ok) return;
+
+    await chrome.runtime.sendMessage({ type: "FACTORY_RESET" });
+    window.location.reload();
   }
 
   const changed =
@@ -328,6 +343,28 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
                   onChange={(v) => set("keepExistingFolders", v)}
                   description={t("settingsKeepFoldersDesc")}
                 />
+              </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="mt-8 pt-4 border-t border-red-100 dark:border-red-900/30 pb-2">
+              <SectionHeader icon={<AlertOctagon size={13} className="text-red-500" />} title={t("settingsDangerZone")} />
+              <div className="bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl px-3 py-1">
+                <div className="flex items-center justify-between gap-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-red-600 dark:text-red-400">{t("settingsFactoryResetLabel")}</p>
+                    <p className="text-[11px] text-red-500/70 dark:text-red-500/50 mt-0.5 leading-relaxed">
+                      {t("settingsFactoryResetDesc")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleFactoryReset}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-all shadow-sm hover:shadow-md active:scale-95 shrink-0"
+                  >
+                    <Trash2 size={13} />
+                    {t("settingsFactoryResetLabel")}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

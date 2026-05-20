@@ -272,6 +272,11 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       const data = await recommendSites(message.keyword, message.count);
       return { success: true, data };
     }
+    case "FACTORY_RESET": {
+      const { factoryReset } = await import("@/shared/storage");
+      await factoryReset();
+      return { success: true };
+    }
     case "GET_SETTINGS": {
       const { getSettings } = await import("@/shared/storage");
       return { success: true, data: await getSettings() };
