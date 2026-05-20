@@ -5,6 +5,7 @@ import PatternBar from "@/components/PatternBar";
 import RightPanelBar, { type RightPanelId } from "@/components/RightPanelBar";
 import SettingsModal from "@/components/SettingsModal";
 import WelcomeModal from "@/components/WelcomeModal";
+import ProgressBar from "@/components/ProgressBar";
 import Dashboard from "@/pages/Dashboard";
 import FolderView from "@/pages/FolderView";
 import MemoBoard from "@/pages/MemoBoard";
@@ -31,6 +32,7 @@ function AppContent() {
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // 언어가 바뀌면 탭 제목도 업데이트
   useEffect(() => {
@@ -167,6 +169,7 @@ function AppContent() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-50 dark:bg-surface-950 text-gray-800 dark:text-gray-100 transition-colors duration-200">
+      <ProgressBar isLoading={aiLoading} />
       {DialogEl}
       <Sidebar
         bookmarks={filtered}
@@ -192,6 +195,7 @@ function AppContent() {
           setSelectedFolderId(null);
         } : undefined}
         maxFolderDepth={settings.maxFolderDepth}
+        onAiLoadingChange={setAiLoading}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -225,6 +229,7 @@ function AppContent() {
                 }}
                 onRefresh={loadData}
                 searchQuery={deferredQuery}
+                onAiLoadingChange={setAiLoading}
               />
             ) : (
               <FolderView

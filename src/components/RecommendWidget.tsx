@@ -12,13 +12,16 @@ interface Props {
   keyword: string;
   count: number;
   onRefresh: () => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
-export default function RecommendWidget({ keyword, count, onRefresh }: Props) {
+export default function RecommendWidget({ keyword, count, onRefresh, onLoadingChange }: Props) {
   const { t } = useLang();
   const [recommendations, setRecommendations] = useState<RecommendedSite[]>([]);
   const [loading, setLoading] = useState(false);
   const [addingUrl, setAddingId] = useState<string | null>(null);
+
+  useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
 
   useEffect(() => {
     if (!keyword.trim()) {

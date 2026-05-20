@@ -37,6 +37,7 @@ interface Props {
   onSelectMemoBoard?: () => void;
   onSelectGitHubRanking?: () => void;
   maxFolderDepth?: number;
+  onAiLoadingChange?: (loading: boolean) => void;
 }
 
 const COLOR_DOT: Record<string, string> = {
@@ -87,7 +88,8 @@ export default function Sidebar({
   onSelectMemoBoard,
   onSelectGitHubRanking,
   maxFolderDepth = 3,
-}: Props & { onSelectGitHubRanking?: () => void }) {
+  onAiLoadingChange,
+}: Props) {
   const [creatingUnder, setCreatingUnder] = useState<string | null | false>(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -103,6 +105,8 @@ export default function Sidebar({
   const [organizeResult, setOrganizeResult] = useState<{ movedCount: number; total: number; backupName: string } | null>(null);
   const { showConfirm, DialogEl } = useDialog();
   const { t, lang } = useLang();
+
+  useEffect(() => { onAiLoadingChange?.(isOrganizing); }, [isOrganizing, onAiLoadingChange]);
 
   useEffect(() => { setAiAvailable(isAIAvailable()); }, []);
 
