@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ClipboardList, X, CheckCircle2, Loader2, Settings } from "lucide-react";
+import { Search, ClipboardList, X, CheckCircle2, Loader2, Settings, ShieldCheck } from "lucide-react";
 import type { MessageResponse } from "@/shared/types";
 import ThemeToggle from "@/components/ThemeToggle";
 import { extractUrls } from "@/shared/utils";
@@ -15,6 +15,7 @@ interface Props {
 export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }: Props) {
   const { t } = useLang();
   const [textImportOpen, setTextImportOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [textImportStatus, setTextImportStatus] = useState<"idle" | "loading" | "done">("idle");
   const [textImportResult, setTextImportResult] = useState<{ saved: number; skipped: number } | null>(null);
@@ -34,6 +35,40 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
   }
   return (
     <>
+      {/* 프라이버시 안내 모달 */}
+      {privacyOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-[9000] bg-black/40 backdrop-blur-[2px]"
+            onClick={() => setPrivacyOpen(false)}
+          />
+          <div className="fixed inset-0 z-[9001] flex items-center justify-center p-4 pointer-events-none">
+            <div
+              className="pointer-events-auto w-full max-w-sm bg-white dark:bg-surface-900 border border-indigo-100 dark:border-indigo-500/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ShieldCheck size={24} className="text-indigo-500 dark:text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">
+                  {t("privacyTitle")}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed break-keep">
+                  {t("privacyDesc")}
+                </p>
+                <button
+                  onClick={() => setPrivacyOpen(false)}
+                  className="mt-6 w-full py-2.5 bg-gray-100 dark:bg-surface-800 hover:bg-gray-200 dark:hover:bg-surface-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl transition-all active:scale-95"
+                >
+                  {t("closeBtn")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* テキストインポートモーダル */}
       {textImportOpen && (
         <>
@@ -118,6 +153,13 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
       </div>
 
       <div className="flex items-center gap-1 ml-auto">
+        <button
+          title={t("privacyTitle")}
+          onClick={() => setPrivacyOpen(true)}
+          className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+        >
+          <ShieldCheck size={18} />
+        </button>
         <button
           title={t("bulkImportTitle")}
           onClick={() => setTextImportOpen(true)}
