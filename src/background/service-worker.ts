@@ -621,7 +621,7 @@ async function runAIReorganizeViaPort(port: chrome.runtime.Port): Promise<void> 
         }
       }
     }
-    console.log(`[AI Organize] Deleted ${foldersDeleted} empty folders.`);
+    // console.log(`[AI Organize] Deleted ${foldersDeleted} empty folders.`);
 
     // 5. 완료 결과를 포트로 전송
     send({ type: "done", movedCount, total: data.bookmarks.length, backupName });
@@ -668,7 +668,6 @@ async function reorganizeWithAI(
   for (const bm of bookmarks) {
     result.set(bm.id, domainCategory(bm.domain));
   }
-  console.log(`[AI Organize] Step1: domain rules applied for ${bookmarks.length} bookmarks`);
 
   // ── Step 2: AI 세션 생성 시도 (실패해도 Step1 결과로 종료) ──
   const folderNames = existingFolders ? existingFolders.map((f) => f.nameJa || f.name) : [];
@@ -687,15 +686,13 @@ async function reorganizeWithAI(
         }),
         15000
       );
-      console.log("[AI Organize] Step2: AI session created");
     }
   } catch (err) {
-    console.warn("[AI Organize] Session creation failed, using domain rules only:", err);
+    // console.warn("[AI Organize] Session creation failed, using domain rules only:", err);
     return result; // Step1 결과 그대로 반환
   }
 
   if (!session) {
-    console.log("[AI Organize] No AI available, using domain rules");
     return result;
   }
 
@@ -733,39 +730,29 @@ Output:`;
 
       // 배치당 최대 60초 (충분한 시간 부여)
       const response = await withTimeout(session.prompt(promptText), 60000);
-      console.log(`[AI Organize] Raw AI response for batch ${batchNum}:`, response);
 
       const jsonMatch = response.match(/\[[\s\S]*?\]/);
       if (jsonMatch) {
         try {
           const parsed: unknown[] = JSON.parse(jsonMatch[0]);
-          console.log(`[AI Organize] Parsed JSON for batch ${batchNum}:`, parsed);
           if (Array.isArray(parsed) && parsed.length === batch.length) {
             for (let j = 0; j < batch.length; j++) {
               const cat = String(parsed[j]).trim();
               if (cat.length > 0 && cat !== "other") {
                 result.set(batch[j].id, cat); // AI 결과로 덮어쓰기 (자유로운 카테고리명 허용)
               }
-              // 유효하지 않거나 "other"면 Step1의 도메인 룰 결과 유지
             }
             aiBatchSuccess++;
-            console.log(`[AI Organize] Batch ${batchNum} OK`);
-          } else {
-            console.warn(`[AI Organize] Array length mismatch in batch ${batchNum}. Expected ${batch.length}, got ${Array.isArray(parsed) ? parsed.length : 'not an array'}`);
           }
         } catch (parseErr) {
-          console.error(`[AI Organize] JSON parse error in batch ${batchNum}:`, parseErr, "Raw matched string:", jsonMatch[0]);
+          // ignore
         }
-      } else {
-        console.warn(`[AI Organize] No JSON array found in response for batch ${batchNum}`);
       }
     } catch (err) {
-      console.warn(`[AI Organize] Batch ${batchNum} failed (domain rules kept):`, err);
-      // 이 배치는 Step1의 도메인 룰 결과 유지 — 추가 AI 재시도 없음
+      // ignore
     }
   }
 
-  console.log(`[AI Organize] Done. AI batches succeeded: ${aiBatchSuccess}/${Math.ceil(bookmarks.length / BATCH_SIZE)}`);
   session.destroy();
   return result;
 }

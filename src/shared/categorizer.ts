@@ -77,7 +77,7 @@ Respond with only the category ID, nothing else.`,
 
     return isValidCategoryId(trimmed) ? trimmed : null;
   } catch (err) {
-    console.warn("Operation failed:", err);
+    // console.warn("Operation failed:", err);
     return null;
   }
 }
@@ -89,7 +89,7 @@ export function isAIAvailable(): boolean {
     const lm = w.ai?.languageModel || w.LanguageModel;
     return !!lm && (typeof lm === "object" || typeof lm === "function");
   } catch (err) {
-    console.warn("Operation failed:", err);
+    // console.warn("Operation failed:", err);
     return false;
   }
 }
