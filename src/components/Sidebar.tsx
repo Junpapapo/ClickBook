@@ -17,7 +17,7 @@ import {
   StickyNote,
   Trophy,
 } from "lucide-react";
-import { buildFolderTree } from "@/shared/categories";
+import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
 import type { Bookmark, Folder } from "@/shared/types";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
@@ -102,7 +102,7 @@ export default function Sidebar({
   const [isOrganizing, setIsOrganizing] = useState(false);
   const [organizeResult, setOrganizeResult] = useState<{ movedCount: number; total: number; backupName: string } | null>(null);
   const { showConfirm, DialogEl } = useDialog();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   useEffect(() => { setAiAvailable(isAIAvailable()); }, []);
 
@@ -131,7 +131,19 @@ export default function Sidebar({
     return depth;
   }
 
-  // ── AI 自動整理 ──────────────────────────
+  /** 자식인지 확인 (순환 방지) */
+  function isDescendantOf(targetId: string, folderId: string): boolean {
+    let current: string | null = targetId;
+    while (current) {
+      if (current === folderId) return true;
+      const f = folders.find((x) => x.id === current);
+      current = f?.parentId ?? null;
+    }
+    return false;
+  }
+
+  // ── AI 자동 정리 ──────────────────────────
+
 
   async function handleAIOrganize() {
     const confirmed = await showConfirm(
@@ -237,7 +249,7 @@ export default function Sidebar({
     const msg = count > 0
       ? t("folderDeleteWithBookmarks", { n: count })
       : t("folderDeleteConfirm");
-    if (!await showConfirm(msg, "Delete", "Cancel", "warn")) return;
+    if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
     await chrome.runtime.sendMessage({ type: "DELETE_FOLDER", id });
     if (selectedFolderId === id) onSelect(null);
     onRefresh();
@@ -274,8 +286,8 @@ export default function Sidebar({
     
     // Determine target position based on mouse position within the folder element
     let position: "before" | "inside" | "after" = "inside";
-    if (y < height * 0.25) position = "before";
-    else if (y > height * 0.75) position = "after";
+    if (y < height * 0.3) position = "before";
+    else if (y > height * 0.7) position = "after";
 
     setDragOverInfo({ id: folderId, position });
   }
@@ -326,6 +338,9 @@ export default function Sidebar({
         folderId: targetFolderId,
       });
     } else if (type === "folder" && id !== targetFolderId) {
+      // 순환 방지: 자기 자신이나 자신의 자손으로 이동 불가
+      if (isDescendantOf(targetFolderId, id)) return;
+
       let targetParentId: string | null = targetFolderId;
       let targetOrder = 999;
 
@@ -367,7 +382,7 @@ export default function Sidebar({
         )}
 
         <div
-          draggable={!f.isDefault}
+          draggable={true}
           onDragStart={(e) => onDragStart(e, f.id, "folder")}
           onDragOver={(e) => onDragOver(e, f.id)}
           onDragLeave={onDragLeave}
@@ -380,12 +395,10 @@ export default function Sidebar({
           `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
         >
-          {!f.isDefault && (
-            <GripVertical
-              size={12}
-              className="opacity-0 group-hover:opacity-40 shrink-0 cursor-grab"
-            />
-          )}
+          <GripVertical
+            size={12}
+            className="opacity-0 group-hover:opacity-40 shrink-0 cursor-grab"
+          />
 
           <button
             onClick={(e) => {
@@ -445,15 +458,15 @@ export default function Sidebar({
               className="truncate flex-1 min-w-0"
               onClick={() => onSelect(f.id)}
               onDoubleClick={(e) => {
-                if (f.isDefault) return;
+                if (f.id === "other") return;
                 e.stopPropagation();
                 setRenamingId(f.id);
                 setRenameValue(f.name);
                 setRenameIcon(!/^[A-Za-z0-9_]+$/.test(f.icon ?? "") ? (f.icon ?? "📁") : "📁");
               }}
-              title={f.isDefault ? undefined : t("doubleClickRename")}
+              title={f.id === "other" ? undefined : t("doubleClickRename")}
             >
-              {f.name}
+              {getLocalizedFolderName(f, lang)}
             </span>
           )}
 
@@ -494,7 +507,7 @@ export default function Sidebar({
               >
                 <FolderPlus size={12} />
               </button>
-              {!f.isDefault && (
+              {f.id !== "other" && (
                 <>
                   <button
                     onClick={(e) => {

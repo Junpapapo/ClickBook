@@ -1,10 +1,12 @@
 import { useState, useRef } from "react";
-import { Check, X, Pencil, Lock, LockOpen } from "lucide-react";
+import { Check, X, Pencil, Lock, LockOpen, Trash2 } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useDialog } from "@/shared/useDialog";
+import { getLocalizedFolderName, DEFAULT_FOLDER_ID } from "@/shared/categories";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -12,6 +14,8 @@ interface Props {
   memos: MemoMap;
   onSelectFolder: (id: string) => void;
   onRefresh: () => void;
+  recentCount: number;
+  rankingCount: number;
 }
 
 const EMOJI_MAP: Record<string, string> = {
@@ -26,7 +30,8 @@ const EMOJI_MAP: Record<string, string> = {
 };
 
 export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, onSelectFolder, onRefresh }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -38,6 +43,16 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       id,
     })) as MessageResponse;
     if (response.success) onRefresh();
+  }
+
+  async function handleDeleteFolder(id: string, name: string) {
+    const count = countByFolder[id] ?? 0;
+    const msg = count > 0
+      ? t("folderDeleteWithBookmarks", { n: count })
+      : t("folderDeleteConfirm");
+    if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
+    await chrome.runtime.sendMessage({ type: "DELETE_FOLDER", id });
+    onRefresh();
   }
 
   async function handleToggleLock(id: string) {
@@ -72,6 +87,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
 
   return (
     <div className="flex flex-col gap-8">
+      {DialogEl}
       {/* フォルダーサマリー */}
       <section>
         <h2 className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-600 font-semibold mb-3">
@@ -101,13 +117,24 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                   </button>
                 )}
                 {!isRenaming && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); startRename(f); }}
-                    className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all"
-                    title={t("dashboardRenameTooltip")}
-                  >
-                    <Pencil size={10} className="text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
-                  </button>
+                  <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); startRename(f); }}
+                      className="p-0.5 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all"
+                      title={t("dashboardRenameTooltip")}
+                    >
+                      <Pencil size={10} className="text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
+                    </button>
+                    {f.id !== DEFAULT_FOLDER_ID && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id, f.name); }}
+                        className="p-0.5 rounded hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all"
+                        title={t("deleteTooltip")}
+                      >
+                        <Trash2 size={10} className="text-gray-400 hover:text-rose-500 dark:hover:text-rose-400" />
+                      </button>
+                    )}
+                  </div>
                 )}
                 <span className="text-lg">
                   {f.icon && !/^[A-Za-z0-9_]+$/.test(f.icon) ? f.icon : (EMOJI_MAP[f.id] ?? "📂")}
@@ -146,7 +173,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                 ) : (
                   <>
                     <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate w-full text-center">
-                      {f.name}
+                      {getLocalizedFolderName(f, lang)}
                     </span>
                     <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
                       {count}

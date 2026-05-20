@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AlertTriangle, Info } from "lucide-react";
+import { useLang } from "./LanguageContext";
 
 interface DialogState {
   message: string;
@@ -66,11 +67,12 @@ function DialogModal({
 
 export function useDialog() {
   const [dialog, setDialog] = useState<DialogState | null>(null);
+  const { t } = useLang();
 
   function showConfirm(
     message: string,
-    confirmLabel = "続ける",
-    cancelLabel = "キャンセル",
+    confirmLabel = t("confirmBtn"),
+    cancelLabel = t("cancelBtn"),
     variant: "warn" | "info" = "warn"
   ): Promise<boolean> {
     return new Promise((resolve) => {
@@ -92,7 +94,7 @@ export function useDialog() {
         message,
         type: "alert",
         confirmLabel: "OK",
-        cancelLabel: "キャンセル",
+        cancelLabel: t("cancelBtn"),
         variant,
         onConfirm: () => { setDialog(null); resolve(); },
       });

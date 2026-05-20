@@ -1,7 +1,7 @@
 import type { Bookmark, Message, MessageResponse } from "@/shared/types";
 import { categorize } from "@/shared/categorizer";
 import { getBookmarks, addBookmark, getAllData } from "@/shared/storage";
-import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID } from "@/shared/categories";
+import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
 
 // ============================================================
 // Service Worker — Chrome MV3 Background
@@ -178,6 +178,20 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       const data = await getAllData();
       const stats = await syncToChrome(data);
       return { success: true, data: stats };
+    }
+    case "ADD_CHROME_BOOKMARKS": {
+      const tree = await chrome.bookmarks.getTree();
+      const existingUrls = new Set(flattenChromeTree(tree).map((i) => i.url));
+      const barId = message.parentId || (tree[0]?.children?.[0]?.id ?? "1");
+      let added = 0;
+      for (const item of message.items) {
+        if (!existingUrls.has(item.url)) {
+          await chrome.bookmarks.create({ parentId: barId, title: item.title, url: item.url });
+          added++;
+          existingUrls.add(item.url);
+        }
+      }
+      return { success: true, data: { count: added } };
     }
     case "BULK_IMPORT_CHROME": {
       const count = await bulkImport(message.items, message.folderId);
@@ -450,22 +464,7 @@ async function findOrCreateChromeFolder(
   const { clickbook_lang } = await chrome.storage.local.get("clickbook_lang");
   const lang = clickbook_lang || "en";
 
-  let localizedName = folder.name;
-  if (lang === "ja" && folder.nameJa) {
-    localizedName = folder.nameJa;
-  } else if (lang === "ko") {
-    const koNames: Record<string, string> = {
-      technology: "테크놀로지",
-      design: "디자인",
-      business: "비즈니스",
-      entertainment: "엔터테인먼트",
-      science: "과학",
-      sports: "스포츠",
-      travel: "여행",
-      other: "기타",
-    };
-    if (koNames[folder.id]) localizedName = koNames[folder.id];
-  }
+  const localizedName = getLocalizedFolderName(folder, lang);
 
   const barChildren = await chrome.bookmarks.getChildren("1");
   const existing = barChildren.find((c) => !c.url && c.title === localizedName);
@@ -533,7 +532,7 @@ async function runAIReorganizeViaPort(port: chrome.runtime.Port): Promise<void> 
     // 1. 실행 전 현재 상태를 패턴으로 백업
     const now = new Date();
     const pad = (n: number) => String(n).padStart(2, "0");
-    const backupName = `AI Organize Backup ${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const backupName = `AI_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}`;
     await savePattern(backupName, data);
     if (disconnected) return;
 

@@ -103,6 +103,28 @@ export const DEFAULT_FOLDERS: Folder[] = [
   },
 ];
 
+const KO_NAMES: Record<string, string> = {
+  technology: "테크놀로지",
+  design: "디자인",
+  business: "비즈니스",
+  entertainment: "엔터테인먼트",
+  science: "과학",
+  sports: "스포츠",
+  travel: "여행",
+  other: "기타",
+};
+
+export function getLocalizedFolderName(folder: Folder, lang: string): string {
+  if (folder.isDefault) {
+    if (lang === "ko" && KO_NAMES[folder.id]) return KO_NAMES[folder.id];
+    if (lang === "ja") return folder.nameJa || folder.name;
+    return folder.name;
+  }
+  // ユーザー作成フォルダーの場合
+  if (lang === "ja") return folder.nameJa || folder.name;
+  return folder.name;
+}
+
 // ============================================================
 // ルールベース分類パターン（Gemini Nano フォールバック用）
 // ============================================================

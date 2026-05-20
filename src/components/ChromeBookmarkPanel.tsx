@@ -13,7 +13,8 @@ interface CNode { id: string; title: string; url?: string; children?: CNode[] }
 type PendingChange =
   | { kind: "rename"; id: string; title: string }
   | { kind: "delete"; id: string; isFolder: boolean }
-  | { kind: "move"; id: string; parentId: string; index?: number };
+  | { kind: "move"; id: string; parentId: string; index?: number }
+  | { kind: "add"; title: string; url: string; parentId: string };
 interface Props { onRefresh: () => void; fullHeight?: boolean; onClose?: () => void }
 
 export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onClose }: Props) {
@@ -153,17 +154,31 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     );
     if (!urls.length) { flash(t("chromeTextImportNoUrls")); setTextImportOpen(false); return; }
     setTextImportBusy(true);
+
     const items = urls.map(url => {
       try { return { url, title: new URL(url).hostname }; }
       catch (err) { console.warn("Operation failed:", err); return { url, title: url }; }
     });
-    const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items }) as MessageResponse;
+
+    const targetParentId = tree[0]?.id || rootId;
+    let newTree = tree;
+    const newPending: PendingChange[] = [];
+
+    for (const item of items) {
+      const tempId = `temp-${crypto.randomUUID()}`;
+      const newNode: CNode = { id: tempId, title: item.title, url: item.url };
+      newTree = applyLocalAdd(newTree, targetParentId, newNode, rootId);
+      newPending.push({ kind: "add", title: item.title, url: item.url, parentId: targetParentId });
+    }
+
+    setTree(newTree);
+    setPending(prev => [...prev, ...newPending]);
     setTextImportBusy(false);
     setTextImportOpen(false);
     setImportText("");
-    flash(t("chromeBulkImportDone", { n: (res.data as { count: number })?.count ?? items.length }));
-    onRefresh();
+    flash(t("chromeQueueRename")); // Reuse "Added to queue" message
   }
+
 
   async function handleSyncToChrome() {
     if (!await showConfirm(t("chromeSyncConfirm"))) return;
@@ -231,6 +246,18 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     return insertNode(tree1);
   }
 
+  function applyLocalAdd(nodes: CNode[], parentId: string, node: CNode, treeRootId: string): CNode[] {
+    if (parentId === treeRootId) {
+      return [...nodes, node];
+    }
+    return nodes.map((n) => {
+      if (n.id === parentId) {
+        return { ...n, children: [...(n.children ?? []), node] };
+      }
+      return n.children ? { ...n, children: applyLocalAdd(n.children, parentId, node, treeRootId) } : n;
+    });
+  }
+
   async function handleChromeRename(id: string, title: string) {
     if (!title.trim()) { setEditingId(null); return; }
     setTree((prev) => applyLocalRename(prev, id, title.trim()));
@@ -264,8 +291,10 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
         await chrome.runtime.sendMessage({ type: "RENAME_CHROME_BOOKMARK", id: change.id, title: change.title });
       } else if (change.kind === "move") {
         await chrome.runtime.sendMessage({ type: "MOVE_CHROME_BOOKMARK", id: change.id, parentId: change.parentId, index: change.index });
-      } else {
+      } else if (change.kind === "delete") {
         await chrome.runtime.sendMessage({ type: "DELETE_CHROME_BOOKMARK", id: change.id, isFolder: change.isFolder });
+      } else if (change.kind === "add") {
+        await chrome.runtime.sendMessage({ type: "ADD_CHROME_BOOKMARKS", items: [{ title: change.title, url: change.url }], parentId: change.parentId });
       }
     }
     setPending([]);

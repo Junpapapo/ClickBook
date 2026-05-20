@@ -196,7 +196,7 @@ export async function moveFolder(
 export async function deleteFolder(id: string): Promise<void> {
   const data = await readStorage();
   const target = data.folders.find((f) => f.id === id);
-  if (!target || target.isDefault) return; // デフォルトフォルダーは削除不可
+  if (!target || target.id === DEFAULT_FOLDER_ID) return; // "other" フォルダーのみ削除不可
 
   // 子フォルダーのIDを再帰的に収集
   function collectDescendants(folderId: string): string[] {

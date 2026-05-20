@@ -113,6 +113,7 @@ export type Message =
   | { type: "SAVE_CHROME_SNAPSHOT" }
   | { type: "RESTORE_CHROME_SNAPSHOT" }
   | { type: "BULK_IMPORT_CHROME"; items: Array<{ url: string; title: string }>; folderId?: string }
+  | { type: "ADD_CHROME_BOOKMARKS"; items: Array<{ url: string; title: string }>; parentId?: string }
   | { type: "GET_MEMOS" }
   | { type: "SAVE_MEMO"; bookmarkId: string; content: string; color: MemoColor }
   | { type: "DELETE_MEMO"; bookmarkId: string }

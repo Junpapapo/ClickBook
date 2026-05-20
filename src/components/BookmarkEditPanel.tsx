@@ -3,6 +3,7 @@ import { Pencil, Trash2, Plus, X, Search, Save, ExternalLink, FolderOpen } from 
 import type { Bookmark, Folder, MessageResponse } from "@/shared/types";
 import { useDialog } from "@/shared/useDialog";
 import { useLang } from "@/shared/LanguageContext";
+import { getLocalizedFolderName } from "@/shared/categories";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -17,8 +18,8 @@ type Status = { type: "ok" | "err" | "warn"; text: string } | null;
 
 function isEmoji(s: string) { return !!s && !/^[A-Za-z0-9_]+$/.test(s); }
 
-function folderLabel(f: Folder) {
-  return (isEmoji(f.icon) ? f.icon + " " : "") + f.nameJa;
+function folderLabel(f: Folder, lang: string) {
+  return (isEmoji(f.icon) ? f.icon + " " : "") + getLocalizedFolderName(f, lang);
 }
 
 // ── 編集/追加モーダル ─────────────────────────────────────────
@@ -34,7 +35,7 @@ export interface ModalProps {
 
 export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, onDeleted, onClose }: ModalProps) {
   const { showConfirm, DialogEl } = useDialog();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const [title, setTitle] = useState(bookmark?.title ?? "");
   const [url, setUrl] = useState(bookmark?.url ?? "");
@@ -84,7 +85,7 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
 
   async function handleDelete() {
     if (!bookmark) return;
-    if (!await showConfirm(t("deleteConfirm", { title: bookmark.title }), "Delete")) return;
+    if (!await showConfirm(t("deleteConfirm", { title: bookmark.title }), t("deleteTooltip"))) return;
     await chrome.runtime.sendMessage({ type: "DELETE_BOOKMARK", id: bookmark.id });
     onDeleted();
   }
@@ -203,14 +204,14 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
                   className="w-full text-sm bg-gray-50 dark:bg-surface-800 border border-gray-300 dark:border-surface-600 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-100 outline-none focus:border-indigo-500 transition-colors appearance-none"
                 >
                   {folders.map(f => (
-                    <option key={f.id} value={f.id}>{folderLabel(f)}</option>
+                    <option key={f.id} value={f.id}>{folderLabel(f, lang)}</option>
                   ))}
                 </select>
                 <FolderOpen size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
               </div>
               {currentFolder && (
                 <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-600">
-                  Current: {folderLabel(currentFolder)}
+                  Current: {folderLabel(currentFolder, lang)}
                 </p>
               )}
             </div>

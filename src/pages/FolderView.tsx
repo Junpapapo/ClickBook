@@ -1,11 +1,12 @@
 import { useState, useRef } from "react";
-import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown } from "lucide-react";
+import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2 } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import { EditModal } from "@/components/BookmarkEditPanel";
-import { getFolderById, buildFolderTree } from "@/shared/categories";
+import { getFolderById, buildFolderTree, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { FOLDER_COLOR_DOT as COLOR_DOT, FOLDER_COLOR_TEXT as COLOR_TEXT } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
+import { useDialog } from "@/shared/useDialog";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -20,10 +21,13 @@ interface Props {
 function isEmoji(s: string) { return !!s && !/^[A-Za-z0-9_]+$/.test(s); }
 
 export default function FolderView({ bookmarks, folders, folderId, memos, onBack, onSelectFolder, onRefresh }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const { showConfirm, DialogEl } = useDialog();
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
   const [editingBookmark, setEditingBookmark] = useState<import("@/shared/types").Bookmark | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [sortKey, setSortKey] = useState<"savedAt" | "title" | "visitCount">("savedAt");
@@ -32,8 +36,34 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   const [newSubFolderName, setNewSubFolderName] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
   const subFolderInputRef = useRef<HTMLInputElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   const folder = getFolderById(folders, folderId);
+
+  async function handleDeleteFolder(id: string, name: string) {
+    const count = getCount(id);
+    const msg = count > 0
+      ? t("folderDeleteWithBookmarks", { n: count })
+      : t("folderDeleteConfirm");
+    if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
+    await chrome.runtime.sendMessage({ type: "DELETE_FOLDER", id });
+    onRefresh();
+  }
+
+  function startRenameSubFolder(f: Folder) {
+    setRenameValue(f.name);
+    setRenamingFolderId(f.id);
+    setTimeout(() => renameInputRef.current?.focus(), 30);
+  }
+
+  async function commitRenameSubFolder(id: string, original: string) {
+    const v = renameValue.trim();
+    if (v && v !== original) {
+      await chrome.runtime.sendMessage({ type: "RENAME_FOLDER", id, name: v });
+      onRefresh();
+    }
+    setRenamingFolderId(null);
+  }
 
   // 直接の子フォルダー
   const childFolders = folders
@@ -139,6 +169,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
 
   return (
     <div className="bg-white dark:bg-surface-800 rounded-2xl border border-gray-100 dark:border-surface-700 shadow-sm dark:shadow-none p-6 pb-8">
+      {DialogEl}
       {showAddModal && (
         <EditModal
           mode="add"
@@ -193,9 +224,9 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
           <h2
             className="text-xl font-bold text-gray-800 dark:text-gray-100 cursor-text select-none"
             onDoubleClick={startEditName}
-            title="ダブルクリックで名前を編集"
+            title={t("doubleClickEditName")}
           >
-            {folder.name}
+            {getLocalizedFolderName(folder, lang)}
           </h2>
         )}
         <span className="text-sm text-gray-500">{t("itemCount", { n: bookmarks.length })}</span>
@@ -337,21 +368,70 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
               </div>
               {!subFoldersCollapsed && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {childFolders.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => onSelectFolder(f.id)}
-                      className="flex flex-col items-center gap-1.5 p-3 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 border border-gray-200 dark:border-surface-600 hover:border-indigo-300 dark:hover:border-indigo-500/30 rounded-xl transition-all shadow-sm dark:shadow-none"
-                    >
-                      <FolderOpen size={20} className={COLOR_TEXT[f.color] ?? "text-gray-400"} />
-                      <span className="text-[11px] text-gray-600 dark:text-gray-400 truncate w-full text-center">
-                        {f.name}
-                      </span>
-                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                        {getCount(f.id)}
-                      </span>
-                    </button>
-                  ))}
+                  {childFolders.map((f) => {
+                    const isRenaming = renamingFolderId === f.id;
+                    return (
+                      <div
+                        key={f.id}
+                        className="group relative flex flex-col items-center gap-1.5 p-3 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 border border-gray-200 dark:border-surface-600 hover:border-indigo-300 dark:hover:border-indigo-500/30 rounded-xl transition-all shadow-sm dark:shadow-none cursor-pointer select-none"
+                        onClick={() => { if (!isRenaming) onSelectFolder(f.id); }}
+                      >
+                        {!isRenaming && (
+                          <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); startRenameSubFolder(f); }}
+                              className="p-0.5 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all"
+                              title={t("renameTooltip")}
+                            >
+                              < Pencil size={10} className="text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
+                            </button>
+                            {f.id !== DEFAULT_FOLDER_ID && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id, f.name); }}
+                                className="p-0.5 rounded hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all"
+                                title={t("deleteTooltip")}
+                              >
+                                <Trash2 size={10} className="text-gray-400 hover:text-rose-500 dark:hover:text-rose-400" />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        <FolderOpen size={20} className={COLOR_TEXT[f.color] ?? "text-gray-400"} />
+                        {isRenaming ? (
+                          <div className="flex flex-col items-center gap-1 w-full" onClick={e => e.stopPropagation()}>
+                            <input
+                              ref={renameInputRef}
+                              value={renameValue}
+                              onChange={e => setRenameValue(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === "Enter") commitRenameSubFolder(f.id, f.name);
+                                if (e.key === "Escape") setRenamingFolderId(null);
+                              }}
+                              onBlur={() => commitRenameSubFolder(f.id, f.name)}
+                              className="w-full text-center text-[11px] bg-transparent border-b border-indigo-500 text-gray-800 dark:text-gray-100 outline-none"
+                            />
+                            <div className="flex items-center gap-1">
+                              <button onMouseDown={e => { e.preventDefault(); commitRenameSubFolder(f.id, f.name); }} className="text-emerald-500 hover:text-emerald-400">
+                                <Check size={12} />
+                              </button>
+                              <button onMouseDown={e => { e.preventDefault(); setRenamingFolderId(null); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <X size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-[11px] text-gray-600 dark:text-gray-400 truncate w-full text-center">
+                              {getLocalizedFolderName(f, lang)}
+                            </span>
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              {getCount(f.id)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>
