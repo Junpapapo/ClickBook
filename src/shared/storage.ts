@@ -171,9 +171,25 @@ export async function moveFolder(
   order: number
 ): Promise<void> {
   const data = await readStorage();
-  data.folders = data.folders.map((f) =>
-    f.id === id ? { ...f, parentId, order } : f
-  );
+  
+  // Update parentId of the target folder first
+  const targetFolder = data.folders.find((f) => f.id === id);
+  if (!targetFolder) return;
+  targetFolder.parentId = parentId;
+
+  // Get all siblings in the new parent, sorted by current order
+  let siblings = data.folders
+    .filter((f) => f.parentId === parentId && f.id !== id)
+    .sort((a, b) => a.order - b.order);
+
+  // Insert the target folder at the specified order (index)
+  siblings.splice(order, 0, targetFolder);
+
+  // Re-assign sequential order to all siblings
+  siblings.forEach((f, index) => {
+    f.order = index;
+  });
+
   await writeStorage(data);
 }
 

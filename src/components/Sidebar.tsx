@@ -92,7 +92,7 @@ export default function Sidebar({
   const [newFolderName, setNewFolderName] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dragOverInfo, setDragOverInfo] = useState<{ id: string; position: "before" | "inside" | "after" } | null>(null);
   const dragItemId = useRef<string | null>(null);
   const dragType = useRef<"folder" | "bookmark" | null>(null);
   const [newFolderIcon, setNewFolderIcon] = useState("📁");
@@ -267,17 +267,28 @@ export default function Sidebar({
   function onDragOver(e: React.DragEvent, folderId: string) {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    setDragOverId(folderId);
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const height = rect.height;
+    
+    // Determine target position based on mouse position within the folder element
+    let position: "before" | "inside" | "after" = "inside";
+    if (y < height * 0.25) position = "before";
+    else if (y > height * 0.75) position = "after";
+
+    setDragOverInfo({ id: folderId, position });
   }
 
   function onDragLeave(e: React.DragEvent) {
     if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-    setDragOverId(null);
+    setDragOverInfo(null);
   }
 
   async function onDrop(e: React.DragEvent, targetFolderId: string) {
     e.preventDefault();
-    setDragOverId(null);
+    const dropInfo = dragOverInfo;
+    setDragOverInfo(null);
 
     // Chrome パネルからの D&D
     const chromeData = e.dataTransfer.getData("application/x-clickbook-chrome-bookmark");
@@ -315,11 +326,24 @@ export default function Sidebar({
         folderId: targetFolderId,
       });
     } else if (type === "folder" && id !== targetFolderId) {
+      let targetParentId: string | null = targetFolderId;
+      let targetOrder = 999;
+
+      if (dropInfo && dropInfo.position !== "inside") {
+        const targetFolder = folders.find(f => f.id === targetFolderId);
+        if (targetFolder) {
+          targetParentId = targetFolder.parentId;
+          // When inserted before, use the same order (splice pushes the others down).
+          // When inserted after, use order + 1.
+          targetOrder = dropInfo.position === "before" ? targetFolder.order : targetFolder.order + 1;
+        }
+      }
+
       await chrome.runtime.sendMessage({
         type: "MOVE_FOLDER",
         id,
-        parentId: targetFolderId,
-        order: 999,
+        parentId: targetParentId,
+        order: targetOrder,
       });
     }
     onRefresh();
@@ -332,11 +356,16 @@ export default function Sidebar({
     const isActive = selectedFolderId === f.id;
     const hasChildren = node.children.length > 0;
     const isRenaming = renamingId === f.id;
-    const isDragOver = dragOverId === f.id;
+    const isDragOverInfo = dragOverInfo?.id === f.id ? dragOverInfo : null;
     const dotColor = COLOR_DOT[f.color] ?? "bg-gray-400";
 
     return (
-      <div key={f.id}>
+      <div key={f.id} className="relative">
+        {/* Drop "before" indicator */}
+        {isDragOverInfo?.position === "before" && (
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500 z-10 mx-2 rounded-full" />
+        )}
+
         <div
           draggable={!f.isDefault}
           onDragStart={(e) => onDragStart(e, f.id, "folder")}
@@ -347,7 +376,7 @@ export default function Sidebar({
             group flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer
             transition-all duration-150 rounded-lg mx-1.5
             ${isActive ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"}
-            ${isDragOver ? "ring-2 ring-indigo-500/50 bg-indigo-500/10" : ""}
+            ${isDragOverInfo?.position === "inside" ? "ring-2 ring-indigo-500/50 bg-indigo-500/10" : ""}
           `}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
         >
@@ -527,6 +556,11 @@ export default function Sidebar({
               <X size={13} />
             </button>
           </div>
+        )}
+
+        {/* Drop "after" indicator */}
+        {isDragOverInfo?.position === "after" && (
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 z-10 mx-2 rounded-full" />
         )}
 
         {!f.collapsed && node.children.map((child) => renderNode(child, depth + 1))}
