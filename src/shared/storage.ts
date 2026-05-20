@@ -393,6 +393,7 @@ const SETTINGS_KEY = "clickbook_settings";
 export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   recentCount: 8,
   rankingCount: 5,
+  recommendCount: 6,
   maxFolderDepth: 3,
   keepExistingFolders: false,
 };

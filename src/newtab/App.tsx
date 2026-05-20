@@ -217,6 +217,7 @@ function AppContent() {
                 memos={memos}
                 recentCount={settings.recentCount}
                 rankingCount={settings.rankingCount}
+                recommendCount={settings.recommendCount}
                 onSelectFolder={(id) => {
                   setSelectedFolderId(id);
                   setShowMemoBoard(false);

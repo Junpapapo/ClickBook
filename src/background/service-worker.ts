@@ -269,7 +269,7 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       return { success: true };
     }
     case "RECOMMEND_SITES": {
-      const data = await recommendSites(message.keyword);
+      const data = await recommendSites(message.keyword, message.count);
       return { success: true, data };
     }
     case "GET_SETTINGS": {

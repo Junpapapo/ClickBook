@@ -73,6 +73,7 @@ export type MemoColor = "yellow" | "pink" | "blue" | "green" | "purple";
 export interface AppSettings {
   recentCount: number;          // 最近追加の表示数 default: 8
   rankingCount: number;         // よく見るサイト表示数 default: 5
+  recommendCount: number;       // AI 추천 사이트 표시수 default: 6
   maxFolderDepth: number;       // 最大フォルダー段階数 default: 3
   keepExistingFolders: boolean; // AI整理時に既存フォルダーを変更しない default: false
 }
@@ -133,7 +134,7 @@ export type Message =
   | { type: "DELETE_CHROME_PATTERN"; id: string }
   | { type: "AI_REORGANIZE" }
   | { type: "AI_REORGANIZE_STATUS" }
-  | { type: "RECOMMEND_SITES"; keyword: string }
+  | { type: "RECOMMEND_SITES"; keyword: string; count?: number }
   | { type: "GET_SETTINGS" }
   | { type: "SAVE_SETTINGS"; settings: AppSettings };
 

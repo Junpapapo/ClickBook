@@ -10,10 +10,11 @@ interface RecommendedSite {
 
 interface Props {
   keyword: string;
+  count: number;
   onRefresh: () => void;
 }
 
-export default function RecommendWidget({ keyword, onRefresh }: Props) {
+export default function RecommendWidget({ keyword, count, onRefresh }: Props) {
   const { t } = useLang();
   const [recommendations, setRecommendations] = useState<RecommendedSite[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,7 @@ export default function RecommendWidget({ keyword, onRefresh }: Props) {
         const res = await chrome.runtime.sendMessage({
           type: "RECOMMEND_SITES",
           keyword,
+          count,
         }) as MessageResponse;
         if (res.success && Array.isArray(res.data)) {
           setRecommendations(res.data);
@@ -45,7 +47,7 @@ export default function RecommendWidget({ keyword, onRefresh }: Props) {
     }, 600); // 디바운스
 
     return () => clearTimeout(timer);
-  }, [keyword]);
+  }, [keyword, count]);
 
   async function handleAdd(site: RecommendedSite) {
     setAddingId(site.url);

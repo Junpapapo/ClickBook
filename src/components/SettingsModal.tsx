@@ -144,6 +144,7 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
   const changed =
     draft.recentCount !== settings.recentCount ||
     draft.rankingCount !== settings.rankingCount ||
+    draft.recommendCount !== settings.recommendCount ||
     draft.maxFolderDepth !== settings.maxFolderDepth ||
     draft.keepExistingFolders !== settings.keepExistingFolders;
 
@@ -290,6 +291,14 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
                   max={20}
                   onChange={(v) => set("rankingCount", v)}
                   description={t("settingsRankingCountDesc")}
+                />
+                <NumInput
+                  label={t("settingsRecommendCountLabel")}
+                  value={draft.recommendCount}
+                  min={1}
+                  max={20}
+                  onChange={(v) => set("recommendCount", v)}
+                  description={t("settingsRecommendCountDesc")}
                 />
               </div>
             </div>

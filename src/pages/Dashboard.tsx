@@ -18,6 +18,7 @@ interface Props {
   onRefresh: () => void;
   recentCount: number;
   rankingCount: number;
+  recommendCount: number;
   searchQuery?: string;
 }
 
@@ -32,7 +33,7 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, onSelectFolder, onRefresh, searchQuery }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
@@ -94,7 +95,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       
       {/* AI 추천 검색 (검색어 있을 때만) */}
       {isAIAvailable() && searchQuery && (
-        <RecommendWidget keyword={searchQuery} onRefresh={onRefresh} />
+        <RecommendWidget keyword={searchQuery} count={recommendCount} onRefresh={onRefresh} />
       )}
 
       {/* フォルダーサマリー */}

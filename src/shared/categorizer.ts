@@ -83,7 +83,7 @@ Respond with only the category ID, nothing else.`,
 }
 
 // AI 가 키워드에 근접한 베스트 사이트 추천 (추천 검색용)
-export async function recommendSites(keyword: string): Promise<Array<{ title: string; url: string }>> {
+export async function recommendSites(keyword: string, count = 6): Promise<Array<{ title: string; url: string }>> {
   if (!keyword.trim()) return [];
   try {
     const glob = (self as any) ?? (globalThis as any);
@@ -91,7 +91,7 @@ export async function recommendSites(keyword: string): Promise<Array<{ title: st
     if (!lm || typeof lm.create !== "function") return [];
 
     const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      systemPrompt: `You are a helpful assistant that recommends top websites. Given a keyword, provide 3 to 5 best and most popular websites related to that keyword.
+      systemPrompt: `You are a helpful assistant that recommends top websites. Given a keyword, provide ${count} best and most popular websites related to that keyword.
 Output MUST be a JSON array of objects with "title" and "url" properties. No markdown, no conversational text.`,
     });
 

@@ -165,6 +165,8 @@ const en = {
   settingsRecentCountLabel: "Recently added count",
   settingsRecentCountDesc:
     "Number of items shown in \"Recently Added\" on dashboard",
+  settingsRecommendCountLabel: "AI Recommended search count",
+  settingsRecommendCountDesc: "Number of items shown in AI recommendations",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub Real-time Ranking",
@@ -472,6 +474,8 @@ const ja: typeof en = {
   backupPrefix: "バックアップ: ",
   settingsRecentCountLabel: "最近追加の表示数",
   settingsRecentCountDesc: "ダッシュボードの「最近追加」に表示する件数",
+  settingsRecommendCountLabel: "AI おすすめサイトの表示数",
+  settingsRecommendCountDesc: "AI おすすめ検索に表示する件数",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub リアルタイムランキング",
@@ -778,6 +782,8 @@ const ko: typeof en = {
   backupPrefix: "백업: ",
   settingsRecentCountLabel: "최근 추가 표시 수",
   settingsRecentCountDesc: "대시보드의 「최근 추가」에 표시할 개수",
+  settingsRecommendCountLabel: "AI 추천 사이트 표시 수",
+  settingsRecommendCountDesc: "AI 추천 검색 결과에 표시할 개수",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub 실시간 랭킹",
