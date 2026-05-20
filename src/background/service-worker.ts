@@ -500,11 +500,6 @@ async function restoreNode(node: chrome.bookmarks.BookmarkTreeNode, parentId: st
 
 // ── AI Reorganize Helper ──────────────────────────────────
 
-const AI_REORGANIZE_CATEGORIES = new Set([
-  "technology", "design", "business", "entertainment",
-  "science", "sports", "travel", "other",
-]);
-
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -558,16 +553,76 @@ async function runAIReorganizeViaPort(port: chrome.runtime.Port): Promise<void> 
     );
     if (disconnected) return;
 
-    // 4. 차이가 있는 것만 이동
-    const { moveBookmark } = await import("@/shared/storage");
+    // 4. 차이가 있는 것만 이동 (필요시 새 폴더 생성)
+    const { moveBookmark, createFolder } = await import("@/shared/storage");
     let movedCount = 0;
-    for (const [bookmarkId, newFolderId] of moves) {
+
+    for (const [bookmarkId, catPath] of moves) {
       const existing = data.bookmarks.find((b) => b.id === bookmarkId);
-      if (existing && existing.folderId !== newFolderId) {
-        await moveBookmark(bookmarkId, newFolderId);
+      if (!existing) continue;
+
+      const parts = catPath.split("/").map(p => p.trim()).filter(Boolean);
+      if (parts.length === 0) continue;
+
+      // 설정에 따른 최대 깊이 제한
+      const allowedParts = parts.slice(0, settings.maxFolderDepth);
+
+      let currentParentId: string | null = null;
+      let targetFolderId = existing.folderId; // 기본값
+
+      for (let i = 0; i < allowedParts.length; i++) {
+        const partName = allowedParts[i];
+        
+        // 부모 ID 하위에서 이름으로 폴더 찾기 (대소문자 무시)
+        let folder = data.folders.find(
+          f => f.parentId === currentParentId && 
+               (f.name.toLowerCase() === partName.toLowerCase() || 
+                (f.nameJa && f.nameJa.toLowerCase() === partName.toLowerCase()))
+        );
+
+        if (!folder) {
+          // 폴더가 없으면 새로 생성
+          folder = await createFolder(partName, currentParentId, "Folder");
+          // 로컬 데이터 배열에도 추가해 주어야 다음 파트가 찾을 수 있음
+          data.folders.push(folder);
+        }
+
+        currentParentId = folder.id;
+        targetFolderId = folder.id;
+      }
+
+      if (existing.folderId !== targetFolderId) {
+        await moveBookmark(bookmarkId, targetFolderId);
         movedCount++;
       }
     }
+
+    // 빈 폴더 정리 (기본 폴더, 잠긴 폴더 제외)
+    // 데이터 갱신 후 다시 읽어오기
+    const updatedData = await getAllData();
+    const { deleteFolder } = await import("@/shared/storage");
+    
+    // 폴더 삭제 로직: 자식 폴더가 없고 북마크가 없는 폴더를 찾아서 삭제 (반복적으로 수행)
+    let foldersDeleted = 0;
+    let keepChecking = true;
+    while(keepChecking) {
+      keepChecking = false;
+      const currentData = await getAllData();
+      for (const folder of currentData.folders) {
+        if (folder.isDefault || folder.locked) continue;
+        
+        const hasBookmarks = currentData.bookmarks.some(b => b.folderId === folder.id);
+        const hasChildren = currentData.folders.some(f => f.parentId === folder.id);
+        
+        if (!hasBookmarks && !hasChildren) {
+          await deleteFolder(folder.id);
+          foldersDeleted++;
+          keepChecking = true; // 삭제 후 트리가 변했으므로 다시 검사
+          break; // 현재 for 루프 탈출 후 while 다시 시작
+        }
+      }
+    }
+    console.log(`[AI Organize] Deleted ${foldersDeleted} empty folders.`);
 
     // 5. 완료 결과를 포트로 전송
     send({ type: "done", movedCount, total: data.bookmarks.length, backupName });
@@ -617,9 +672,10 @@ async function reorganizeWithAI(
   console.log(`[AI Organize] Step1: domain rules applied for ${bookmarks.length} bookmarks`);
 
   // ── Step 2: AI 세션 생성 시도 (실패해도 Step1 결과로 종료) ──
-  const folderHint = existingFolders && existingFolders.length > 0
-    ? ` Prefer: ${existingFolders.map((f) => f.nameJa || f.name).join(", ")}.`
-    : "";
+  const folderNames = existingFolders ? existingFolders.map((f) => f.nameJa || f.name) : [];
+  const folderHint = folderNames.length > 0
+    ? ` Try to use these existing folders if they fit: [${folderNames.join(", ")}]. If you must create a new one, make it a BROAD category, not a specific one.`
+    : ` Create a few BROAD categories (e.g., "Gaming", "Development", "Finance"). Do NOT create micro-categories.`;
 
   let session: { prompt: (s: string) => Promise<string>; destroy: () => void } | null = null;
   try {
@@ -628,8 +684,7 @@ async function reorganizeWithAI(
     if (lm && typeof lm.create === "function") {
       session = await withTimeout(
         (lm.create as (opts: unknown) => Promise<typeof session>)({
-          systemPrompt:
-            `You are a bookmark categorizer. Given a numbered list of bookmarks, respond with a JSON array of category IDs in the SAME ORDER. Each must be one of: technology, design, business, entertainment, science, sports, travel, other.${folderHint} Respond ONLY with the JSON array. Example: ["technology","other"]`,
+          systemPrompt: `You are a strict data categorization API. You group bookmarks into broad categories. You output ONLY a JSON array of strings. No markdown, no conversational text.`,
         }),
         15000
       );
@@ -658,23 +713,52 @@ async function reorganizeWithAI(
         .map((bm, idx) => `${idx + 1}. ${bm.title} | ${bm.url}`)
         .join("\n");
 
-      // 배치당 최대 30초 (10개 × 3초)
-      const response = await withTimeout(session.prompt(lines), 30000);
+      const promptText = `Task: Group bookmarks into hierarchy.
+${folderHint}
+CRITICAL: Do NOT create a unique category for every site. Group similar sites together. Reuse category names.
+You can create subfolders using a slash (/). Example: "Technology/AI" or "Entertainment/Gaming".
+The output MUST be exactly a JSON array of strings.
+
+Example:
+Input:
+1. GitHub | https://github.com
+2. OpenAI | https://openai.com
+3. Netflix | https://netflix.com
+4. YouTube | https://youtube.com
+Output:
+["Technology/Development", "Technology/AI", "Entertainment/Video", "Entertainment/Video"]
+
+Input:
+${lines}
+Output:`;
+
+      // 배치당 최대 60초 (충분한 시간 부여)
+      const response = await withTimeout(session.prompt(promptText), 60000);
+      console.log(`[AI Organize] Raw AI response for batch ${batchNum}:`, response);
 
       const jsonMatch = response.match(/\[[\s\S]*?\]/);
       if (jsonMatch) {
-        const parsed: unknown[] = JSON.parse(jsonMatch[0]);
-        if (Array.isArray(parsed) && parsed.length === batch.length) {
-          for (let j = 0; j < batch.length; j++) {
-            const cat = String(parsed[j]).trim().toLowerCase();
-            if (AI_REORGANIZE_CATEGORIES.has(cat)) {
-              result.set(batch[j].id, cat); // AI 결과로 덮어쓰기
+        try {
+          const parsed: unknown[] = JSON.parse(jsonMatch[0]);
+          console.log(`[AI Organize] Parsed JSON for batch ${batchNum}:`, parsed);
+          if (Array.isArray(parsed) && parsed.length === batch.length) {
+            for (let j = 0; j < batch.length; j++) {
+              const cat = String(parsed[j]).trim();
+              if (cat.length > 0 && cat !== "other") {
+                result.set(batch[j].id, cat); // AI 결과로 덮어쓰기 (자유로운 카테고리명 허용)
+              }
+              // 유효하지 않거나 "other"면 Step1의 도메인 룰 결과 유지
             }
-            // 유효하지 않으면 Step1의 도메인 룰 결과 유지
+            aiBatchSuccess++;
+            console.log(`[AI Organize] Batch ${batchNum} OK`);
+          } else {
+            console.warn(`[AI Organize] Array length mismatch in batch ${batchNum}. Expected ${batch.length}, got ${Array.isArray(parsed) ? parsed.length : 'not an array'}`);
           }
-          aiBatchSuccess++;
-          console.log(`[AI Organize] Batch ${batchNum} OK`);
+        } catch (parseErr) {
+          console.error(`[AI Organize] JSON parse error in batch ${batchNum}:`, parseErr, "Raw matched string:", jsonMatch[0]);
         }
+      } else {
+        console.warn(`[AI Organize] No JSON array found in response for batch ${batchNum}`);
       }
     } catch (err) {
       console.warn(`[AI Organize] Batch ${batchNum} failed (domain rules kept):`, err);
