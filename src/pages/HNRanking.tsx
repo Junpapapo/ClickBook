@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { fetchHNTopStories } from "@/shared/rankingApi";
 import type { HNStory } from "@/shared/types";
-import { Newspaper, MessageSquare, ArrowBigUp, ExternalLink, AlertCircle, BookmarkPlus, Check, Search } from "lucide-react";
+import { Newspaper, MessageSquare, ArrowBigUp, ExternalLink, Loader2, AlertCircle, BookmarkPlus, Check, Search } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import RankingSkeleton from "@/components/RankingSkeleton";
 
@@ -62,18 +62,10 @@ export default function HNRankingPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-surface-800 pb-4">
         <div>
-          <a 
-            href="https://news.ycombinator.com/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2"
-          >
-            <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-              <Newspaper className="text-orange-500 shrink-0 w-6 h-6" />
-              {t("hnRanking")}
-            </h1>
-            <ExternalLink size={14} className="text-gray-300 group-hover:text-orange-400 transition-colors" />
-          </a>
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+            <Newspaper className="text-orange-500 shrink-0 w-6 h-6" />
+            {t("hnRanking")}
+          </h1>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             {lang === "ko" ? "IT 및 스타트업 업계에서 현재 가장 뜨거운 뉴스들입니다." : 
              lang === "ja" ? "IT・スタートアップ業界で現在最も話題のニュースです。" : 
@@ -107,8 +99,8 @@ export default function HNRankingPage() {
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-12 shrink-0">{t("thRank")}</th>
-                  <th className="px-4 py-3 text-left whitespace-nowrap">Title</th>
+                  <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
+                  <th className="px-4 py-3 text-left">Title</th>
                   <th className="px-4 py-3 text-right w-24">Points</th>
                   <th className="px-4 py-3 text-right w-24">Comments</th>
                   <th className="px-4 py-3 text-center w-28">Author</th>
@@ -121,8 +113,8 @@ export default function HNRankingPage() {
                   const isSaved = savedIds.has(s.id);
                   return (
                     <tr key={s.id} className="hover:bg-orange-50/20 dark:hover:bg-orange-950/10 transition-colors">
-                      <td className="px-4 py-3.5 text-center shrink-0 font-bold text-gray-400 dark:text-gray-600">{i + 1}</td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{i + 1}</td>
+                      <td className="px-4 py-3.5">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-800 dark:text-gray-100 leading-snug">{s.title}</span>
                           <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-[400px]">

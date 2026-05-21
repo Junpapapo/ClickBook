@@ -62,18 +62,10 @@ export default function HFRankingPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-surface-800 pb-4">
         <div>
-          <a 
-            href="https://huggingface.co/models" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2"
-          >
-            <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
-              <Sparkles className="text-yellow-500 shrink-0 w-6 h-6" />
-              {t("hfRanking")}
-            </h1>
-            <ExternalLink size={14} className="text-gray-300 group-hover:text-yellow-400 transition-colors" />
-          </a>
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+            <Sparkles className="text-yellow-500 shrink-0 w-6 h-6" />
+            {t("hfRanking")}
+          </h1>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             {lang === "ko" ? "Hugging Face에서 지금 가장 주목받는 AI 모델들입니다." : 
              lang === "ja" ? "Hugging Faceで現在注目されているAIモデルのランキングです。" : 
@@ -107,8 +99,8 @@ export default function HFRankingPage() {
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-12 shrink-0">{t("thRank")}</th>
-                  <th className="px-4 py-3 text-left whitespace-nowrap">Model Name</th>
+                  <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
+                  <th className="px-4 py-3 text-left">Model Name</th>
                   <th className="px-4 py-3 text-right w-24">Likes</th>
                   <th className="px-4 py-3 text-right w-24">Downloads</th>
                   <th className="px-4 py-3 text-center w-32">Last Updated</th>
@@ -121,8 +113,8 @@ export default function HFRankingPage() {
                   const isSaved = savedIds.has(m.id);
                   return (
                     <tr key={m.id} className="hover:bg-yellow-50/20 dark:hover:bg-yellow-950/10 transition-colors">
-                      <td className="px-4 py-3.5 text-center shrink-0 font-bold text-gray-400 dark:text-gray-600">{i + 1}</td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{i + 1}</td>
+                      <td className="px-4 py-3.5">
                         <div className="flex flex-col">
                           <span className="font-semibold text-gray-800 dark:text-gray-100">{m.repo_name}</span>
                           <span className="text-[10px] text-gray-400 dark:text-gray-500">{m.author}</span>
