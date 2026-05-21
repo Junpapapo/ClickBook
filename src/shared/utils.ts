@@ -13,3 +13,13 @@ import type { Message, MessageResponse } from "@/shared/types";
 export function sendMsg(message: Message): Promise<MessageResponse> {
   return chrome.runtime.sendMessage(message) as Promise<MessageResponse>;
 }
+
+export function formatLastUpdated(timestamp: number): string {
+  if (!timestamp) return "";
+  const d = new Date(timestamp);
+  const MM = String(d.getMonth() + 1).padStart(2, "0");
+  const DD = String(d.getDate()).padStart(2, "0");
+  const HH = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${MM}-${DD} ${HH}:${mm}`;
+}

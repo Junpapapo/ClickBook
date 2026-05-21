@@ -16,6 +16,12 @@ interface Props {
   onToggleSidebarChrome: () => void;
   showGitHubRankingMenu: boolean;
   onToggleGitHubRankingMenu: (v: boolean) => void;
+  showWikiRankingMenu: boolean;
+  onToggleWikiRankingMenu: (v: boolean) => void;
+  showHFRankingMenu: boolean;
+  onToggleHFRankingMenu: (v: boolean) => void;
+  showHNRankingMenu: boolean;
+  onToggleHNRankingMenu: (v: boolean) => void;
 }
 
 function NumInput({
@@ -116,7 +122,14 @@ const LANG_OPTIONS: { value: Lang; label: string; native: string }[] = [
   { value: "ko", label: "Korean", native: "한국어" },
 ];
 
-export default function SettingsModal({ settings, onSave, onClose, onExportJSON, onExportHTML, onImport, sidebarChromeOpen, onToggleSidebarChrome, showGitHubRankingMenu, onToggleGitHubRankingMenu }: Props) {
+export default function SettingsModal({
+  settings, onSave, onClose, onExportJSON, onExportHTML, onImport,
+  sidebarChromeOpen, onToggleSidebarChrome,
+  showGitHubRankingMenu, onToggleGitHubRankingMenu,
+  showWikiRankingMenu, onToggleWikiRankingMenu,
+  showHFRankingMenu, onToggleHFRankingMenu,
+  showHNRankingMenu, onToggleHNRankingMenu
+}: Props) {
   const { t, lang, setLang } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
@@ -295,6 +308,24 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
                   checked={showGitHubRankingMenu}
                   onChange={(v) => onToggleGitHubRankingMenu(v)}
                   description={t("githubRankingMenuDesc")}
+                />
+                <Toggle
+                  label={t("wikiRanking")}
+                  checked={showWikiRankingMenu}
+                  onChange={(v) => onToggleWikiRankingMenu(v)}
+                  description={t("wikiRankingMenuDesc") || "Show Wikipedia Trending menu"}
+                />
+                <Toggle
+                  label={t("hfRanking")}
+                  checked={showHFRankingMenu}
+                  onChange={(v) => onToggleHFRankingMenu(v)}
+                  description={t("hfRankingMenuDesc") || "Show Hugging Face AI menu"}
+                />
+                <Toggle
+                  label={t("hnRanking")}
+                  checked={showHNRankingMenu}
+                  onChange={(v) => onToggleHNRankingMenu(v)}
+                  description={t("hnRankingMenuDesc") || "Show Hacker News menu"}
                 />
                 <Toggle
                   label={t("settingsOpenNewTabLabel")}

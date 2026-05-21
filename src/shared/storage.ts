@@ -227,6 +227,12 @@ export async function toggleFolderCollapsed(id: string): Promise<void> {
   await writeStorage(data);
 }
 
+export async function collapseAllFolders(): Promise<void> {
+  const data = await readStorage();
+  data.folders = data.folders.map((f) => ({ ...f, collapsed: true }));
+  await writeStorage(data);
+}
+
 export async function toggleFolderLock(id: string): Promise<void> {
   const data = await readStorage();
   data.folders = data.folders.map((f) =>

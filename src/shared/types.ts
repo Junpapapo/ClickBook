@@ -22,6 +22,7 @@ export interface GitHubRepo {
 
 export interface GitHubRankingCache {
   date: string; // YYYY-MM-DD
+  timestamp: number;
   items: GitHubRepo[];
   customQueries: Record<string, GitHubRepo[]>; // クエリ文字列→結果
 }

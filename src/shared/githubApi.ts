@@ -28,29 +28,32 @@ export async function fetchCustomRepos(query: string): Promise<GitHubRepo[]> {
 }
 
 // キャッシュ取得・保存ロジック
-export async function getCachedTopRepos(): Promise<GitHubRepo[]> {
+export async function getCachedTopRepos(forceRefresh: boolean = false): Promise<{ items: GitHubRepo[], lastUpdated: number }> {
   const today = getToday();
   const cache = await getGitHubRankingCache();
-  if (cache && cache.date === today && cache.items?.length) {
-    return cache.items;
+  if (!forceRefresh && cache && cache.date === today && cache.items?.length) {
+    return { items: cache.items, lastUpdated: cache.timestamp || Date.now() };
   }
   const items = await fetchTopRepos();
-  await setGitHubRankingCache({ date: today, items, customQueries: cache?.customQueries ?? {} });
-  return items;
+  const ts = Date.now();
+  await setGitHubRankingCache({ date: today, timestamp: ts, items, customQueries: cache?.customQueries ?? {} });
+  return { items, lastUpdated: ts };
 }
 
-export async function getCachedCustomRepos(query: string): Promise<GitHubRepo[]> {
+export async function getCachedCustomRepos(query: string, forceRefresh: boolean = false): Promise<{ items: GitHubRepo[], lastUpdated: number }> {
   const today = getToday();
   const cache = await getGitHubRankingCache();
-  if (cache && cache.date === today && cache.customQueries?.[query]?.length) {
-    return cache.customQueries[query];
+  if (!forceRefresh && cache && cache.date === today && cache.customQueries?.[query]?.length) {
+    return { items: cache.customQueries[query], lastUpdated: cache.timestamp || Date.now() };
   }
   const items = await fetchCustomRepos(query);
+  const ts = Date.now();
   const newCache: GitHubRankingCache = {
     date: today,
+    timestamp: ts,
     items: cache?.items ?? [],
     customQueries: { ...(cache?.customQueries ?? {}), [query]: items },
   };
   await setGitHubRankingCache(newCache);
-  return items;
+  return { items, lastUpdated: ts };
 }

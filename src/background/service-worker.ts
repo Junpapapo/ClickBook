@@ -120,6 +120,11 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       await toggleFolderCollapsed(message.id);
       return { success: true };
     }
+    case "COLLAPSE_ALL_FOLDERS": {
+      const { collapseAllFolders } = await import("@/shared/storage");
+      await collapseAllFolders();
+      return { success: true };
+    }
     case "TOGGLE_FOLDER_LOCK": {
       const { toggleFolderLock } = await import("@/shared/storage");
       await toggleFolderLock(message.id);

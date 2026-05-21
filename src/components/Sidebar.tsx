@@ -3,6 +3,7 @@ import {
   Home,
   ChevronRight,
   ChevronDown,
+  ChevronsUp,
   Plus,
   Trash2,
   Pencil,
@@ -302,6 +303,11 @@ export default function Sidebar({
     onRefresh();
   }
 
+  async function handleCollapseAll() {
+    await chrome.runtime.sendMessage({ type: "COLLAPSE_ALL_FOLDERS" });
+    onRefresh();
+  }
+
   async function handleToggleLock(id: string) {
     await chrome.runtime.sendMessage({ type: "TOGGLE_FOLDER_LOCK", id });
     onRefresh();
@@ -427,6 +433,10 @@ export default function Sidebar({
           onDragOver={(e) => onDragOver(e, f.id)}
           onDragLeave={onDragLeave}
           onDrop={(e) => onDrop(e, f.id)}
+          onClick={() => {
+            onSelect(f.id);
+            if (hasChildren) handleToggle(f.id);
+          }}
           className={`
             group flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer
             transition-all duration-150 rounded-lg mx-1.5
@@ -495,8 +505,7 @@ export default function Sidebar({
             </div>
           ) : (
             <span
-              className="truncate flex-1 min-w-0"
-              onClick={() => onSelect(f.id)}
+              className="truncate flex-1 min-w-0 font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors"
               onDoubleClick={(e) => {
                 if (f.id === "other") return;
                 e.stopPropagation();
@@ -791,60 +800,33 @@ export default function Sidebar({
             </span>
           )}
         </button>
-        {/* GitHubランキングボタン追加 */}
-        {onSelectGitHubRanking && (
-          <button
-            onClick={onSelectGitHubRanking}
-            className="flex items-center gap-2.5 w-full px-3 py-2 mt-1 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-          >
-            <Trophy size={15} className="shrink-0" />
-            {t("githubRanking")}
-          </button>
-        )}
-        {onSelectWikiRanking && (
-          <button
-            onClick={onSelectWikiRanking}
-            className="flex items-center gap-2.5 w-full px-3 py-2 mt-0.5 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10"
-          >
-            <Book size={15} className="shrink-0" />
-            {t("wikiRanking")}
-          </button>
-        )}
-        {onSelectHFRanking && (
-          <button
-            onClick={onSelectHFRanking}
-            className="flex items-center gap-2.5 w-full px-3 py-2 mt-0.5 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/10"
-          >
-            <Sparkles size={15} className="shrink-0" />
-            {t("hfRanking")}
-          </button>
-        )}
-        {onSelectHNRanking && (
-          <button
-            onClick={onSelectHNRanking}
-            className="flex items-center gap-2.5 w-full px-3 py-2 mt-0.5 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/10"
-          >
-            <Newspaper size={15} className="shrink-0" />
-            {t("hnRanking")}
-          </button>
-        )}
+
       </div>
 
       {/* セクションヘッダー */}
-      <div className="px-4 pt-3 pb-1.5 flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold">
+      <div className="px-4 pt-4 pb-2 flex items-center justify-between group">
+        <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300 tracking-wider flex-1">
           {t("folders")}
-        </span>
-        <button
-          onClick={() => {
-            setCreatingUnder(null);
-            setNewFolderName("");
-          }}
-          title={t("addRootFolderTooltip")}
-          className="p-0.5 text-gray-600 hover:text-indigo-400 transition-colors"
-        >
-          <Plus size={13} />
-        </button>
+        </h3>
+        <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={handleCollapseAll}
+            title={t("collapseAll") || "Collapse All"}
+            className="p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+          >
+            <ChevronsUp size={14} />
+          </button>
+          <button
+            onClick={() => {
+              setCreatingUnder(null);
+              setNewFolderName("");
+            }}
+            title={t("addRootFolderTooltip")}
+            className="p-1 text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
       </div>
 
       {creatingUnder === null && (
@@ -882,6 +864,49 @@ export default function Sidebar({
       {/* フォルダーツリー */}
       <nav className="flex-1 overflow-y-auto py-1 space-y-0.5 bg-gray-50 dark:bg-surface-950 border-t border-gray-200 dark:border-surface-700">
         {tree.map((node) => renderNode(node, 0))}
+
+        {/* 랭킹 메뉴 */}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 space-y-0.5 px-1.5 pb-4">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold px-2 mb-1 block">
+            Trending
+          </span>
+          {onSelectGitHubRanking && (
+            <button
+              onClick={onSelectGitHubRanking}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            >
+              <Trophy size={15} className="shrink-0" />
+              {t("githubRanking")}
+            </button>
+          )}
+          {onSelectWikiRanking && (
+            <button
+              onClick={onSelectWikiRanking}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+            >
+              <Book size={15} className="shrink-0" />
+              {t("wikiRanking")}
+            </button>
+          )}
+          {onSelectHFRanking && (
+            <button
+              onClick={onSelectHFRanking}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/10"
+            >
+              <Sparkles size={15} className="shrink-0" />
+              {t("hfRanking")}
+            </button>
+          )}
+          {onSelectHNRanking && (
+            <button
+              onClick={onSelectHNRanking}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/10"
+            >
+              <Newspaper size={15} className="shrink-0" />
+              {t("hnRanking")}
+            </button>
+          )}
+        </div>
       </nav>
 
       {/* フッター */}

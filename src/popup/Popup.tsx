@@ -3,7 +3,7 @@ import {
   BookmarkPlus, BookmarkCheck, ExternalLink, AlertCircle, CheckCircle2, Loader2,
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
   Settings, Globe2, Check, Sun, Moon,
-  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy,
+  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy, Book, Newspaper
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import type { MessageResponse, MemoColor } from "@/shared/types";
@@ -34,6 +34,11 @@ export default function Popup() {
   const [textImportResult, setTextImportResult] = useState<{ saved: number; skipped: number } | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [chromePanel, setChromePanel] = useState(false);
+  const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
+  const [showWikiRankingMenu, setShowWikiRankingMenu] = useState(true);
+  const [showHFRankingMenu, setShowHFRankingMenu] = useState(true);
+  const [showHNRankingMenu, setShowHNRankingMenu] = useState(true);
+  const [openDashboardInNewTab, setOpenDashboardInNewTab] = useState(false);
   const [clearSelections, setClearSelections] = useState({
     cache: true, cookies: true, downloads: false, history: false, storage: false, passwords: false,
   });
@@ -43,8 +48,7 @@ export default function Popup() {
   const [memoText, setMemoText] = useState("");
   const [memoColor, setMemoColor] = useState<MemoColor>("yellow");
   const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done">("idle");
-  const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
-  const [openDashboardInNewTab, setOpenDashboardInNewTab] = useState(false);
+
   const [popupTheme, setPopupThemeState] = useState<"light" | "dark">(() => {
     const s = localStorage.getItem("clickbook_theme");
     return s === "light" ? "light" : "dark";
@@ -63,9 +67,19 @@ export default function Popup() {
   }, []);
 
   useEffect(() => {
-    chrome.storage.local.get(["clickbook_popup_chrome", "clickbook_show_github_ranking", "clickbook_settings"], (r) => {
+    chrome.storage.local.get([
+      "clickbook_popup_chrome", 
+      "clickbook_show_github_ranking", 
+      "clickbook_show_wiki_ranking",
+      "clickbook_show_hf_ranking",
+      "clickbook_show_hn_ranking",
+      "clickbook_settings"
+    ], (r) => {
       if (r.clickbook_popup_chrome === true) setChromePanel(true);
       if (r.clickbook_show_github_ranking !== undefined) setShowGitHubRankingMenu(r.clickbook_show_github_ranking);
+      if (r.clickbook_show_wiki_ranking !== undefined) setShowWikiRankingMenu(r.clickbook_show_wiki_ranking);
+      if (r.clickbook_show_hf_ranking !== undefined) setShowHFRankingMenu(r.clickbook_show_hf_ranking);
+      if (r.clickbook_show_hn_ranking !== undefined) setShowHNRankingMenu(r.clickbook_show_hn_ranking);
       if (r.clickbook_settings?.openDashboardInNewTab !== undefined) {
         setOpenDashboardInNewTab(r.clickbook_settings.openDashboardInNewTab);
       }
@@ -414,7 +428,7 @@ export default function Popup() {
                     setShowGitHubRankingMenu(v);
                     chrome.storage.local.set({ clickbook_show_github_ranking: v });
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors rounded-b-xl"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
                 >
                   <Trophy size={13} />
                   {t("githubRanking")}
@@ -422,6 +436,54 @@ export default function Popup() {
                     showGitHubRankingMenu ? "bg-indigo-500 border-indigo-500" : "border-surface-500"
                   }`}>
                     {showGitHubRankingMenu && <Check size={9} className="text-white" />}
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    const v = !showWikiRankingMenu;
+                    setShowWikiRankingMenu(v);
+                    chrome.storage.local.set({ clickbook_show_wiki_ranking: v });
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
+                >
+                  <Book size={13} />
+                  {t("wikiRanking")}
+                  <span className={`ml-auto w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                    showWikiRankingMenu ? "bg-indigo-500 border-indigo-500" : "border-surface-500"
+                  }`}>
+                    {showWikiRankingMenu && <Check size={9} className="text-white" />}
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    const v = !showHFRankingMenu;
+                    setShowHFRankingMenu(v);
+                    chrome.storage.local.set({ clickbook_show_hf_ranking: v });
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
+                >
+                  <Sparkles size={13} />
+                  {t("hfRanking")}
+                  <span className={`ml-auto w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                    showHFRankingMenu ? "bg-indigo-500 border-indigo-500" : "border-surface-500"
+                  }`}>
+                    {showHFRankingMenu && <Check size={9} className="text-white" />}
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    const v = !showHNRankingMenu;
+                    setShowHNRankingMenu(v);
+                    chrome.storage.local.set({ clickbook_show_hn_ranking: v });
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors rounded-b-xl"
+                >
+                  <Newspaper size={13} />
+                  {t("hnRanking")}
+                  <span className={`ml-auto w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
+                    showHNRankingMenu ? "bg-indigo-500 border-indigo-500" : "border-surface-500"
+                  }`}>
+                    {showHNRankingMenu && <Check size={9} className="text-white" />}
                   </span>
                 </button>
               </div>

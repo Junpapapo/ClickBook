@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Check, X, Pencil, Lock, LockOpen, Trash2 } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
@@ -8,7 +8,6 @@ import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types"
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { getLocalizedFolderName, DEFAULT_FOLDER_ID } from "@/shared/categories";
-import { isAIAvailable } from "@/shared/categorizer";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -45,8 +44,12 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
 
   useEffect(() => {
     async function checkAI() {
-      const available = await isAIAvailable();
-      setAiAvailable(available);
+      try {
+        const result = await chrome.storage.local.get("clickbook_ai_enabled");
+        setAiAvailable(result.clickbook_ai_enabled === true);
+      } catch (e) {
+        setAiAvailable(false);
+      }
     }
     checkAI();
   }, []);
@@ -74,10 +77,36 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
     onRefresh();
   }
 
-  const countByFolder = bookmarks.reduce<Record<string, number>>((acc, b) => {
-    acc[b.folderId] = (acc[b.folderId] ?? 0) + 1;
-    return acc;
-  }, {});
+  const folderToRoot = useMemo(() => {
+    const map: Record<string, string> = {};
+    const getRoot = (id: string): string => {
+      const f = folders.find(f => f.id === id);
+      if (!f) return id; // Fallback
+      if (f.parentId === null) return id;
+      return getRoot(f.parentId);
+    };
+    for (const f of folders) {
+      map[f.id] = getRoot(f.id);
+    }
+    return map;
+  }, [folders]);
+
+  const countByFolder = useMemo(() => {
+    return bookmarks.reduce<Record<string, number>>((acc, b) => {
+      const rootId = folderToRoot[b.folderId] || b.folderId;
+      acc[rootId] = (acc[rootId] ?? 0) + 1;
+      return acc;
+    }, {});
+  }, [bookmarks, folderToRoot]);
+
+  const subfolderCountByFolder = useMemo(() => {
+    return folders.reduce<Record<string, number>>((acc, f) => {
+      if (f.parentId !== null) {
+        acc[f.parentId] = (acc[f.parentId] ?? 0) + 1;
+      }
+      return acc;
+    }, {});
+  }, [folders]);
 
   function startRename(f: Folder) {
     setRenameValue(f.name);
@@ -116,6 +145,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
         <div className="grid grid-cols-4 xl:grid-cols-8 gap-2">
           {rootFolders.map((f) => {
             const count = countByFolder[f.id] ?? 0;
+            const subCount = subfolderCountByFolder[f.id] ?? 0;
             const isRenaming = renamingFolderId === f.id;
             return (
               <div
@@ -156,9 +186,16 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                     )}
                   </div>
                 )}
-                <span className="text-lg">
-                  {f.icon && !/^[A-Za-z0-9_]+$/.test(f.icon) ? f.icon : (EMOJI_MAP[f.id] ?? "📂")}
-                </span>
+                <div className="relative">
+                  <span className="text-lg">
+                    {f.icon && !/^[A-Za-z0-9_]+$/.test(f.icon) ? f.icon : (EMOJI_MAP[f.id] ?? "📂")}
+                  </span>
+                  {subCount > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold px-1 py-0.5 rounded-full leading-none shadow-[0_0_2px_rgba(0,0,0,0.1)]">
+                      {subCount}
+                    </span>
+                  )}
+                </div>
                 {isRenaming ? (
                   <div
                     className="flex flex-col items-center gap-1 w-full"
@@ -192,10 +229,10 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                   </div>
                 ) : (
                   <>
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate w-full text-center">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate w-full text-center mt-1">
                       {getLocalizedFolderName(f, lang)}
                     </span>
-                    <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
                       {count}
                     </span>
                   </>

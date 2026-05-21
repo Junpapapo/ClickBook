@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
 import { getCachedTopRepos, getCachedCustomRepos } from "@/shared/githubApi";
 import type { GitHubRepo } from "@/shared/types";
-import { Trophy, Star, GitFork, AlertCircle, Search, Globe, Calendar, ChevronDown, ChevronUp, BookmarkPlus, Check } from "lucide-react";
+import { Trophy, Star, GitFork, AlertCircle, Search, Globe, Calendar, ChevronDown, ChevronUp, BookmarkPlus, Check, RefreshCw } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import RankingSkeleton from "@/components/RankingSkeleton";
+import { formatLastUpdated } from "@/shared/utils";
 
 const LANGUAGES = [
   { id: "All", name: "All Languages", query: null },
@@ -39,10 +40,53 @@ export default function GitHubRankingPage() {
   const [dateFilter, setDateFilter] = useState("all");
   const [showLimits, setShowLimits] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [lastUpdated, setLastUpdated] = useState<number>(0);
+
+  const [sortKey, setSortKey] = useState<string>("rank");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const filtered = useMemo(() => {
-    return repos.filter(r => r.name.toLowerCase().includes(filterQuery.toLowerCase()));
-  }, [repos, filterQuery]);
+    let result = repos
+      .map((r, i) => ({ ...r, _originalRank: i + 1 } as GitHubRepo & { _originalRank: number }))
+      .filter(r => r.name.toLowerCase().includes(filterQuery.toLowerCase()));
+
+    if (sortKey !== "rank") {
+      result.sort((a, b) => {
+        let valA = a[sortKey as keyof typeof a];
+        let valB = b[sortKey as keyof typeof b];
+
+        if (typeof valA === "string" && typeof valB === "string") {
+          return sortOrder === "asc" ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+
+        valA = valA ?? 0;
+        valB = valB ?? 0;
+
+        if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+        if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    } else {
+      if (sortOrder === "desc") {
+        result.reverse();
+      }
+    }
+    return result;
+  }, [repos, filterQuery, sortKey, sortOrder]);
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key);
+      setSortOrder("desc");
+    }
+  };
+
+  const SortIcon = ({ columnKey }: { columnKey: string }) => {
+    if (sortKey !== columnKey) return <ChevronDown className="inline w-3 h-3 ml-1 opacity-20" />;
+    return sortOrder === "asc" ? <ChevronUp className="inline w-3 h-3 ml-1 text-indigo-500" /> : <ChevronDown className="inline w-3 h-3 ml-1 text-indigo-500" />;
+  };
 
   const handleQuickSave = async (repo: GitHubRepo) => {
     try {
@@ -65,7 +109,7 @@ export default function GitHubRankingPage() {
     }
   };
 
-  const loadRepos = async (langId: string, filter: string) => {
+  const loadRepos = async (langId: string, filter: string, forceRefresh: boolean = false) => {
     setLoading(true);
     setError("");
     setFilterQuery("");
@@ -74,15 +118,20 @@ export default function GitHubRankingPage() {
       let items: GitHubRepo[] = [];
       const dateQ = getDateQueryStr(filter);
 
+      let newItems: GitHubRepo[] = [];
       if (langId === "All" && filter === "all") {
-        items = await getCachedTopRepos();
+        const result = await getCachedTopRepos(forceRefresh);
+        newItems = result.items;
+        setLastUpdated(result.lastUpdated);
       } else {
         const langConfig = LANGUAGES.find(l => l.id === langId);
         let q = langConfig?.query || "stars:>1000";
         q += dateQ;
-        items = await getCachedCustomRepos(q);
+        const result = await getCachedCustomRepos(q, forceRefresh);
+        newItems = result.items;
+        setLastUpdated(result.lastUpdated);
       }
-      setRepos(items);
+      setRepos(newItems);
     } catch (err) {
       setError(t("errorFetch"));
     } finally {
@@ -100,7 +149,7 @@ export default function GitHubRankingPage() {
     loadRepos(langId, dateFilter);
   };
 
-  const executeSearch = async (q: string, filter: string) => {
+  const executeSearch = async (q: string, filter: string, forceRefresh: boolean = false) => {
     if (!q.trim()) return;
     setLoading(true);
     setCustom(true);
@@ -110,8 +159,9 @@ export default function GitHubRankingPage() {
     try {
       const dateQ = getDateQueryStr(filter);
       const finalQuery = `${q.trim()}${dateQ}`;
-      const items = await getCachedCustomRepos(finalQuery);
-      setRepos(items);
+      const result = await getCachedCustomRepos(finalQuery, forceRefresh);
+      setRepos(result.items);
+      setLastUpdated(result.lastUpdated);
     } catch (err) {
       console.warn("Operation failed:", err);
       setError(t("errorLimit"));
@@ -139,13 +189,28 @@ export default function GitHubRankingPage() {
       {/* 헤더 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-surface-800 pb-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100 group">
             <Trophy className="text-amber-400 shrink-0 w-6 h-6 animate-pulse" />
             {t("githubRankingTitle")}
+            <button
+              onClick={() => query ? executeSearch(query, dateFilter, true) : loadRepos(selectedLang, dateFilter, true)}
+              disabled={loading}
+              title="Refresh"
+              className="ml-2 p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-full transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            </button>
           </h1>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            {t("githubRankingDesc")}
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {t("githubRankingDesc")}
+            </p>
+            {lastUpdated > 0 && (
+              <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-100 dark:bg-surface-800 px-1.5 py-0.5 rounded">
+                Updated: {formatLastUpdated(lastUpdated)}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-3 items-end">
@@ -272,12 +337,22 @@ export default function GitHubRankingPage() {
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
-                  <th className="px-4 py-3 text-left">{t("thProject")}</th>
-                  <th className="px-4 py-3 text-right w-24">Stars</th>
-                  <th className="px-4 py-3 text-right w-24">Forks</th>
-                  <th className="px-4 py-3 text-center w-24">{t("thLang")}</th>
-                  <th className="px-4 py-3 text-right w-24">Issues</th>
+                  <th className="px-4 py-3 text-center w-20 whitespace-nowrap cursor-pointer text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" onClick={() => handleSort("rank")}>
+                    {t("thRank")} <SortIcon columnKey="rank" />
+                  </th>
+                  <th className="px-4 py-3 text-left whitespace-nowrap cursor-pointer text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" onClick={() => handleSort("name")}>
+                    {t("thProject")} <SortIcon columnKey="name" />
+                  </th>
+                  <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" onClick={() => handleSort("stargazers_count")}>
+                    Stars <SortIcon columnKey="stargazers_count" />
+                  </th>
+                  <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" onClick={() => handleSort("forks_count")}>
+                    Forks <SortIcon columnKey="forks_count" />
+                  </th>
+                  <th className="px-4 py-3 text-center w-24 whitespace-nowrap">{t("thLang")}</th>
+                  <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" onClick={() => handleSort("open_issues_count")}>
+                    Issues <SortIcon columnKey="open_issues_count" />
+                  </th>
                   <th className="px-4 py-3 text-left">{t("thDesc")}</th>
                   <th className="px-4 py-3 text-center w-28">{t("thCommit")}</th>
                   <th className="px-4 py-3 text-center w-20">Save</th>
@@ -298,7 +373,7 @@ export default function GitHubRankingPage() {
                       key={repo.id}
                       className="hover:bg-indigo-50/20 dark:hover:bg-indigo-950/10 transition-colors"
                     >
-                      <td className="px-4 py-3.5 text-center">{getRankBadge(i + 1)}</td>
+                      <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{getRankBadge(repo._originalRank)}</td>
                       <td className="px-4 py-3.5 font-medium">
                         <div className="flex items-center gap-2">
                           {repo.owner?.avatar_url && (

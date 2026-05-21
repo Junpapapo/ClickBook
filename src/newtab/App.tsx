@@ -38,6 +38,9 @@ function AppContent() {
   const [settings, setSettings] = useState<AppSettings>({ ...DEFAULT_SETTINGS });
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
+  const [showWikiRankingMenu, setShowWikiRankingMenu] = useState(true);
+  const [showHFRankingMenu, setShowHFRankingMenu] = useState(true);
+  const [showHNRankingMenu, setShowHNRankingMenu] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedKeywords, setExpandedKeywords] = useState<string[]>([]);
@@ -48,9 +51,19 @@ function AppContent() {
   }, [lang, t]);
 
   useEffect(() => {
-    chrome.storage.local.get(["clickbook_sidebar_chrome", "clickbook_show_github_ranking", "clickbook_onboarded"], (r) => {
+    chrome.storage.local.get([
+      "clickbook_sidebar_chrome",
+      "clickbook_show_github_ranking",
+      "clickbook_show_wiki_ranking",
+      "clickbook_show_hf_ranking",
+      "clickbook_show_hn_ranking",
+      "clickbook_onboarded"
+    ], (r) => {
       if (r.clickbook_sidebar_chrome === true) setSidebarChromeOpen(true);
       if (r.clickbook_show_github_ranking !== undefined) setShowGitHubRankingMenu(r.clickbook_show_github_ranking);
+      if (r.clickbook_show_wiki_ranking !== undefined) setShowWikiRankingMenu(r.clickbook_show_wiki_ranking);
+      if (r.clickbook_show_hf_ranking !== undefined) setShowHFRankingMenu(r.clickbook_show_hf_ranking);
+      if (r.clickbook_show_hn_ranking !== undefined) setShowHNRankingMenu(r.clickbook_show_hn_ranking);
       if (!r.clickbook_onboarded) setShowWelcome(true);
     });
   }, []);
@@ -257,30 +270,30 @@ function AppContent() {
           setShowHFRanking(false);
           setShowHNRanking(false);
         } : undefined}
-        onSelectWikiRanking={() => {
+        onSelectWikiRanking={showWikiRankingMenu ? () => {
           setShowWikiRanking(true);
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
           setSelectedFolderId(null);
           setShowHFRanking(false);
           setShowHNRanking(false);
-        }}
-        onSelectHFRanking={() => {
+        } : undefined}
+        onSelectHFRanking={showHFRankingMenu ? () => {
           setShowHFRanking(true);
           setShowWikiRanking(false);
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
           setSelectedFolderId(null);
           setShowHNRanking(false);
-        }}
-        onSelectHNRanking={() => {
+        } : undefined}
+        onSelectHNRanking={showHNRankingMenu ? () => {
           setShowHNRanking(true);
           setShowHFRanking(false);
           setShowWikiRanking(false);
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
           setSelectedFolderId(null);
-        }}
+        } : undefined}
         maxFolderDepth={settings.maxFolderDepth}
         onAiLoadingChange={setAiLoading}
       />
@@ -377,6 +390,24 @@ function AppContent() {
             setShowGitHubRankingMenu(v);
             chrome.storage.local.set({ clickbook_show_github_ranking: v });
             if (!v && showGitHubRanking) setShowGitHubRanking(false);
+          }}
+          showWikiRankingMenu={showWikiRankingMenu}
+          onToggleWikiRankingMenu={(v) => {
+            setShowWikiRankingMenu(v);
+            chrome.storage.local.set({ clickbook_show_wiki_ranking: v });
+            if (!v && showWikiRanking) setShowWikiRanking(false);
+          }}
+          showHFRankingMenu={showHFRankingMenu}
+          onToggleHFRankingMenu={(v) => {
+            setShowHFRankingMenu(v);
+            chrome.storage.local.set({ clickbook_show_hf_ranking: v });
+            if (!v && showHFRanking) setShowHFRanking(false);
+          }}
+          showHNRankingMenu={showHNRankingMenu}
+          onToggleHNRankingMenu={(v) => {
+            setShowHNRankingMenu(v);
+            chrome.storage.local.set({ clickbook_show_hn_ranking: v });
+            if (!v && showHNRanking) setShowHNRanking(false);
           }}
         />
       )}
