@@ -171,13 +171,14 @@ Output:`
 export async function isAIAvailable(): Promise<boolean> {
   try {
     const glob = (typeof window !== "undefined" ? window : self) as any;
-    const lm = glob.ai?.languageModel || glob.LanguageModel;
     
+    // 'ai' 속성 존재 여부 확인
+    if (!glob || (!("ai" in glob) && !("LanguageModel" in glob))) return false;
+
+    const lm = glob.ai?.languageModel || glob.LanguageModel;
     if (!lm || typeof lm.capabilities !== "function") return false;
 
     const caps = await lm.capabilities();
-    // 'readily' 인 경우에만 즉시 사용 가능
-    // 'after-download' 는 아직 준비되지 않은 상태로 간주
     return caps.available === "readily";
   } catch (err) {
     return false;

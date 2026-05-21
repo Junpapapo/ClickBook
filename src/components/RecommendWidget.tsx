@@ -15,6 +15,14 @@ interface Props {
   onLoadingChange?: (loading: boolean) => void;
 }
 
+function getHostname(urlStr: string) {
+  try {
+    return new URL(urlStr).hostname;
+  } catch (err) {
+    return urlStr;
+  }
+}
+
 export default function RecommendWidget({ keyword, count, onRefresh, onLoadingChange }: Props) {
   const { t } = useLang();
   const [recommendations, setRecommendations] = useState<RecommendedSite[]>([]);
@@ -107,20 +115,21 @@ export default function RecommendWidget({ keyword, count, onRefresh, onLoadingCh
               <div className="flex items-start gap-3 mb-2">
                 <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-surface-700 flex items-center justify-center shrink-0 border border-gray-100 dark:border-surface-600">
                   <img
-                    src={`https://www.google.com/s2/favicons?domain=${new URL(site.url).hostname}&sz=64`}
+                    src={`https://www.google.com/s2/favicons?domain=${getHostname(site.url)}&sz=64`}
                     alt=""
                     className="w-5 h-5"
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
-                </div>
-                <div className="min-w-0 flex-1">
+                  </div>
+                  <div className="min-w-0 flex-1">
                   <h3 className="text-xs font-bold text-gray-800 dark:text-gray-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
                     {site.title}
                   </h3>
                   <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate">
-                    {new URL(site.url).hostname}
+                    {getHostname(site.url)}
                   </p>
-                </div>
+                  </div>
+
               </div>
 
               <button
