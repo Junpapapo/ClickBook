@@ -108,7 +108,13 @@ export default function Sidebar({
 
   useEffect(() => { onAiLoadingChange?.(isOrganizing); }, [isOrganizing, onAiLoadingChange]);
 
-  useEffect(() => { setAiAvailable(isAIAvailable()); }, []);
+  useEffect(() => {
+    async function checkAI() {
+      const available = await isAIAvailable();
+      setAiAvailable(available);
+    }
+    checkAI();
+  }, []);
 
   useEffect(() => {
     if (!organizeResult) return;

@@ -11,6 +11,7 @@ import type { ClassifyMethod } from "@/shared/categorizer";
 import { extractUrls } from "@/shared/utils";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
+import { isAIAvailable } from "@/shared/categorizer";
 
 type Status = "idle" | "loading" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
@@ -105,11 +106,11 @@ export default function Popup() {
   }, []);
 
   useEffect(() => {
-    try {
-      const w = window as any;
-      const lm = w.ai?.languageModel || w.LanguageModel;
-      setAiAvailable(!!lm && (typeof lm === "object" || typeof lm === "function"));
-    } catch (err) { console.warn("Operation failed:", err); setAiAvailable(false); }
+    async function checkAI() {
+      const available = await isAIAvailable();
+      setAiAvailable(available);
+    }
+    checkAI();
   }, []);
 
   async function handleSave() {

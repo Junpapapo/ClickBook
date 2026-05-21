@@ -40,7 +40,16 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [aiAvailable, setAiAvailable] = useState(false);
   const renameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function checkAI() {
+      const available = await isAIAvailable();
+      setAiAvailable(available);
+    }
+    checkAI();
+  }, []);
 
   async function handleDelete(id: string) {
     const response = (await chrome.runtime.sendMessage({
@@ -95,7 +104,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       {DialogEl}
       
       {/* AI 추천 검색 (검색어 있을 때만) */}
-      {isAIAvailable() && searchQuery && (
+      {aiAvailable && searchQuery && (
         <RecommendWidget keyword={searchQuery} count={recommendCount} onRefresh={onRefresh} onLoadingChange={onAiLoadingChange} />
       )}
 

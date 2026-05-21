@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClickBook Help - Smart Bookmark Manager</title>
+  <title>ClickBook ヘルプ - スマートなブックマーク管理</title>
   <style>
     :root {
       --primary: #6366f1;
@@ -33,7 +33,7 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -179,6 +179,18 @@
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background-color: #6366f115;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
     .card-title {
       font-weight: 700;
       margin-bottom: 0.5rem;
@@ -245,8 +257,8 @@
       <span>ClickBook</span>
     </div>
     <div class="lang-switcher">
-      <a href="help.html" class="lang-link active">English</a>
-      <a href="help.ja.html" class="lang-link">日本語</a>
+      <a href="help.html" class="lang-link">English</a>
+      <a href="help.ja.html" class="lang-link active">日本語</a>
       <a href="help.ko.html" class="lang-link">한국어</a>
     </div>
   </header>
@@ -255,78 +267,78 @@
     <aside class="sidebar">
       <nav>
         <ul class="nav-list">
-          <li class="nav-item"><a href="#intro" class="nav-link active">Introduction</a></li>
-          <li class="nav-item"><a href="#getting-started" class="nav-link">Getting Started</a></li>
-          <li class="nav-item"><a href="#ai-features" class="nav-link">AI Features</a></li>
-          <li class="nav-item"><a href="#folders" class="nav-link">Management</a></li>
-          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome Sync</a></li>
-          <li class="nav-item"><a href="#settings" class="nav-link">Settings</a></li>
-          <li class="nav-item"><a href="#privacy" class="nav-link">Privacy</a></li>
+          <li class="nav-item"><a href="#intro" class="nav-link active">紹介とインストール</a></li>
+          <li class="nav-item"><a href="#getting-started" class="nav-link">はじめに</a></li>
+          <li class="nav-item"><a href="#ai-features" class="nav-link">AI インテリジェント機能</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">フォルダー管理</a></li>
+          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome ブックマーク連携</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">設定とデータ管理</a></li>
+          <li class="nav-item"><a href="#privacy" class="nav-link">プライバシーとセキュリティ</a></li>
         </ul>
       </nav>
     </aside>
 
     <main class="content">
       <section id="intro">
-        <h1 class="section-title">Welcome to ClickBook</h1>
-        <p>ClickBook is an innovative bookmark manager that uses Chrome's built-in AI (Gemini Nano) to automatically categorize and organize your links. Save any page with one click and find it later without the hassle of manual sorting.</p>
+        <h1 class="section-title">ClickBook へようこそ</h1>
+        <p>ClickBookは、Chrome内蔵AI（Gemini Nano）を活用してブックマークをスマートに自動分類し、整理する革新的なツールです。ワンクリックでタブを保存し、手動での整理の手間を省きます。</p>
         
         <div class="alert alert-info">
-          <strong>Pro Tip:</strong> Pin the ClickBook icon to your toolbar for instant access and 1-click saving.
+          <strong>ヒント:</strong> 拡張機能アイコンをツールバーに<strong>固定（Pin）</strong>すると、いつでもすぐに保存できます。
         </div>
       </section>
 
       <section id="getting-started">
-        <h2 class="section-title">Getting Started</h2>
+        <h2 class="section-title">はじめに</h2>
         <div class="feature-grid">
           <div class="card">
-            <div class="card-title">1-Click Save</div>
-            <div class="card-desc">Click the extension icon while browsing. AI analyzes the page and places it in the best folder automatically.</div>
+            <div class="card-title">ワンクリック保存</div>
+            <div class="card-desc">閲覧中にアイコンをクリックするだけ。AIがページを分析し、最適なフォルダーに自動で振り分けます。</div>
           </div>
           <div class="card">
-            <div class="card-title">Keyboard Shortcut</div>
-            <div class="card-desc">Press <span class="shortcut">Alt + S</span> to save your active tab instantly without even moving your mouse.</div>
+            <div class="card-title">キーボードショートカット</div>
+            <div class="card-desc"><span class="shortcut">Alt + S</span> を押すと、マウスを動かさずに現在のアクティブタブを即座に保存できます。</div>
           </div>
           <div class="card">
-            <div class="card-title">Management Dashboard</div>
-            <div class="card-desc">Access all your bookmarks in a dedicated tab. Search, edit, move, and organize everything in one place.</div>
+            <div class="card-title">管理ダッシュボード</div>
+            <div class="card-desc">専用タブですべてのブックマークにアクセス。検索、編集、移動、整理が1か所で行えます。</div>
           </div>
         </div>
       </section>
 
       <section id="ai-features">
-        <h2 class="section-title">AI Intelligent Features <span class="badge">Core</span></h2>
+        <h2 class="section-title">AI インテリジェント機能 <span class="badge">Core</span></h2>
         <div class="feature-grid">
           <div class="card">
-            <div class="card-title">Auto Categorization</div>
-            <div class="card-desc">Analyzes site titles and URLs to sort them into 8 broad categories like Technology, Design, and Business.</div>
+            <div class="card-title">自動カテゴリー分類</div>
+            <div class="card-desc">サイトのタイトルとURLを分析し、テクノロジー、デザイン、ビジネスなどの8つのカテゴリーに分類します。</div>
           </div>
           <div class="card">
-            <div class="card-title">AI Bulk Reorganize</div>
-            <div class="card-desc">Tidies up your entire collection at once. It even backs up your current state automatically before running.</div>
+            <div class="card-title">AI一括整理</div>
+            <div class="card-desc">サイドバーの「AI整理」ボタンで全サイトを再配置。実行前に現在の状態を自動でバックアップします。</div>
           </div>
           <div class="card">
-            <div class="card-title">Semantic Search <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
-            <div class="card-desc">Search by describing what you need. Try "I'm looking for React tutorials" or "Latest news sites."</div>
+            <div class="card-title">セマンティック検索 <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
+            <div class="card-desc">意図に基づいた検索が可能です。「Reactのチュートリアルを探して」などの文章で検索してみてください。</div>
           </div>
         </div>
       </section>
 
-      <section id="#folders">
-        <h2 class="section-title">Folders & Management</h2>
+      <section id="folders">
+        <h2 class="section-title">フォルダーと管理</h2>
         <ul>
-          <li><strong>Infinite Hierarchy:</strong> Create subfolders within folders to keep things organized.</li>
-          <li><strong>Drag & Drop:</strong> Move sites and folders intuitively. Reorder top-level folders by dragging them between others.</li>
-          <li><strong>Folder Locking:</strong> Prevent AI from moving bookmarks out of specific folders by using the lock icon.</li>
-          <li><strong>Emoji Icons:</strong> Personalize your folders with any emoji to make them stand out.</li>
+          <li><strong>無限階層:</strong> フォルダー内にフォルダーを無制限に作成して整理できます。</li>
+          <li><strong>ドラッグ＆ドロップ:</strong> 直感的にブックマークやフォルダーを移動。フォルダー間へのドロップで並べ替えも可能です。</li>
+          <li><strong>フォルダーのロック:</strong> AI整理の対象外にしたいフォルダーは、ロックアイコンで保護できます。</li>
+          <li><strong>絵文字アイコン:</strong> 各フォルダーに好きな絵文字を設定して、視覚的に分かりやすくカスタマイズできます。</li>
         </ul>
       </section>
 
       <section id="privacy">
-        <h2 class="section-title" style="color: #10b981;">Privacy & Security</h2>
+        <h2 class="section-title" style="color: #10b981;">プライバシーとセキュリティ</h2>
         <div class="card" style="border-left: 4px solid #10b981;">
-          <div class="card-title">100% Local Processing</div>
-          <div class="card-desc">ClickBook never connects to external servers. Your data stays ONLY on your computer (Local Storage). No one else can access it.</div>
+          <div class="card-title">100% ローカル動作</div>
+          <div class="card-desc">ClickBookは外部サーバーと通信しません。データはすべてユーザーのコンピューター内（Local Storage）にのみ保存されます。</div>
         </div>
       </section>
     </main>

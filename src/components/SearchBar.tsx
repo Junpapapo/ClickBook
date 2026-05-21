@@ -161,7 +161,7 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
           <ShieldCheck size={18} />
         </button>
         <a
-          href="/help.html"
+          href={lang === "ko" ? "/help.ko.html" : lang === "ja" ? "/help.ja.html" : "/help.html"}
           target="_blank"
           rel="noopener noreferrer"
           title={t("helpTooltip")}

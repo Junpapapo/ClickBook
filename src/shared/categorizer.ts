@@ -167,14 +167,19 @@ Output:`
   }
 }
 
-// AI が利用可能かどうかを確認（Popup/Newtab から呼び出し用）
-export function isAIAvailable(): boolean {
+// AI 가 이용 가능한지 엄격하게 확인 (Capabilities API 사용)
+export async function isAIAvailable(): Promise<boolean> {
   try {
-    const w = (typeof window !== "undefined" ? window : self) as any;
-    const lm = w.ai?.languageModel || w.LanguageModel;
-    return !!lm && (typeof lm === "object" || typeof lm === "function");
+    const glob = (typeof window !== "undefined" ? window : self) as any;
+    const lm = glob.ai?.languageModel || glob.LanguageModel;
+    
+    if (!lm || typeof lm.capabilities !== "function") return false;
+
+    const caps = await lm.capabilities();
+    // 'readily' 인 경우에만 즉시 사용 가능
+    // 'after-download' 는 아직 준비되지 않은 상태로 간주
+    return caps.available === "readily";
   } catch (err) {
-    // console.warn("Operation failed:", err);
     return false;
   }
 }
