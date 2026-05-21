@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2, Plus, X, Search, Save, ExternalLink, FolderOpen } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Search, Save, ExternalLink, FolderOpen, Copy, Check } from "lucide-react";
 import type { Bookmark, Folder, MessageResponse } from "@/shared/types";
 import { useDialog } from "@/shared/useDialog";
 import { useLang } from "@/shared/LanguageContext";
@@ -42,10 +42,21 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
   const [folderId, setFolderId] = useState(bookmark?.folderId ?? defaultFolderId ?? folders[0]?.id ?? "");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+  const [copied, setCopied] = useState(false);
 
   function flash(type: Status["type"], text: string) {
     setStatus({ type, text });
     setTimeout(() => setStatus(null), 3000);
+  }
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
   }
 
   async function handleSave() {
@@ -172,14 +183,23 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                 {t("urlLabel")} {mode === "add" && <span className="text-rose-500">*</span>}
               </label>
-              <input
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") handleSave(); }}
-                placeholder="https://..."
-                autoFocus={mode === "add"}
-                className="w-full text-sm bg-gray-50 dark:bg-surface-800 border border-gray-300 dark:border-surface-600 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-100 outline-none focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-gray-600"
-              />
+              <div className="relative group/url">
+                <input
+                  value={url}
+                  onChange={e => setUrl(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") handleSave(); }}
+                  placeholder="https://..."
+                  autoFocus={mode === "add"}
+                  className="w-full text-sm bg-gray-50 dark:bg-surface-800 border border-gray-300 dark:border-surface-600 rounded-lg pl-3 pr-10 py-2.5 text-gray-800 dark:text-gray-100 outline-none focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-gray-600"
+                />
+                <button
+                  onClick={handleCopy}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-surface-700 rounded-md transition-colors"
+                  title={t("popupUrlCopySection")}
+                >
+                  {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                </button>
+              </div>
             </div>
 
             {/* タイトル */}

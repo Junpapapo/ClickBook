@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen } from "lucide-react";
+import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen, Copy, Check } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor, Folder } from "@/shared/types";
 import { MEMO_TEXTAREA_BG } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -20,7 +20,19 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
   const [isUpdating, setIsUpdating] = useState(false);
   const [showMemoPopover, setShowMemoPopover] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const memoBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleCopy = useCallback(async () => {
+    if (!bookmark) return;
+    try {
+      await navigator.clipboard.writeText(bookmark.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  }, [bookmark]);
 
   const handleMemoSave = useCallback(async (content: string, color: MemoColor) => {
     if (!bookmark) return;
@@ -133,15 +145,24 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
               <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 leading-snug">
                 {bookmark.title}
               </h3>
-              <a
-                href={bookmark.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-1 text-[11px] text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
-              >
-                <span className="truncate max-w-[200px]">{bookmark.domain}</span>
-                <ExternalLink size={10} />
-              </a>
+              <div className="flex items-center gap-2 mt-1">
+                <a
+                  href={bookmark.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+                >
+                  <span className="truncate max-w-[150px]">{bookmark.domain}</span>
+                  <ExternalLink size={10} />
+                </a>
+                <button
+                  onClick={handleCopy}
+                  className="p-1 text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+                  title={t("popupUrlCopySection")}
+                >
+                  {copied ? <Check size={10} className="text-green-500" /> : <Copy size={10} />}
+                </button>
+              </div>
             </div>
           </div>
           
