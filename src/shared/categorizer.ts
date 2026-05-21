@@ -42,36 +42,22 @@ function classifyByDomain(domain: string): string {
   return DEFAULT_FOLDER_ID;
 }
 
-// AI 객체 및 모델 인스턴스 획득 (환경별 호환성 통합 및 가짜 감지 방지)
+// AI 객체 및 모델 인스턴스 획득 (가짜 감지 차단 및 엄격한 상태 확인)
 async function getAIModel() {
   try {
     const glob = (typeof window !== "undefined" ? window : (typeof self !== "undefined" ? self : globalThis)) as any;
     
-    // 1. 최신 표준인 ai.languageModel 우선 확인
-    let lm = glob.ai?.languageModel;
-    
-    // 2. 없으면 구형/실험적 LanguageModel 확인
-    if (!lm && typeof glob.LanguageModel !== "undefined") {
-      lm = glob.LanguageModel;
+    // 1. Chrome 표준 API 확인 (가짜 window.ai 주입 확장 프로그램 방지)
+    const lm = glob.ai?.languageModel;
+    if (!lm || typeof lm.capabilities !== "function" || typeof lm.create !== "function") return null;
+
+    // 2. 가용성 상태 엄격 확인
+    const caps = await lm.capabilities();
+    if (caps && (caps.available === "readily" || caps.available === "after-download")) {
+      return lm;
     }
 
-    if (!lm || typeof lm.create !== "function") return null;
-
-    // 3. Capabilities API 가 있다면 엄격하게 체크
-    if (typeof lm.capabilities === "function") {
-      try {
-        const caps = await lm.capabilities();
-        if (!caps || caps.available === "no") return null;
-      } catch (e) {
-        // 호출 실패 시, 크롬 환경이 아니면 가짜일 확률 높음
-        if (!glob.chrome) return null;
-      }
-    } else {
-      // capabilities 가 없는데 크롬 환경도 아니면 OFF 로 판단 (false positive 방지)
-      if (!glob.chrome) return null;
-    }
-
-    return lm;
+    return null;
   } catch (e) {
     return null;
   }
