@@ -487,7 +487,7 @@ const ja: typeof en = {
   saveBtn: "保存",
   confirmBtn: "続ける",
   cancelBtn: "キャンセル",
-  githubRanking: "GitHub ラン킹",
+  githubRanking: "GitHub ランキング",
   wikiRanking: "Wikipedia 急上昇",
   hfRanking: "Hugging Face AI",
   hnRanking: "Hacker News",

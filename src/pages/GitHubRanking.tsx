@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { getCachedTopRepos, getCachedCustomRepos } from "@/shared/githubApi";
 import type { GitHubRepo } from "@/shared/types";
-import { Trophy, Star, GitFork, AlertCircle, Search, Globe, Calendar, ChevronDown, ChevronUp, BookmarkPlus, Check } from "lucide-react";
+import { Trophy, Star, GitFork, AlertCircle, Search, Globe, Calendar, ChevronDown, ChevronUp, BookmarkPlus, Check, ExternalLink } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import RankingSkeleton from "@/components/RankingSkeleton";
 
@@ -139,10 +139,18 @@ export default function GitHubRankingPage() {
       {/* 헤더 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-surface-800 pb-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
-            <Trophy className="text-amber-400 shrink-0 w-6 h-6 animate-pulse" />
-            {t("githubRankingTitle")}
-          </h1>
+          <a 
+            href="https://github.com/trending" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2"
+          >
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <Trophy className="text-amber-400 shrink-0 w-6 h-6 animate-pulse" />
+              {t("githubRankingTitle")}
+            </h1>
+            <ExternalLink size={14} className="text-gray-300 group-hover:text-indigo-400 transition-colors" />
+          </a>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             {t("githubRankingDesc")}
           </p>
@@ -272,8 +280,8 @@ export default function GitHubRankingPage() {
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
-                  <th className="px-4 py-3 text-left">{t("thProject")}</th>
+                  <th className="px-4 py-3 text-center w-12 shrink-0">{t("thRank")}</th>
+                  <th className="px-4 py-3 text-left whitespace-nowrap">{t("thProject")}</th>
                   <th className="px-4 py-3 text-right w-24">Stars</th>
                   <th className="px-4 py-3 text-right w-24">Forks</th>
                   <th className="px-4 py-3 text-center w-24">{t("thLang")}</th>
@@ -298,8 +306,8 @@ export default function GitHubRankingPage() {
                       key={repo.id}
                       className="hover:bg-indigo-50/20 dark:hover:bg-indigo-950/10 transition-colors"
                     >
-                      <td className="px-4 py-3.5 text-center">{getRankBadge(i + 1)}</td>
-                      <td className="px-4 py-3.5 font-medium">
+                      <td className="px-4 py-3.5 text-center shrink-0">{getRankBadge(i + 1)}</td>
+                      <td className="px-4 py-3.5 font-medium whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           {repo.owner?.avatar_url && (
                             <img

@@ -60,10 +60,18 @@ export default function WikiRankingPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-surface-800 pb-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100">
-            <Book className="text-blue-500 shrink-0 w-6 h-6" />
-            {t("wikiRanking")}
-          </h1>
+          <a 
+            href={`https://${lang === "ko" ? "ko" : lang === "ja" ? "ja" : "en"}.wikipedia.org/wiki/Special:MostVisitedPages`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2"
+          >
+            <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <Book className="text-blue-500 shrink-0 w-6 h-6" />
+              {t("wikiRanking")}
+            </h1>
+            <ExternalLink size={14} className="text-gray-300 group-hover:text-blue-400 transition-colors" />
+          </a>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             {lang === "ko" ? "위키백과에서 현재 가장 많이 읽히고 있는 문서 랭킹입니다." : 
              lang === "ja" ? "Wikipediaで現在最も読まれている記事のランキングです。" : 
@@ -105,8 +113,8 @@ export default function WikiRankingPage() {
             <table className="min-w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-16">{t("thRank")}</th>
-                  <th className="px-4 py-3 text-left">{lang === "ko" ? "문서 제목" : lang === "ja" ? "記事タイトル" : "Article Title"}</th>
+                  <th className="px-4 py-3 text-center w-12 shrink-0">{t("thRank")}</th>
+                  <th className="px-4 py-3 text-left whitespace-nowrap">{lang === "ko" ? "문서 제목" : lang === "ja" ? "記事タイトル" : "Article Title"}</th>
                   <th className="px-4 py-3 text-right w-40">{lang === "ko" ? "조회수" : lang === "ja" ? "閲覧数" : "Page Views"}</th>
                   <th className="px-4 py-3 text-center w-24">Link</th>
                   <th className="px-4 py-3 text-center w-20">Save</th>
@@ -117,8 +125,8 @@ export default function WikiRankingPage() {
                   const isSaved = savedIds.has(art.article);
                   return (
                     <tr key={art.rank} className="hover:bg-blue-50/20 dark:hover:bg-blue-900/10 transition-colors">
-                      <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{art.rank}</td>
-                      <td className="px-4 py-3.5 font-medium text-gray-800 dark:text-gray-100">{art.article}</td>
+                      <td className="px-4 py-3.5 text-center shrink-0 font-bold text-gray-400 dark:text-gray-600">{art.rank}</td>
+                      <td className="px-4 py-3.5 font-medium whitespace-nowrap text-gray-800 dark:text-gray-100">{art.article}</td>
                       <td className="px-4 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1.5 font-semibold text-blue-600 dark:text-blue-400">
                           <Eye size={13} />
