@@ -121,18 +121,6 @@ categorize(url, title, domain)
 
 ---
 
-## Documentation
-
-For detailed specifications, please refer to the `docs/` folder.
-
-- [GUIDELINES.md](docs/GUIDELINES.md) — Development conventions and roadmap.
-- [DATA_MODEL.md](docs/DATA_MODEL.md) — Storage design and message types.
-- [FOLDER_SYSTEM.md](docs/FOLDER_SYSTEM.md) — Hierarchical folder logic and CRUD.
-- [UI_SPEC.md](docs/UI_SPEC.md) — Layout, components, and D&D specs.
-- [AI_CLASSIFICATION.md](docs/AI_CLASSIFICATION.md) — Gemini Nano and rule-based details.
-
----
-
 ## License
 
 MIT

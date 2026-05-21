@@ -93,12 +93,6 @@ ClickBook/
 │       ├── types.ts           # 타입 정의 및 메시지 타입
 │       ├── ThemeContext.tsx
 │       └── useDialog.tsx      # 확인 대화상자 훅
-└── docs/
-    ├── GUIDELINES.md          # 개발 가이드라인
-    ├── DATA_MODEL.md          # 데이터 모델 및 저장소 설계
-    ├── FOLDER_SYSTEM.md       # 계층형 폴더 사양
-    ├── UI_SPEC.md             # UI 및 레이아웃 사양
-    └── AI_CLASSIFICATION.md   # AI 분류 사양
 ```
 
 ---

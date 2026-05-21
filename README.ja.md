@@ -93,12 +93,6 @@ ClickBook/
 │       ├── types.ts           # 型定義・メッセージ型
 │       ├── ThemeContext.tsx
 │       └── useDialog.tsx      # 確認ダイアログフック
-└── docs/
-    ├── GUIDELINES.md          # 開発ガイドライン
-    ├── DATA_MODEL.md          # 型定義・ストレージ設計
-    ├── FOLDER_SYSTEM.md       # 階層フォルダー仕様
-    ├── UI_SPEC.md             # UI・レイアウト仕様
-    └── AI_CLASSIFICATION.md   # AI 分類仕様
 ```
 
 ---
