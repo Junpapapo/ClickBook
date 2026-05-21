@@ -208,7 +208,6 @@ const en = {
   settingsKeepFoldersLabel: "Keep existing folders",
   settingsKeepFoldersDesc:
     "ON: Don't delete or rename existing folders (new ones can still be created)",
-  settingsSaving: "Saving...",
 
   // ── Chrome Bookmark Panel ─────────────────────────────
   chromeBookmarksTitle: "Chrome Bookmarks",
@@ -847,7 +846,6 @@ const ko: typeof en = {
   settingsKeepFoldersLabel: "기존 폴더 유지",
   settingsKeepFoldersDesc:
     "ON: 기존 폴더를 삭제하거나 이름을 변경하지 않음 (새 폴더는 생성 가능)",
-  settingsSaving: "저장 중...",
 
   // ── Chrome Bookmark Panel ─────────────────────────────
   chromeBookmarksTitle: "Chrome 북마크",
