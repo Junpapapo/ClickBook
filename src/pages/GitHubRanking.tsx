@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getCachedTopRepos, getCachedCustomRepos } from "@/shared/githubApi";
 import type { GitHubRepo } from "@/shared/types";
-import { Trophy, Star, GitFork, AlertCircle, Search, Globe, Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, Star, GitFork, AlertCircle, Search, Globe, Calendar, ChevronDown, ChevronUp, BookmarkPlus, Check } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
+import RankingSkeleton from "@/components/RankingSkeleton";
 
 const LANGUAGES = [
   { id: "All", name: "All Languages", query: null },
@@ -31,15 +32,43 @@ export default function GitHubRankingPage() {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [filterQuery, setFilterQuery] = useState("");
   const [error, setError] = useState("");
   const [custom, setCustom] = useState(false);
   const [selectedLang, setSelectedLang] = useState("All");
   const [dateFilter, setDateFilter] = useState("all");
   const [showLimits, setShowLimits] = useState(false);
+  const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+
+  const filtered = useMemo(() => {
+    return repos.filter(r => r.name.toLowerCase().includes(filterQuery.toLowerCase()));
+  }, [repos, filterQuery]);
+
+  const handleQuickSave = async (repo: GitHubRepo) => {
+    try {
+      await chrome.runtime.sendMessage({
+        type: "ADD_BOOKMARK",
+        url: repo.html_url,
+        title: repo.name,
+        folderId: "other",
+      });
+      setSavedIds(prev => new Set(prev).add(repo.id));
+      setTimeout(() => {
+        setSavedIds(prev => {
+          const next = new Set(prev);
+          next.delete(repo.id);
+          return next;
+        });
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to quick save:", err);
+    }
+  };
 
   const loadRepos = async (langId: string, filter: string) => {
     setLoading(true);
     setError("");
+    setFilterQuery("");
     setCustom(langId !== "All" || filter !== "all");
     try {
       let items: GitHubRepo[] = [];
@@ -67,7 +96,7 @@ export default function GitHubRankingPage() {
 
   const handleLanguageChange = (langId: string) => {
     setSelectedLang(langId);
-    setQuery(""); // Clear custom search
+    setQuery(""); 
     loadRepos(langId, dateFilter);
   };
 
@@ -75,6 +104,7 @@ export default function GitHubRankingPage() {
     if (!q.trim()) return;
     setLoading(true);
     setCustom(true);
+    setFilterQuery("");
     setSelectedLang("");
     setError("");
     try {
@@ -118,25 +148,39 @@ export default function GitHubRankingPage() {
           </p>
         </div>
 
-        {/* 검색 바 */}
-        <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-96 relative">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder={t("githubSearchPlaceholder")}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 rounded-lg text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-gray-800 dark:text-gray-100"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+        <div className="flex flex-col md:flex-row gap-3 items-end">
+          {/* 결과 내 필터 */}
+          <div className="relative w-full md:w-48">
+             <input
+               type="text"
+               value={filterQuery}
+               onChange={e => setFilterQuery(e.target.value)}
+               placeholder="Filter results..."
+               className="w-full pl-8 pr-3 py-2 border border-gray-150 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50 rounded-lg text-[11px] outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-gray-800 dark:text-gray-100"
+             />
+             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
           </div>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold text-xs shadow-sm hover:shadow-indigo-500/20 active:scale-95 transition-all shrink-0"
-          >
-            {t("searchBtn")}
-          </button>
-        </form>
+
+          {/* 검색 바 */}
+          <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-80 relative">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={t("githubSearchPlaceholder")}
+                className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 rounded-lg text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-gray-800 dark:text-gray-100"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold text-xs shadow-sm hover:shadow-indigo-500/20 active:scale-95 transition-all shrink-0"
+            >
+              {t("searchBtn")}
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* 실시간 검색 제약 안내 */}
@@ -220,106 +264,118 @@ export default function GitHubRankingPage() {
       )}
 
       {/* 데이터 테이블 */}
-      <div className="bg-white dark:bg-surface-900 border border-gray-150 dark:border-surface-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-xs">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
-                <th className="px-4 py-3 text-left">{t("thProject")}</th>
-                <th className="px-4 py-3 text-right w-24">Stars</th>
-                <th className="px-4 py-3 text-right w-24">Forks</th>
-                <th className="px-4 py-3 text-center w-24">{t("thLang")}</th>
-                <th className="px-4 py-3 text-right w-24">Issues</th>
-                <th className="px-4 py-3 text-left">{t("thDesc")}</th>
-                <th className="px-4 py-3 text-center w-28">{t("thCommit")}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
-              {repos.map((repo, i) => {
-                const getRankBadge = (rank: number) => {
-                  if (rank === 1) return <span className="text-lg">🥇</span>;
-                  if (rank === 2) return <span className="text-lg">🥈</span>;
-                  if (rank === 3) return <span className="text-lg">🥉</span>;
-                  return <span className="font-bold text-gray-400 dark:text-gray-600">{rank}</span>;
-                };
+      {loading ? (
+        <RankingSkeleton rows={15} cols={9} />
+      ) : (
+        <div className="bg-white dark:bg-surface-900 border border-gray-150 dark:border-surface-800 rounded-xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-xs">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
+                  <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
+                  <th className="px-4 py-3 text-left">{t("thProject")}</th>
+                  <th className="px-4 py-3 text-right w-24">Stars</th>
+                  <th className="px-4 py-3 text-right w-24">Forks</th>
+                  <th className="px-4 py-3 text-center w-24">{t("thLang")}</th>
+                  <th className="px-4 py-3 text-right w-24">Issues</th>
+                  <th className="px-4 py-3 text-left">{t("thDesc")}</th>
+                  <th className="px-4 py-3 text-center w-28">{t("thCommit")}</th>
+                  <th className="px-4 py-3 text-center w-20">Save</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
+                {filtered.map((repo, i) => {
+                  const isSaved = savedIds.has(repo.id);
+                  const getRankBadge = (rank: number) => {
+                    if (rank === 1) return <span className="text-lg">🥇</span>;
+                    if (rank === 2) return <span className="text-lg">🥈</span>;
+                    if (rank === 3) return <span className="text-lg">🥉</span>;
+                    return <span className="font-bold text-gray-400 dark:text-gray-600">{rank}</span>;
+                  };
 
-                return (
-                  <tr
-                    key={repo.id}
-                    className="hover:bg-indigo-50/20 dark:hover:bg-indigo-950/10 transition-colors"
-                  >
-                    <td className="px-4 py-3.5 text-center">{getRankBadge(i + 1)}</td>
-                    <td className="px-4 py-3.5 font-medium">
-                      <div className="flex items-center gap-2">
-                        {repo.owner?.avatar_url && (
-                          <img
-                            src={repo.owner.avatar_url}
-                            alt={repo.owner.login}
-                            className="w-5 h-5 rounded-full border border-gray-100 dark:border-surface-700 bg-gray-50"
-                            loading="lazy"
-                          />
-                        )}
-                        <a
-                          href={repo.html_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1"
-                        >
-                          {repo.name}
-                        </a>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-right font-semibold text-gray-700 dark:text-gray-200">
-                      <div className="flex items-center justify-end gap-1">
-                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                        <span>{repo.stargazers_count.toLocaleString()}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-right text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center justify-end gap-1">
-                        <GitFork className="w-3.5 h-3.5 text-blue-400" />
-                        <span>{repo.forks_count.toLocaleString()}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-surface-800 text-gray-600 dark:text-gray-300 font-medium">
-                        {repo.language || "N/A"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-right text-gray-500 dark:text-gray-400">
-                      {repo.open_issues_count.toLocaleString()}
-                    </td>
-                    <td
-                      className="px-4 py-3.5 text-left text-gray-500 dark:text-gray-400 max-w-xs truncate"
-                      title={repo.description || ""}
+                  return (
+                    <tr
+                      key={repo.id}
+                      className="hover:bg-indigo-50/20 dark:hover:bg-indigo-950/10 transition-colors"
                     >
-                      {repo.description || <span className="text-gray-350 dark:text-gray-600 italic">{t("noDesc")}</span>}
-                    </td>
-                    <td className="px-4 py-3.5 text-center text-gray-400 dark:text-gray-500">
-                      {repo.pushed_at ? repo.pushed_at.slice(0, 10) : "N/A"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="px-4 py-3.5 text-center">{getRankBadge(i + 1)}</td>
+                      <td className="px-4 py-3.5 font-medium">
+                        <div className="flex items-center gap-2">
+                          {repo.owner?.avatar_url && (
+                            <img
+                              src={repo.owner.avatar_url}
+                              alt={repo.owner.login}
+                              className="w-5 h-5 rounded-full border border-gray-100 dark:border-surface-700 bg-gray-50"
+                              loading="lazy"
+                            />
+                          )}
+                          <a
+                            href={repo.html_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1"
+                          >
+                            {repo.name}
+                          </a>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-right font-semibold text-gray-700 dark:text-gray-200">
+                        <div className="flex items-center justify-end gap-1">
+                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                          <span>{repo.stargazers_count.toLocaleString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-right text-gray-600 dark:text-gray-300">
+                        <div className="flex items-center justify-end gap-1">
+                          <GitFork className="w-3.5 h-3.5 text-blue-400" />
+                          <span>{repo.forks_count.toLocaleString()}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span className="px-2 py-0.5 rounded bg-gray-100 dark:bg-surface-800 text-gray-600 dark:text-gray-300 font-medium">
+                          {repo.language || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-right text-gray-500 dark:text-gray-400">
+                        {repo.open_issues_count.toLocaleString()}
+                      </td>
+                      <td
+                        className="px-4 py-3.5 text-left text-gray-500 dark:text-gray-400 max-w-xs truncate"
+                        title={repo.description || ""}
+                      >
+                        {repo.description || <span className="text-gray-350 dark:text-gray-600 italic">{t("noDesc")}</span>}
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-gray-400 dark:text-gray-500">
+                        {repo.pushed_at ? repo.pushed_at.slice(0, 10) : "N/A"}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <button
+                          onClick={() => handleQuickSave(repo)}
+                          className={`p-1.5 rounded-lg transition-all ${
+                            isSaved 
+                              ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" 
+                              : "text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                          }`}
+                          title="Quick Save to ClickBook"
+                        >
+                          {isSaved ? <Check size={16} /> : <BookmarkPlus size={16} />}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {!loading && filtered.length === 0 && (
+            <div className="py-20 text-center text-gray-400 dark:text-gray-600 flex flex-col items-center justify-center gap-2">
+              <AlertCircle className="w-8 h-8 opacity-30" />
+              <p className="text-xs font-semibold">{t("noResult")}</p>
+            </div>
+          )}
         </div>
-
-        {loading && (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-gray-600">
-            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-xs font-semibold">{t("loadingGithub")}</p>
-          </div>
-        )}
-
-        {!loading && repos.length === 0 && (
-          <div className="py-20 text-center text-gray-400 dark:text-gray-600 flex flex-col items-center justify-center gap-2">
-            <AlertCircle className="w-8 h-8 opacity-30" />
-            <p className="text-xs font-semibold">{t("noResult")}</p>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

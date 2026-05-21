@@ -33,6 +33,13 @@
     "browsingData",
     "scripting"
   ],
+  "host_permissions": [
+    "https://api.github.com/*",
+    "https://wikimedia.org/*",
+    "https://*.wikipedia.org/*",
+    "https://huggingface.co/*",
+    "https://hacker-news.firebaseio.com/*"
+  ],
   "commands": {
     "save-current-tab": {
       "suggested_key": {

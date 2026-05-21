@@ -1,14 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { fetchHNTopStories } from "@/shared/rankingApi";
 import type { HNStory } from "@/shared/types";
-import { Newspaper, MessageSquare, ArrowBigUp, ExternalLink, Loader2, AlertCircle } from "lucide-react";
+import { Newspaper, MessageSquare, ArrowBigUp, ExternalLink, Loader2, AlertCircle, BookmarkPlus, Check, Search } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
+import RankingSkeleton from "@/components/RankingSkeleton";
 
 export default function HNRankingPage() {
   const { t, lang } = useLang();
   const [stories, setStories] = useState<HNStory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [filterQuery, setFilterQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    return stories.filter(s => 
+      s.title.toLowerCase().includes(filterQuery.toLowerCase()) ||
+      (s.url && new URL(s.url).hostname.toLowerCase().includes(filterQuery.toLowerCase()))
+    );
+  }, [stories, filterQuery]);
+
+  const handleQuickSave = async (story: HNStory) => {
+    try {
+      await chrome.runtime.sendMessage({
+        type: "ADD_BOOKMARK",
+        url: story.url,
+        title: story.title,
+        folderId: "other",
+      });
+      setSavedIds(prev => new Set(prev).add(story.id));
+      setTimeout(() => {
+        setSavedIds(prev => {
+          const next = new Set(prev);
+          next.delete(story.id);
+          return next;
+        });
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to quick save:", err);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -41,6 +72,16 @@ export default function HNRankingPage() {
              "Top stories on Hacker News right now."}
           </p>
         </div>
+        <div className="relative w-full md:w-64">
+          <input
+            type="text"
+            value={filterQuery}
+            onChange={e => setFilterQuery(e.target.value)}
+            placeholder={lang === "ko" ? "기사 제목 또는 도메인 필터..." : lang === "ja" ? "記事タイトル・ドメインフィルター..." : "Filter stories or domains..."}
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 rounded-lg text-xs outline-none focus:ring-1 focus:ring-orange-500 transition-all text-gray-800 dark:text-gray-100"
+          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+        </div>
       </div>
 
       {error && (
@@ -50,64 +91,84 @@ export default function HNRankingPage() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-surface-900 border border-gray-150 dark:border-surface-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-xs">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
-                <th className="px-4 py-3 text-left">Title</th>
-                <th className="px-4 py-3 text-right w-24">Points</th>
-                <th className="px-4 py-3 text-right w-24">Comments</th>
-                <th className="px-4 py-3 text-center w-28">Author</th>
-                <th className="px-4 py-3 text-center w-24">Link</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
-              {stories.map((s, i) => (
-                <tr key={s.id} className="hover:bg-orange-50/20 dark:hover:bg-orange-950/10 transition-colors">
-                  <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{i + 1}</td>
-                  <td className="px-4 py-3.5">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-gray-800 dark:text-gray-100 leading-snug">{s.title}</span>
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-[400px]">
-                        {new URL(s.url).hostname}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-1 text-orange-600 dark:text-orange-400">
-                      <ArrowBigUp size={14} fill="currentColor" />
-                      <span className="font-semibold">{s.score}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-1 text-gray-500">
-                      <MessageSquare size={12} />
-                      <span className="font-semibold">{s.descendants}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 text-center text-indigo-500 dark:text-indigo-400">
-                    @{s.by}
-                  </td>
-                  <td className="px-4 py-3.5 text-center">
-                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-block p-1 text-gray-400 hover:text-orange-500 transition-colors">
-                      <ExternalLink size={14} />
-                    </a>
-                  </td>
+      {loading ? (
+        <RankingSkeleton rows={15} cols={7} />
+      ) : (
+        <div className="bg-white dark:bg-surface-900 border border-gray-150 dark:border-surface-800 rounded-xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-xs">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
+                  <th className="px-4 py-3 text-center w-12">{t("thRank")}</th>
+                  <th className="px-4 py-3 text-left">Title</th>
+                  <th className="px-4 py-3 text-right w-24">Points</th>
+                  <th className="px-4 py-3 text-right w-24">Comments</th>
+                  <th className="px-4 py-3 text-center w-28">Author</th>
+                  <th className="px-4 py-3 text-center w-24">Link</th>
+                  <th className="px-4 py-3 text-center w-20">Save</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {loading && (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-gray-600">
-            <Loader2 size={30} className="animate-spin text-orange-500" />
-            <p className="text-xs font-semibold">Loading Stories...</p>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
+                {filtered.map((s, i) => {
+                  const isSaved = savedIds.has(s.id);
+                  return (
+                    <tr key={s.id} className="hover:bg-orange-50/20 dark:hover:bg-orange-950/10 transition-colors">
+                      <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{i + 1}</td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-gray-800 dark:text-gray-100 leading-snug">{s.title}</span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-[400px]">
+                            {s.url ? new URL(s.url).hostname : "news.ycombinator.com"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1 text-orange-600 dark:text-orange-400">
+                          <ArrowBigUp size={14} fill="currentColor" />
+                          <span className="font-semibold">{s.score}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1 text-gray-500">
+                          <MessageSquare size={12} />
+                          <span className="font-semibold">{s.descendants}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-center text-indigo-500 dark:text-indigo-400">
+                        @{s.by}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-block p-1 text-gray-400 hover:text-orange-500 transition-colors">
+                          <ExternalLink size={14} />
+                        </a>
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <button
+                          onClick={() => handleQuickSave(s)}
+                          className={`p-1.5 rounded-lg transition-all ${
+                            isSaved 
+                              ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" 
+                              : "text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                          }`}
+                          title="Quick Save to ClickBook"
+                        >
+                          {isSaved ? <Check size={16} /> : <BookmarkPlus size={16} />}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
+          {!loading && filtered.length === 0 && (
+            <div className="py-20 text-center text-gray-400 dark:text-gray-600 flex flex-col items-center justify-center gap-2">
+              <AlertCircle className="w-8 h-8 opacity-30" />
+              <p className="text-xs font-semibold">{t("noResult")}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

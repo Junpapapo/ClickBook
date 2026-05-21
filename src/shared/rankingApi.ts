@@ -29,20 +29,23 @@ export async function fetchWikiRanking(langCode: string = "ko"): Promise<WikiArt
 
 // Hugging Face API
 export async function fetchHFTrending(): Promise<HFModel[]> {
-  const url = "https://huggingface.co/api/trending?type=model&limit=50";
+  // Use likes7d sort which is the official proxy for trending on the hub
+  const url = "https://huggingface.co/api/models?sort=likes7d&direction=-1&limit=50";
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error("HF API error");
     const data = await res.json();
     
+    if (!Array.isArray(data)) return [];
+
     return data.map((m: any) => ({
-      id: m.repoData.id,
-      author: m.repoData.author,
-      repo_name: m.repoData.id.split("/")[1] || m.repoData.id,
-      likes: m.repoData.likes,
-      downloads: m.repoData.downloads,
-      lastModified: m.repoData.lastModified,
-      url: `https://huggingface.co/${m.repoData.id}`
+      id: m.id || "",
+      author: m.author || m.id?.split("/")[0] || "N/A",
+      repo_name: m.id?.split("/")[1] || m.id || "N/A",
+      likes: m.likes || 0,
+      downloads: m.downloads || 0,
+      lastModified: m.lastModified || new Date().toISOString(),
+      url: `https://huggingface.co/${m.id}`
     }));
   } catch (err) {
     console.error("HF fetch failed:", err);
