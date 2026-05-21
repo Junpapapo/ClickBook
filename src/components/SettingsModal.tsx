@@ -164,7 +164,8 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
     draft.rankingCount !== settings.rankingCount ||
     draft.recommendCount !== settings.recommendCount ||
     draft.maxFolderDepth !== settings.maxFolderDepth ||
-    draft.keepExistingFolders !== settings.keepExistingFolders;
+    draft.keepExistingFolders !== settings.keepExistingFolders ||
+    draft.openDashboardInNewTab !== settings.openDashboardInNewTab;
 
 
   return (
@@ -294,6 +295,12 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
                   checked={showGitHubRankingMenu}
                   onChange={(v) => onToggleGitHubRankingMenu(v)}
                   description={t("githubRankingMenuDesc")}
+                />
+                <Toggle
+                  label={t("settingsOpenNewTabLabel")}
+                  checked={draft.openDashboardInNewTab}
+                  onChange={(v) => set("openDashboardInNewTab", v)}
+                  description={t("settingsOpenNewTabDesc")}
                 />
                 <NumInput
                   label={t("settingsRecentCountLabel")}

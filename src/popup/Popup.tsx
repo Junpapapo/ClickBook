@@ -44,6 +44,7 @@ export default function Popup() {
   const [memoColor, setMemoColor] = useState<MemoColor>("yellow");
   const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done">("idle");
   const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
+  const [openDashboardInNewTab, setOpenDashboardInNewTab] = useState(true);
   const [popupTheme, setPopupThemeState] = useState<"light" | "dark">(() => {
     const s = localStorage.getItem("clickbook_theme");
     return s === "light" ? "light" : "dark";
@@ -62,9 +63,12 @@ export default function Popup() {
   }, []);
 
   useEffect(() => {
-    chrome.storage.local.get(["clickbook_popup_chrome", "clickbook_show_github_ranking"], (r) => {
+    chrome.storage.local.get(["clickbook_popup_chrome", "clickbook_show_github_ranking", "clickbook_settings"], (r) => {
       if (r.clickbook_popup_chrome === true) setChromePanel(true);
       if (r.clickbook_show_github_ranking !== undefined) setShowGitHubRankingMenu(r.clickbook_show_github_ranking);
+      if (r.clickbook_settings?.openDashboardInNewTab !== undefined) {
+        setOpenDashboardInNewTab(r.clickbook_settings.openDashboardInNewTab);
+      }
     });
   }, []);
 
@@ -117,6 +121,12 @@ export default function Popup() {
     const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
       if (changes.clickbook_ai_enabled) {
         setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
+      }
+      if (changes.clickbook_settings) {
+        const next = changes.clickbook_settings.newValue;
+        if (next && next.openDashboardInNewTab !== undefined) {
+          setOpenDashboardInNewTab(next.openDashboardInNewTab);
+        }
       }
     };
     chrome.storage.onChanged.addListener(listener);
@@ -302,7 +312,19 @@ export default function Popup() {
           )}
           {/* 管理ページへ */}
           <button
-            onClick={() => chrome.tabs.create({ url: chrome.runtime.getURL("src/newtab/index.html") })}
+            onClick={() => {
+              const url = chrome.runtime.getURL("src/newtab/index.html");
+              if (openDashboardInNewTab) {
+                chrome.tabs.create({ url });
+              } else {
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                  if (tabs[0]?.id !== undefined) {
+                    chrome.tabs.update(tabs[0].id, { url });
+                    window.close();
+                  }
+                });
+              }
+            }}
             title={t("popupManageTitle")}
             className="p-1.5 rounded-lg text-gray-400 bg-surface-700 hover:bg-surface-600 hover:text-white transition-colors"
           >
