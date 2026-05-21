@@ -42,22 +42,46 @@ function classifyByDomain(domain: string): string {
   return DEFAULT_FOLDER_ID;
 }
 
-// AI 객체 및 모델 인스턴스 획득 (가짜 감지 차단 및 엄격한 상태 확인)
+// 네이티브 코드 여부 확인 (가짜 window.ai 객체 필터링용)
+function isNative(fn: any): boolean {
+  return typeof fn === "function" && fn.toString().includes("[native code]");
+}
+
+// AI 객체 및 모델 인스턴스 획득 (환경별 호환성 통합 및 안정성 강화)
 async function getAIModel() {
   try {
     const glob = (typeof window !== "undefined" ? window : (typeof self !== "undefined" ? self : globalThis)) as any;
     
-    // 1. Chrome 표준 API 확인 (가짜 window.ai 주입 확장 프로그램 방지)
-    const lm = glob.ai?.languageModel;
-    if (!lm || typeof lm.capabilities !== "function" || typeof lm.create !== "function") return null;
+    // 1. Chrome 표준 경로 우선 접근
+    const ai = glob.ai;
+    let lm = ai?.languageModel;
 
-    // 2. 가용성 상태 엄격 확인
-    const caps = await lm.capabilities();
-    if (caps && (caps.available === "readily" || caps.available === "after-download")) {
-      return lm;
+    // 2. 구형/폴백 경로 확인
+    if (!lm && typeof glob.LanguageModel !== "undefined") {
+      lm = glob.LanguageModel;
     }
 
-    return null;
+    if (!lm || typeof lm.create !== "function") return null;
+
+    // 3. 네이티브 코드 체크 (Monica 등 타 확장 프로그램의 가짜 객체 방지)
+    // 단, 일부 환경에서는 toString()이 변조될 수 있으므로 create 함수만이라도 체크
+    if (!isNative(lm.create)) {
+        // 네이티브가 아니면 크롬 내장 AI가 아닐 확률이 높음
+        if (!glob.chrome?.runtime) return null;
+    }
+
+    // 4. 가용성 상태 확인 (있을 때만 체크, 없으면 create 시도 허용)
+    if (typeof lm.capabilities === "function") {
+      try {
+        const caps = await lm.capabilities();
+        // 'no' 가 아닌 모든 상태(readily, after-download 등)를 가용으로 간주
+        if (caps && caps.available === "no") return null;
+      } catch (e) {
+        // capabilities() 호출 실패 시에도 create 가 있다면 일단 시도
+      }
+    }
+
+    return lm;
   } catch (e) {
     return null;
   }
@@ -65,6 +89,11 @@ async function getAIModel() {
 
 // AI 가 이용 가능한지 확인 (UI 표시용)
 export async function isAIAvailable(): Promise<boolean> {
+  // 확장 프로그램 환경에서는 객체 주입이 약간 늦을 수 있으므로 대기
+  if (typeof window !== "undefined") {
+    // 100ms 정도 대기 후 확인
+    await new Promise(r => setTimeout(r, 100));
+  }
   const lm = await getAIModel();
   return !!lm;
 }
