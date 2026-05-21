@@ -118,7 +118,7 @@ const LANG_OPTIONS: { value: Lang; label: string; native: string }[] = [
 
 export default function SettingsModal({ settings, onSave, onClose, onExportJSON, onExportHTML, onImport, sidebarChromeOpen, onToggleSidebarChrome, showGitHubRankingMenu, onToggleGitHubRankingMenu }: Props) {
   const { t, lang, setLang } = useLang();
-  const { showConfirm } = useDialog();
+  const { showConfirm, showAlert } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
   const [saving, setSaving] = useState(false);
   const [storageBytes, setStorageBytes] = useState<number>(0);
@@ -154,6 +154,7 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
     if (!ok) return;
 
     await chrome.runtime.sendMessage({ type: "FACTORY_RESET" });
+    await showAlert(t("settingsFactoryResetDone"), "info");
     localStorage.clear();
     window.location.reload();
   }

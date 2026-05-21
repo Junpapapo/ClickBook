@@ -151,7 +151,9 @@ const en = {
   settingsFactoryResetLabel: "Factory Reset",
   settingsFactoryResetDesc: "Reset all ClickBook data (bookmarks, folders, memos, patterns, settings). This does NOT affect your Chrome native bookmarks.",
   settingsFactoryResetConfirm: "Are you sure you want to PERMANENTLY delete all ClickBook data? This action cannot be undone.",
-  settingsLanguage: "Language",
+  settingsFactoryResetDone: "All ClickBook data has been reset successfully.",
+  settingsSaving: "Saving...",
+
   settingsChromePanelLabel: "Chrome Panel (Sidebar)",
   settingsChromePanelDesc: "Show Chrome bookmarks panel in sidebar",
   exportJson: "JSON Export",
@@ -469,6 +471,7 @@ const ja: typeof en = {
   settingsFactoryResetLabel: "初期化",
   settingsFactoryResetDesc: "ClickBook の全データ（ブックマーク、フォルダー、メモ、パターン、設定）を削除し初期状態に戻します。Chrome 本体のブックマークには影響しません。",
   settingsFactoryResetConfirm: "ClickBook の全データを【永久に】削除して初期化しますか？ この操作は取り消せません。",
+  settingsFactoryResetDone: "ClickBook の全データを初期化しました。",
   settingsLanguage: "言語",
 
   settingsChromePanelLabel: "Chrome パネル（サイドバー）",
@@ -789,6 +792,7 @@ const ko: typeof en = {
   settingsFactoryResetLabel: "모든 데이터 초기화",
   settingsFactoryResetDesc: "ClickBook의 모든 데이터(북마크, 폴더, 메모, 패턴, 설정)를 영구적으로 삭제하고 초기 상태로 되돌립니다. Chrome 브라우저의 실제 북마크는 삭제되지 않습니다.",
   settingsFactoryResetConfirm: "정말로 모든 ClickBook 데이터를 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+  settingsFactoryResetDone: "모든 데이터가 초기화되었습니다.",
   settingsLanguage: "언어 설정",
 
   settingsChromePanelLabel: "Chrome 패널 (사이드바)",
