@@ -1,5 +1,5 @@
 import type { Bookmark, Message, MessageResponse } from "@/shared/types";
-import { categorize, recommendSites, expandSearchQuery } from "@/shared/categorizer";
+import { categorize, recommendSites, expandSearchQuery, getAIModel, generateSummaryAndTags } from "@/shared/categorizer";
 import { getBookmarks, addBookmark, getAllData } from "@/shared/storage";
 import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
 
@@ -67,6 +67,9 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       }
       const parsedUrl = new URL(message.url);
       const domain = parsedUrl.hostname;
+      
+      const aiData = await generateSummaryAndTags(message.url, message.title || message.url, "");
+      
       const bookmark: Bookmark = {
         id: crypto.randomUUID(),
         url: message.url,
@@ -76,6 +79,8 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
         domain,
         visitCount: 0,
         savedAt: Date.now(),
+        summary: aiData.summary,
+        tags: aiData.tags,
       };
       await addBookmark(bookmark);
       return { success: true };
@@ -327,6 +332,24 @@ async function saveActiveTab(): Promise<MessageResponse> {
   const { folderId, method } = await categorize(tab.url, tab.title ?? "", domain);
   const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
+  let description = "";
+  try {
+    const [injectionResult] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        const meta = document.querySelector('meta[name="description"]');
+        return meta ? meta.getAttribute("content") : "";
+      }
+    });
+    if (injectionResult?.result) {
+      description = injectionResult.result as string;
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description);
+
   const bookmark: Bookmark = {
     id: crypto.randomUUID(),
     url: tab.url,
@@ -337,6 +360,8 @@ async function saveActiveTab(): Promise<MessageResponse> {
     domain,
     visitCount: 0,
     savedAt: Date.now(),
+    summary: aiData.summary,
+    tags: aiData.tags,
   };
 
   await addBookmark(bookmark);
@@ -690,8 +715,7 @@ async function reorganizeWithAI(
 
   let session: { prompt: (s: string) => Promise<string>; destroy: () => void } | null = null;
   try {
-    const w = self as any;
-    const lm = w.ai?.languageModel || w.LanguageModel;
+    const lm = await getAIModel();
     if (lm && typeof lm.create === "function") {
       session = await withTimeout(
         (lm.create as (opts: unknown) => Promise<typeof session>)({

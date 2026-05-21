@@ -1,11 +1,12 @@
-import { Trophy, Pencil, Globe2 } from "lucide-react";
+import { Trophy, Pencil, Globe2, Info } from "lucide-react";
 import RankingPanel from "@/components/RankingPanel";
 import BookmarkEditPanel from "@/components/BookmarkEditPanel";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
-import type { Bookmark, Folder } from "@/shared/types";
+import BookmarkInfoPanel from "@/components/BookmarkInfoPanel";
+import type { Bookmark, Folder, BookmarkMemo } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 
-export type RightPanelId = "ranking" | "edit" | "chrome";
+export type RightPanelId = "ranking" | "edit" | "chrome" | "info";
 
 interface Props {
   activePanel: RightPanelId | null;
@@ -14,6 +15,8 @@ interface Props {
   bookmarks: Bookmark[];
   folders: Folder[];
   onRefresh: () => void;
+  infoBookmark?: Bookmark | null;
+  infoMemo?: BookmarkMemo;
 }
 
 export default function RightPanelBar({
@@ -23,6 +26,8 @@ export default function RightPanelBar({
   bookmarks,
   folders,
   onRefresh,
+  infoBookmark,
+  infoMemo,
 }: Props) {
   const { t } = useLang();
   const RAIL_ITEMS: { id: RightPanelId; icon: React.ReactNode; label: string; activeClass: string }[] = [
@@ -43,6 +48,12 @@ export default function RightPanelBar({
       icon: <Globe2 size={16} />,
       label: t("chromePanelLabel"),
       activeClass: "text-sky-400 bg-sky-50 dark:bg-sky-500/10",
+    },
+    {
+      id: "info",
+      icon: <Info size={16} />,
+      label: "Site Info", // Can add i18n later
+      activeClass: "text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10",
     },
   ];
   return (
@@ -67,6 +78,9 @@ export default function RightPanelBar({
           )}
           {activePanel === "chrome" && (
             <ChromeBookmarkPanel onRefresh={onRefresh} onClose={onClose} fullHeight />
+          )}
+          {activePanel === "info" && (
+            <BookmarkInfoPanel bookmark={infoBookmark || null} memo={infoMemo} onClose={onClose} />
           )}
         </div>
       </div>

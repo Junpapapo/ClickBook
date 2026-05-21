@@ -114,6 +114,15 @@ export default function Sidebar({
       setAiAvailable(available);
     }
     checkAI();
+
+    // 팝업에서 AI 토글 시 실시간 반영
+    const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.clickbook_ai_enabled) {
+        setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, ExternalLink, Pencil, StickyNote, X } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, StickyNote, X, Info } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
 import { MEMO_DOT, MEMO_TEXTAREA_BG, ALL_MEMO_COLORS as ALL_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -249,10 +249,31 @@ export default function BookmarkCard({ bookmark, memo, folderName, onDelete, onE
               </button>
             )}
           </div>
+          {/* AI Tags */}
+          {bookmark.tags && bookmark.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-0.5">
+              {bookmark.tags.map(tag => (
+                <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-100 dark:border-emerald-500/20 truncate max-w-[80px]">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ホバー時アクション */}
         <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Info 버튼 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              window.dispatchEvent(new CustomEvent("OPEN_BOOKMARK_INFO", { detail: bookmark }));
+            }}
+            className="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-surface-700 dark:hover:bg-surface-600 rounded-lg transition-colors"
+            title={t("infoTooltip") || "Site Info"}
+          >
+            <Info size={12} className="text-indigo-500 dark:text-indigo-400" />
+          </button>
           {/* メモボタン */}
           <button
             ref={stickyBtnRef}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ClipboardList, X, CheckCircle2, Loader2, Settings, ShieldCheck, HelpCircle } from "lucide-react";
 import type { MessageResponse } from "@/shared/types";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -19,6 +19,13 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
   const [textInput, setTextInput] = useState("");
   const [textImportStatus, setTextImportStatus] = useState<"idle" | "loading" | "done">("idle");
   const [textImportResult, setTextImportResult] = useState<{ saved: number; skipped: number } | null>(null);
+
+  const [localQuery, setLocalQuery] = useState(query);
+
+  // 외부(부모)에서 query가 변경되면 동기화
+  useEffect(() => {
+    setLocalQuery(query);
+  }, [query]);
 
   async function handleTextImport() {
     const urls = extractUrls(textInput);
@@ -142,11 +149,20 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
 
       <header className="flex items-center gap-3 px-6 py-3 border-b border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-900 shrink-0">
       <div className="relative flex-1 max-w-md">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+        <Search 
+          size={15} 
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer hover:text-indigo-500 transition-colors" 
+          onClick={() => onChange(localQuery)}
+        />
         <input
           type="text"
-          value={query}
-          onChange={(e) => onChange(e.target.value)}
+          value={localQuery}
+          onChange={(e) => setLocalQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onChange(localQuery);
+            }
+          }}
         placeholder={t("searchPlaceholder")}
           className="w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-lg text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-indigo-500 transition-colors"
         />
@@ -161,7 +177,7 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
           <ShieldCheck size={18} />
         </button>
         <a
-          href={lang === "ko" ? "/help.ko.html" : lang === "ja" ? "/help.ja.html" : "/help.html"}
+          href={`https://junpapapo.github.io/ClickBook/public/${lang === "ko" ? "help.ko.html" : lang === "ja" ? "help.ja.html" : "help.html"}`}
           target="_blank"
           rel="noopener noreferrer"
           title={t("helpTooltip")}

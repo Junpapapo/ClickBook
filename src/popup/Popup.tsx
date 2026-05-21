@@ -11,7 +11,7 @@ import type { ClassifyMethod } from "@/shared/categorizer";
 import { extractUrls } from "@/shared/utils";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
-import { isAIAvailable } from "@/shared/categorizer";
+import { isAIAvailable, setAIEnabled } from "@/shared/categorizer";
 
 type Status = "idle" | "loading" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
@@ -111,6 +111,15 @@ export default function Popup() {
       setAiAvailable(available);
     }
     checkAI();
+
+    // storage 변경 감지 (다른 탭/팝업에서 토글 시 반영)
+    const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.clickbook_ai_enabled) {
+        setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
   async function handleSave() {
@@ -262,17 +271,22 @@ export default function Popup() {
         </div>
         <div className="flex items-center gap-1.5">
           {aiAvailable !== null && (
-            <div
+            <button
+              onClick={async () => {
+                const next = !aiAvailable;
+                await setAIEnabled(next);
+                setAiAvailable(next);
+              }}
               title={aiAvailable ? t("popupAiAvailableTitle") : t("popupAiUnavailableTitle")}
-              className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${
+              className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer transition-all duration-200 ${
                 aiAvailable
-                  ? "bg-purple-900/60 text-purple-300 border border-purple-700/50"
-                  : "bg-surface-800 text-gray-600 border border-surface-700"
+                  ? "bg-purple-900/60 text-purple-300 border border-purple-700/50 hover:bg-purple-800/60"
+                  : "bg-surface-800 text-gray-600 border border-surface-700 hover:bg-surface-700 hover:text-gray-400"
               }`}
             >
               <Sparkles size={10} />
               {aiAvailable ? "AI ON" : "AI OFF"}
-            </div>
+            </button>
           )}
           {/* 管理ページへ */}
           <button
@@ -643,7 +657,7 @@ export default function Popup() {
       </div>
 
       {aiAvailable === false && (
-        <p className="text-[10px] text-orange-400 text-center">
+        <p className="text-[10px] text-orange-400 text-center pb-2">
           {t("popupAiNote")}
         </p>
       )}

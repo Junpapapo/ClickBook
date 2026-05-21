@@ -42,60 +42,89 @@ function classifyByDomain(domain: string): string {
   return DEFAULT_FOLDER_ID;
 }
 
-// 네이티브 코드 여부 확인 (가짜 window.ai 객체 필터링용)
-function isNative(fn: any): boolean {
-  return typeof fn === "function" && fn.toString().includes("[native code]");
-}
+// ── AI 환경 설정 ─────────────────────────────────────────
+// 최초 실행 시 실제 세션을 열어 자동 체크 → 결과 저장
+// 이후에는 팝업에서 수동으로 ON/OFF 전환 가능
+// 설정값은 chrome.storage.local("clickbook_ai_enabled")에 저장
+// ─────────────────────────────────────────────────────────
 
-// AI 객체 및 모델 인스턴스 획득 (환경별 호환성 통합 및 안정성 강화)
-async function getAIModel() {
+const AI_ENABLED_KEY = "clickbook_ai_enabled";
+
+/** 글로벌 객체에서 languageModel 참조를 가져옴 (경량) */
+export async function getAIModel() {
   try {
     const glob = (typeof window !== "undefined" ? window : (typeof self !== "undefined" ? self : globalThis)) as any;
-    
-    // 1. Chrome 표준 경로 우선 접근
-    const ai = glob.ai;
-    let lm = ai?.languageModel;
-
-    // 2. 구형/폴백 경로 확인
+    let lm = glob.ai?.languageModel;
     if (!lm && typeof glob.LanguageModel !== "undefined") {
       lm = glob.LanguageModel;
     }
-
     if (!lm || typeof lm.create !== "function") return null;
-
-    // 3. 네이티브 코드 체크 (Monica 등 타 확장 프로그램의 가짜 객체 방지)
-    // 단, 일부 환경에서는 toString()이 변조될 수 있으므로 create 함수만이라도 체크
-    if (!isNative(lm.create)) {
-        // 네이티브가 아니면 크롬 내장 AI가 아닐 확률이 높음
-        if (!glob.chrome?.runtime) return null;
-    }
-
-    // 4. 가용성 상태 확인 (있을 때만 체크, 없으면 create 시도 허용)
-    if (typeof lm.capabilities === "function") {
-      try {
-        const caps = await lm.capabilities();
-        // 'no' 가 아닌 모든 상태(readily, after-download 등)를 가용으로 간주
-        if (caps && caps.available === "no") return null;
-      } catch (e) {
-        // capabilities() 호출 실패 시에도 create 가 있다면 일단 시도
-      }
-    }
-
     return lm;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
-// AI 가 이용 가능한지 확인 (UI 표시용)
-export async function isAIAvailable(): Promise<boolean> {
-  // 확장 프로그램 환경에서는 객체 주입이 약간 늦을 수 있으므로 대기
-  if (typeof window !== "undefined") {
-    // 100ms 정도 대기 후 확인
-    await new Promise(r => setTimeout(r, 100));
+/** 실제로 세션을 열고 간단한 프롬프트를 보내서 AI 사용 가능 여부를 검증 */
+async function verifyAISession(): Promise<boolean> {
+  try {
+    const lm = await getAIModel();
+    if (!lm) return false;
+
+    const session = await Promise.race([
+      (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+        systemPrompt: "Reply with OK only.",
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000)),
+    ]);
+
+    const response = await Promise.race([
+      session.prompt("ping"),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000)),
+    ]);
+    session.destroy();
+
+    return !!response && response.trim().length > 0;
+  } catch {
+    return false;
   }
-  const lm = await getAIModel();
-  return !!lm;
+}
+
+/**
+ * AI 사용이 활성화되어 있는지 확인
+ * - 최초 (값 없음): 실제 세션으로 자동 체크하여 결과 저장
+ * - 이후: 저장된 수동 설정값 반환
+ */
+export async function isAIAvailable(): Promise<boolean> {
+  try {
+    const result = await chrome.storage.local.get(AI_ENABLED_KEY);
+
+    // 이미 설정값이 있으면 그대로 반환 (수동 설정 우선)
+    if (result[AI_ENABLED_KEY] !== undefined) {
+      return result[AI_ENABLED_KEY] === true;
+    }
+  } catch {
+    return false;
+  }
+
+  // 최초 실행: AI 객체 주입 대기 후 실제 테스트
+  if (typeof window !== "undefined") {
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  const available = await verifyAISession();
+
+  // 결과 저장 (이후 수동 토글의 초기값이 됨)
+  try {
+    await chrome.storage.local.set({ [AI_ENABLED_KEY]: available });
+  } catch { /* 무시 */ }
+
+  return available;
+}
+
+/** AI 활성화 상태를 설정 */
+export async function setAIEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [AI_ENABLED_KEY]: enabled });
 }
 
 // Chrome Gemini Nano で分類を試みる
@@ -231,4 +260,45 @@ export async function categorize(
   const method: ClassifyMethod = ruleResult !== DEFAULT_FOLDER_ID ? "rules" : "fallback";
   return { folderId: ruleResult, method };
 }
+
+// 북마크에 대한 1~2줄 요약 및 3개의 핵심 키워드(태그) 생성
+export async function generateSummaryAndTags(
+  url: string,
+  title: string,
+  description: string
+): Promise<{ summary?: string; tags?: string[] }> {
+  try {
+    // 저장된 AI 사용 여부 확인
+    const { clickbook_ai_enabled } = await chrome.storage.local.get("clickbook_ai_enabled");
+    if (clickbook_ai_enabled === false) return {};
+
+    const lm = await getAIModel();
+    if (!lm) return {};
+
+    const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+      systemPrompt: `You are a helpful assistant that summarizes web pages. Given a URL, Title, and optionally a Meta Description, provide a 1-2 sentence TL;DR summary and exactly 3 broad keyword tags.
+Output ONLY a JSON object with this exact structure: {"summary": "your short summary", "tags": ["tag1", "tag2", "tag3"]}. No markdown, no conversational text. Use the same language as the title/description.`,
+      temperature: 0.2,
+    });
+
+    const response = await session.prompt(
+      `URL: ${url}\nTitle: ${title}\nDescription: ${description}`
+    );
+    session.destroy();
+
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      return {
+        summary: parsed.summary,
+        tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : undefined,
+      };
+    }
+    return {};
+  } catch (err) {
+    console.warn("AI summary failed:", err);
+    return {};
+  }
+}
+
 

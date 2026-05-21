@@ -39,6 +39,8 @@ export interface Bookmark {
   domain: string;
   visitCount: number;
   savedAt: number;
+  summary?: string;
+  tags?: string[];
 }
 
 export interface Folder {
