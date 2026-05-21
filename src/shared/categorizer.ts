@@ -42,15 +42,40 @@ function classifyByDomain(domain: string): string {
   return DEFAULT_FOLDER_ID;
 }
 
-// Chrome Gemini Nano で分類を試みる（Service Worker 対応: self.ai を使用）
+// AI 객체 및 모델 인스턴스 획득 (환경별 호환성 통합)
+async function getAIModel() {
+  try {
+    const glob = (typeof window !== "undefined" ? window : (typeof self !== "undefined" ? self : globalThis)) as any;
+    const lm = glob.ai?.languageModel || glob.LanguageModel;
+    if (!lm || typeof lm.create !== "function") return null;
+
+    // capabilities 체크 (선택 사항, 실패해도 create 시도)
+    if (typeof lm.capabilities === "function") {
+      try {
+        const caps = await lm.capabilities();
+        if (caps.available === "no") return null;
+      } catch (e) { /* ignore */ }
+    }
+    return lm;
+  } catch (e) {
+    return null;
+  }
+}
+
+// AI 가 이용 가능한지 확인 (UI 표시용)
+export async function isAIAvailable(): Promise<boolean> {
+  const lm = await getAIModel();
+  return !!lm;
+}
+
+// Chrome Gemini Nano で分類を試みる
 async function classifyWithNano(
   url: string,
   title: string
 ): Promise<string | null> {
   try {
-    const glob = (self as any) ?? (globalThis as any);
-    const lm = glob.ai?.languageModel || glob.LanguageModel;
-    if (!lm || typeof lm.create !== "function") return null;
+    const lm = await getAIModel();
+    if (!lm) return null;
 
     const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
       systemPrompt: `You are a URL categorizer. Given a URL and page title, respond with exactly ONE category ID from this list:
@@ -77,7 +102,6 @@ Respond with only the category ID, nothing else.`,
 
     return isValidCategoryId(trimmed) ? trimmed : null;
   } catch (err) {
-    // console.warn("Operation failed:", err);
     return null;
   }
 }
@@ -86,9 +110,8 @@ Respond with only the category ID, nothing else.`,
 export async function expandSearchQuery(query: string): Promise<string[]> {
   if (!query.trim() || query.length < 2) return [];
   try {
-    const glob = (self as any) ?? (globalThis as any);
-    const lm = glob.ai?.languageModel || glob.LanguageModel;
-    if (!lm || typeof lm.create !== "function") return [];
+    const lm = await getAIModel();
+    if (!lm) return [query];
 
     const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
       systemPrompt: `You are a search assistant. Given a user's natural language query, extract 5-8 core keywords, synonyms, and related terms in both English and the user's language. 
@@ -117,9 +140,8 @@ Output ONLY a JSON array of strings. No markdown, no conversational text.`,
 export async function recommendSites(keyword: string, count = 6): Promise<Array<{ title: string; url: string }>> {
   if (!keyword.trim()) return [];
   try {
-    const glob = (self as any) ?? (globalThis as any);
-    const lm = glob.ai?.languageModel || glob.LanguageModel;
-    if (!lm || typeof lm.create !== "function") return [];
+    const lm = await getAIModel();
+    if (!lm) return [];
 
     const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
       systemPrompt: `You are a helpful assistant. Your task is to recommend top websites for a given keyword.
@@ -136,7 +158,7 @@ Output:`
 
     if (!response || !response.trim()) return [];
 
-    // JSON 추출 (코드 블록이나 잡설 제거)
+    // JSON 추출
     let jsonStr = response.trim();
     const startIdx = jsonStr.indexOf("[");
     const endIdx = jsonStr.lastIndexOf("]");
@@ -157,44 +179,10 @@ Output:`
           .filter(item => item.url.startsWith("http"))
           .slice(0, count);
       }
-    } catch (parseErr) {
-      // 파싱 실패 시 원본 로그 (디버깅용으로 유지했다가 나중에 제거 가능)
-      // console.warn("[AI Recommend] Raw:", response);
-    }
+    } catch (parseErr) { /* ignore */ }
     return [];
   } catch (err) {
     return [];
-  }
-}
-
-// AI 가 이용 가능한지 확인 (환경별 호환성 및 안정성 강화)
-export async function isAIAvailable(): Promise<boolean> {
-  try {
-    const glob = (typeof window !== "undefined" ? window : self) as any;
-    
-    // 1. AI 객체 또는 기존 LanguageModel 접근 시도
-    const ai = glob.ai;
-    const lm = ai?.languageModel || glob.LanguageModel;
-    
-    if (!lm) return false;
-
-    // 2. Capabilities API 가 있는 경우 (최신 크롬)
-    if (typeof lm.capabilities === "function") {
-      try {
-        const caps = await lm.capabilities();
-        // 'no' 인 경우만 명확하게 이용 불가로 판단
-        // 'readily', 'after-download' 모두 일단 기능을 시도해볼 수 있는 상태로 간주
-        return caps.available !== "no";
-      } catch (e) {
-        // capabilities() 호출 자체가 실패하더라도 create 가 있다면 시도 허용
-        return typeof lm.create === "function";
-      }
-    }
-
-    // 3. Capabilities 는 없지만 create 가 있는 경우 (이전 버전 호환성)
-    return typeof lm.create === "function";
-  } catch (err) {
-    return false;
   }
 }
 
