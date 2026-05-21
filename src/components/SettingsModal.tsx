@@ -154,6 +154,7 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
     if (!ok) return;
 
     await chrome.runtime.sendMessage({ type: "FACTORY_RESET" });
+    localStorage.clear();
     window.location.reload();
   }
 

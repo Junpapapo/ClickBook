@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2 } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import { EditModal } from "@/components/BookmarkEditPanel";
