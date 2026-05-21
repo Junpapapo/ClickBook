@@ -25,6 +25,37 @@ export interface GitHubRankingCache {
   items: GitHubRepo[];
   customQueries: Record<string, GitHubRepo[]>; // クエリ文字列→結果
 }
+
+// =============================
+// Wiki/HF/HN 랭킹용형 정의
+// =============================
+
+export interface WikiArticle {
+  article: string;
+  views: number;
+  rank: number;
+  url: string;
+}
+
+export interface HFModel {
+  id: string;
+  author: string;
+  repo_name: string;
+  likes: number;
+  downloads: number;
+  lastModified: string;
+  url: string;
+}
+
+export interface HNStory {
+  id: number;
+  title: string;
+  url: string;
+  score: number;
+  by: string;
+  time: number;
+  descendants: number;
+}
 // ============================================================
 // Bookmark & Folder 型定義
 // ============================================================

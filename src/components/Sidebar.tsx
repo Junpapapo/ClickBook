@@ -16,6 +16,8 @@ import {
   LockOpen,
   StickyNote,
   Trophy,
+  Book,
+  Newspaper,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -36,6 +38,9 @@ interface Props {
   memoCount?: number;
   onSelectMemoBoard?: () => void;
   onSelectGitHubRanking?: () => void;
+  onSelectWikiRanking?: () => void;
+  onSelectHFRanking?: () => void;
+  onSelectHNRanking?: () => void;
   maxFolderDepth?: number;
   onAiLoadingChange?: (loading: boolean) => void;
 }
@@ -87,6 +92,9 @@ export default function Sidebar({
   memoCount,
   onSelectMemoBoard,
   onSelectGitHubRanking,
+  onSelectWikiRanking,
+  onSelectHFRanking,
+  onSelectHNRanking,
   maxFolderDepth = 3,
   onAiLoadingChange,
 }: Props) {
@@ -791,6 +799,33 @@ export default function Sidebar({
           >
             <Trophy size={15} className="shrink-0" />
             {t("githubRanking")}
+          </button>
+        )}
+        {onSelectWikiRanking && (
+          <button
+            onClick={onSelectWikiRanking}
+            className="flex items-center gap-2.5 w-full px-3 py-2 mt-0.5 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+          >
+            <Book size={15} className="shrink-0" />
+            {t("wikiRanking")}
+          </button>
+        )}
+        {onSelectHFRanking && (
+          <button
+            onClick={onSelectHFRanking}
+            className="flex items-center gap-2.5 w-full px-3 py-2 mt-0.5 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/10"
+          >
+            <Sparkles size={15} className="shrink-0" />
+            {t("hfRanking")}
+          </button>
+        )}
+        {onSelectHNRanking && (
+          <button
+            onClick={onSelectHNRanking}
+            className="flex items-center gap-2.5 w-full px-3 py-2 mt-0.5 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/10"
+          >
+            <Newspaper size={15} className="shrink-0" />
+            {t("hnRanking")}
           </button>
         )}
       </div>

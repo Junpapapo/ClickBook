@@ -10,6 +10,9 @@ import Dashboard from "@/pages/Dashboard";
 import FolderView from "@/pages/FolderView";
 import MemoBoard from "@/pages/MemoBoard";
 import GitHubRankingPage from "@/pages/GitHubRanking";
+import WikiRankingPage from "@/pages/WikiRanking";
+import HFRankingPage from "@/pages/HFRanking";
+import HNRankingPage from "@/pages/HNRanking";
 import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
 import { ThemeProvider } from "@/shared/ThemeContext";
@@ -25,6 +28,9 @@ function AppContent() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [showMemoBoard, setShowMemoBoard] = useState(false);
   const [showGitHubRanking, setShowGitHubRanking] = useState(false);
+  const [showWikiRanking, setShowWikiRanking] = useState(false);
+  const [showHFRanking, setShowHFRanking] = useState(false);
+  const [showHNRanking, setShowHNRanking] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
   const [infoBookmarkId, setInfoBookmarkId] = useState<string | null>(null);
@@ -227,6 +233,9 @@ function AppContent() {
           setSelectedFolderId(id);
           setShowMemoBoard(false);
           setShowGitHubRanking(false);
+          setShowWikiRanking(false);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
         }}
         onRefresh={loadData}
         showChromePanel={sidebarChromeOpen}
@@ -236,12 +245,42 @@ function AppContent() {
           setShowMemoBoard(true);
           setSelectedFolderId(null);
           setShowGitHubRanking(false);
+          setShowWikiRanking(false);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
         }}
         onSelectGitHubRanking={showGitHubRankingMenu ? () => {
           setShowGitHubRanking(true);
           setShowMemoBoard(false);
           setSelectedFolderId(null);
+          setShowWikiRanking(false);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
         } : undefined}
+        onSelectWikiRanking={() => {
+          setShowWikiRanking(true);
+          setShowGitHubRanking(false);
+          setShowMemoBoard(false);
+          setSelectedFolderId(null);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
+        }}
+        onSelectHFRanking={() => {
+          setShowHFRanking(true);
+          setShowWikiRanking(false);
+          setShowGitHubRanking(false);
+          setShowMemoBoard(false);
+          setSelectedFolderId(null);
+          setShowHNRanking(false);
+        }}
+        onSelectHNRanking={() => {
+          setShowHNRanking(true);
+          setShowHFRanking(false);
+          setShowWikiRanking(false);
+          setShowGitHubRanking(false);
+          setShowMemoBoard(false);
+          setSelectedFolderId(null);
+        }}
         maxFolderDepth={settings.maxFolderDepth}
         onAiLoadingChange={setAiLoading}
       />
@@ -260,6 +299,12 @@ function AppContent() {
           <main className="flex-1 overflow-y-auto p-6">
             {showGitHubRanking ? (
               <GitHubRankingPage />
+            ) : showWikiRanking ? (
+              <WikiRankingPage />
+            ) : showHFRanking ? (
+              <HFRankingPage />
+            ) : showHNRanking ? (
+              <HNRankingPage />
             ) : showMemoBoard ? (
               <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
             ) : selectedFolderId === null ? (
@@ -274,6 +319,9 @@ function AppContent() {
                   setSelectedFolderId(id);
                   setShowMemoBoard(false);
                   setShowGitHubRanking(false);
+                  setShowWikiRanking(false);
+                  setShowHFRanking(false);
+                  setShowHNRanking(false);
                 }}
                 onRefresh={loadData}
                 searchQuery={deferredQuery}
@@ -290,6 +338,9 @@ function AppContent() {
                   setSelectedFolderId(id);
                   setShowMemoBoard(false);
                   setShowGitHubRanking(false);
+                  setShowWikiRanking(false);
+                  setShowHFRanking(false);
+                  setShowHNRanking(false);
                 }}
                 onRefresh={loadData}
               />
