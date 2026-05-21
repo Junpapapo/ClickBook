@@ -34,7 +34,16 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   const [subFoldersCollapsed, setSubFoldersCollapsed] = useState(false);
   const [showSubFolderInput, setShowSubFolderInput] = useState(false);
   const [newSubFolderName, setNewSubFolderName] = useState("");
+  const [aiAvailable, setAiAvailable] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function checkAI() {
+      const available = await isAIAvailable();
+      setAiAvailable(available);
+    }
+    checkAI();
+  }, []);
   const subFolderInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
 

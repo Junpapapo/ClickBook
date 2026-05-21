@@ -42,20 +42,35 @@ function classifyByDomain(domain: string): string {
   return DEFAULT_FOLDER_ID;
 }
 
-// AI 객체 및 모델 인스턴스 획득 (환경별 호환성 통합)
+// AI 객체 및 모델 인스턴스 획득 (환경별 호환성 통합 및 가짜 감지 방지)
 async function getAIModel() {
   try {
     const glob = (typeof window !== "undefined" ? window : (typeof self !== "undefined" ? self : globalThis)) as any;
-    const lm = glob.ai?.languageModel || glob.LanguageModel;
+    
+    // 1. 최신 표준인 ai.languageModel 우선 확인
+    let lm = glob.ai?.languageModel;
+    
+    // 2. 없으면 구형/실험적 LanguageModel 확인
+    if (!lm && typeof glob.LanguageModel !== "undefined") {
+      lm = glob.LanguageModel;
+    }
+
     if (!lm || typeof lm.create !== "function") return null;
 
-    // capabilities 체크 (선택 사항, 실패해도 create 시도)
+    // 3. Capabilities API 가 있다면 엄격하게 체크
     if (typeof lm.capabilities === "function") {
       try {
         const caps = await lm.capabilities();
-        if (caps.available === "no") return null;
-      } catch (e) { /* ignore */ }
+        if (!caps || caps.available === "no") return null;
+      } catch (e) {
+        // 호출 실패 시, 크롬 환경이 아니면 가짜일 확률 높음
+        if (!glob.chrome) return null;
+      }
+    } else {
+      // capabilities 가 없는데 크롬 환경도 아니면 OFF 로 판단 (false positive 방지)
+      if (!glob.chrome) return null;
     }
+
     return lm;
   } catch (e) {
     return null;
