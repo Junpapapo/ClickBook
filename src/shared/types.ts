@@ -78,7 +78,7 @@ export interface AppSettings {
   recommendCount: number;       // AI 추천 사이트 표시수 default: 6
   maxFolderDepth: number;       // 最大フォルダー段階数 default: 3
   keepExistingFolders: boolean; // AI整理時に既存フォルダーを変更しない default: false
-  openDashboardInNewTab: boolean; // Dashboard 탭 열기 방식 default: true
+  openDashboardInNewTab: boolean; // Dashboard 탭 열기 방식 default: false
 }
 
 

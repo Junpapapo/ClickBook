@@ -44,7 +44,7 @@ export default function Popup() {
   const [memoColor, setMemoColor] = useState<MemoColor>("yellow");
   const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done">("idle");
   const [showGitHubRankingMenu, setShowGitHubRankingMenu] = useState(true);
-  const [openDashboardInNewTab, setOpenDashboardInNewTab] = useState(true);
+  const [openDashboardInNewTab, setOpenDashboardInNewTab] = useState(false);
   const [popupTheme, setPopupThemeState] = useState<"light" | "dark">(() => {
     const s = localStorage.getItem("clickbook_theme");
     return s === "light" ? "light" : "dark";

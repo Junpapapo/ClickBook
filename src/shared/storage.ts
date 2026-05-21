@@ -396,7 +396,7 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   recommendCount: 6,
   maxFolderDepth: 3,
   keepExistingFolders: false,
-  openDashboardInNewTab: true,
+  openDashboardInNewTab: false,
 };
 
 export async function getSettings(): Promise<import("./types").AppSettings> {
