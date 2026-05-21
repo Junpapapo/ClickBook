@@ -147,6 +147,16 @@ categorize(url, title, domain)
 
 ---
 
+## お問い合わせ・サポート
+
+ご質問、ご提案、またはバグ報告がある場合は、以下のチャネルをご利用ください。
+
+- [GitHub Issues](https://github.com/Junpapapo/ClickBook/issues): バグ報告や機能提案。
+- [GitHub Discussions](https://github.com/Junpapapo/ClickBook/discussions): 一般的な質問やコミュニティの対話。
+- メール: [junpapapo@gmail.com](mailto:junpapapo@gmail.com)
+
+---
+
 ## ライセンス
 
 MIT

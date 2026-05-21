@@ -121,6 +121,16 @@ categorize(url, title, domain)
 
 ---
 
+## Contact & Support
+
+If you have any questions, suggestions, or bug reports, please use the following channels:
+
+- [GitHub Issues](https://github.com/Junpapapo/ClickBook/issues): For bug reports and feature requests.
+- [GitHub Discussions](https://github.com/Junpapapo/ClickBook/discussions): For general questions and community discussion.
+- Email: [junpapapo@gmail.com](mailto:junpapapo@gmail.com)
+
+---
+
 ## License
 
 MIT
