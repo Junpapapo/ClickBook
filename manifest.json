@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ClickBook",
   "short_name": "ClickBook",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Save, organize, and manage bookmarks by category with one click. Includes browsing data cleanup tools.",
   "author": "Junpapapo",
   "homepage_url": "https://github.com/Junpapapo/ClickBook",

@@ -167,19 +167,26 @@ Output:`
   }
 }
 
-// AI 가 이용 가능한지 엄격하게 확인 (Capabilities API 사용)
+// AI 가 이용 가능한지 확인 (환경별 호환성 강화)
 export async function isAIAvailable(): Promise<boolean> {
   try {
     const glob = (typeof window !== "undefined" ? window : self) as any;
     
-    // 'ai' 속성 존재 여부 확인
+    // 1. 기본 객체 존재 확인
     if (!glob || (!("ai" in glob) && !("LanguageModel" in glob))) return false;
 
     const lm = glob.ai?.languageModel || glob.LanguageModel;
-    if (!lm || typeof lm.capabilities !== "function") return false;
+    if (!lm) return false;
 
-    const caps = await lm.capabilities();
-    return caps.available === "readily";
+    // 2. Capabilities API 가 있는 경우 (최신 크롬)
+    if (typeof lm.capabilities === "function") {
+      const caps = await lm.capabilities();
+      // 'readily' (즉시 가능) 또는 'after-download' (다운로드 후 가능)인 경우 ON
+      return caps.available === "readily" || caps.available === "after-download";
+    }
+
+    // 3. Capabilities 는 없지만 create 가 있는 경우 (이전 버전 호환성)
+    return typeof lm.create === "function";
   } catch (err) {
     return false;
   }
