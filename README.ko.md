@@ -5,6 +5,8 @@
 
 [English version](./README.md) | [日本語版](./README.ja.md) | [한국어판](./README.ko.md)
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/junpa)
+
 ## 한국어판
 
 Chrome Manifest V3로 구축된 북마크 관리 도구입니다. 확장 프로그램 아이콘을 클릭하는 것만으로 활성 탭을 즉시 저장하며, Chrome 내장 AI(Gemini Nano) 또는 규칙 기반 폴백을 통해 8개 카테고리로 자동 분류합니다. 관리는 전용 대시보드 탭에서 수행합니다.

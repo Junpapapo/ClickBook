@@ -5,6 +5,8 @@
 
 [English version](./README.md) | [日本語版](./README.ja.md) | [한국어판](./README.ko.md)
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/junpa)
+
 ---
 
 ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows you to instantly save your active tab with a single click and automatically organizes it into one of 8 categories using Chrome's built-in AI (Gemini Nano) or a rule-based fallback system.

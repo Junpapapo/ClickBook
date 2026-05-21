@@ -5,6 +5,8 @@
 
 [English version](./README.md) | [日本語版](./README.ja.md) | [한국어판](./README.ko.md)
 
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/junpa)
+
 ## 日本語版
 
 Chrome Manifest V3 で構築したブックマーク管理ツール。拡張アイコンをクリックするだけでアクティブタブを即時保存し、Chrome 内蔵 AI（Gemini Nano）またはルールベースフォールバックにより 8 カテゴリへ自動振り分けする。管理は専用ダッシュボードタブで行う。
