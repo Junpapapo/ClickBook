@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [textImportOpen, setTextImportOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [textInput, setTextInput] = useState("");
