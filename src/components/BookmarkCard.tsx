@@ -34,7 +34,7 @@ function shortenUrl(url: string): string {
 
 // ── MemoPopover（createPortal で body 直下にレンダリング） ──
 
-interface PopoverProps {
+export interface PopoverProps {
   memo?: BookmarkMemo;
   anchorRef: React.RefObject<HTMLButtonElement | null>;
   onClose: () => void;
@@ -42,7 +42,7 @@ interface PopoverProps {
   onDelete: () => Promise<void>;
 }
 
-function MemoPopover({ memo, anchorRef, onClose, onSave, onDelete }: PopoverProps) {
+export function MemoPopover({ memo, anchorRef, onClose, onSave, onDelete }: PopoverProps) {
   const { t } = useLang();
   const [content, setContent] = useState(memo?.content ?? "");
   const [color, setColor] = useState<MemoColor>(memo?.color ?? "yellow");

@@ -118,7 +118,7 @@ const LANG_OPTIONS: { value: Lang; label: string; native: string }[] = [
 
 export default function SettingsModal({ settings, onSave, onClose, onExportJSON, onExportHTML, onImport, sidebarChromeOpen, onToggleSidebarChrome, showGitHubRankingMenu, onToggleGitHubRankingMenu }: Props) {
   const { t, lang, setLang } = useLang();
-  const { showConfirm, showAlert } = useDialog();
+  const { showConfirm, showAlert, DialogEl } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
   const [saving, setSaving] = useState(false);
   const [storageBytes, setStorageBytes] = useState<number>(0);
@@ -169,6 +169,7 @@ export default function SettingsModal({ settings, onSave, onClose, onExportJSON,
 
   return (
     <>
+      {DialogEl}
       {/* オーバーレイ */}
       <div
         className="fixed inset-0 z-[9000] bg-black/50 backdrop-blur-sm"

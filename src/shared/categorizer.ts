@@ -66,7 +66,7 @@ export async function getAIModel() {
 }
 
 /** 실제로 세션을 열고 간단한 프롬프트를 보내서 AI 사용 가능 여부를 검증 */
-async function verifyAISession(): Promise<boolean> {
+export async function verifyAISession(): Promise<boolean> {
   try {
     const lm = await getAIModel();
     if (!lm) return false;
@@ -136,8 +136,9 @@ async function classifyWithNano(
     const lm = await getAIModel();
     if (!lm) return null;
 
-    const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      systemPrompt: `You are a URL categorizer. Given a URL and page title, respond with exactly ONE category ID from this list:
+    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)();
+
+    const promptText = `System: You are a URL categorizer. Given a URL and page title, respond with exactly ONE category ID from this list:
 technology, design, business, entertainment, science, sports, travel, other
 
 Rules:
@@ -150,12 +151,12 @@ Rules:
 - travel: hotels, flights, tourism, maps, local guides
 - other: anything that does not clearly fit above
 
-Respond with only the category ID, nothing else.`,
-    });
+Respond with only the category ID, nothing else.
 
-    const response: string = await session.prompt(
-      `URL: ${url}\nTitle: ${title}`
-    );
+URL: ${url}
+Title: ${title}`;
+
+    const response: string = await session.prompt(promptText);
     const trimmed = response.trim().toLowerCase();
     session.destroy();
 
@@ -172,14 +173,14 @@ export async function expandSearchQuery(query: string): Promise<string[]> {
     const lm = await getAIModel();
     if (!lm) return [query];
 
-    const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      systemPrompt: `You are a search assistant. Given a user's natural language query, extract 5-8 core keywords, synonyms, and related terms in both English and the user's language. 
-Output ONLY a JSON array of strings. No markdown, no conversational text.`,
-    });
+    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)();
 
-    const response: string = await session.prompt(
-      `User query: "${query}"`
-    );
+    const promptText = `System: You are a search assistant. Given a user's natural language query, extract 5-8 core keywords, synonyms, and related terms in both English and the user's language. 
+Output ONLY a JSON array of strings. No markdown, no conversational text.
+
+User query: "${query}"`;
+
+    const response: string = await session.prompt(promptText);
     session.destroy();
 
     const jsonMatch = response.match(/\[[\s\S]*?\]/);
@@ -202,17 +203,17 @@ export async function recommendSites(keyword: string, count = 6): Promise<Array<
     const lm = await getAIModel();
     if (!lm) return [];
 
-    const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      systemPrompt: `You are a helpful assistant. Your task is to recommend top websites for a given keyword.
-You MUST output ONLY a valid JSON array of objects. Each object must have "title" and "url" keys.
-Do not include any explanations, markdown code blocks, or conversational text.`,
-    });
+    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)();
 
-    const response: string = await session.prompt(
-      `Task: Provide exactly ${count} popular websites for the keyword "${keyword}".
+    const promptText = `System: You are a helpful assistant. Your task is to recommend top websites for a given keyword.
+You MUST output ONLY a valid JSON array of objects. Each object must have "title" and "url" keys.
+Do not include any explanations, markdown code blocks, or conversational text.
+
+Task: Provide exactly ${count} popular websites for the keyword "${keyword}".
 Output format: [{"title": "...", "url": "..."}]
-Output:`
-    );
+Output:`;
+
+    const response: string = await session.prompt(promptText);
     session.destroy();
 
     if (!response || !response.trim()) return [];
@@ -268,33 +269,39 @@ export async function generateSummaryAndTags(
   description: string
 ): Promise<{ summary?: string; tags?: string[] }> {
   try {
-    // 저장된 AI 사용 여부 확인
     const { clickbook_ai_enabled } = await chrome.storage.local.get("clickbook_ai_enabled");
     if (clickbook_ai_enabled === false) return {};
 
     const lm = await getAIModel();
     if (!lm) return {};
 
-    const session = await (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      systemPrompt: `You are a helpful assistant that summarizes web pages. Given a URL, Title, and optionally a Meta Description, provide a 1-2 sentence TL;DR summary and exactly 3 broad keyword tags.
-Output ONLY a JSON object with this exact structure: {"summary": "your short summary", "tags": ["tag1", "tag2", "tag3"]}. No markdown, no conversational text. Use the same language as the title/description.`,
-      temperature: 0.2,
-    });
+    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)();
 
-    const response = await session.prompt(
-      `URL: ${url}\nTitle: ${title}\nDescription: ${description}`
-    );
+    const promptText = `Task: Summarize the given webpage.
+Provide a 1-2 sentence summary (in the same language as the title) and exactly 3 broad keyword tags (ALWAYS in English, lowercase).
+Output ONLY a valid JSON object. No markdown, no conversational text.
+Format: {"summary": "...", "tags": ["tag1", "tag2", "tag3"]}
+
+URL: ${url}
+Title: ${title}
+Description: ${description}
+Output:`;
+
+    const response = await session.prompt(promptText);
     session.destroy();
 
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        summary: parsed.summary,
-        tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : undefined,
-      };
+    let jsonStr = response.trim();
+    const startIdx = jsonStr.indexOf("{");
+    const endIdx = jsonStr.lastIndexOf("}");
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      jsonStr = jsonStr.substring(startIdx, endIdx + 1);
     }
-    return {};
+
+    const parsed = JSON.parse(jsonStr);
+    return {
+      summary: parsed.summary,
+      tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : undefined,
+    };
   } catch (err) {
     console.warn("AI summary failed:", err);
     return {};

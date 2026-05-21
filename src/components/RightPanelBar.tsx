@@ -80,7 +80,7 @@ export default function RightPanelBar({
             <ChromeBookmarkPanel onRefresh={onRefresh} onClose={onClose} fullHeight />
           )}
           {activePanel === "info" && (
-            <BookmarkInfoPanel bookmark={infoBookmark || null} memo={infoMemo} onClose={onClose} />
+            <BookmarkInfoPanel bookmark={infoBookmark || null} memo={infoMemo} folders={folders} onClose={onClose} onRefresh={onRefresh} />
           )}
         </div>
       </div>

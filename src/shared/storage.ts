@@ -88,7 +88,7 @@ export async function moveBookmark(
 
 export async function updateBookmark(
   id: string,
-  changes: { title?: string; url?: string; folderId?: string }
+  changes: { title?: string; url?: string; folderId?: string; summary?: string; tags?: string[] }
 ): Promise<void> {
   const data = await readStorage();
   data.bookmarks = data.bookmarks.map((b) => {

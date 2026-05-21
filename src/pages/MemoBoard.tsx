@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StickyNote, ExternalLink, X, Plus, Check } from "lucide-react";
+import { StickyNote, ExternalLink, X, Plus, Check, Info } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
 import {
   MEMO_DOT,
@@ -159,13 +159,27 @@ function MemoCard({
               />
             ))}
           </div>
-          <button
-            onClick={handleDelete}
-            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-gray-400 hover:text-red-400"
-            title="メモを削除"
-          >
-            <X size={12} />
-          </button>
+          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {bookmark && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent("OPEN_BOOKMARK_INFO", { detail: bookmark }));
+                }}
+                className="p-0.5 text-gray-400 hover:text-indigo-500"
+                title="View Site Info"
+              >
+                <Info size={12} />
+              </button>
+            )}
+            <button
+              onClick={handleDelete}
+              className="p-0.5 text-gray-400 hover:text-red-400"
+              title="Delete Memo"
+            >
+              <X size={12} />
+            </button>
+          </div>
         </div>
 
         {/* メモ本文 */}

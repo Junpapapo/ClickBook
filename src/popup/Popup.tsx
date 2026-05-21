@@ -11,7 +11,7 @@ import type { ClassifyMethod } from "@/shared/categorizer";
 import { extractUrls } from "@/shared/utils";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
-import { isAIAvailable, setAIEnabled } from "@/shared/categorizer";
+import { isAIAvailable, setAIEnabled, verifyAISession } from "@/shared/categorizer";
 
 type Status = "idle" | "loading" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
@@ -22,6 +22,7 @@ export default function Popup() {
   const [message, setMessage] = useState("");
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
   const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
+  const [isTogglingAi, setIsTogglingAi] = useState(false);
   const [tabUrl, setTabUrl] = useState("");
   const [tabTitle, setTabTitle] = useState("");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -273,7 +274,18 @@ export default function Popup() {
           {aiAvailable !== null && (
             <button
               onClick={async () => {
+                if (isTogglingAi) return;
                 const next = !aiAvailable;
+                if (next) {
+                  setIsTogglingAi(true);
+                  const actuallyAvailable = await verifyAISession();
+                  setIsTogglingAi(false);
+                  if (!actuallyAvailable) {
+                    setStatus("error");
+                    setMessage(t("aiNotAvailable"));
+                    return;
+                  }
+                }
                 await setAIEnabled(next);
                 setAiAvailable(next);
               }}
@@ -284,8 +296,8 @@ export default function Popup() {
                   : "bg-surface-800 text-gray-600 border border-surface-700 hover:bg-surface-700 hover:text-gray-400"
               }`}
             >
-              <Sparkles size={10} />
-              {aiAvailable ? "AI ON" : "AI OFF"}
+              {isTogglingAi ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+              {isTogglingAi ? "TESTING..." : aiAvailable ? "AI ON" : "AI OFF"}
             </button>
           )}
           {/* 管理ページへ */}

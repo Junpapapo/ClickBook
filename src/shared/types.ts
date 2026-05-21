@@ -140,7 +140,8 @@ export type Message =
   | { type: "EXPAND_SEARCH"; query: string }
   | { type: "FACTORY_RESET" }
   | { type: "GET_SETTINGS" }
-  | { type: "SAVE_SETTINGS"; settings: AppSettings };
+  | { type: "SAVE_SETTINGS"; settings: AppSettings }
+  | { type: "UPDATE_AI_INFO"; id: string; url: string; title: string };
 
 export type MessageResponse =
   | { success: true; data?: unknown }

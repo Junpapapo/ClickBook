@@ -102,7 +102,14 @@ export default function Sidebar({
   const [showPicker, setShowPicker] = useState<"create" | "rename" | null>(null);
   const [aiAvailable, setAiAvailable] = useState(false);
   const [isOrganizing, setIsOrganizing] = useState(false);
-  const [organizeResult, setOrganizeResult] = useState<{ movedCount: number; total: number; backupName: string } | null>(null);
+  const [organizeResult, setOrganizeResult] = useState<{
+    movedCount: number;
+    total: number;
+    backupName: string;
+    aiSuccessCount?: number;
+    aiTotalBatches?: number;
+    aiSupported?: boolean;
+  } | null>(null);
   const { showConfirm, DialogEl } = useDialog();
   const { t, lang } = useLang();
 
@@ -189,6 +196,9 @@ export default function Sidebar({
           movedCount?: number;
           total?: number;
           backupName?: string;
+          aiSuccessCount?: number;
+          aiTotalBatches?: number;
+          aiSupported?: boolean;
         }) => {
           if (msg.type === "done") {
             clearTimeout(timer);
@@ -197,6 +207,9 @@ export default function Sidebar({
                 movedCount: msg.movedCount,
                 total: msg.total ?? 0,
                 backupName: msg.backupName ?? "",
+                aiSuccessCount: msg.aiSuccessCount,
+                aiTotalBatches: msg.aiTotalBatches,
+                aiSupported: msg.aiSupported,
               });
             }
             onRefresh();
@@ -682,17 +695,74 @@ export default function Sidebar({
             </span>
           )}
         </button>
-        {organizeResult && (
-          <div className="mt-1.5 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 text-xs">
-            <p className="text-emerald-700 dark:text-emerald-400 font-medium">{t("aiOrganizeDone")}</p>
-            <p className="text-emerald-600 dark:text-emerald-500 mt-0.5">
-              {t("aiResult", { moved: organizeResult.movedCount, total: organizeResult.total })}
-            </p>
-            <p className="text-emerald-500 dark:text-emerald-600 mt-0.5 truncate" title={organizeResult.backupName}>
-              {t("backupPrefix")}{organizeResult.backupName}
-            </p>
-          </div>
-        )}
+        {organizeResult && (() => {
+          const { movedCount, total, backupName, aiSuccessCount, aiTotalBatches, aiSupported } = organizeResult;
+          
+          let title = t("aiOrganizeDone");
+          let desc = t("aiResult", { moved: movedCount, total: total });
+          let bgClass = "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700/50";
+          let textTitleClass = "text-emerald-700 dark:text-emerald-400";
+          let textDescClass = "text-emerald-600 dark:text-emerald-500";
+          
+          if (aiSupported === false) {
+            // Local fallback
+            if (lang === "ko") {
+              title = "✓ 로컬 규칙 정리 완료";
+              desc = `AI 모델을 사용할 수 없어 로컬 도메인 규칙으로 정리했습니다. (${movedCount}개 정리 완료)`;
+            } else if (lang === "ja") {
+              title = "✓ ローカルルール整理完了";
+              desc = `AIモデルが利用できないため、ローカルドメインルールで整理しました。 (${movedCount}件整理完了)`;
+            } else {
+              title = "✓ Local Rules Organize Done";
+              desc = `AI model was unavailable. Organized using local domain rules. (${movedCount} sites organized)`;
+            }
+            bgClass = "bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-700/50";
+            textTitleClass = "text-slate-700 dark:text-slate-400";
+            textDescClass = "text-slate-600 dark:text-slate-500";
+          } else if (aiSuccessCount !== undefined && aiTotalBatches !== undefined && aiTotalBatches > 0) {
+            if (aiSuccessCount === 0) {
+              // Complete parser failure
+              if (lang === "ko") {
+                title = "⚠ AI 분류 파싱 실패";
+                desc = `AI 응답을 분석할 수 없어 로컬 도메인 규칙으로 대체되었습니다. (${movedCount}개 정리 완료)`;
+              } else if (lang === "ja") {
+                title = "⚠ AI分類解析失敗";
+                desc = `AI応答を解析できなかったため、ローカルルールで整理されました。 (${movedCount}件整理完了)`;
+              } else {
+                title = "⚠ AI Parsing Failed";
+                desc = `Failed to parse AI responses. Fell back to local domain rules. (${movedCount} sites organized)`;
+              }
+              bgClass = "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50";
+              textTitleClass = "text-amber-700 dark:text-amber-400";
+              textDescClass = "text-amber-600 dark:text-amber-500";
+            } else if (aiSuccessCount < aiTotalBatches) {
+              // Partial success
+              if (lang === "ko") {
+                title = `⚠ AI 정리 (부분 성공: ${aiSuccessCount}/${aiTotalBatches})`;
+                desc = `AI가 일부 배치를 분석했습니다. 실패한 항목은 로컬 규칙으로 대체되었습니다. (${movedCount}개 정리 완료)`;
+              } else if (lang === "ja") {
+                title = `⚠ AI整理（一部成功: ${aiSuccessCount}/${aiTotalBatches}）`;
+                desc = `AI가 일부의 바ッチを解析しました。失敗した部分はローカルルールになりました. (${movedCount}件整理完了)`;
+              } else {
+                title = `⚠ AI Organize (Partial: ${aiSuccessCount}/${aiTotalBatches})`;
+                desc = `AI successfully parsed some batches. Others fell back to domain rules. (${movedCount} sites organized)`;
+              }
+              bgClass = "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50";
+              textTitleClass = "text-amber-700 dark:text-amber-400";
+              textDescClass = "text-amber-600 dark:text-amber-500";
+            }
+          }
+          
+          return (
+            <div className={`mt-1.5 px-3 py-2 rounded-lg border text-xs ${bgClass}`}>
+              <p className={`font-medium ${textTitleClass}`}>{title}</p>
+              <p className={`mt-0.5 ${textDescClass}`}>{desc}</p>
+              <p className="text-gray-400 dark:text-gray-500 mt-1 text-[10px] truncate" title={backupName}>
+                {t("backupPrefix")}{backupName}
+              </p>
+            </div>
+          );
+        })()}
       </div>
 
       {/* メモボード */}

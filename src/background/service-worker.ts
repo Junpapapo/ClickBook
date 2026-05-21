@@ -295,6 +295,16 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       await saveSettings(message.settings);
       return { success: true };
     }
+    case "UPDATE_AI_INFO": {
+      const { updateBookmark } = await import("@/shared/storage");
+      const { generateSummaryAndTags } = await import("@/shared/categorizer");
+      const aiData = await generateSummaryAndTags(message.url, message.title, "");
+      if (!aiData.summary && !aiData.tags) {
+        return { success: false, error: "AI failed to generate summary. Please try again." };
+      }
+      await updateBookmark(message.id, { summary: aiData.summary, tags: aiData.tags });
+      return { success: true, data: aiData };
+    }
     case "AI_REORGANIZE":
     case "AI_REORGANIZE_STATUS": {
       // 포트 기반으로 처리됨 (chrome.runtime.onConnect "ai-reorganize")
@@ -544,6 +554,195 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
+/** ClickBook AI Reorganize Debug Log Helper */
+async function logAIDebug(message: string, details?: any): Promise<void> {
+  try {
+    const r = await chrome.storage.local.get("clickbook_ai_debug_log");
+    const logs = Array.isArray(r.clickbook_ai_debug_log) ? r.clickbook_ai_debug_log : [];
+    
+    logs.push({
+      timestamp: new Date().toISOString(),
+      message,
+      ...(details ? { details } : {})
+    });
+    
+    // Limit to last 50 log entries to avoid bloating storage
+    if (logs.length > 50) {
+      logs.shift();
+    }
+    
+    await chrome.storage.local.set({ clickbook_ai_debug_log: logs });
+  } catch (err) {
+    console.error("Failed to write AI debug log:", err);
+  }
+}
+
+/**
+ * 로컬 AI 응답에서 JSON 객체를 높은 회복력으로 파싱
+ */
+function robustParseJSON(text: string): Record<string, string> | null {
+  if (!text) return null;
+  let cleaned = text.trim();
+  
+  // 1. 마크다운 코드 블록 제거 (```json 또는 ```)
+  cleaned = cleaned.replace(/^```json\s*/i, "");
+  cleaned = cleaned.replace(/^```\s*/i, "");
+  cleaned = cleaned.replace(/\s*```$/, "");
+  cleaned = cleaned.trim();
+  
+  // 2. 가장 첫 번째 { 와 가장 마지막 } 사이만 추출 (앞뒤의 잡담 제거)
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+  }
+
+  // 3. 후행 쉼표(Trailing commas) 제거 (예: {"1": "A",})
+  cleaned = cleaned.replace(/,\s*([\]\}])/g, "$1");
+
+  // 4. 표준 JSON.parse 시도
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const res: Record<string, string> = {};
+      for (const [k, v] of Object.entries(parsed)) {
+        if (v && typeof v === "string") {
+          res[k] = v;
+        } else if (v !== undefined && v !== null) {
+          res[k] = String(v);
+        }
+      }
+      return res;
+    }
+  } catch (e) {
+    // 표준 파싱 실패 시 아래 정규식 대체 파서로 넘어감
+  }
+
+  // 5. 정규식 기반 대체 파서 (줄 단위 매칭)
+  const result: Record<string, string> = {};
+  let found = false;
+  
+  const kvRegex = /(?:"|')?(\d+)(?:"|')?\s*:\s*(?:"|')([^"'\n]+)(?:"|')/g;
+  let match;
+  while ((match = kvRegex.exec(text)) !== null) {
+    const key = match[1];
+    const val = match[2].trim();
+    if (key && val) {
+      result[key] = val;
+      found = true;
+    }
+  }
+
+  if (found) {
+    return result;
+  }
+
+  return null;
+}
+
+/**
+ * AI가 생성한 카테고리 경로를 정규화 및 큐레이팅
+ */
+function curateCategoryPath(path: string): string {
+  if (!path) return "";
+  
+  const parts = path.split("/")
+    .map(p => p.trim())
+    .filter(Boolean);
+    
+  if (parts.length === 0) return "";
+  
+  const curatedParts = parts.map(part => {
+    if (!part) return "";
+    
+    const upperPart = part.toUpperCase();
+    if (upperPart === "AI" || upperPart === "UI" || upperPart === "UX" || upperPart === "IT") {
+      return upperPart;
+    }
+    
+    return part
+      .split(/\s+/)
+      .map(word => {
+        if (!word) return "";
+        const lowerWord = word.toLowerCase();
+        if (lowerWord === "ai") return "AI";
+        if (lowerWord === "ui") return "UI";
+        if (lowerWord === "ux") return "UX";
+        if (lowerWord === "it") return "IT";
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(" ");
+  }).filter(Boolean);
+  
+  if (curatedParts.length === 0) return "";
+  
+  const firstPart = curatedParts[0].toLowerCase();
+  
+  const categoryMapping: Record<string, string> = {
+    "tech": "Technology",
+    "technology": "Technology",
+    "programming": "Technology",
+    "development": "Technology",
+    "coding": "Technology",
+    "software": "Technology",
+    "it": "Technology",
+    
+    "design": "Design",
+    "graphics": "Design",
+    "art": "Design",
+    "creative": "Design",
+    "ui": "Design",
+    "ux": "Design",
+    
+    "business": "Business",
+    "finance": "Business",
+    "marketing": "Business",
+    "productivity": "Business",
+    "work": "Business",
+    "career": "Business",
+    
+    "entertainment": "Entertainment",
+    "entame": "Entertainment",
+    "media": "Entertainment",
+    "youtube": "Entertainment",
+    "video": "Entertainment",
+    "music": "Entertainment",
+    "gaming": "Entertainment",
+    "games": "Entertainment",
+    "social": "Entertainment",
+    "sns": "Entertainment",
+    
+    "science": "Science",
+    "academic": "Science",
+    "research": "Science",
+    "education": "Science",
+    "study": "Science",
+    "math": "Science",
+    
+    "sports": "Sports",
+    "fitness": "Sports",
+    "health": "Sports",
+    "gym": "Sports",
+    
+    "travel": "Travel",
+    "tourism": "Travel",
+    "hotels": "Travel",
+    "trip": "Travel",
+    
+    "other": "Other",
+    "others": "Other",
+    "misc": "Other",
+    "miscellaneous": "Other",
+    "etc": "Other"
+  };
+  
+  if (categoryMapping[firstPart]) {
+    curatedParts[0] = categoryMapping[firstPart];
+  }
+  
+  return curatedParts.join("/");
+}
+
 /**
  * 포트 기반 AI 정리 실행
  * 포트가 열려있는 동안 MV3 Service Worker가 슬립하지 않으므로
@@ -582,8 +781,10 @@ async function runAIReorganizeViaPort(port: chrome.runtime.Port): Promise<void> 
       (b) => !lockedFolderIds.has(b.folderId)
     );
 
+    await logAIDebug(`[AI Organize] Reorganization process triggered. Total bookmarks: ${data.bookmarks.length}, processing: ${bookmarksToProcess.length}`);
+
     // 3. AI로 각 북마크의 폴더 판별 (배치 처리)
-    const moves = await reorganizeWithAI(
+    const { moves, aiSuccessCount, aiTotalBatches, aiSupported } = await reorganizeWithAI(
       bookmarksToProcess,
       settings.maxFolderDepth,
       settings.keepExistingFolders ? data.folders : undefined
@@ -659,37 +860,48 @@ async function runAIReorganizeViaPort(port: chrome.runtime.Port): Promise<void> 
         }
       }
     }
-    // console.log(`[AI Organize] Deleted ${foldersDeleted} empty folders.`);
+    
+    await logAIDebug(`[AI Organize] Complete. Moved bookmarks count: ${movedCount}. Deleted empty folders: ${foldersDeleted}`);
 
     // 5. 완료 결과를 포트로 전송
-    send({ type: "done", movedCount, total: data.bookmarks.length, backupName });
+    send({
+      type: "done",
+      movedCount,
+      total: bookmarksToProcess.length,
+      backupName,
+      aiSuccessCount,
+      aiTotalBatches,
+      aiSupported
+    });
   } catch (err) {
     console.error("AI reorganize error:", err);
+    await logAIDebug(`[AI Organize] Critical process exception: ${String(err)}`);
     send({ type: "error", error: String(err) });
   }
 }
 
-
-
-
 /**
  * AI + 도메인 룰 기반 재분류
- *
- * 설계 원칙:
- * 1. 먼저 도메인 룰로 전체 결과를 즉시 초기화 (동기, 빠름, 절대 실패 없음)
- * 2. AI는 그 위에 선택적으로 개선만 함
- * → AI가 완전히 실패/타임아웃해도 항상 결과 반환, 절대 무한 대기 없음
- *
- * 주의: fallback에서 categorize()를 쓰면 내부에서 타임아웃 없이 AI를 재시도하므로
- * 절대 사용 금지 — 도메인 룰 직접 참조
  */
 async function reorganizeWithAI(
   bookmarks: import("@/shared/types").Bookmark[],
   _maxFolderDepth = 3,
   existingFolders?: import("@/shared/types").Folder[]
-): Promise<Map<string, string>> {
+): Promise<{
+  moves: Map<string, string>;
+  aiSuccessCount: number;
+  aiTotalBatches: number;
+  aiSupported: boolean;
+}> {
   const result = new Map<string, string>();
-  if (bookmarks.length === 0) return result;
+  const stats = {
+    moves: result,
+    aiSuccessCount: 0,
+    aiTotalBatches: 0,
+    aiSupported: false
+  };
+
+  if (bookmarks.length === 0) return stats;
 
   // ── Step 1: 도메인 룰로 전체 즉시 초기화 (동기, 타임아웃 없음) ──
   function domainCategory(domain: string): string {
@@ -718,79 +930,83 @@ async function reorganizeWithAI(
     const lm = await getAIModel();
     if (lm && typeof lm.create === "function") {
       session = await withTimeout(
-        (lm.create as (opts: unknown) => Promise<typeof session>)({
-          systemPrompt: `You are a strict data categorization API. You group bookmarks into broad categories. You output ONLY a JSON array of strings. No markdown, no conversational text.`,
-        }),
+        (lm.create as (opts?: unknown) => Promise<typeof session>)(),
         15000
       );
     }
   } catch (err) {
-    // console.warn("[AI Organize] Session creation failed, using domain rules only:", err);
-    return result; // Step1 결과 그대로 반환
+    await logAIDebug(`[AI Organize] AI session creation failed. Falling back to domain rules. Error: ${String(err)}`);
+    return stats; // Step1 결과 그대로 반환 (aiSupported = false)
   }
 
   if (!session) {
-    return result;
+    await logAIDebug(`[AI Organize] AI model is unavailable. Falling back to domain rules.`);
+    return stats;
   }
 
+  stats.aiSupported = true;
+
   // ── Step 3: AI로 10개씩 배치 처리 → 성공 시 결과 덮어쓰기 ──
-  // 실패해도 Step1의 도메인 룰 결과가 이미 있으므로 절대 무한 대기 없음
   const BATCH_SIZE = 10;
-  let aiBatchSuccess = 0;
+  const totalBatches = Math.ceil(bookmarks.length / BATCH_SIZE);
+  stats.aiTotalBatches = totalBatches;
 
   for (let i = 0; i < bookmarks.length; i += BATCH_SIZE) {
     const batch = bookmarks.slice(i, i + BATCH_SIZE);
     const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+    
     try {
       const lines = batch
         .map((bm, idx) => `${idx + 1}. ${bm.title} | ${bm.url}`)
         .join("\n");
 
-      const promptText = `Task: Group bookmarks into hierarchy.
+      const promptText = `System: You are a strict data categorization API. You group bookmarks into broad categories. You output ONLY a JSON object mapping the input number to the category name. No markdown, no conversational text.
+
+Task: Categorize the following bookmarks into a hierarchy.
 ${folderHint}
-CRITICAL: Do NOT create a unique category for every site. Group similar sites together. Reuse category names.
-You can create subfolders using a slash (/). Example: "Technology/AI" or "Entertainment/Gaming".
-The output MUST be exactly a JSON array of strings.
+CRITICAL: Do NOT create a unique category for every site. Group similar sites together. You can create subfolders using a slash (/). Example: "Technology/AI" or "Entertainment/Gaming".
+You MUST output ONLY a valid JSON object mapping the input number to the category name.
 
 Example:
 Input:
 1. GitHub | https://github.com
 2. OpenAI | https://openai.com
-3. Netflix | https://netflix.com
-4. YouTube | https://youtube.com
 Output:
-["Technology/Development", "Technology/AI", "Entertainment/Video", "Entertainment/Video"]
+{"1": "Technology/Development", "2": "Technology/AI"}
 
 Input:
 ${lines}
 Output:`;
 
+      await logAIDebug(`[AI Organize] Batch ${batchNum}/${totalBatches} sending. Bookmarks in batch: ${batch.length}`);
+
       // 배치당 최대 60초 (충분한 시간 부여)
       const response = await withTimeout(session.prompt(promptText), 60000);
-
-      const jsonMatch = response.match(/\[[\s\S]*?\]/);
-      if (jsonMatch) {
-        try {
-          const parsed: unknown[] = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(parsed) && parsed.length === batch.length) {
-            for (let j = 0; j < batch.length; j++) {
-              const cat = String(parsed[j]).trim();
-              if (cat.length > 0 && cat !== "other") {
-                result.set(batch[j].id, cat); // AI 결과로 덮어쓰기 (자유로운 카테고리명 허용)
-              }
+      
+      const parsed = robustParseJSON(response);
+      if (parsed) {
+        let appliedInBatch = 0;
+        for (let j = 0; j < batch.length; j++) {
+          const rawCat = parsed[String(j + 1)];
+          if (rawCat && typeof rawCat === "string" && rawCat.trim().length > 0) {
+            const curated = curateCategoryPath(rawCat);
+            if (curated && curated.toLowerCase() !== "other") {
+              result.set(batch[j].id, curated);
+              appliedInBatch++;
             }
-            aiBatchSuccess++;
           }
-        } catch (parseErr) {
-          // ignore
         }
+        stats.aiSuccessCount++;
+        await logAIDebug(`[AI Organize] Batch ${batchNum}/${totalBatches} parsed successfully. Mapped ${appliedInBatch}/${batch.length} bookmarks. Response: "${response.substring(0, 150).replace(/\n/g, " ")}..."`);
+      } else {
+        await logAIDebug(`[AI Organize] Batch ${batchNum}/${totalBatches} response parsing failed. Raw response: "${response.substring(0, 300).replace(/\n/g, " ")}..."`);
       }
     } catch (err) {
-      // ignore
+      await logAIDebug(`[AI Organize] Batch ${batchNum}/${totalBatches} failed with error: ${String(err)}`);
     }
   }
 
   session.destroy();
-  return result;
+  return stats;
 }
 

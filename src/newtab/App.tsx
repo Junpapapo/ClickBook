@@ -27,7 +27,7 @@ function AppContent() {
   const [showGitHubRanking, setShowGitHubRanking] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
-  const [infoBookmark, setInfoBookmark] = useState<Bookmark | null>(null);
+  const [infoBookmarkId, setInfoBookmarkId] = useState<string | null>(null);
   const [sidebarChromeOpen, setSidebarChromeOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>({ ...DEFAULT_SETTINGS });
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -134,12 +134,16 @@ function AppContent() {
 
   useEffect(() => {
     const handleOpenInfo = (e: CustomEvent) => {
-      setInfoBookmark(e.detail as Bookmark);
+      setInfoBookmarkId((e.detail as Bookmark).id);
       setActivePanel("info");
     };
     window.addEventListener("OPEN_BOOKMARK_INFO", handleOpenInfo as EventListener);
     return () => window.removeEventListener("OPEN_BOOKMARK_INFO", handleOpenInfo as EventListener);
   }, []);
+
+  const infoBookmark = useMemo(() => {
+    return bookmarks.find((b) => b.id === infoBookmarkId) || null;
+  }, [bookmarks, infoBookmarkId]);
 
   const deferredQuery = useDeferredValue(searchQuery);
 
