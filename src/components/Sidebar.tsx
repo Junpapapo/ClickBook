@@ -593,7 +593,16 @@ export default function Sidebar({
       <aside className="w-60 bg-white dark:bg-surface-900 border-r border-gray-200 dark:border-surface-700 flex flex-col shrink-0 overflow-hidden">
       {/* ヘッダー */}
       <div className="px-4 py-4 flex items-center justify-between shrink-0">
-        <span className="text-lg font-bold tracking-tight text-indigo-400">ClickBook</span>
+        <div
+          className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
+          onClick={() => window.location.reload()}
+          title={t("pageTitle")}
+        >
+          <img src="/icons/icon128.png" alt="" className="w-6 h-6" />
+          <span className="text-lg font-bold tracking-tight text-indigo-400">
+            ClickBook
+          </span>
+        </div>
         <span className="text-[10px] text-gray-400 dark:text-gray-700 bg-gray-100 dark:bg-surface-800 rounded-full px-2 py-0.5">
           {bookmarks.length}
         </span>

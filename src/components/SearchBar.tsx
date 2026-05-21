@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, ClipboardList, X, CheckCircle2, Loader2, Settings, ShieldCheck } from "lucide-react";
+import { Search, ClipboardList, X, CheckCircle2, Loader2, Settings, ShieldCheck, HelpCircle } from "lucide-react";
 import type { MessageResponse } from "@/shared/types";
 import ThemeToggle from "@/components/ThemeToggle";
 import { extractUrls } from "@/shared/utils";
@@ -160,6 +160,15 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
         >
           <ShieldCheck size={18} />
         </button>
+        <a
+          href="/help.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          title={t("helpTooltip")}
+          className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg transition-colors"
+        >
+          <HelpCircle size={18} />
+        </a>
         <button
           title={t("bulkImportTitle")}
           onClick={() => setTextImportOpen(true)}

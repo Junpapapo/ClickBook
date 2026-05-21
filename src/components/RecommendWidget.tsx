@@ -76,6 +76,9 @@ export default function RecommendWidget({ keyword, count, onRefresh, onLoadingCh
         <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
           {t("recommendTitle")}
         </h2>
+        <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold rounded uppercase tracking-wider">
+          Beta
+        </span>
         {loading && <Loader2 size={14} className="animate-spin text-gray-400" />}
       </div>
 

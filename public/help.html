@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook 도움말 - 스마트한 북마크 관리</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Layout */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 5rem;
+      height: calc(100vh - 7rem);
+      overflow-y: auto;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: var(--border);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-link.active {
+      background-color: #6366f115;
+      color: var(--primary);
+    }
+
+    /* Content */
+    .content section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 6rem;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background-color: #6366f115;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .shortcut {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background-color: var(--border);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin: 0 0.2rem;
+      color: var(--text);
+    }
+
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .alert-info {
+      background-color: #6366f110;
+      border: 1px solid #6366f130;
+      color: var(--text);
+    }
+
+    .alert-warning {
+      background-color: #f59e0b10;
+      border: 1px solid #f59e0b30;
+      color: #b45309;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background-color: var(--primary);
+      color: white;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+
+    /* AI 애니메이션 효과용 */
+    .ai-sparkle {
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span>ClickBook</span>
+    </div>
+    <div style="font-size: 0.85rem; color: var(--text-muted);">
+      온라인 도움말 센터
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#intro" class="nav-link active">소개 및 설치</a></li>
+          <li class="nav-item"><a href="#getting-started" class="nav-link">시작하기</a></li>
+          <li class="nav-item"><a href="#ai-features" class="nav-link">AI 지능형 기능</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">폴더 및 북마크 관리</a></li>
+          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome 북마크 연동</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">설정 및 데이터 관리</a></li>
+          <li class="nav-item"><a href="#privacy" class="nav-link">프라이버시 및 보안</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <!-- 소개 -->
+      <section id="intro">
+        <h1 class="section-title">소개 및 설치</h1>
+        <p>ClickBook은 Chrome 내장 AI(Gemini Nano)를 활용하여 북마크를 스마트하게 자동 분류하고 관리해 주는 혁신적인 도구입니다. 복잡한 정리 과정 없이 클릭 한 번으로 웹사이트를 저장하고 나중에 쉽게 찾아보세요.</p>
+        
+        <div class="alert alert-info">
+          <strong>💡 팁:</strong> 확장 프로그램 아이콘을 툴바에 <strong>고정(Pin)</strong>하면 언제 어디서나 즉시 저장할 수 있습니다.
+        </div>
+      </section>
+
+      <!-- 시작하기 -->
+      <section id="getting-started">
+        <h2 class="section-title">시작하기</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">1클릭 즉시 저장</div>
+            <div class="card-desc">웹 서핑 중 저장하고 싶은 페이지에서 ClickBook 아이콘을 클릭하기만 하세요. AI가 분석하여 가장 적절한 폴더에 알아서 넣어줍니다.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">단축키 활용</div>
+            <div class="card-desc">마우스를 움직일 필요도 없습니다. <span class="shortcut">Alt + S</span> 단축키를 눌러 현재 탭을 즉시 저장해 보세요.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">관리 대시보드</div>
+            <div class="card-desc">저장된 북마크는 전용 대시보드에서 한눈에 볼 수 있습니다. 검색, 편집, 이동 등 모든 작업이 여기서 이루어집니다.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI 기능 -->
+      <section id="ai-features">
+        <h2 class="section-title">AI 지능형 기능 <span class="badge">Core</span></h2>
+        <p>ClickBook의 핵심은 사용자 대신 북마크를 정리해 주는 지능형 AI 기능에 있습니다.</p>
+        
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">AI 자동 분류</div>
+            <div class="card-desc">저장 시 사이트 제목과 내용을 분석하여 테크, 디자인, 비즈니스 등 8가지 카테고리로 자동 분류합니다.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">AI 자동 정리</div>
+            <div class="card-desc">이미 저장된 수많은 사이트들을 한꺼번에 재배치하고 싶다면 사이드바의 "AI 자동 정리"를 눌러보세요.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">AI 시맨틱 검색 <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
+            <div class="card-desc">단순한 단어 일치를 넘어 의도를 파악합니다. "최근에 본 화장품 사이트"와 같이 문장으로 검색해 보세요.</div>
+          </div>
+        </div>
+        
+        <div class="alert alert-info">
+          <strong>Chrome Gemini Nano:</strong> ClickBook은 보안을 위해 외부 서버가 아닌 브라우저 내부에 내장된 AI 모델을 사용합니다.
+        </div>
+      </section>
+
+      <!-- 폴더 관리 -->
+      <section id="folders">
+        <h2 class="section-title">폴더 및 북마크 관리</h2>
+        <p>강력한 계층형 구조와 드래그 앤 드롭으로 북마크를 자유롭게 배치하세요.</p>
+        <ul>
+          <li><strong>무한 계층:</strong> 폴더 안에 폴더를 무제한으로 만들어 체계적으로 관리할 수 있습니다.</li>
+          <li><strong>드래그 앤 드롭:</strong> 사이트나 폴더를 원하는 곳으로 끌어다 놓으세요. 상위 폴더 사이로 드래그하면 같은 층위로 이동합니다.</li>
+          <li><strong>폴더 잠금:</strong> AI 자동 정리 시 해당 폴더의 내용이 바뀌지 않도록 잠글 수 있습니다.</li>
+          <li><strong>이모지 아이콘:</strong> 각 폴더에 개성 있는 이모지를 설정하여 시각적으로 더 돋보이게 꾸며보세요.</li>
+        </ul>
+      </section>
+
+      <!-- Chrome 연동 -->
+      <section id="chrome-sync">
+        <h2 class="section-title">Chrome 북마크 연동</h2>
+        <p>기존 Chrome 북마크를 가져오거나 ClickBook의 데이터를 다시 Chrome으로 내보낼 수 있습니다.</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">동기화 (Sync)</div>
+            <div class="card-desc">ClickBook에서 정리한 내용을 Chrome 브라우저 공식 북마크 폴더와 양방향으로 동기화합니다.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">텍스트에서 추출</div>
+            <div class="card-desc">URL이 포함된 텍스트를 붙여넣기만 하면 AI가 URL을 추출하여 북마크 대기열에 추가해 줍니다.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 설정 -->
+      <section id="settings">
+        <h2 class="section-title">설정 및 데이터 관리</h2>
+        <p>나만의 작업 환경을 구축하고 소중한 데이터를 안전하게 백업하세요.</p>
+        <ul>
+          <li><strong>데이터 내보내기:</strong> 전체 데이터를 JSON 또는 HTML 파일로 저장하여 다른 기기에서 사용할 수 있습니다.</li>
+          <li><strong>다양한 테마:</strong> 눈이 편안한 다크 모드와 화사한 라이트 모드를 지원합니다.</li>
+          <li><strong>패턴 시스템:</strong> 현재의 폴더/북마크 구성을 '스냅샷'으로 찍어 언제든지 과거 시점으로 복구할 수 있습니다.</li>
+        </ul>
+      </section>
+
+      <!-- 프라이버시 -->
+      <section id="privacy">
+        <h2 class="section-title" style="color: #10b981;">프라이버시 및 보안</h2>
+        <p>ClickBook은 사용자의 개인 데이터를 가장 소중하게 생각합니다.</p>
+        <div class="card" style="border-left: 4px solid #10b981;">
+          <div class="card-title">100% 로컬 작동</div>
+          <div class="card-desc">ClickBook은 어떤 외부 서버와도 통신하지 않습니다. 귀하의 북마크, 탭, 메모, 설정 정보는 오직 <strong>귀하의 컴퓨터 내부(Local Storage)</strong>에만 저장됩니다. 개발자를 포함한 그 누구도 귀하의 데이터에 접근할 수 없습니다.</div>
+        </div>
+        
+        <div class="alert alert-warning">
+          <strong>위험 영역:</strong> 공공 장소나 타인의 PC에서 사용했다면 설정의 <strong>"모든 데이터 초기화"</strong>를 통해 로컬에 남은 정보를 깨끗이 지울 수 있습니다.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <p>© 2026 ClickBook - Smart Bookmark Manager. All rights reserved.</p>
+    <p style="margin-top: 0.5rem;">Powered by <span style="font-weight: 700; color: var(--primary);">NEXUSFORCE</span></p>
+  </footer>
+
+  <script>
+    // 네비게이션 액티브 효과 및 부드러운 스크롤
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop - 150) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

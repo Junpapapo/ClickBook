@@ -16,7 +16,7 @@ const en = {
   timeLocale: "en-US",
 
   // ── Search bar ───────────────────────────────────────────
-  searchPlaceholder: "Search by title or URL...",
+  searchPlaceholder: "Search keywords or describe...",
   bulkImportTitle: "Bulk import URLs from text",
   bulkImportDesc:
     "Paste text containing URLs. Supports newlines, commas, and spaces. http/https URLs are auto-extracted and saved.",
@@ -168,6 +168,7 @@ const en = {
   aiOrganizeDone: "✓ AI Organize done",
   privacyTitle: "Privacy First",
   privacyDesc: "ClickBook is designed to protect your personal data. Your bookmarks and tabs are stored ONLY on your local computer and are never shared with ClickBook developers or any third parties.",
+  helpTooltip: "Help Center",
   backupPrefix: "Backup: ",
   settingsRecentCountLabel: "Recently added count",
   settingsRecentCountDesc:
@@ -333,7 +334,7 @@ const ja: typeof en = {
   timeLocale: "ja-JP",
 
   // ── Search bar ───────────────────────────────────────────
-  searchPlaceholder: "タイトル・URLで検索...",
+  searchPlaceholder: "キーワード・文章で検索...",
   bulkImportTitle: "テキストから URL を一括登録",
   bulkImportDesc:
     "URL を含むテキストを貼り付けてください。改行・カンマ・スペース区切りに対応し、http/https で始まる URL を自動抽出して登録します。",
@@ -485,8 +486,12 @@ const ja: typeof en = {
   dropToOrganize: "フォルダーにドロップして整理",
   aiOrganizeDone: "✓ AI整理完了",
   privacyTitle: "プライバシー優先",
-  privacyDesc: "ClickBookはユーザーの個人データを保護するように設計されています。データはユーザーのコンピューターにのみ保存され、開発者や第三者と共有されることはありません。",
+  privacyDesc: "ClickBookはユーザーの個人データを保護するように設計されています。ブックマークやタブの情報はユーザーのコンピューターにのみローカルで保存され、開発者や第三者と共有されることはありません。",
+  helpTooltip: "ヘルプセンター",
   backupPrefix: "バックアップ: ",
+
+
+
   settingsRecentCountLabel: "最近追加の表示数",
   settingsRecentCountDesc: "ダッシュボードの「最近追加」に表示する件数",
   settingsRecommendCountLabel: "AI おすすめサイトの表示数",
@@ -649,7 +654,7 @@ const ko: typeof en = {
   timeLocale: "ko-KR",
 
   // ── Search bar ───────────────────────────────────────────
-  searchPlaceholder: "제목 또는 URL로 검색...",
+  searchPlaceholder: "키워드 또는 문장으로 검색...",
   bulkImportTitle: "텍스트에서 URL 일괄 등록",
   bulkImportDesc:
     "URL이 포함된 텍스트를 붙여 넣으세요. 줄바꿈·쉼표·공백 구분을 지원하며 http/https URL을 자동으로 추출하여 등록합니다.",
@@ -802,6 +807,7 @@ const ko: typeof en = {
   aiOrganizeDone: "✓ AI 정리 완료",
   privacyTitle: "프라이버시 우선",
   privacyDesc: "ClickBook은 사용자의 개인 데이터를 보호하도록 설계되었습니다. 북마크와 탭 정보는 사용자의 컴퓨터에만 로컬로 저장되며, 개발자나 그 외 누구와도 공유되지 않습니다.",
+  helpTooltip: "도움말 센터",
   backupPrefix: "백업: ",
   settingsRecentCountLabel: "최근 추가 표시 수",
   settingsRecentCountDesc: "대시보드의 「최근 추가」에 표시할 개수",
