@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot, Copy } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
 import { MEMO_DOT, MEMO_TEXTAREA_BG, ALL_MEMO_COLORS as ALL_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -153,15 +153,27 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
             }`}
           />
         ))}
-        {memo && (
+        <div className="ml-auto flex items-center gap-1">
           <button
-            onClick={async () => { await onDelete(); onClose(); }}
-            className="ml-auto p-0.5 text-gray-400 hover:text-red-400 transition-colors"
-            title={t("deleteMemoTooltip")}
+            onClick={() => {
+              if (content) navigator.clipboard.writeText(content);
+            }}
+            disabled={!content}
+            className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors disabled:opacity-40"
+            title="Copy"
           >
-            <Trash2 size={12} />
+            <Copy size={12} />
           </button>
-        )}
+          {memo && (
+            <button
+              onClick={async () => { await onDelete(); onClose(); }}
+              className="p-0.5 text-gray-400 hover:text-red-400 transition-colors"
+              title={t("deleteMemoTooltip")}
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* テキストエリア */}

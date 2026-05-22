@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2 } from "lucide-react";
+import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2, Copy, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
 import { refineMemoDraft } from "@/shared/categorizer";
@@ -95,14 +95,34 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
 
         {/* アクション */}
         <div className="flex gap-1 justify-between items-center mt-1">
-          <button
-            onClick={handleRefine}
-            disabled={!content.trim() || isRefining || !aiEnabled}
-            title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
-            className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm"
-          >
-            {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleRefine}
+              disabled={!content.trim() || isRefining || !aiEnabled}
+              title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
+              className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center gap-1"
+            >
+              {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            </button>
+            <button
+              onClick={() => {
+                if (content) navigator.clipboard.writeText(content);
+              }}
+              disabled={!content}
+              title="Copy"
+              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+            >
+              <Copy size={14} />
+            </button>
+            <button
+              onClick={() => setContent("")}
+              disabled={!content}
+              title="Clear text"
+              className="text-red-500 hover:text-red-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
           <div className="flex gap-1">
             <button
               onClick={onCancel}
@@ -246,15 +266,35 @@ function MemoCard({
               className={`w-full text-xs rounded-lg px-2.5 py-1.5 resize-none outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200`}
             />
             <div className="flex gap-1 justify-between items-center mt-1">
-              <button
-                onClick={handleRefine}
-                disabled={!draft.trim() || isRefining || !aiEnabled}
-                title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
-                className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center gap-1"
-              >
-                {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {isRefining && <span className="text-[10px] whitespace-nowrap">{t("aiRefining")}</span>}
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleRefine}
+                  disabled={!draft.trim() || isRefining || !aiEnabled}
+                  title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
+                  className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center gap-1"
+                >
+                  {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  {isRefining && <span className="text-[10px] whitespace-nowrap">{t("aiRefining")}</span>}
+                </button>
+                <button
+                  onClick={() => {
+                    if (draft) navigator.clipboard.writeText(draft);
+                  }}
+                  disabled={!draft}
+                  title="Copy"
+                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+                >
+                  <Copy size={14} />
+                </button>
+                <button
+                  onClick={() => setDraft("")}
+                  disabled={!draft}
+                  title="Clear text"
+                  className="text-red-500 hover:text-red-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
               <div className="flex gap-1">
                 <button
                   onClick={() => { setDraft(memo.content); setEditing(false); }}
