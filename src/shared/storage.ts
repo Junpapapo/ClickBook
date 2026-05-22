@@ -257,19 +257,30 @@ function isValidBookmark(b: unknown): b is Bookmark {
   );
 }
 
-export async function importData(incoming: StorageData): Promise<void> {
+export async function importData(incoming: StorageData): Promise<{ count: number }> {
   if (!Array.isArray(incoming.bookmarks)) {
     throw new Error("Invalid import data format");
   }
   const validBookmarks = incoming.bookmarks.filter(isValidBookmark);
   // フォルダーが無ければデフォルトを使用
-  const folders = Array.isArray(incoming.folders)
+  const incomingFolders = Array.isArray(incoming.folders)
     ? incoming.folders
     : [...DEFAULT_FOLDERS];
-  await writeStorage({ bookmarks: validBookmarks, folders });
+
+  const existing = await readStorage();
+
+  const existingFolderIds = new Set(existing.folders.map(f => f.id));
+  const newFolders = incomingFolders.filter(f => !existingFolderIds.has(f.id));
+  const mergedFolders = [...existing.folders, ...newFolders];
+
+  const existingUrls = new Set(existing.bookmarks.map(b => b.url));
+  const newBookmarks = validBookmarks.filter(b => !existingUrls.has(b.url));
+  const mergedBookmarks = [...newBookmarks, ...existing.bookmarks];
+
+  await writeStorage({ bookmarks: mergedBookmarks, folders: mergedFolders });
 
   // インポート後に孤立したメモ (対応ブックマークなし・非スタンドアロン) を削除
-  const validIds = new Set(validBookmarks.map(b => b.id));
+  const validIds = new Set(mergedBookmarks.map(b => b.id));
   const memos = await readMemos();
   const cleaned: typeof memos = {};
   for (const [key, memo] of Object.entries(memos)) {
@@ -278,6 +289,8 @@ export async function importData(incoming: StorageData): Promise<void> {
     }
   }
   await chrome.storage.local.set({ [MEMOS_KEY]: cleaned });
+
+  return { count: newBookmarks.length };
 }
 
 // ── Patterns ───────────────────────────────────────────────
@@ -403,6 +416,12 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   maxFolderDepth: 3,
   keepExistingFolders: false,
   openDashboardInNewTab: false,
+  customSearchConfigs: [
+    { id: "cs-google", name: "Google", urlTemplate: "https://www.google.com/search?q={keyword}" },
+    { id: "cs-youtube", name: "YouTube", urlTemplate: "https://www.youtube.com/results?search_query={keyword}" },
+    { id: "preset-github", name: "GitHub", urlTemplate: "https://github.com/search?q={keyword}" },
+  ],
+  customPresets: [],
 };
 
 export async function getSettings(): Promise<import("./types").AppSettings> {

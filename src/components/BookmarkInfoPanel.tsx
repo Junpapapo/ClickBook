@@ -263,6 +263,7 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
       {showMemoPopover && (
         <MemoPopover
           memo={memo}
+          bookmark={{ title: bookmark.title, url: bookmark.url, summary: bookmark.summary, tags: bookmark.tags }}
           anchorRef={memoBtnRef}
           onClose={() => setShowMemoPopover(false)}
           onSave={handleMemoSave}

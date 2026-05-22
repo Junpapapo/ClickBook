@@ -38,28 +38,45 @@ export async function fetchWikiRanking(langCode: string = "ko", period: string =
     if (cached) return { items: cached.data, lastUpdated: cached.timestamp };
   }
 
-  let y, m, d;
-  if (period === "month") {
-    const lastMonth = new Date();
-    lastMonth.setMonth(lastMonth.getMonth() - 1);
-    y = lastMonth.getFullYear();
-    m = String(lastMonth.getMonth() + 1).padStart(2, "0");
-    d = "all-days";
-  } else {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    y = yesterday.getFullYear();
-    m = String(yesterday.getMonth() + 1).padStart(2, "0");
-    d = String(yesterday.getDate()).padStart(2, "0");
-  }
-
-  const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/${langCode}.wikipedia/all-access/${y}/${m}/${d}`;
-  try {
+  const fetchForDate = async (dateOffset: number) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - dateOffset);
+    const y = targetDate.getFullYear();
+    const m = String(targetDate.getMonth() + 1).padStart(2, "0");
+    const d = String(targetDate.getDate()).padStart(2, "0");
+    const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/${langCode}.wikipedia/all-access/${y}/${m}/${d}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("Wiki API error");
     const data = await res.json();
-    const articles = data.items[0].articles as any[];
+    return data.items[0].articles as any[];
+  };
+
+  try {
+    let articles: any[];
+    if (period === "month") {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const y = lastMonth.getFullYear();
+      const m = String(lastMonth.getMonth() + 1).padStart(2, "0");
+      const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/${langCode}.wikipedia/all-access/${y}/${m}/all-days`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Wiki API error");
+      const data = await res.json();
+      articles = data.items[0].articles;
+    } else {
+      try {
+        articles = await fetchForDate(1); // Try yesterday
+      } catch {
+        try {
+          articles = await fetchForDate(2); // Fallback to 2 days ago
+        } catch {
+          articles = await fetchForDate(3); // Fallback to 3 days ago just in case
+        }
+      }
+    }
     
+    if (!articles) throw new Error("Wiki API error");
+
     const result = articles.slice(0, 50).map(a => ({
       article: a.article.replace(/_/g, " "),
       views: a.views,

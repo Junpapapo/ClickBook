@@ -22,6 +22,7 @@ interface Props {
   onToggleHFRankingMenu: (v: boolean) => void;
   showHNRankingMenu: boolean;
   onToggleHNRankingMenu: (v: boolean) => void;
+  settingsMessage?: { text: string; type: "info" | "warn" } | null;
 }
 
 function NumInput({
@@ -128,7 +129,8 @@ export default function SettingsModal({
   showGitHubRankingMenu, onToggleGitHubRankingMenu,
   showWikiRankingMenu, onToggleWikiRankingMenu,
   showHFRankingMenu, onToggleHFRankingMenu,
-  showHNRankingMenu, onToggleHNRankingMenu
+  showHNRankingMenu, onToggleHNRankingMenu,
+  settingsMessage
 }: Props) {
   const { t, lang, setLang } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
@@ -209,6 +211,17 @@ export default function SettingsModal({
               <X size={15} />
             </button>
           </div>
+
+          {settingsMessage && (
+            <div className={`px-5 py-2.5 flex items-center gap-2 text-[13px] font-medium animate-in slide-in-from-top-1 fade-in duration-200 border-b ${
+              settingsMessage.type === "info"
+                ? "bg-indigo-50/80 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300 border-indigo-100 dark:border-indigo-800/30"
+                : "bg-red-50/80 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-800/30"
+            }`}>
+              {settingsMessage.type === "info" ? <Sparkles size={14} className="shrink-0" /> : <AlertOctagon size={14} className="shrink-0" />}
+              {settingsMessage.text}
+            </div>
+          )}
 
           {/* 設定項目 */}
           <div className="px-5 py-4 space-y-1 overflow-y-auto max-h-[70vh]">

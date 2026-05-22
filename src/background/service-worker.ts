@@ -17,8 +17,11 @@ chrome.commands.onCommand.addListener(async (command) => {
 // ── AI 정리: 포트 기반 장기 연결 (MV3에서 Service Worker 슬립 방지) ──
 // sendMessage와 달리 포트가 열려있는 동안 Service Worker가 슬립하지 않음
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== "ai-reorganize") return;
-  runAIReorganizeViaPort(port);
+  if (port.name === "ai-reorganize") {
+    runAIReorganizeViaPort(port);
+  } else if (port.name === "ai-reorganize-other") {
+    runAIReorganizeOtherViaPort(port);
+  }
 });
 
 chrome.runtime.onMessage.addListener(
@@ -137,8 +140,8 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     }
     case "IMPORT_DATA": {
       const { importData } = await import("@/shared/storage");
-      await importData(message.data);
-      return { success: true };
+      const result = await importData(message.data);
+      return { success: true, data: result };
     }
     // ── Chrome Bookmarks ──────────────────────────────────
     case "GET_CHROME_BOOKMARKS": {
@@ -881,6 +884,68 @@ async function runAIReorganizeViaPort(port: chrome.runtime.Port): Promise<void> 
   } catch (err) {
     console.error("AI reorganize error:", err);
     await logAIDebug(`[AI Organize] Critical process exception: ${String(err)}`);
+    send({ type: "error", error: String(err) });
+  }
+}
+
+async function runAIReorganizeOtherViaPort(port: chrome.runtime.Port): Promise<void> {
+  let disconnected = false;
+  port.onDisconnect.addListener(() => { disconnected = true; });
+
+  const send = (msg: object) => {
+    if (disconnected) return;
+    try { port.postMessage(msg); } catch (_) { }
+  };
+
+  try {
+    send({ type: "running" });
+
+    const data = await getAllData();
+    if (disconnected) return;
+
+    // Only process bookmarks currently in the 'other' folder
+    const bookmarksToProcess = data.bookmarks.filter(b => b.folderId === DEFAULT_FOLDER_ID);
+    if (bookmarksToProcess.length === 0) {
+      send({ type: "done", movedCount: 0 });
+      return;
+    }
+
+    const { getSettings } = await import("@/shared/storage");
+    const settings = await getSettings();
+
+    // Use existing folders as hint, excluding 'other'
+    const existingFolders = data.folders.filter(f => f.id !== DEFAULT_FOLDER_ID);
+    
+    // Call AI function
+    const { moves } = await reorganizeWithAI(bookmarksToProcess, settings.maxFolderDepth, existingFolders);
+    if (disconnected) return;
+
+    const { moveBookmark } = await import("@/shared/storage");
+    let movedCount = 0;
+
+    for (const [bookmarkId, catPath] of moves) {
+      const existing = data.bookmarks.find(b => b.id === bookmarkId);
+      if (!existing || existing.folderId !== DEFAULT_FOLDER_ID) continue;
+
+      const parts = catPath.split("/").map(p => p.trim()).filter(Boolean);
+      if (parts.length === 0) continue;
+
+      // We ONLY move to existing folders. We do NOT create new ones.
+      const topCategory = parts[0].toLowerCase();
+      const match = existingFolders.find(f => 
+        f.name.toLowerCase() === topCategory || 
+        (f.nameJa && f.nameJa.toLowerCase() === topCategory)
+      );
+
+      if (match) {
+        await moveBookmark(bookmarkId, match.id);
+        movedCount++;
+      }
+    }
+
+    send({ type: "done", movedCount });
+  } catch (err) {
+    console.error("AI reorganize other error:", err);
     send({ type: "error", error: String(err) });
   }
 }

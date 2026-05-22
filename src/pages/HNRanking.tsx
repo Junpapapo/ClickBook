@@ -13,7 +13,7 @@ export default function HNRankingPage() {
   const [error, setError] = useState("");
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [filterQuery, setFilterQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("week");
   const [lastUpdated, setLastUpdated] = useState<number>(0);
   const [sortKey, setSortKey] = useState<string>("rank");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");

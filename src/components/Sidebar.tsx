@@ -19,6 +19,7 @@ import {
   Trophy,
   Book,
   Newspaper,
+  ScanSearch,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -27,6 +28,7 @@ import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import { isAIAvailable } from "@/shared/categorizer";
 import { useDialog } from "@/shared/useDialog";
 import { useLang } from "@/shared/LanguageContext";
+import AICleanerModal from "@/components/AICleanerModal";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -36,8 +38,10 @@ interface Props {
   onRefresh: () => void;
   showChromePanel?: boolean;
   showMemoBoard?: boolean;
+  showBookmarkMap?: boolean;
   memoCount?: number;
   onSelectMemoBoard?: () => void;
+  onSelectBookmarkMap?: () => void;
   onSelectGitHubRanking?: () => void;
   onSelectWikiRanking?: () => void;
   onSelectHFRanking?: () => void;
@@ -58,29 +62,8 @@ const COLOR_DOT: Record<string, string> = {
   indigo: "bg-indigo-400",
 };
 
-const FOLDER_ICONS = [
-  "📁","📂","🗂️","💼","📚","📖","📝","📌","🏠",
-  "⭐","🔧","🎮","🎨","🎵","🎬","📷","🎯","💡",
-  "🔬","📊","🌐","🚀","💻","📱","🔒","🛡️","❤️",
-  "💙","💚","🌟","🏷️","🎁","📋","🔑","🌈","⚡",
-];
-
-function IconPicker({ onSelect }: { onSelect: (icon: string) => void }) {
-  return (
-    <div className="absolute left-0 top-full mt-1 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-600 rounded-lg p-1.5 grid grid-cols-9 gap-0.5 shadow-xl">
-      {FOLDER_ICONS.map((ic) => (
-        <button
-          key={ic}
-          type="button"
-          onClick={() => onSelect(ic)}
-          className="text-sm leading-none p-1 rounded hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
-        >
-          {ic}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { FolderIcon, isEmoji } from "./DynamicIcon";
+import { IconPicker } from "./IconPicker";
 
 export default function Sidebar({
   bookmarks,
@@ -90,8 +73,10 @@ export default function Sidebar({
   onRefresh,
   showChromePanel = false,
   showMemoBoard = false,
+  showBookmarkMap = false,
   memoCount,
   onSelectMemoBoard,
+  onSelectBookmarkMap,
   onSelectGitHubRanking,
   onSelectWikiRanking,
   onSelectHFRanking,
@@ -111,6 +96,7 @@ export default function Sidebar({
   const [showPicker, setShowPicker] = useState<"create" | "rename" | null>(null);
   const [aiAvailable, setAiAvailable] = useState(false);
   const [isOrganizing, setIsOrganizing] = useState(false);
+  const [aiCleanerOpen, setAiCleanerOpen] = useState(false);
   const [organizeResult, setOrganizeResult] = useState<{
     movedCount: number;
     total: number;
@@ -468,23 +454,21 @@ export default function Sidebar({
             )}
           </button>
 
-          {f.icon && !/^[A-Za-z0-9_]+$/.test(f.icon) ? (
-            <span className="text-sm leading-none shrink-0">{f.icon}</span>
-          ) : (
-            <span className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+          {!isRenaming && (
+            <FolderIcon iconName={f.icon} fallbackColorClass={dotColor} />
           )}
 
           {isRenaming ? (
             <div className="relative flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
-                onClick={() => { setRenameIcon(!/^[A-Za-z0-9_]+$/.test(f.icon ?? "") ? (f.icon ?? "📁") : "📁"); setShowPicker(showPicker === "rename" ? null : "rename"); }}
+                onClick={() => { setRenameIcon(f.icon ?? "📁"); setShowPicker(showPicker === "rename" ? null : "rename"); }}
                 className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
               >
-                {renameIcon || (!/^[A-Za-z0-9_]+$/.test(f.icon ?? "") ? f.icon : "📁") || "📁"}
+                <FolderIcon iconName={renameIcon || f.icon || "📁"} />
               </button>
               {showPicker === "rename" && (
-                <IconPicker onSelect={(ic) => { setRenameIcon(ic); setShowPicker(null); }} />
+                <IconPicker onSelect={(ic) => { setRenameIcon(ic); setShowPicker(null); }} className="left-0 -translate-x-1/4" />
               )}
               <input
                 autoFocus
@@ -526,24 +510,30 @@ export default function Sidebar({
           )}
 
           {/* ロック済みインジケーター（非ホバー時のみ表示） */}
-          {f.locked && !isRenaming && (
+          {(f.locked || f.id === "other") && !isRenaming && (
             <Lock size={10} className="text-amber-500 shrink-0 group-hover:hidden" />
           )}
 
           {!isRenaming && (
             <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
               {/* 鍵トグル */}
-              <button
-                onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
-                title={f.locked ? t("unlockTooltip") : t("lockTooltip")}
-                className={`p-0.5 transition-colors ${
-                  f.locked
-                    ? "text-amber-500 hover:text-amber-400"
-                    : "text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400"
-                }`}
-              >
-                {f.locked ? <Lock size={11} /> : <LockOpen size={11} />}
-              </button>
+              {f.id !== "other" ? (
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
+                  title={f.locked ? t("unlockTooltip") : t("lockTooltip")}
+                  className={`p-0.5 transition-colors ${
+                    f.locked
+                      ? "text-amber-500 hover:text-amber-400"
+                      : "text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400"
+                  }`}
+                >
+                  {f.locked ? <Lock size={11} /> : <LockOpen size={11} />}
+                </button>
+              ) : (
+                <div className="p-0.5 text-amber-500 cursor-not-allowed" title="기본 폴더는 이름 변경이나 삭제가 불가능합니다.">
+                  <Lock size={11} />
+                </div>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -595,10 +585,10 @@ export default function Sidebar({
               onClick={() => setShowPicker(showPicker === "create" ? null : "create")}
               className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
             >
-              {newFolderIcon}
+              <FolderIcon iconName={newFolderIcon} />
             </button>
             {showPicker === "create" && (
-              <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} />
+              <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} className="left-0 -translate-x-1/4" />
             )}
             <input
               autoFocus
@@ -782,14 +772,47 @@ export default function Sidebar({
         })()}
       </div>
 
+      {/* 🧹 AI 중복 검사 */}
+      <div className="px-1.5 mb-2">
+        <button
+          disabled={isOrganizing}
+          onClick={() => setAiCleanerOpen(true)}
+          title={t("aiCleanerTooltip")}
+          className={`
+            relative flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg font-medium
+            transition-all duration-200 overflow-hidden
+            ${
+              isOrganizing
+                ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                : aiAvailable
+                ? "bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-500 dark:to-cyan-600 text-white hover:from-teal-500 hover:to-cyan-500 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 cursor-pointer"
+                : "bg-gray-100 dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-700 cursor-pointer"
+            }
+          `}
+        >
+          <ScanSearch size={14} className="shrink-0" />
+          <span className="flex-1 text-left truncate">{t("aiCleanerBtn")}</span>
+          {!isOrganizing && (
+            <span className={`text-[9px] rounded px-1.5 py-0.5 shrink-0 font-semibold tracking-wide ${
+              aiAvailable
+                ? "bg-white/25 text-white"
+                : "bg-gray-200 dark:bg-surface-700 text-gray-400 dark:text-gray-500"
+            }`}>
+              {aiAvailable ? "AI" : "Rule"}
+            </span>
+          )}
+        </button>
+      </div>
+
+
       {/* メモボード */}
       <div className="px-1.5 mb-1">
         <button
           onClick={onSelectMemoBoard}
-          className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
+          className={`flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-150
             ${showMemoBoard
-              ? "bg-amber-400/15 text-amber-600 dark:text-amber-300 font-medium"
-              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"
+              ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-medium"
+              : "bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 dark:hover:bg-amber-500/25 font-medium"
             }`}
         >
           <StickyNote size={15} />
@@ -800,7 +823,21 @@ export default function Sidebar({
             </span>
           )}
         </button>
+      </div>
 
+      {/* Bookmark Map */}
+      <div className="px-1.5 mb-1">
+        <button
+          onClick={onSelectBookmarkMap}
+          className={`flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-150
+            ${showBookmarkMap
+              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20 font-medium"
+              : "bg-rose-500/10 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 hover:bg-rose-500/20 dark:hover:bg-rose-500/25 font-medium"
+            }`}
+        >
+          <span className="text-[15px] shrink-0 leading-none">🗺️</span>
+          Bookmark Map
+        </button>
       </div>
 
       {/* セクションヘッダー */}
@@ -836,10 +873,10 @@ export default function Sidebar({
             onClick={() => setShowPicker(showPicker === "create" ? null : "create")}
             className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
           >
-            {newFolderIcon}
+            <FolderIcon iconName={newFolderIcon} />
           </button>
           {showPicker === "create" && (
-            <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} />
+            <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} className="left-0" />
           )}
           <input
             autoFocus
@@ -916,6 +953,16 @@ export default function Sidebar({
         </p>
       </div>
     </aside>
+      {/* AI Cleaner Modal */}
+      {aiCleanerOpen && (
+        <AICleanerModal
+          bookmarks={bookmarks}
+          folders={folders}
+          onClose={() => setAiCleanerOpen(false)}
+          onRefresh={onRefresh}
+        />
+      )}
     </>
   );
 }
+

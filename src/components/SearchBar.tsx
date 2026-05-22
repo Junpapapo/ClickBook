@@ -8,11 +8,12 @@ import { useLang } from "@/shared/LanguageContext";
 interface Props {
   query: string;
   onChange: (q: string) => void;
+  onEnter: (q: string) => void;
   onRefresh: () => void;
   onOpenSettings: () => void;
 }
 
-export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }: Props) {
+export default function SearchBar({ query, onChange, onEnter, onRefresh, onOpenSettings }: Props) {
   const { t, lang } = useLang();
   const [textImportOpen, setTextImportOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -157,10 +158,13 @@ export default function SearchBar({ query, onChange, onRefresh, onOpenSettings }
         <input
           type="text"
           value={localQuery}
-          onChange={(e) => setLocalQuery(e.target.value)}
+          onChange={(e) => {
+            setLocalQuery(e.target.value);
+            onChange(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              onChange(localQuery);
+              onEnter(localQuery);
             }
           }}
         placeholder={t("searchPlaceholder")}

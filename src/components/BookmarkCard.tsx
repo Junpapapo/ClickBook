@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, ExternalLink, Pencil, StickyNote, X, Info } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
 import { MEMO_DOT, MEMO_TEXTAREA_BG, ALL_MEMO_COLORS as ALL_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
 import type { TFunction } from "@/shared/i18n";
+import { generateMemoDraft } from "@/shared/categorizer";
 
 // ── ユーティリティ ─────────────────────────────────────────
 
@@ -36,28 +37,59 @@ function shortenUrl(url: string): string {
 
 export interface PopoverProps {
   memo?: BookmarkMemo;
+  bookmark?: { title: string; url: string; summary?: string; tags?: string[] };
   anchorRef: React.RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   onSave: (content: string, color: MemoColor) => Promise<void>;
   onDelete: () => Promise<void>;
 }
 
-export function MemoPopover({ memo, anchorRef, onClose, onSave, onDelete }: PopoverProps) {
-  const { t } = useLang();
+export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDelete }: PopoverProps) {
+  const { t, lang } = useLang();
   const [content, setContent] = useState(memo?.content ?? "");
   const [color, setColor] = useState<MemoColor>(memo?.color ?? "yellow");
   const popRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
+  // AI Draft Panel state
+  const [draftState, setDraftState] = useState<"idle" | "loading" | "done" | "used">("idle");
+  const [draft, setDraft] = useState("");
+  const [draftAiUsed, setDraftAiUsed] = useState(false);
+
+  async function handleGenerateDraft() {
+    if (!bookmark) return;
+    setDraftState("loading");
+    setDraft("");
+    try {
+      const result = await generateMemoDraft(
+        bookmark.url,
+        bookmark.title,
+        bookmark.summary,
+        bookmark.tags,
+        lang as "en" | "ja" | "ko"
+      );
+      setDraft(result.draft);
+      setDraftAiUsed(result.aiUsed);
+      setDraftState("done");
+    } catch {
+      setDraftState("idle");
+    }
+  }
+
+  function handleUseDraft() {
+    setContent(prev => prev ? prev + "\n" + draft : draft);
+    setDraftState("used");
+  }
+
   useEffect(() => {
     if (!anchorRef.current) return;
     const r  = anchorRef.current.getBoundingClientRect();
-    const ph = 248;
-    const pw = 244;
+    const ph = draftState === "done" ? 380 : 280;
+    const pw = 264;
     const top  = r.bottom + 8 + ph < window.innerHeight ? r.bottom + 8 : r.top - ph - 8;
     const left = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
     setPos({ top, left });
-  }, [anchorRef]);
+  }, [anchorRef, draftState]);
 
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
@@ -71,7 +103,7 @@ export function MemoPopover({ memo, anchorRef, onClose, onSave, onDelete }: Popo
   return createPortal(
     <div
       ref={popRef}
-      style={{ position: "fixed", top: pos.top, left: pos.left, width: 244, zIndex: 9999 }}
+      style={{ position: "fixed", top: pos.top, left: pos.left, width: 264, zIndex: 9999 }}
       className="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-600 rounded-xl shadow-2xl p-3"
       onClick={(e) => e.stopPropagation()}
     >
@@ -81,9 +113,31 @@ export function MemoPopover({ memo, anchorRef, onClose, onSave, onDelete }: Popo
           <StickyNote size={10} />
           {t("memo")}
         </span>
-        <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-          <X size={12} />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* AI 초안 버튼 */}
+          {bookmark && (
+            <button
+              onClick={handleGenerateDraft}
+              disabled={draftState === "loading"}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition-all ${
+                draftState === "loading"
+                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-400 cursor-not-allowed"
+                  : draftState === "done" || draftState === "used"
+                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
+                  : "bg-gray-100 dark:bg-surface-700 text-gray-500 dark:text-gray-400 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:text-violet-600 dark:hover:text-violet-400"
+              }`}
+              title="AI 메모 초안 생성"
+            >
+              {draftState === "loading"
+                ? <Loader2 size={8} className="animate-spin" />
+                : <Sparkles size={8} />}
+              AI 초안
+            </button>
+          )}
+          <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+            <X size={12} />
+          </button>
+        </div>
       </div>
 
       {/* カラーピッカー */}
@@ -120,6 +174,66 @@ export function MemoPopover({ memo, anchorRef, onClose, onSave, onDelete }: Popo
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
         className={`w-full text-xs rounded-lg px-2.5 py-2 resize-none outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
       />
+
+      {/* AI Draft Panel */}
+      {draftState === "loading" && (
+        <div className="mt-2 p-3 rounded-xl border border-violet-200 dark:border-violet-700/40 bg-violet-50 dark:bg-violet-900/20 flex items-center gap-2">
+          <Loader2 size={12} className="text-violet-500 animate-spin shrink-0" />
+          <span className="text-[10px] text-violet-600 dark:text-violet-400 animate-pulse">
+            {lang === "ko" ? "AI가 메모 초안을 작성 중..." : lang === "ja" ? "AI が下書きを生成中..." : "AI is drafting..."}
+          </span>
+        </div>
+      )}
+
+      {(draftState === "done" || draftState === "used") && (
+        <div className={`mt-2 rounded-xl border overflow-hidden transition-all ${
+          draftState === "used"
+            ? "border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/20"
+            : "border-violet-200 dark:border-violet-700/40 bg-violet-50/60 dark:bg-violet-900/15"
+        }`}>
+          {/* Panel header */}
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 border-b ${
+            draftState === "used"
+              ? "border-emerald-200 dark:border-emerald-700/40"
+              : "border-violet-200 dark:border-violet-700/40"
+          }`}>
+            {draftState === "used"
+              ? <CheckCheck size={9} className="text-emerald-500" />
+              : <Bot size={9} className="text-violet-500" />}
+            <span className={`text-[9px] font-bold uppercase tracking-wider ${
+              draftState === "used" ? "text-emerald-600 dark:text-emerald-400" : "text-violet-600 dark:text-violet-400"
+            }`}>
+              {draftState === "used"
+                ? (lang === "ko" ? "초안 적용됨" : lang === "ja" ? "下書き適用済" : "Draft applied")
+                : (lang === "ko" ? `AI 초안 ${draftAiUsed ? "(Gemini Nano)" : "(요약 기반)"}` : lang === "ja" ? `AI 下書き ${draftAiUsed ? "(Gemini Nano)" : "(要約ベース)"}` : `AI Draft ${draftAiUsed ? "(Gemini Nano)" : "(summary-based)"}`)}
+            </span>
+          </div>
+          {/* Draft text */}
+          <div className="px-3 py-2">
+            <pre className={`text-[10px] leading-relaxed whitespace-pre-wrap font-sans ${
+              draftState === "used" ? "text-emerald-700 dark:text-emerald-300" : "text-violet-700 dark:text-violet-300"
+            }`}>{draft}</pre>
+          </div>
+          {/* Actions */}
+          {draftState === "done" && (
+            <div className="flex items-center justify-end gap-1.5 px-3 pb-2">
+              <button
+                onClick={() => setDraftState("idle")}
+                className="text-[9px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-1.5 py-0.5 rounded transition-colors"
+              >
+                {lang === "ko" ? "닫기" : lang === "ja" ? "閉じる" : "Dismiss"}
+              </button>
+              <button
+                onClick={handleUseDraft}
+                className="flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm shadow-violet-500/30"
+              >
+                <CheckCheck size={8} />
+                {lang === "ko" ? "이 내용 사용" : lang === "ja" ? "使用する" : "Use this"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* アクションボタン */}
       <div className="flex justify-end gap-2 mt-2">
@@ -312,6 +426,7 @@ export default function BookmarkCard({ bookmark, memo, folderName, onDelete, onE
       {showPopover && (
         <MemoPopover
           memo={memo}
+          bookmark={{ title: bookmark.title, url: bookmark.url, summary: bookmark.summary, tags: bookmark.tags }}
           anchorRef={stickyBtnRef}
           onClose={() => setShowPopover(false)}
           onSave={handleMemoSave}

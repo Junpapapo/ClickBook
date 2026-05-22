@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2, Sparkles } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import { getFolderById, buildFolderTree, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
+import { FolderIcon } from "@/components/DynamicIcon";
+import { IconPicker } from "@/components/IconPicker";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { FOLDER_COLOR_DOT as COLOR_DOT, FOLDER_COLOR_TEXT as COLOR_TEXT } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -35,14 +37,29 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   const [showSubFolderInput, setShowSubFolderInput] = useState(false);
   const [newSubFolderName, setNewSubFolderName] = useState("");
   const [aiAvailable, setAiAvailable] = useState(false);
+  const [isOrganizingOther, setIsOrganizingOther] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function checkAI() {
-      const available = await isAIAvailable();
-      setAiAvailable(available);
+      try {
+        const result = await chrome.storage.local.get("clickbook_ai_enabled");
+        setAiAvailable(result.clickbook_ai_enabled === true);
+      } catch (e) {
+        setAiAvailable(false);
+      }
     }
     checkAI();
+
+    // 팝업에서 AI 토글 시 실시간 반영
+    const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.clickbook_ai_enabled) {
+        setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
   const subFolderInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -82,7 +99,11 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   // 移動先候補: 現在のフォルダー以外の全フォルダー (表示順)
   const otherFolders = folders
     .filter((f) => f.id !== folderId)
-    .sort((a, b) => a.order - b.order);
+    .sort((a, b) => {
+      if (a.id === "other") return -1;
+      if (b.id === "other") return 1;
+      return a.order - b.order;
+    });
 
   const bookmarkCounts = bookmarks.reduce<Record<string, number>>((acc, b) => {
     acc[b.folderId] = (acc[b.folderId] ?? 0) + 1;
@@ -97,9 +118,10 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
         const found = findNode(n.children);
         if (found >= 0) return found;
       }
-      return 0;
+      return -1;
     }
-    return findNode(tree);
+    const res = findNode(tree);
+    return res >= 0 ? res : 0;
   }
 
   // 子孫フォルダーID一覧を BFS で列挙（folderId 自身は含まない）
@@ -149,10 +171,17 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   async function commitEditName() {
     const v = nameValue.trim();
     if (v && v !== folder.name) {
-      await chrome.runtime.sendMessage({ type: "RENAME_FOLDER", id: folderId, name: v });
+      await chrome.runtime.sendMessage({ type: "RENAME_FOLDER", id: folderId, name: v, icon: folder.icon });
       onRefresh();
     }
     setEditingName(false);
+  }
+
+  async function handleIconChange(ic: string) {
+    if (ic === folder.icon) return;
+    await chrome.runtime.sendMessage({ type: "RENAME_FOLDER", id: folderId, name: folder.name, icon: ic });
+    onRefresh();
+    setShowIconPicker(false);
   }
 
   async function handleDropToFolder(e: React.DragEvent, targetFolderId: string) {
@@ -172,6 +201,33 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
     setNewSubFolderName("");
     setShowSubFolderInput(false);
     onRefresh();
+  }
+
+  async function handleAIOrganizeOther() {
+    if (!aiAvailable || isOrganizingOther || directBookmarks.length === 0) return;
+    setIsOrganizingOther(true);
+    try {
+      const port = chrome.runtime.connect({ name: "ai-reorganize-other" });
+      port.onMessage.addListener((msg) => {
+        if (msg.type === "running") {
+          // You could show a toast or something, but we use the button state
+        } else if (msg.type === "done") {
+          setIsOrganizingOther(false);
+          port.disconnect();
+          onRefresh();
+        } else if (msg.type === "error") {
+          setIsOrganizingOther(false);
+          port.disconnect();
+        }
+      });
+      // Fallback in case port disconnects silently
+      port.onDisconnect.addListener(() => {
+        setIsOrganizingOther(false);
+        onRefresh();
+      });
+    } catch (err) {
+      setIsOrganizingOther(false);
+    }
   }
 
   const isEmpty = bookmarks.length === 0 && childFolders.length === 0;
@@ -209,6 +265,18 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
           <span>{t("back")}</span>
         </button>
         <span className="text-gray-400 dark:text-gray-600">/</span>
+        <div className="relative flex items-center">
+          <button
+            onClick={() => setShowIconPicker(!showIconPicker)}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-surface-700 rounded transition-colors"
+            title="Change Icon"
+          >
+            <FolderIcon iconName={folder.icon || "📁"} size={22} className="text-[22px] text-gray-700 dark:text-gray-200" />
+          </button>
+          {showIconPicker && (
+            <IconPicker onSelect={handleIconChange} className="left-0 mt-2" />
+          )}
+        </div>
         {editingName ? (
           <div className="flex items-center gap-1.5">
             <input
@@ -259,6 +327,25 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                 </button>
               ))}
             </div>
+          )}
+
+          {/* 기타 폴더 전용 AI 정리 버튼 */}
+          {folderId === DEFAULT_FOLDER_ID && (
+            <button
+              onClick={handleAIOrganizeOther}
+              disabled={isOrganizingOther || directBookmarks.length === 0}
+              title={t("aiOrganizeTooltip")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
+                isOrganizingOther
+                  ? "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30"
+                  : directBookmarks.length === 0
+                  ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200 dark:bg-surface-800 dark:text-gray-500 dark:border-surface-700"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-surface-800 dark:text-gray-300 dark:border-surface-700 dark:hover:bg-surface-700"
+              }`}
+            >
+              <Sparkles size={14} className={isOrganizingOther ? "animate-pulse" : ""} />
+              {isOrganizingOther ? t("aiOrganizing") : t("aiOrganize")}
+            </button>
           )}
 
           {/* サブフォルダー作成 */}
@@ -320,27 +407,39 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {otherFolders.map((f) => (
-              <div
-                key={f.id}
-                onDragOver={(e) => { e.preventDefault(); setDragOverFolderId(f.id); }}
-                onDragLeave={() => setDragOverFolderId(null)}
-                onDrop={(e) => handleDropToFolder(e, f.id)}
-                onClick={() => onSelectFolder(f.id)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs cursor-pointer select-none transition-all duration-150 ${
-                  dragOverFolderId === f.id
-                    ? "border-indigo-400 bg-indigo-500/20 text-indigo-300 scale-105 shadow-lg"
-                    : "border-gray-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-gray-500 dark:text-gray-400 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-500 dark:hover:text-indigo-300"
-                }`}
-              >
-                {isEmoji(f.icon) ? (
-                  <span className="text-xs leading-none">{f.icon}</span>
-                ) : (
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${COLOR_DOT[f.color] ?? "bg-gray-400"}`} />
-                )}
-                <span className="truncate max-w-[100px]">{f.name}</span>
-              </div>
-            ))}
+            {otherFolders.map((f) => {
+              const isOther = f.id === "other";
+              const isHoverOrDrag = dragOverFolderId === f.id;
+              
+              const baseClasses = isOther
+                ? "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-bold cursor-pointer select-none transition-all duration-150 "
+                : "flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs cursor-pointer select-none transition-all duration-150 ";
+
+              const stateClasses = isHoverOrDrag
+                ? "border-indigo-400 bg-indigo-500/20 text-indigo-300 scale-105 shadow-lg"
+                : isOther
+                  ? "border-amber-300 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:border-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                  : "border-gray-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-gray-500 dark:text-gray-400 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-500 dark:hover:text-indigo-300";
+
+              return (
+                <div
+                  key={f.id}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverFolderId(f.id); }}
+                  onDragLeave={() => setDragOverFolderId(null)}
+                  onDrop={(e) => handleDropToFolder(e, f.id)}
+                  onClick={() => onSelectFolder(f.id)}
+                  className={baseClasses + stateClasses}
+                >
+                  <FolderIcon 
+                    iconName={f.icon} 
+                    size={isOther ? 14 : 12} 
+                    className={`${isOther ? "text-sm" : "text-xs"} leading-none`} 
+                    fallbackColorClass={COLOR_DOT[f.color] ?? "bg-gray-400"} 
+                  />
+                  <span className="truncate max-w-[100px]">{getLocalizedFolderName(f, lang)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -363,9 +462,25 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
           {childFolders.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-600 font-semibold">
-                  {t("subfolders")}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-600 font-semibold">
+                    {t("subfolders")}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowSubFolderInput(v => !v);
+                      setTimeout(() => subFolderInputRef.current?.focus(), 30);
+                    }}
+                    title={t("createSubfolderTooltip")}
+                    className={`p-1 rounded-md transition-colors ${
+                      showSubFolderInput
+                        ? "text-indigo-500 bg-indigo-50 dark:bg-indigo-500/15"
+                        : "text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-700"
+                    }`}
+                  >
+                    <FolderPlus size={13} />
+                  </button>
+                </div>
                 <button
                   onClick={() => setSubFoldersCollapsed(v => !v)}
                   title={subFoldersCollapsed ? t("expand") : t("collapse")}
@@ -379,11 +494,20 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                   {childFolders.map((f) => {
                     const isRenaming = renamingFolderId === f.id;
+                    const isDragOver = dragOverFolderId === f.id;
+                    const baseClass = "group relative flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all shadow-sm dark:shadow-none cursor-pointer select-none ";
+                    const stateClass = isDragOver
+                      ? "bg-indigo-50 dark:bg-indigo-900/40 border-2 border-indigo-500 scale-[1.02]"
+                      : "bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 border border-gray-200 dark:border-surface-600 hover:border-indigo-300 dark:hover:border-indigo-500/30";
+
                     return (
                       <div
                         key={f.id}
-                        className="group relative flex flex-col items-center gap-1.5 p-3 bg-gray-50 dark:bg-surface-700 hover:bg-gray-100 dark:hover:bg-surface-600 border border-gray-200 dark:border-surface-600 hover:border-indigo-300 dark:hover:border-indigo-500/30 rounded-xl transition-all shadow-sm dark:shadow-none cursor-pointer select-none"
+                        className={baseClass + stateClass}
                         onClick={() => { if (!isRenaming) onSelectFolder(f.id); }}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverFolderId(f.id); }}
+                        onDragLeave={() => setDragOverFolderId(null)}
+                        onDrop={(e) => handleDropToFolder(e, f.id)}
                       >
                         {!isRenaming && (
                           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
@@ -469,9 +593,13 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                 {t("subfolderBookmarks")}
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {descendantBookmarks.map((b) => (
-                  <BookmarkCard key={b.id} bookmark={b} memo={memos[b.id]} onDelete={handleDelete} onEdit={setEditingBookmark} onMemoChange={onRefresh} />
-                ))}
+                {descendantBookmarks.map((b) => {
+                  const subFolder = folders.find(f => f.id === b.folderId);
+                  const subFolderName = subFolder ? getLocalizedFolderName(subFolder, lang) : undefined;
+                  return (
+                    <BookmarkCard key={b.id} bookmark={b} memo={memos[b.id]} folderName={subFolderName} onDelete={handleDelete} onEdit={setEditingBookmark} onMemoChange={onRefresh} />
+                  );
+                })}
               </div>
             </section>
           )}

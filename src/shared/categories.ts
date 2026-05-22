@@ -116,11 +116,16 @@ const KO_NAMES: Record<string, string> = {
 
 export function getLocalizedFolderName(folder: Folder, lang: string): string {
   if (folder.isDefault) {
-    if (lang === "ko" && KO_NAMES[folder.id]) return KO_NAMES[folder.id];
-    if (lang === "ja") return folder.nameJa || folder.name;
-    return folder.name;
+    const original = DEFAULT_FOLDERS.find(df => df.id === folder.id);
+    const isRenamed = original && folder.name !== original.name;
+    
+    if (!isRenamed) {
+      if (lang === "ko" && KO_NAMES[folder.id]) return KO_NAMES[folder.id];
+      if (lang === "ja") return folder.nameJa || folder.name;
+      return folder.name;
+    }
   }
-  // ユーザー作成フォルダーの場合
+  // ユーザー作成フォルダーの場合、またはリネームされたデフォルトフォルダー
   if (lang === "ja") return folder.nameJa || folder.name;
   return folder.name;
 }

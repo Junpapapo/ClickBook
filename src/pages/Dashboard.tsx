@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Check, X, Pencil, Lock, LockOpen, Trash2 } from "lucide-react";
+import { Check, X, Pencil, Lock, LockOpen, Trash2, Wand2 } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 import RecommendWidget from "@/components/RecommendWidget";
+import CustomSearchArea from "@/components/CustomSearchArea";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { getLocalizedFolderName, DEFAULT_FOLDER_ID } from "@/shared/categories";
+import { FolderIcon } from "@/components/DynamicIcon";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -19,7 +21,11 @@ interface Props {
   rankingCount: number;
   recommendCount: number;
   searchQuery?: string;
+  aiSearchQuery?: string;
   onAiLoadingChange?: (loading: boolean) => void;
+  customSearchConfigs?: import("@/shared/types").CustomSearchConfig[];
+  customPresets?: import("@/shared/types").CustomSearchConfig[];
+  onSaveCustomSearchConfigs?: (configs: import("@/shared/types").CustomSearchConfig[], presets?: import("@/shared/types").CustomSearchConfig[]) => void;
 }
 
 const EMOJI_MAP: Record<string, string> = {
@@ -33,7 +39,7 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery, onAiLoadingChange }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
@@ -132,9 +138,9 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
     <div className="flex flex-col gap-8">
       {DialogEl}
       
-      {/* AI 추천 검색 (검색어 있을 때만) */}
-      {aiAvailable && searchQuery && (
-        <RecommendWidget keyword={searchQuery} count={recommendCount} onRefresh={onRefresh} onLoadingChange={onAiLoadingChange} />
+      {/* AI 추천 검색 (엔터 쳐서 aiSearchQuery 있을 때만) */}
+      {aiAvailable && aiSearchQuery && (
+        <RecommendWidget keyword={aiSearchQuery} count={recommendCount} onRefresh={onRefresh} onLoadingChange={onAiLoadingChange} />
       )}
 
       {/* フォルダーサマリー */}
@@ -154,17 +160,26 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                 onClick={() => { if (!isRenaming) onSelectFolder(f.id); }}
               >
                 {!isRenaming && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
-                    className={`absolute top-1.5 left-1.5 p-0.5 rounded transition-all ${
-                      f.locked
-                        ? "opacity-100 text-amber-500 hover:text-amber-400"
-                        : "opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-amber-500 dark:hover:text-amber-400"
-                    }`}
-                    title={f.locked ? t("dashboardUnlockTooltip") : t("dashboardLockTooltip")}
-                  >
-                    {f.locked ? <Lock size={10} /> : <LockOpen size={10} />}
-                  </button>
+                  f.id === DEFAULT_FOLDER_ID ? (
+                    <div
+                      className="absolute top-1.5 left-1.5 p-0.5 rounded opacity-100 text-amber-500 cursor-not-allowed"
+                      title="기본 폴더는 이름 변경이나 삭제가 불가능합니다."
+                    >
+                      <Lock size={10} />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
+                      className={`absolute top-1.5 left-1.5 p-0.5 rounded transition-all ${
+                        f.locked
+                          ? "opacity-100 text-amber-500 hover:text-amber-400"
+                          : "opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-amber-500 dark:hover:text-amber-400"
+                      }`}
+                      title={f.locked ? t("dashboardUnlockTooltip") : t("dashboardLockTooltip")}
+                    >
+                      {f.locked ? <Lock size={10} /> : <LockOpen size={10} />}
+                    </button>
+                  )
                 )}
                 {!isRenaming && (
                   <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
@@ -175,6 +190,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                     >
                       <Pencil size={10} className="text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
                     </button>
+
                     {f.id !== DEFAULT_FOLDER_ID && (
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id, f.name); }}
@@ -186,10 +202,12 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                     )}
                   </div>
                 )}
-                <div className="relative">
-                  <span className="text-lg">
-                    {f.icon && !/^[A-Za-z0-9_]+$/.test(f.icon) ? f.icon : (EMOJI_MAP[f.id] ?? "📂")}
-                  </span>
+                <div className="relative flex justify-center items-center h-8">
+                  <FolderIcon 
+                    iconName={f.icon || EMOJI_MAP[f.id] || "📂"} 
+                    size={22} 
+                    className="text-[22px] text-gray-700 dark:text-gray-200" 
+                  />
                   {subCount > 0 && (
                     <span className="absolute -top-1 -right-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold px-1 py-0.5 rounded-full leading-none shadow-[0_0_2px_rgba(0,0,0,0.1)]">
                       {subCount}
@@ -242,6 +260,17 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
           })}
         </div>
       </section>
+
+      {/* Custom Search */}
+      {onSaveCustomSearchConfigs && (
+        <section>
+          <CustomSearchArea 
+            configs={customSearchConfigs} 
+            customPresets={customPresets}
+            onSaveConfigs={onSaveCustomSearchConfigs} 
+          />
+        </section>
+      )}
 
       {/* 最近追加 */}
       <section>

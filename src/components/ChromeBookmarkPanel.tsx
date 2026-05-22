@@ -35,6 +35,7 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
   const [textImportOpen, setTextImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [textImportBusy, setTextImportBusy] = useState(false);
+  const [importAllBusy, setImportAllBusy] = useState(false);
 
   // Chrome パターン
   const [patterns, setPatterns] = useState<ChromePattern[]>([]);
@@ -138,7 +139,9 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     if (!all.length) return;
     if (!await showConfirm(t("chromeImportAllConfirm", { n: all.length }))) return;
     setBusy(true);
+    setImportAllBusy(true);
     await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items: all });
+    setImportAllBusy(false);
     setBusy(false);
     flash(t("chromeImportAllDone"));
     onRefresh();
@@ -728,9 +731,10 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
                 onClick={handleImportAll}
                 disabled={busy}
                 title={t("chromeImportAllConfirm", { n: allIds.length })}
-                className="flex-1 flex items-center justify-center gap-1 text-[10px] py-1 rounded bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1 text-[10px] py-1 rounded bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-40"
               >
-                <Download size={9} />{t("chromeImportAll")}
+                {importAllBusy ? <RefreshCw size={9} className="animate-spin" /> : <Download size={9} />}
+                {importAllBusy ? t("chromeTextImporting") : t("chromeImportAll")}
               </button>
               <button
                 onClick={() => setTextImportOpen(true)}

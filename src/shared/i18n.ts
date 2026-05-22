@@ -62,6 +62,20 @@ const en = {
   dashboardUnlockTooltip: "Unlock",
   dashboardRenameTooltip: "Rename",
 
+  // ── Custom Search ────────────────────────────────────────
+  customSearchTitle: "Custom Search",
+  customSearchSettings: "Search Settings",
+  customSearchName: "Name",
+  customSearchUrl: "URL Template",
+  customSearchUrlPlaceholder: "https://...search?q={keyword}",
+  customSearchAdd: "Add Search",
+  customSearchEdit: "Edit Search",
+  customSearchKeyword: "Keyword...",
+  customSearchBtn: "Search",
+  customSearchDeleteConfirm: "Delete this search template?",
+  presetSavedAlert: "Saved to My Presets.",
+  presetAlreadyExistsAlert: "Already exists in My Presets.",
+
   // ── Recent widget ────────────────────────────────────────
   recentTitle: "Recently Added",
   recommendTitle: "AI Recommended Sites",
@@ -157,6 +171,8 @@ const en = {
   settingsChromePanelLabel: "Chrome Panel (Sidebar)",
   settingsChromePanelDesc: "Show Chrome bookmarks panel in sidebar",
   exportJson: "JSON Export",
+  exportSuccess: "Export completed successfully.",
+  importSuccess: "Import completed successfully. {n} items imported.",
   exportHtml: "HTML Export",
   importBtn: "Import",
   closeBtn: "Close",
@@ -329,6 +345,24 @@ const en = {
   settingsStorageUsageDesc: "Local storage used by ClickBook",
   settingsShortcuts: "Keyboard Shortcuts",
   settingsShortcutSave: "Save Current Tab (Alt+S)",
+
+  // ── AI Bookmark Cleaner ───────────────────────────────────
+  aiCleanerBtn: "AI Bookmark Cleaner",
+  aiCleanerTooltip: "Find semantically similar bookmarks and clean them up",
+  aiCleanerTitle: "AI Bookmark Cleaner",
+  aiCleanerDesc: "AI groups similar bookmarks. Review each group and delete duplicates.",
+  aiCleanerAnalyzing: "Analyzing...",
+  aiCleanerNoGroups: "No similar bookmarks found. Your bookmarks look clean!",
+  aiCleanerGroupsFound: "{n} similar group(s) found",
+  aiCleanerGroupLabel: "Group {n}",
+  aiCleanerKeep: "Keep",
+  aiCleanerDelete: "Delete",
+  aiCleanerDeleteSelected: "Delete Selected ({n})",
+  aiCleanerConfirmDelete: "Delete {n} bookmark(s)? This cannot be undone.",
+  aiCleanerDone: "{n} bookmark(s) deleted.",
+  aiCleanerClose: "Close",
+  aiCleanerConfirmBtn: "Delete",
+  aiCleanerError: "Analysis failed. Please try again.",
 };
 
 const ja: typeof en = {
@@ -386,6 +420,20 @@ const ja: typeof en = {
   dashboardLockTooltip: "ロック（AI整理でスキップ）",
   dashboardUnlockTooltip: "ロックを解除",
   dashboardRenameTooltip: "名前を変更",
+
+  // ── Custom Search ────────────────────────────────────────
+  customSearchTitle: "カスタム検索",
+  customSearchSettings: "検索設定",
+  customSearchName: "検索名",
+  customSearchUrl: "URLテンプレート",
+  customSearchUrlPlaceholder: "https://...search?q={keyword}",
+  customSearchAdd: "検索を追加",
+  customSearchEdit: "検索を編集",
+  customSearchKeyword: "キーワード...",
+  customSearchBtn: "検索",
+  customSearchDeleteConfirm: "この検索テンプレートを削除しますか？",
+  presetSavedAlert: "マイプリセットに保存しました。",
+  presetAlreadyExistsAlert: "すでにマイプリセットに存在します。",
 
   // ── Recent widget ────────────────────────────────────────
   recentTitle: "最近追加",
@@ -482,6 +530,8 @@ const ja: typeof en = {
   settingsChromePanelLabel: "Chrome パネル（サイドバー）",
   settingsChromePanelDesc: "サイドバーにChromeブックマークのパネルを表示します",
   exportJson: "JSON エクスポート",
+  exportSuccess: "エクスポートが完了しました。",
+  importSuccess: "インポートが完了しました。（{n}件）",
   exportHtml: "HTML エクスポート",
   importBtn: "インポート",
   closeBtn: "閉じる",
@@ -657,6 +707,24 @@ const ja: typeof en = {
   settingsStorageUsageDesc: "ClickBook が使用しているローカルストレージ",
   settingsShortcuts: "キーボードショートカット",
   settingsShortcutSave: "現在のタブを保存 (Alt+S)",
+
+  // ── AI Bookmark Cleaner ───────────────────────────────────
+  aiCleanerBtn: "AI Bookmark Cleaner",
+  aiCleanerTooltip: "意味的に類似したブックマークを検出して整理します",
+  aiCleanerTitle: "AI ブックマーク クリーナー",
+  aiCleanerDesc: "AIが類似ブックマークをグループ化します。各グループを確認して重複を削除してください。",
+  aiCleanerAnalyzing: "分析中...",
+  aiCleanerNoGroups: "類似ブックマークは見つかりませんでした。ブックマークはきれいです！",
+  aiCleanerGroupsFound: "{n}件の類似グループが見つかりました",
+  aiCleanerGroupLabel: "グループ {n}",
+  aiCleanerKeep: "保持",
+  aiCleanerDelete: "削除",
+  aiCleanerDeleteSelected: "選択を削除 ({n}件)",
+  aiCleanerConfirmDelete: "{n}件のブックマークを削除しますか？元に戻せません。",
+  aiCleanerDone: "{n}件のブックマークを削除しました。",
+  aiCleanerClose: "閉じる",
+  aiCleanerConfirmBtn: "削除",
+  aiCleanerError: "分析に失敗しました。もう一度お試しください。",
 };
 
 const ko: typeof en = {
@@ -714,6 +782,20 @@ const ko: typeof en = {
   dashboardLockTooltip: "잠금 (AI 정리 시 건너뜀)",
   dashboardUnlockTooltip: "잠금 해제",
   dashboardRenameTooltip: "이름 변경",
+
+  // ── Custom Search ────────────────────────────────────────
+  customSearchTitle: "커스텀 검색",
+  customSearchSettings: "검색 설정",
+  customSearchName: "검색명",
+  customSearchUrl: "URL 템플릿",
+  customSearchUrlPlaceholder: "https://...search?q={keyword}",
+  customSearchAdd: "검색 추가",
+  customSearchEdit: "검색 편집",
+  customSearchKeyword: "키워드...",
+  customSearchBtn: "검색",
+  customSearchDeleteConfirm: "이 검색 템플릿을 삭제하시겠습니까?",
+  presetSavedAlert: "My 프리셋에 저장되었습니다.",
+  presetAlreadyExistsAlert: "이미 My 프리셋에 존재합니다.",
 
   // ── Recent widget ────────────────────────────────────────
   recentTitle: "최근 추가",
@@ -810,6 +892,8 @@ const ko: typeof en = {
   settingsChromePanelLabel: "Chrome 패널 (사이드바)",
   settingsChromePanelDesc: "사이드바에 Chrome 북마크 패널을 표시합니다.",
   exportJson: "JSON 내보내기",
+  exportSuccess: "내보내기가 완료되었습니다.",
+  importSuccess: "가져오기가 완료되었습니다. (총 {n}건)",
   exportHtml: "HTML 내보내기",
   importBtn: "가져오기",
   closeBtn: "닫기",
@@ -980,6 +1064,24 @@ const ko: typeof en = {
   settingsStorageUsageDesc: "ClickBook이 사용하는 로컬 저장소",
   settingsShortcuts: "키보드 단축키",
   settingsShortcutSave: "현재 탭 저장 (Alt+S)",
+
+  // ── AI Bookmark Cleaner ───────────────────────────────────
+  aiCleanerBtn: "AI Bookmark Cleaner",
+  aiCleanerTooltip: "의미상 유사한 북마크를 찾아서 정리합니다",
+  aiCleanerTitle: "AI 북마크 클리너",
+  aiCleanerDesc: "AI가 유사한 북마크를 그룹화합니다. 각 그룹을 검토하고 중복을 삭제하세요.",
+  aiCleanerAnalyzing: "분석 중...",
+  aiCleanerNoGroups: "유사한 북마크가 없습니다. 북마크가 깔끔합니다!",
+  aiCleanerGroupsFound: "유사 그룹 {n}개 발견",
+  aiCleanerGroupLabel: "그룹 {n}",
+  aiCleanerKeep: "유지",
+  aiCleanerDelete: "삭제",
+  aiCleanerDeleteSelected: "선택 삭제 ({n}개)",
+  aiCleanerConfirmDelete: "{n}개의 북마크를 삭제하시겠습니까? 되돌릴 수 없습니다.",
+  aiCleanerDone: "{n}개의 북마크를 삭제했습니다.",
+  aiCleanerClose: "닫기",
+  aiCleanerConfirmBtn: "삭제",
+  aiCleanerError: "분석에 실패했습니다. 다시 시도해 주세요.",
 };
 
 const DICT: Record<Lang, typeof en> = { en, ja, ko };

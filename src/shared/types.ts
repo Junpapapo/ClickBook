@@ -104,6 +104,12 @@ export interface Pattern {
 
 export type MemoColor = "yellow" | "pink" | "blue" | "green" | "purple";
 
+export interface CustomSearchConfig {
+  id: string;
+  name: string;
+  urlTemplate: string;
+}
+
 export interface AppSettings {
   recentCount: number;          // 最近追加の表示数 default: 8
   rankingCount: number;         // よく見るサイト表示数 default: 5
@@ -111,6 +117,8 @@ export interface AppSettings {
   maxFolderDepth: number;       // 最大フォルダー段階数 default: 3
   keepExistingFolders: boolean; // AI整理時に既存フォルダーを変更しない default: false
   openDashboardInNewTab: boolean; // Dashboard 탭 열기 방식 default: false
+  customSearchConfigs?: CustomSearchConfig[]; // 커스텀 검색 설정
+  customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
 }
 
 

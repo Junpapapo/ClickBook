@@ -8,6 +8,7 @@ import { formatLastUpdated } from "@/shared/utils";
 
 const LANGUAGES = [
   { id: "All", name: "All Languages", query: null },
+  { id: "N/A", name: "N/A", query: null },
   { id: "TypeScript", name: "TypeScript", query: "stars:>5000 language:TypeScript" },
   { id: "JavaScript", name: "JavaScript", query: "stars:>5000 language:JavaScript" },
   { id: "Python", name: "Python", query: "stars:>5000 language:Python" },
@@ -37,7 +38,7 @@ export default function GitHubRankingPage() {
   const [error, setError] = useState("");
   const [custom, setCustom] = useState(false);
   const [selectedLang, setSelectedLang] = useState("All");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("week");
   const [showLimits, setShowLimits] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [lastUpdated, setLastUpdated] = useState<number>(0);
@@ -119,18 +120,32 @@ export default function GitHubRankingPage() {
       const dateQ = getDateQueryStr(filter);
 
       let newItems: GitHubRepo[] = [];
-      if (langId === "All" && filter === "all") {
+      if ((langId === "All" || langId === "N/A") && filter === "all") {
         const result = await getCachedTopRepos(forceRefresh);
         newItems = result.items;
         setLastUpdated(result.lastUpdated);
       } else {
-        const langConfig = LANGUAGES.find(l => l.id === langId);
-        let q = langConfig?.query || "stars:>1000";
+        let q = "";
+        if (filter === "all") {
+          const langConfig = LANGUAGES.find(l => l.id === langId);
+          q = langConfig?.query || "stars:>5000";
+        } else {
+          if (langId !== "All" && langId !== "N/A") {
+            q = `language:${langId} stars:>2`;
+          } else {
+            q = `stars:>5`;
+          }
+        }
         q += dateQ;
         const result = await getCachedCustomRepos(q, forceRefresh);
         newItems = result.items;
         setLastUpdated(result.lastUpdated);
       }
+
+      if (langId === "N/A") {
+        newItems = newItems.filter(r => !r.language || r.language === "N/A");
+      }
+
       setRepos(newItems);
     } catch (err) {
       setError(t("errorFetch"));
@@ -140,7 +155,7 @@ export default function GitHubRankingPage() {
   };
 
   useEffect(() => {
-    loadRepos("All", "all");
+    loadRepos("All", "week");
   }, []);
 
   const handleLanguageChange = (langId: string) => {

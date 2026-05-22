@@ -7,8 +7,8 @@ import SettingsModal from "@/components/SettingsModal";
 import WelcomeModal from "@/components/WelcomeModal";
 import ProgressBar from "@/components/ProgressBar";
 import Dashboard from "@/pages/Dashboard";
-import FolderView from "@/pages/FolderView";
 import MemoBoard from "@/pages/MemoBoard";
+import BookmarkMap from "@/pages/BookmarkMap";
 import GitHubRankingPage from "@/pages/GitHubRanking";
 import WikiRankingPage from "@/pages/WikiRanking";
 import HFRankingPage from "@/pages/HFRanking";
@@ -25,13 +25,15 @@ function AppContent() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [memos, setMemos] = useState<MemoMap>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [aiSearchQuery, setAiSearchQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [showMemoBoard, setShowMemoBoard] = useState(false);
+  const [showBookmarkMap, setShowBookmarkMap] = useState(false);
   const [showGitHubRanking, setShowGitHubRanking] = useState(false);
   const [showWikiRanking, setShowWikiRanking] = useState(false);
   const [showHFRanking, setShowHFRanking] = useState(false);
   const [showHNRanking, setShowHNRanking] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
   const [infoBookmarkId, setInfoBookmarkId] = useState<string | null>(null);
   const [sidebarChromeOpen, setSidebarChromeOpen] = useState(false);
@@ -85,6 +87,13 @@ function AppContent() {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
+  const [settingsMessage, setSettingsMessage] = useState<{ text: string, type: "info" | "warn" } | null>(null);
+
+  function showSettingsMessage(text: string, type: "info" | "warn" = "info") {
+    setSettingsMessage({ text, type });
+    setTimeout(() => setSettingsMessage(null), 3000);
+  }
+
   async function handleExportJSON() {
     const response = (await chrome.runtime.sendMessage({ type: "EXPORT_DATA" })) as MessageResponse;
     if (!response.success) return;
@@ -96,9 +105,10 @@ function AppContent() {
     a.download = `clickbook-export-${new Date().toISOString().split("T")[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    showSettingsMessage(t("exportSuccess"), "info");
   }
 
-  function handleExportHTML() {
+  async function handleExportHTML() {
     const rows = bookmarks
       .map((b) => `<li><a href="${escapeHtml(b.url)}">${escapeHtml(b.title)}</a></li>`)
       .join("\n");
@@ -110,6 +120,7 @@ function AppContent() {
     a.download = `clickbook-export-${new Date().toISOString().split("T")[0]}.html`;
     a.click();
     URL.revokeObjectURL(url);
+    showSettingsMessage(t("exportSuccess"), "info");
   }
 
   function handleImport() {
@@ -123,10 +134,14 @@ function AppContent() {
       try {
         const data: StorageData = JSON.parse(text);
         const response = (await chrome.runtime.sendMessage({ type: "IMPORT_DATA", data })) as MessageResponse;
-        if (response.success) loadData();
+        if (response.success) {
+          loadData();
+          const count = (response.data as { count: number })?.count ?? 0;
+          showSettingsMessage(t("importSuccess", { n: count }), "info");
+        }
       } catch (err) {
         console.warn("Operation failed:", err);
-        await showAlert(t("importFailed"), "warn");
+        showSettingsMessage(t("importFailed"), "warn");
       }
     };
     input.click();
@@ -166,9 +181,9 @@ function AppContent() {
 
   const deferredQuery = useDeferredValue(searchQuery);
 
-  // AI 검색어 확장 (시맨틱 검색 보조)
+  // AI 검색어 확장 (시맨틱 검색 보조) - 엔터 쳤을 때(aiSearchQuery)만 동작
   useEffect(() => {
-    if (!deferredQuery || deferredQuery.length < 3) {
+    if (!aiSearchQuery || aiSearchQuery.length < 3) {
       setExpandedKeywords([]);
       return;
     }
@@ -176,17 +191,17 @@ function AppContent() {
     const timer = setTimeout(async () => {
       setAiLoading(true);
       try {
-        const res = await chrome.runtime.sendMessage({ type: "EXPAND_SEARCH", query: deferredQuery }) as MessageResponse;
+        const res = await chrome.runtime.sendMessage({ type: "EXPAND_SEARCH", query: aiSearchQuery }) as MessageResponse;
         if (res.success && Array.isArray(res.data)) {
           setExpandedKeywords(res.data);
         }
       } finally {
         setAiLoading(false);
       }
-    }, 800);
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [deferredQuery]);
+  }, [aiSearchQuery]);
 
   const filtered = useMemo(
     () => {
@@ -253,9 +268,11 @@ function AppContent() {
         onRefresh={loadData}
         showChromePanel={sidebarChromeOpen}
         showMemoBoard={showMemoBoard}
+        showBookmarkMap={showBookmarkMap}
         memoCount={Object.keys(memos).length}
         onSelectMemoBoard={() => {
           setShowMemoBoard(true);
+          setShowBookmarkMap(false);
           setSelectedFolderId(null);
           setShowGitHubRanking(false);
           setShowWikiRanking(false);
@@ -285,12 +302,23 @@ function AppContent() {
           setShowMemoBoard(false);
           setSelectedFolderId(null);
           setShowHNRanking(false);
+          setShowBookmarkMap(false);
         } : undefined}
+        onSelectBookmarkMap={() => {
+          setShowBookmarkMap(true);
+          setShowMemoBoard(false);
+          setShowGitHubRanking(false);
+          setShowWikiRanking(false);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
+          setSelectedFolderId(null);
+        }}
         onSelectHNRanking={showHNRankingMenu ? () => {
           setShowHNRanking(true);
           setShowHFRanking(false);
           setShowWikiRanking(false);
           setShowGitHubRanking(false);
+          setShowBookmarkMap(false);
           setShowMemoBoard(false);
           setSelectedFolderId(null);
         } : undefined}
@@ -302,6 +330,7 @@ function AppContent() {
         <SearchBar
           query={searchQuery}
           onChange={setSearchQuery}
+          onEnter={setAiSearchQuery}
           onRefresh={loadData}
           onOpenSettings={() => setSettingsModalOpen(true)}
         />
@@ -318,6 +347,8 @@ function AppContent() {
               <HFRankingPage />
             ) : showHNRanking ? (
               <HNRankingPage />
+            ) : showBookmarkMap ? (
+              <BookmarkMap bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
             ) : showMemoBoard ? (
               <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
             ) : selectedFolderId === null ? (
@@ -335,10 +366,17 @@ function AppContent() {
                   setShowWikiRanking(false);
                   setShowHFRanking(false);
                   setShowHNRanking(false);
+                  setShowBookmarkMap(false);
                 }}
                 onRefresh={loadData}
                 searchQuery={deferredQuery}
+                aiSearchQuery={aiSearchQuery}
                 onAiLoadingChange={setAiLoading}
+                customSearchConfigs={settings.customSearchConfigs || []}
+                customPresets={settings.customPresets || []}
+                onSaveCustomSearchConfigs={(configs, presets) => {
+                  handleSaveSettings({ ...settings, customSearchConfigs: configs, customPresets: presets || settings.customPresets });
+                }}
               />
             ) : (
               <FolderView
@@ -354,6 +392,7 @@ function AppContent() {
                   setShowWikiRanking(false);
                   setShowHFRanking(false);
                   setShowHNRanking(false);
+                  setShowBookmarkMap(false);
                 }}
                 onRefresh={loadData}
               />
@@ -409,6 +448,7 @@ function AppContent() {
             chrome.storage.local.set({ clickbook_show_hn_ranking: v });
             if (!v && showHNRanking) setShowHNRanking(false);
           }}
+          settingsMessage={settingsMessage}
         />
       )}
 
