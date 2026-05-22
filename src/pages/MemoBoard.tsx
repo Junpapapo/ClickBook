@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
 import { refineMemoDraft } from "@/shared/categorizer";
 import {
@@ -272,13 +273,24 @@ function MemoCard({
             </div>
           </div>
         ) : (
-          <p
-            className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-1 min-h-[40px]"
+          <div
+            className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-1 min-h-[40px] markdown-body"
             onClick={() => { setDraft(memo.content); setEditing(true); }}
             title={t("clickToEdit")}
           >
-            {memo.content}
-          </p>
+            <ReactMarkdown
+              components={{
+                p: ({ node, ...props }) => <p className="whitespace-pre-wrap mb-2 last:mb-0" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 last:mb-0" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 last:mb-0" {...props} />,
+                li: ({ node, ...props }) => <li className="mb-0.5" {...props} />,
+                a: ({ node, ...props }) => <a className="text-indigo-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900 dark:text-gray-100" {...props} />
+              }}
+            >
+              {memo.content}
+            </ReactMarkdown>
+          </div>
         )}
 
         {/* 紐づきサイト */}

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen, Copy, Check } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, Folder } from "@/shared/types";
 import { MEMO_TEXTAREA_BG } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -246,8 +247,19 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
             </button>
           </div>
           {memo ? (
-            <div className={`rounded-xl p-3 text-xs leading-relaxed text-gray-800 dark:text-gray-200 ${MEMO_TEXTAREA_BG[memo.color]}`}>
-              {memo.content}
+            <div className={`rounded-xl p-3 text-xs leading-relaxed text-gray-800 dark:text-gray-200 markdown-body ${MEMO_TEXTAREA_BG[memo.color]}`}>
+              <ReactMarkdown
+                components={{
+                  p: ({ node, ...props }) => <p className="whitespace-pre-wrap mb-2 last:mb-0" {...props} />,
+                  ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 last:mb-0" {...props} />,
+                  ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 last:mb-0" {...props} />,
+                  li: ({ node, ...props }) => <li className="mb-0.5" {...props} />,
+                  a: ({ node, ...props }) => <a className="text-indigo-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                  strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900 dark:text-gray-100" {...props} />
+                }}
+              >
+                {memo.content}
+              </ReactMarkdown>
             </div>
           ) : (
             <button

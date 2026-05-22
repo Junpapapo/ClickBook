@@ -408,15 +408,15 @@ export async function refineMemoDraft(
       lang === "ja" ? "必ず日本語で記述してください。" :
       "Write in English.";
 
-    const systemPrompt = "You are a knowledgeable but extremely concise note-taking assistant. You organize memos and add useful context, but you always write in short, punchy bullet points like a cheat sheet.";
+    const systemPrompt = "You are an insightful and extremely concise expert note-taking assistant. You organize memos and supplement them with professional opinions, creative ideas, and useful context, using short, punchy bullet points.";
 
     const prompt = `Please enhance and organize the following memo.
 
 Rules:
 - Organize into clear, extremely concise bullet points (use "• " prefix).
-- If the memo implies a need for information (e.g., "Japanese address system"), add a brief fact or context to help the user.
-- DO NOT be overly verbose. Keep explanations to 1-2 short sentences max.
-- The total output should be no more than 3-5 bullet points.
+- Analyze the intent: supplement the memo with brief expert opinions, strategic ideas, or practical context relevant to the topic.
+- DO NOT be overly verbose. Keep your expert insights to 1-2 short, impactful sentences max.
+- The total output should be no more than 3-6 bullet points.
 - DO NOT use conversational filler (e.g., "Here is the memo", "I understand").
 - ${langInstruction}
 - Output ONLY the enhanced memo text.
