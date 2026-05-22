@@ -121,6 +121,8 @@ const en = {
   memoEmpty: "No memos yet.",
   memoEmptyDesc:
     "Hover over a bookmark card and click the memo icon to add a memo.",
+  aiRefineMemo: "AI Refine",
+  aiRefining: "Refining...",
 
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "Open",
@@ -480,6 +482,8 @@ const ja: typeof en = {
   memoEmpty: "メモがありません",
   memoEmptyDesc:
     "ブックマークカードにホバーしてメモアイコンをクリックするとメモを追加できます",
+  aiRefineMemo: "AI整理",
+  aiRefining: "整理中...",
 
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "開く",
@@ -842,6 +846,8 @@ const ko: typeof en = {
   memoEmpty: "메모가 없습니다",
   memoEmptyDesc:
     "북마크 카드에 마우스를 올리고 메모 아이콘을 클릭하면 메모를 추가할 수 있습니다",
+  aiRefineMemo: "AI 정리",
+  aiRefining: "정리 중...",
 
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "열기",

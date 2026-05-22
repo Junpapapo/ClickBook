@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { StickyNote, ExternalLink, X, Plus, Check, Info } from "lucide-react";
+import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2 } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
+import { refineMemoDraft } from "@/shared/categorizer";
 import {
   MEMO_DOT,
   MEMO_CARD_BG as MEMO_CARD_CLS,
@@ -26,9 +27,19 @@ const SIZE_STORAGE_KEY = "clickbook_memo_size";
 // ── NewMemoCard（サイト連携なしの新規メモ入力カード） ────
 
 function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [content, setContent] = useState("");
   const [color, setColor] = useState<MemoColor>("yellow");
+  const [isRefining, setIsRefining] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true);
+
+  useEffect(() => {
+    chrome.storage.local.get("clickbook_ai_enabled", (res) => {
+      if (res.clickbook_ai_enabled === false) {
+        setAiEnabled(false);
+      }
+    });
+  }, []);
 
   async function handleSave() {
     const text = content.trim();
@@ -36,6 +47,16 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
     const id = `standalone_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     await chrome.runtime.sendMessage({ type: "SAVE_MEMO", bookmarkId: id, content: text, color });
     onSave();
+  }
+
+  async function handleRefine() {
+    if (!content.trim() || isRefining || !aiEnabled) return;
+    setIsRefining(true);
+    const res = await refineMemoDraft(content, lang);
+    if (res.aiUsed) {
+      setContent(res.draft);
+    }
+    setIsRefining(false);
   }
 
   return (
@@ -72,21 +93,31 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
         />
 
         {/* アクション */}
-        <div className="flex gap-1 justify-end">
+        <div className="flex gap-1 justify-between items-center mt-1">
           <button
-            onClick={onCancel}
-            className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+            onClick={handleRefine}
+            disabled={!content.trim() || isRefining || !aiEnabled}
+            title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
+            className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm"
           >
-            Cancel
+            {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
           </button>
-          <button
-            onClick={handleSave}
-            disabled={!content.trim()}
-            className="text-[10px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
-          >
-            <Check size={10} />
-            Save
-          </button>
+          <div className="flex gap-1">
+            <button
+              onClick={onCancel}
+              className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!content.trim()}
+              className="text-[10px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
+            >
+              <Check size={10} />
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -104,10 +135,20 @@ function MemoCard({
   bookmark?: Bookmark;
   onRefresh: () => void;
 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(memo.content);
   const [color, setColor] = useState<MemoColor>(memo.color);
+  const [isRefining, setIsRefining] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true);
+
+  useEffect(() => {
+    chrome.storage.local.get("clickbook_ai_enabled", (res) => {
+      if (res.clickbook_ai_enabled === false) {
+        setAiEnabled(false);
+      }
+    });
+  }, []);
 
   async function handleSave() {
     const text = draft.trim();
@@ -120,6 +161,16 @@ function MemoCard({
     });
     setEditing(false);
     onRefresh();
+  }
+
+  async function handleRefine() {
+    if (!draft.trim() || isRefining || !aiEnabled) return;
+    setIsRefining(true);
+    const res = await refineMemoDraft(draft, lang);
+    if (res.aiUsed) {
+      setDraft(res.draft);
+    }
+    setIsRefining(false);
   }
 
   async function handleColorChange(c: MemoColor) {
@@ -193,19 +244,31 @@ function MemoCard({
               onKeyDown={(e) => { if (e.key === "Escape") { setDraft(memo.content); setEditing(false); } }}
               className={`w-full text-xs rounded-lg px-2.5 py-1.5 resize-none outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200`}
             />
-            <div className="flex gap-1 justify-end">
+            <div className="flex gap-1 justify-between items-center mt-1">
               <button
-                onClick={() => { setDraft(memo.content); setEditing(false); }}
-                className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+                onClick={handleRefine}
+                disabled={!draft.trim() || isRefining || !aiEnabled}
+                title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
+                className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center gap-1"
               >
-                Cancel
+                {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                {isRefining && <span className="text-[10px] whitespace-nowrap">{t("aiRefining")}</span>}
               </button>
-              <button
-                onClick={handleSave}
-                className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg transition-colors"
-              >
-                Save
-              </button>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => { setDraft(memo.content); setEditing(false); }}
+                  className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!draft.trim()}
+                  className="text-[10px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         ) : (

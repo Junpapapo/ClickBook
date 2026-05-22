@@ -351,26 +351,31 @@ export async function generateMemoDraft(
       tags?.length ? `Topics: ${tags.join(", ")}` : "",
     ].filter(Boolean).join("\n");
 
-    const prompt = `You are a smart note-taking assistant. Based on the webpage info below, write a concise memo draft.
+    const systemPrompt = "You are a pure text transformation engine. You strictly follow formatting instructions and output ONLY the requested text without any conversational filler, pleasantries, or responses to the content.";
+
+    const prompt = `Based on the webpage info below, write a concise memo draft.
 
 Rules:
-- 2–4 short bullet points (use "• " prefix)
-- Focus on what's useful to remember or action items
-- End with an optional "📌 TODO:" line if applicable
+- 2–4 short bullet points (use "• " prefix).
+- Focus on what's useful to remember or action items.
+- End with an optional "📌 TODO:" line if applicable.
 - ${langInstruction}
-- Output ONLY the memo text. No preamble, no quotes.
+- Output ONLY the memo text. No preamble, no conversational filler (e.g., "네, 알겠습니다").
 
+Webpage info:
+"""
 ${context}
+"""
 
 Memo draft:`;
 
-    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }]
+    const session = await (lm.create as any)({
+      systemPrompt: systemPrompt
     });
 
     const response = await Promise.race([
       session.prompt(prompt),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 12000)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000)),
     ]);
     session.destroy();
 
@@ -378,8 +383,68 @@ Memo draft:`;
     if (!draft || draft.length < 10) return { draft: fallback, aiUsed: false };
 
     return { draft, aiUsed: true };
-  } catch {
+  } catch (err) {
+    console.error("AI Generate Memo Error:", err);
     return { draft: fallback, aiUsed: false };
+  }
+}
+
+/**
+ * 기존 메모 내용을 바탕으로 AI가 내용을 정리하고 다듬어줍니다.
+ */
+export async function refineMemoDraft(
+  originalMemo: string,
+  lang: "en" | "ja" | "ko"
+): Promise<{ draft: string; aiUsed: boolean }> {
+  try {
+    const { clickbook_ai_enabled } = await chrome.storage.local.get("clickbook_ai_enabled");
+    if (clickbook_ai_enabled === false) return { draft: originalMemo, aiUsed: false };
+
+    const lm = await getAIModel();
+    if (!lm) return { draft: originalMemo, aiUsed: false };
+
+    const langInstruction =
+      lang === "ko" ? "반드시 한국어로 작성하세요." :
+      lang === "ja" ? "必ず日本語で記述してください。" :
+      "Write in English.";
+
+    const systemPrompt = "You are a knowledgeable but extremely concise note-taking assistant. You organize memos and add useful context, but you always write in short, punchy bullet points like a cheat sheet.";
+
+    const prompt = `Please enhance and organize the following memo.
+
+Rules:
+- Organize into clear, extremely concise bullet points (use "• " prefix).
+- If the memo implies a need for information (e.g., "Japanese address system"), add a brief fact or context to help the user.
+- DO NOT be overly verbose. Keep explanations to 1-2 short sentences max.
+- The total output should be no more than 3-5 bullet points.
+- DO NOT use conversational filler (e.g., "Here is the memo", "I understand").
+- ${langInstruction}
+- Output ONLY the enhanced memo text.
+
+Original Memo:
+"""
+${originalMemo}
+"""
+
+Enhanced Memo:`;
+
+    const session = await (lm.create as any)({
+      systemPrompt: systemPrompt
+    });
+
+    const response = await Promise.race([
+      session.prompt(prompt),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000)),
+    ]);
+    session.destroy();
+
+    const draft = response?.trim();
+    if (!draft || draft.length < 5) return { draft: originalMemo, aiUsed: false };
+
+    return { draft, aiUsed: true };
+  } catch (err) {
+    console.error("AI Refine Error:", err);
+    return { draft: originalMemo, aiUsed: false };
   }
 }
 

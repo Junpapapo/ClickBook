@@ -7,6 +7,7 @@ import SettingsModal from "@/components/SettingsModal";
 import WelcomeModal from "@/components/WelcomeModal";
 import ProgressBar from "@/components/ProgressBar";
 import Dashboard from "@/pages/Dashboard";
+import FolderView from "@/pages/FolderView";
 import MemoBoard from "@/pages/MemoBoard";
 import BookmarkMap from "@/pages/BookmarkMap";
 import GitHubRankingPage from "@/pages/GitHubRanking";
