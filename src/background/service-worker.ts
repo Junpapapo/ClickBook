@@ -303,6 +303,15 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       await saveSettings(message.settings);
       return { success: true };
     }
+    case "GET_TODO_BOARD": {
+      const { getTodoBoard } = await import("@/shared/storage");
+      return { success: true, data: await getTodoBoard() };
+    }
+    case "SAVE_TODO_BOARD": {
+      const { saveTodoBoard } = await import("@/shared/storage");
+      await saveTodoBoard(message.data);
+      return { success: true };
+    }
     case "UPDATE_AI_INFO": {
       const { updateBookmark } = await import("@/shared/storage");
       const { generateSummaryAndTags } = await import("@/shared/categorizer");

@@ -183,8 +183,32 @@ export type Message =
   | { type: "FACTORY_RESET" }
   | { type: "GET_SETTINGS" }
   | { type: "SAVE_SETTINGS"; settings: AppSettings }
-  | { type: "UPDATE_AI_INFO"; id: string; url: string; title: string };
+  | { type: "UPDATE_AI_INFO"; id: string; url: string; title: string }
+  | { type: "GET_TODO_BOARD" }
+  | { type: "SAVE_TODO_BOARD"; data: TodoBoardData };
 
 export type MessageResponse =
   | { success: true; data?: unknown }
   | { success: false; error: string; isDuplicate?: boolean };
+
+// =============================
+// TODO Board (Kanban) Models
+// =============================
+
+export interface TodoTask {
+  id: string;
+  content: string;
+  createdAt: number;
+}
+
+export interface TodoColumn {
+  id: string;
+  title: string;
+  taskIds: string[];
+}
+
+export interface TodoBoardData {
+  tasks: Record<string, TodoTask>;
+  columns: Record<string, TodoColumn>;
+  columnOrder: string[];
+}

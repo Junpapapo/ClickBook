@@ -20,9 +20,11 @@ import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 
+import TodoBoard from "@/pages/TodoBoard";
+
+// ── メインアプリケーションコンポーネント ───────────────────
+
 function AppContent() {
-  const { showAlert, DialogEl } = useDialog();
-  const { t, lang } = useLang();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [memos, setMemos] = useState<MemoMap>({});
@@ -30,6 +32,7 @@ function AppContent() {
   const [aiSearchQuery, setAiSearchQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [showMemoBoard, setShowMemoBoard] = useState(false);
+  const [showTodoBoard, setShowTodoBoard] = useState(false);
   const [showBookmarkMap, setShowBookmarkMap] = useState(false);
   const [showGitHubRanking, setShowGitHubRanking] = useState(false);
   const [showWikiRanking, setShowWikiRanking] = useState(false);
@@ -261,6 +264,7 @@ function AppContent() {
         onSelect={(id) => {
           setSelectedFolderId(id);
           setShowMemoBoard(false);
+          setShowTodoBoard(false);
           setShowGitHubRanking(false);
           setShowWikiRanking(false);
           setShowHFRanking(false);
@@ -269,10 +273,22 @@ function AppContent() {
         onRefresh={loadData}
         showChromePanel={sidebarChromeOpen}
         showMemoBoard={showMemoBoard}
+        showTodoBoard={showTodoBoard}
         showBookmarkMap={showBookmarkMap}
         memoCount={Object.keys(memos).length}
         onSelectMemoBoard={() => {
           setShowMemoBoard(true);
+          setShowTodoBoard(false);
+          setShowBookmarkMap(false);
+          setSelectedFolderId(null);
+          setShowGitHubRanking(false);
+          setShowWikiRanking(false);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
+        }}
+        onSelectTodoBoard={() => {
+          setShowTodoBoard(true);
+          setShowMemoBoard(false);
           setShowBookmarkMap(false);
           setSelectedFolderId(null);
           setShowGitHubRanking(false);
@@ -283,6 +299,7 @@ function AppContent() {
         onSelectGitHubRanking={showGitHubRankingMenu ? () => {
           setShowGitHubRanking(true);
           setShowMemoBoard(false);
+          setShowTodoBoard(false);
           setSelectedFolderId(null);
           setShowWikiRanking(false);
           setShowHFRanking(false);
@@ -292,6 +309,7 @@ function AppContent() {
           setShowWikiRanking(true);
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
+          setShowTodoBoard(false);
           setSelectedFolderId(null);
           setShowHFRanking(false);
           setShowHNRanking(false);
@@ -301,6 +319,7 @@ function AppContent() {
           setShowWikiRanking(false);
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
+          setShowTodoBoard(false);
           setSelectedFolderId(null);
           setShowHNRanking(false);
           setShowBookmarkMap(false);
@@ -308,6 +327,7 @@ function AppContent() {
         onSelectBookmarkMap={() => {
           setShowBookmarkMap(true);
           setShowMemoBoard(false);
+          setShowTodoBoard(false);
           setShowGitHubRanking(false);
           setShowWikiRanking(false);
           setShowHFRanking(false);
@@ -321,6 +341,7 @@ function AppContent() {
           setShowGitHubRanking(false);
           setShowBookmarkMap(false);
           setShowMemoBoard(false);
+          setShowTodoBoard(false);
           setSelectedFolderId(null);
         } : undefined}
         maxFolderDepth={settings.maxFolderDepth}
@@ -340,7 +361,9 @@ function AppContent() {
 
         <div className="flex flex-1 overflow-hidden">
           <main className="flex-1 overflow-y-auto p-6">
-            {showGitHubRanking ? (
+            {showTodoBoard ? (
+              <TodoBoard />
+            ) : showGitHubRanking ? (
               <GitHubRankingPage />
             ) : showWikiRanking ? (
               <WikiRankingPage />

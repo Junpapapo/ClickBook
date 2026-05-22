@@ -849,6 +849,15 @@ const ko: typeof en = {
   aiRefineMemo: "AI 정리",
   aiRefining: "정리 중...",
 
+  // ── TodoBoard ────────────────────────────────────────────
+  todoBoardTitle: "TODO 보드",
+  addTodoColumn: "리스트 추가",
+  addTodoTask: "태스크 추가",
+  deleteColumnConfirm: "이 리스트를 삭제하시겠습니까?",
+  deleteTaskConfirm: "이 태스크를 삭제하시겠습니까?",
+  columnTitlePlaceholder: "리스트 이름",
+  taskContentPlaceholder: "할 일 입력...",
+
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "열기",
   editTooltip: "편집",
@@ -1121,3 +1130,4 @@ export function createT(lang: Lang) {
 }
 
 export type TFunction = ReturnType<typeof createT>;
+

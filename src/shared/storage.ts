@@ -448,3 +448,30 @@ export async function factoryReset(): Promise<void> {
     clickbook_onboarded: false
   });
 }
+
+// ── TODO Board ──────────────────────────────────────────────
+
+const TODO_BOARD_KEY = "clickbook_todo_board";
+
+export const DEFAULT_TODO_BOARD: import("./types").TodoBoardData = {
+  tasks: {},
+  columns: {
+    "col-1": { id: "col-1", title: "To Do", taskIds: [] },
+    "col-2": { id: "col-2", title: "In Progress", taskIds: [] },
+    "col-3": { id: "col-3", title: "Done", taskIds: [] },
+  },
+  columnOrder: ["col-1", "col-2", "col-3"],
+};
+
+export async function getTodoBoard(): Promise<import("./types").TodoBoardData> {
+  const r = await chrome.storage.local.get(TODO_BOARD_KEY);
+  const data = r[TODO_BOARD_KEY];
+  if (data && typeof data === "object" && Array.isArray(data.columnOrder)) {
+    return data as import("./types").TodoBoardData;
+  }
+  return DEFAULT_TODO_BOARD;
+}
+
+export async function saveTodoBoard(data: import("./types").TodoBoardData): Promise<void> {
+  await chrome.storage.local.set({ [TODO_BOARD_KEY]: data });
+}

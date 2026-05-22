@@ -20,6 +20,7 @@ import {
   Book,
   Newspaper,
   ScanSearch,
+  ListTodo,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -38,9 +39,11 @@ interface Props {
   onRefresh: () => void;
   showChromePanel?: boolean;
   showMemoBoard?: boolean;
+  showTodoBoard?: boolean;
   showBookmarkMap?: boolean;
   memoCount?: number;
   onSelectMemoBoard?: () => void;
+  onSelectTodoBoard?: () => void;
   onSelectBookmarkMap?: () => void;
   onSelectGitHubRanking?: () => void;
   onSelectWikiRanking?: () => void;
@@ -73,9 +76,11 @@ export default function Sidebar({
   onRefresh,
   showChromePanel = false,
   showMemoBoard = false,
+  showTodoBoard = false,
   showBookmarkMap = false,
   memoCount,
   onSelectMemoBoard,
+  onSelectTodoBoard,
   onSelectBookmarkMap,
   onSelectGitHubRanking,
   onSelectWikiRanking,
@@ -822,6 +827,21 @@ export default function Sidebar({
               {memoCount}
             </span>
           )}
+        </button>
+      </div>
+
+      {/* TODO ボード */}
+      <div className="px-1.5 mb-1">
+        <button
+          onClick={onSelectTodoBoard}
+          className={`flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-150
+            ${showTodoBoard
+              ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 font-medium"
+              : "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 font-medium"
+            }`}
+        >
+          <ListTodo size={15} />
+          {t("todoBoardTitle") || "TODO Board"}
         </button>
       </div>
 

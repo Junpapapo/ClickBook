@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@xyflow/react": "^12.10.2",
     "dagre": "^0.8.5",
     "lucide-react": "^0.400.0",
