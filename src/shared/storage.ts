@@ -13,7 +13,7 @@ export async function getGitHubRankingCache(): Promise<GitHubRankingCache | null
 export async function setGitHubRankingCache(cache: GitHubRankingCache): Promise<void> {
   await chrome.storage.local.set({ [GITHUB_RANKING_KEY]: cache });
 }
-import type { Bookmark, Folder, StorageData } from "./types";
+import type { Bookmark, Folder, StorageData, ClickBookBackupData } from "./types";
 import { DEFAULT_FOLDERS, DEFAULT_FOLDER_ID } from "./categories";
 
 const STORAGE_KEY = "clickbook_data";
@@ -243,8 +243,23 @@ export async function toggleFolderLock(id: string): Promise<void> {
 
 // ── Export / Import ────────────────────────────────────────
 
-export async function exportData(): Promise<StorageData> {
-  return await readStorage();
+export async function exportData(): Promise<ClickBookBackupData> {
+  const [mainData, memos, todoBoard, settings] = await Promise.all([
+    readStorage(),
+    readMemos(),
+    getTodoBoard(),
+    getSettings(),
+  ]);
+
+  return {
+    version: "2.0.0",
+    exportedAt: Date.now(),
+    bookmarks: mainData.bookmarks,
+    folders: mainData.folders,
+    memos,
+    todoBoard,
+    settings,
+  };
 }
 
 function isValidBookmark(b: unknown): b is Bookmark {
@@ -257,7 +272,7 @@ function isValidBookmark(b: unknown): b is Bookmark {
   );
 }
 
-export async function importData(incoming: StorageData): Promise<{ count: number }> {
+export async function importData(incoming: ClickBookBackupData): Promise<{ count: number }> {
   if (!Array.isArray(incoming.bookmarks)) {
     throw new Error("Invalid import data format");
   }
@@ -278,6 +293,23 @@ export async function importData(incoming: StorageData): Promise<{ count: number
   const mergedBookmarks = [...newBookmarks, ...existing.bookmarks];
 
   await writeStorage({ bookmarks: mergedBookmarks, folders: mergedFolders });
+
+  // ── Memos Restore ──
+  if (incoming.memos && typeof incoming.memos === "object") {
+    const existingMemos = await readMemos();
+    const mergedMemos = { ...existingMemos, ...incoming.memos };
+    await chrome.storage.local.set({ [MEMOS_KEY]: mergedMemos });
+  }
+
+  // ── TODO Board Restore ──
+  if (incoming.todoBoard && typeof incoming.todoBoard === "object") {
+    await saveTodoBoard(incoming.todoBoard);
+  }
+
+  // ── Settings Restore ──
+  if (incoming.settings && typeof incoming.settings === "object") {
+    await saveSettings(incoming.settings);
+  }
 
   // インポート後に孤立したメモ (対応ブックマークなし・非スタンドアロン) を削除
   const validIds = new Set(mergedBookmarks.map(b => b.id));

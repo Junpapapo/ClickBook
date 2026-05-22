@@ -404,12 +404,18 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <StickyNote size={14} className="text-amber-400" />
-        <h2 className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-600 font-semibold">
-          {t("memoTitle")}
-        </h2>
-        <span className="text-xs text-gray-400 dark:text-gray-600">{t("memoCount", { n: memoList.length })}</span>
+      <div className="flex items-center gap-3 mb-2">
+        <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30">
+            <StickyNote size={16} strokeWidth={3} />
+          </span>
+          <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 text-transparent bg-clip-text">
+            MEMO
+          </span>
+        </h1>
+        <span className="text-sm font-bold bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full shadow-sm ml-1">
+          {memoList.length}
+        </span>
 
         {/* サイズ切り替え */}
         <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-surface-800 rounded-lg p-0.5">

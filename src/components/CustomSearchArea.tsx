@@ -6,10 +6,11 @@ import CustomSearchSettingsModal from "./CustomSearchSettingsModal";
 
 interface Props {
   configs: CustomSearchConfig[];
-  onSaveConfigs: (configs: CustomSearchConfig[]) => void;
+  customPresets: CustomSearchConfig[];
+  onSaveConfigs: (configs: CustomSearchConfig[], presets?: CustomSearchConfig[]) => void;
 }
 
-export default function CustomSearchArea({ configs, onSaveConfigs }: Props) {
+export default function CustomSearchArea({ configs, customPresets, onSaveConfigs }: Props) {
   const { t } = useLang();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
@@ -109,6 +110,7 @@ export default function CustomSearchArea({ configs, onSaveConfigs }: Props) {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         configs={configs}
+        customPresets={customPresets}
         onSave={onSaveConfigs}
       />
     </div>

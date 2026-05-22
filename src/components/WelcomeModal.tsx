@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, MousePointerClick, FolderTree, ChevronRight, X } from "lucide-react";
+import { Sparkles, MousePointerClick, FolderTree, ChevronRight, X, CheckSquare, Map } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
@@ -25,6 +25,16 @@ export default function WelcomeModal({ onClose }: Props) {
       icon: <FolderTree className="w-12 h-12 text-emerald-500 mb-4" />,
       title: t("onboardingStep3Title"),
       desc: t("onboardingStep3Desc"),
+    },
+    {
+      icon: <CheckSquare className="w-12 h-12 text-indigo-500 mb-4" />,
+      title: t("onboardingStep4Title"),
+      desc: t("onboardingStep4Desc"),
+    },
+    {
+      icon: <Map className="w-12 h-12 text-purple-500 mb-4" />,
+      title: t("onboardingStep5Title"),
+      desc: t("onboardingStep5Desc"),
     },
   ];
 

@@ -58,7 +58,7 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
         const dup = await isDuplicateUrl(message.url, message.id);
         if (dup) return { success: false, error: "This URL is already saved", isDuplicate: true };
       }
-      await updateBookmark(message.id, { title: message.title, url: message.url, folderId: message.folderId });
+      await updateBookmark(message.id, { title: message.title, url: message.url, folderId: message.folderId, tags: message.tags });
       return { success: true };
     }
     case "ADD_BOOKMARK": {

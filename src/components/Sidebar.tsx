@@ -21,6 +21,8 @@ import {
   Newspaper,
   ScanSearch,
   ListTodo,
+  Tag,
+  Map,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -40,10 +42,12 @@ interface Props {
   showChromePanel?: boolean;
   showMemoBoard?: boolean;
   showTodoBoard?: boolean;
+  showTagBoard?: boolean;
   showBookmarkMap?: boolean;
   memoCount?: number;
   onSelectMemoBoard?: () => void;
   onSelectTodoBoard?: () => void;
+  onSelectTagBoard?: () => void;
   onSelectBookmarkMap?: () => void;
   onSelectGitHubRanking?: () => void;
   onSelectWikiRanking?: () => void;
@@ -77,10 +81,12 @@ export default function Sidebar({
   showChromePanel = false,
   showMemoBoard = false,
   showTodoBoard = false,
+  showTagBoard = false,
   showBookmarkMap = false,
   memoCount,
   onSelectMemoBoard,
   onSelectTodoBoard,
+  onSelectTagBoard,
   onSelectBookmarkMap,
   onSelectGitHubRanking,
   onSelectWikiRanking,
@@ -326,7 +332,9 @@ export default function Sidebar({
     if (y < height * 0.3) position = "before";
     else if (y > height * 0.7) position = "after";
 
-    setDragOverInfo({ id: folderId, position });
+    if (!dragOverInfo || dragOverInfo.id !== folderId || dragOverInfo.position !== position) {
+      setDragOverInfo({ id: folderId, position });
+    }
   }
 
   function onDragLeave(e: React.DragEvent) {
@@ -651,20 +659,53 @@ export default function Sidebar({
       {/* Chrome ブックマークパネル */}
       {showChromePanel && <ChromeBookmarkPanel onRefresh={onRefresh} />}
 
-      {/* ホーム */}
-      <div className="px-1.5 mt-2 mb-1">
+      {/* ホーム & Tag Cloud & Bookmark Map */}
+      <div className="px-1.5 mt-2 mb-1 grid grid-cols-12 gap-1.5">
         <button
-          onClick={() => onSelect(null)}
-          className={`
-            flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
-            ${selectedFolderId === null
+          onClick={() => window.location.reload()}
+          className={`col-span-6 flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-all duration-150
+            ${selectedFolderId === null && !showBookmarkMap && !showTagBoard
               ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-medium"
               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"
             }
           `}
         >
-          <Home size={15} />
-          {t("dashboard")}
+          <Home size={15} className="shrink-0" />
+          <span className="truncate">{t("dashboard")}</span>
+        </button>
+
+        <button
+          onClick={onSelectTagBoard}
+          className={`relative group col-span-3 flex items-center justify-center px-2 py-2 text-sm rounded-lg transition-all duration-150
+            ${showTagBoard
+              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+              : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/25"
+            }`}
+        >
+          <Tag size={15} className="shrink-0" />
+          
+          {/* Custom Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+            {t("tagBoardMenu") || "Tag Cloud"}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+          </span>
+        </button>
+
+        <button
+          onClick={onSelectBookmarkMap}
+          className={`relative group col-span-3 flex items-center justify-center px-2 py-2 text-sm rounded-lg transition-all duration-150
+            ${showBookmarkMap
+              ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 font-medium"
+              : "bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 dark:hover:bg-blue-500/25 font-medium"
+            }`}
+        >
+          <Map size={15} className="shrink-0" />
+          
+          {/* Custom Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+            {t("bookmarkMap") || "Bookmark Map"}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+          </span>
         </button>
       </div>
 
@@ -810,53 +851,36 @@ export default function Sidebar({
       </div>
 
 
-      {/* メモボード */}
-      <div className="px-1.5 mb-1">
+
+      {/* Memo & TODO Boards (Side-by-side) */}
+      <div className="px-1.5 mb-1 flex gap-1.5">
         <button
           onClick={onSelectMemoBoard}
-          className={`flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-150
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
             ${showMemoBoard
               ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-medium"
               : "bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 dark:hover:bg-amber-500/25 font-medium"
             }`}
         >
-          <StickyNote size={15} />
-          {t("memoBoard")}
+          <StickyNote size={14} className="shrink-0" />
+          <span className="truncate">{t("memoBoard")}</span>
           {(memoCount ?? 0) > 0 && (
-            <span className="ml-auto text-[10px] bg-gray-100 dark:bg-surface-700 text-gray-500 rounded-full px-1.5 py-0.5">
+            <span className="shrink-0 text-[9px] bg-white/20 dark:bg-surface-700 text-current rounded-full px-1.5 py-0.5">
               {memoCount}
             </span>
           )}
         </button>
-      </div>
 
-      {/* TODO ボード */}
-      <div className="px-1.5 mb-1">
         <button
           onClick={onSelectTodoBoard}
-          className={`flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-150
+          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
             ${showTodoBoard
               ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 font-medium"
               : "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 font-medium"
             }`}
         >
-          <ListTodo size={15} />
-          {t("todoBoardTitle") || "TODO Board"}
-        </button>
-      </div>
-
-      {/* Bookmark Map */}
-      <div className="px-1.5 mb-1">
-        <button
-          onClick={onSelectBookmarkMap}
-          className={`flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg transition-all duration-150
-            ${showBookmarkMap
-              ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20 font-medium"
-              : "bg-rose-500/10 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 hover:bg-rose-500/20 dark:hover:bg-rose-500/25 font-medium"
-            }`}
-        >
-          <span className="text-[15px] shrink-0 leading-none">🗺️</span>
-          Bookmark Map
+          <ListTodo size={14} className="shrink-0" />
+          <span className="truncate">{t("todoBoardMenu") || "TODO"}</span>
         </button>
       </div>
 

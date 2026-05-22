@@ -29,6 +29,7 @@ const en = {
 
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "Dashboard",
+  bookmarkMap: "Bookmark Map",
   memoBoard: "Memos",
   aiOrganize: "AI Organize",
   aiNotAvailable: "Chrome AI (Gemini Nano) is not available",
@@ -124,6 +125,16 @@ const en = {
   aiRefineMemo: "AI Refine",
   aiRefining: "Refining...",
 
+  // ── TodoBoard ────────────────────────────────────────────
+  todoBoardTitle: "TODO Board",
+  todoBoardMenu: "TODO",
+  addTodoColumn: "Add List",
+  addTodoTask: "Add Task",
+  deleteColumnConfirm: "Delete this list?",
+  deleteTaskConfirm: "Delete this task?",
+  columnTitlePlaceholder: "List Title",
+  taskContentPlaceholder: "Enter task...",
+
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "Open",
   editTooltip: "Edit",
@@ -172,11 +183,14 @@ const en = {
 
   settingsChromePanelLabel: "Chrome Panel (Sidebar)",
   settingsChromePanelDesc: "Show Chrome bookmarks panel in sidebar",
-  exportJson: "JSON Export",
+  exportJson: "Export Consolidated Backup (JSON)",
+  exportJsonDesc: "Backup all bookmarks, folders, memos, TODO boards, and settings into a single JSON file.",
   exportSuccess: "Export completed successfully.",
   importSuccess: "Import completed successfully. {n} items imported.",
   exportHtml: "HTML Export",
-  importBtn: "Import",
+  exportHtmlDesc: "Export bookmarks as standard Netscape HTML format for browser compatibility.",
+  importBtn: "Restore Consolidated Backup (JSON)",
+  importBtnDesc: "Restore all bookmarks, folders, memos, TODO boards, and settings from a ClickBook JSON backup.",
   closeBtn: "Close",
   saveBtn: "Save",
   confirmBtn: "Continue",
@@ -342,6 +356,10 @@ const en = {
   onboardingStep2Desc: "Use Gemini Nano to auto-categorize your bookmarks. Click 'AI Organize' to sort everything.",
   onboardingStep3Title: "Hierarchy & Drag-and-Drop",
   onboardingStep3Desc: "Manage nested folders intuitively with drag-and-drop support.",
+  onboardingStep4Title: "Smart TODO Board",
+  onboardingStep4Desc: "Maximize productivity with checklists, reminders, progress bars, and calendar support.",
+  onboardingStep5Title: "Tag Cloud & Visual Map",
+  onboardingStep5Desc: "Explore visual connections via Bookmark Map and bulk manage with HSL AI Tag Cloud.",
   onboardingStartBtn: "Get Started",
   settingsStorageUsage: "Storage Usage",
   settingsStorageUsageDesc: "Local storage used by ClickBook",
@@ -365,6 +383,31 @@ const en = {
   aiCleanerClose: "Close",
   aiCleanerConfirmBtn: "Delete",
   aiCleanerError: "Analysis failed. Please try again.",
+
+  // ── Tag Dashboard ────────────────────────────────────────
+  tagBoardTitle: "AI Tag Cloud & Management",
+  tagBoardMenu: "Tag Cloud",
+  tagMergeTitle: "Merge Similar Tags",
+  tagMergeDesc: "Combine two tags into a single master tag. This updates all associated bookmarks.",
+  tagMergeBtn: "Merge Tags",
+  tagCloudTitle: "AI Tag Cloud",
+  tagStatsTitle: "Tag Analytics",
+  tagStatsUnique: "Unique Tags",
+  tagStatsTagged: "Tagged Bookmarks",
+  tagStatsTotal: "Total Tag Associations",
+  tagFilterTitle: "Filter by Tags",
+  tagSelectAll: "Select All",
+  tagDeselectAll: "Clear Selection",
+  tagMergeSelectSource: "Select tag to merge (Source)",
+  tagMergeSelectTarget: "Select destination tag (Master)",
+  tagMergeSuccess: "Successfully merged '{src}' into '{dest}'!",
+  tagMergeSameError: "Source and destination tags cannot be the same.",
+  tagMergeSelectError: "Please select both source and destination tags.",
+  tagBoardEmpty: "No tags available",
+  tagBoardEmptyDesc: "Save some bookmarks with AI summary or edit tags on your bookmarks to get started.",
+  tagSearchPlaceholder: "Filter tags...",
+  tagEditModalTitle: "Edit bookmark tags",
+  tagEditModalPlaceholder: "Press Enter to add tag...",
 };
 
 const ja: typeof en = {
@@ -390,6 +433,7 @@ const ja: typeof en = {
 
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "ダッシュボード",
+  bookmarkMap: "Bookmark Map",
   memoBoard: "メモ",
   aiOrganize: "AI 整理",
   aiNotAvailable: "Chrome AI (Gemini Nano) が利用できません",
@@ -485,6 +529,16 @@ const ja: typeof en = {
   aiRefineMemo: "AI整理",
   aiRefining: "整理中...",
 
+  // ── TodoBoard ────────────────────────────────────────────
+  todoBoardTitle: "TODO ボード",
+  todoBoardMenu: "TODO",
+  addTodoColumn: "リスト追加",
+  addTodoTask: "タスク追加",
+  deleteColumnConfirm: "このリストを削除しますか？",
+  deleteTaskConfirm: "このタスクを削除しますか？",
+  columnTitlePlaceholder: "リスト名",
+  taskContentPlaceholder: "タスク入力...",
+
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "開く",
   editTooltip: "編集",
@@ -533,11 +587,14 @@ const ja: typeof en = {
 
   settingsChromePanelLabel: "Chrome パネル（サイドバー）",
   settingsChromePanelDesc: "サイドバーにChromeブックマークのパネルを表示します",
-  exportJson: "JSON エクスポート",
+  exportJson: "統合バックアップエクスポート (JSON)",
+  exportJsonDesc: "ブックマーク、フォルダー、メモ、TODOボード、設定を含むすべてのデータを1つのJSONファイルにバックアップします。",
   exportSuccess: "エクスポートが完了しました。",
   importSuccess: "インポートが完了しました。（{n}件）",
   exportHtml: "HTML エクスポート",
-  importBtn: "インポート",
+  exportHtmlDesc: "標準的な Netscape HTML 形式でブックマークを書き出します（他ブラウザ互換）。",
+  importBtn: "統合バックアップ復元 (JSON)",
+  importBtnDesc: "統合されたClickBook JSONバックアップからすべてのデータを復元(リストア)します。",
   closeBtn: "閉じる",
   saveBtn: "保存",
   confirmBtn: "続ける",
@@ -706,6 +763,10 @@ const ja: typeof en = {
   onboardingStep2Desc: "Gemini Nano を使用してブックマークを自動分類します。「AI整理」をクリックして全体を整理しましょう。",
   onboardingStep3Title: "階層フォルダー ＆ ドラッグ＆ドロップ",
   onboardingStep3Desc: "ドラッグ＆ドロップによる直感的な操作で、ネストされたフォルダーを管理できます。",
+  onboardingStep4Title: "スマートTODOボード",
+  onboardingStep4Desc: "チェックリスト、期限アラート、進行状況管理、カレンダー対応のカンバンで生産性を極大化します。",
+  onboardingStep5Title: "タグクラウド ＆ ビジュアルマップ",
+  onboardingStep5Desc: "Bookmark Mapによる繋がり可視化と、AIタグクラウドによる複数検索・一括統合を体験できます。",
   onboardingStartBtn: "はじめる",
   settingsStorageUsage: "ストレージ使用量",
   settingsStorageUsageDesc: "ClickBook が使用しているローカルストレージ",
@@ -729,6 +790,31 @@ const ja: typeof en = {
   aiCleanerClose: "閉じる",
   aiCleanerConfirmBtn: "削除",
   aiCleanerError: "分析に失敗しました。もう一度お試しください。",
+
+  // ── Tag Dashboard ────────────────────────────────────────
+  tagBoardTitle: "AI タグクラウド & 管理",
+  tagBoardMenu: "タグクラウド",
+  tagMergeTitle: "タグの統合・結合",
+  tagMergeDesc: "類似する2つのタグを1つのマスタータグに統合します。関連するすべてのブックマークが更新されます。",
+  tagMergeBtn: "タグを統合",
+  tagCloudTitle: "AI タグクラウド",
+  tagStatsTitle: "タグ分析",
+  tagStatsUnique: "固有タグ数",
+  tagStatsTagged: "タグ付きブックマーク",
+  tagStatsTotal: "総タグ割当数",
+  tagFilterTitle: "タグでフィルター",
+  tagSelectAll: "すべて選択",
+  tagDeselectAll: "選択をクリア",
+  tagMergeSelectSource: "統合する元のタグを選択 (削除される側)",
+  tagMergeSelectTarget: "統合先のマスタータグを選択 (残る側)",
+  tagMergeSuccess: "タグ「{src}」を「{dest}」へ正常に統合しました！",
+  tagMergeSameError: "統合元と統合先には異なるタグを選択してください。",
+  tagMergeSelectError: "統合元と統合先の両方のタグを選択してください。",
+  tagBoardEmpty: "タグが見つかりません",
+  tagBoardEmptyDesc: "AIによる要約付きでブックマークを保存するか、ブックマークのタグを編集してタグを作成してください。",
+  tagSearchPlaceholder: "タグを検索...",
+  tagEditModalTitle: "ブックマークのタグ編集",
+  tagEditModalPlaceholder: "Enterキーでタグを追加...",
 };
 
 const ko: typeof en = {
@@ -754,6 +840,7 @@ const ko: typeof en = {
 
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "대시보드",
+  bookmarkMap: "Bookmark Map",
   memoBoard: "메모",
   aiOrganize: "AI 정리",
   aiNotAvailable: "Chrome AI (Gemini Nano)를 사용할 수 없습니다",
@@ -851,6 +938,7 @@ const ko: typeof en = {
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "TODO 보드",
+  todoBoardMenu: "TODO",
   addTodoColumn: "리스트 추가",
   addTodoTask: "태스크 추가",
   deleteColumnConfirm: "이 리스트를 삭제하시겠습니까?",
@@ -906,11 +994,14 @@ const ko: typeof en = {
 
   settingsChromePanelLabel: "Chrome 패널 (사이드바)",
   settingsChromePanelDesc: "사이드바에 Chrome 북마크 패널을 표시합니다.",
-  exportJson: "JSON 내보내기",
+  exportJson: "통합 백업 내보내기 (JSON)",
+  exportJsonDesc: "북마크, 폴더, 메모, 할 일 보드(TODO), 설정 정보를 포함한 모든 데이터를 하나의 JSON 파일로 백업합니다.",
   exportSuccess: "내보내기가 완료되었습니다.",
   importSuccess: "가져오기가 완료되었습니다. (총 {n}건)",
   exportHtml: "HTML 내보내기",
-  importBtn: "가져오기",
+  exportHtmlDesc: "다른 브라우저에서도 사용 가능한 표준 Netscape HTML 포맷으로 북마크를 내보냅니다.",
+  importBtn: "통합 백업 복원 (JSON)",
+  importBtnDesc: "통합 ClickBook JSON 백업 파일로부터 모든 데이터를 기존 상태로 완벽하게 복원합니다.",
   closeBtn: "닫기",
   saveBtn: "저장",
   confirmBtn: "계속하기",
@@ -1074,6 +1165,10 @@ const ko: typeof en = {
   onboardingStep2Desc: "Gemini Nano를 사용하여 북마크를 자동 분류합니다. 'AI 정리'를 클릭하여 전체를 정리해 보세요.",
   onboardingStep3Title: "계층형 폴더 & 드래그 앤 드롭",
   onboardingStep3Desc: "드래그 앤 드롭으로 중첩된 폴더를 직관적으로 관리할 수 있습니다.",
+  onboardingStep4Title: "스마트 할 일 보드 (TODO)",
+  onboardingStep4Desc: "체크리스트, 기한 알림, 진행도 및 캘린더를 수반한 생산적인 칸반형 TODO 보드를 제공합니다.",
+  onboardingStep5Title: "태그 대시보드 & 비주얼 맵",
+  onboardingStep5Desc: "북마크 연결 관계를 시각화하는 Bookmark Map과 필터링/병합이 손쉬운 HSL AI 태그 클라우드를 탐색하세요.",
   onboardingStartBtn: "시작하기",
   settingsStorageUsage: "저장소 사용량",
   settingsStorageUsageDesc: "ClickBook이 사용하는 로컬 저장소",
@@ -1097,6 +1192,31 @@ const ko: typeof en = {
   aiCleanerClose: "닫기",
   aiCleanerConfirmBtn: "삭제",
   aiCleanerError: "분석에 실패했습니다. 다시 시도해 주세요.",
+
+  // ── Tag Dashboard ────────────────────────────────────────
+  tagBoardTitle: "AI 태그 클라우드 & 관리",
+  tagBoardMenu: "태그 클라우드",
+  tagMergeTitle: "태그 통합 및 병합",
+  tagMergeDesc: "유사하거나 중복된 두 개의 태그를 하나의 마스터 태그로 영구 통합합니다. 관련 북마크가 모두 자동 업데이트됩니다.",
+  tagMergeBtn: "태그 병합하기",
+  tagCloudTitle: "AI 태그 클라우드",
+  tagStatsTitle: "태그 통계 분석",
+  tagStatsUnique: "고유 태그 수",
+  tagStatsTagged: "태그 지정된 북마크",
+  tagStatsTotal: "총 태그 할당수",
+  tagFilterTitle: "태그 기반 필터링",
+  tagSelectAll: "전체 선택",
+  tagDeselectAll: "선택 해제",
+  tagMergeSelectSource: "병합할 원본 태그 선택 (삭제됨)",
+  tagMergeSelectTarget: "병합할 대상 마스터 태그 선택 (유지됨)",
+  tagMergeSuccess: "성공적으로 '{src}' 태그를 '{dest}' 태그로 병합했습니다!",
+  tagMergeSameError: "원본 태그와 대상 태그는 같을 수 없습니다.",
+  tagMergeSelectError: "원본 태그와 대상 태그를 모두 선택해 주세요.",
+  tagBoardEmpty: "사용 가능한 태그가 없습니다",
+  tagBoardEmptyDesc: "AI 요약 기능으로 북마크를 저장하거나 북마크 카드의 태그를 편집하여 태그를 추가해 보세요.",
+  tagSearchPlaceholder: "태그 필터링...",
+  tagEditModalTitle: "북마크 태그 편집",
+  tagEditModalPlaceholder: "태그 입력 후 Enter...",
 };
 
 const DICT: Record<Lang, typeof en> = { en, ja, ko };

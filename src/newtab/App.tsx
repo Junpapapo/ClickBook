@@ -14,17 +14,20 @@ import GitHubRankingPage from "@/pages/GitHubRanking";
 import WikiRankingPage from "@/pages/WikiRanking";
 import HFRankingPage from "@/pages/HFRanking";
 import HNRankingPage from "@/pages/HNRanking";
-import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings } from "@/shared/types";
+import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings, ClickBookBackupData } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
 import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 
 import TodoBoard from "@/pages/TodoBoard";
+import TagBoard from "@/pages/TagBoard";
 
 // ── メインアプリケーションコンポーネント ───────────────────
 
 function AppContent() {
+  const { t, lang } = useLang();
+  const { DialogEl } = useDialog();
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [memos, setMemos] = useState<MemoMap>({});
@@ -33,6 +36,7 @@ function AppContent() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [showMemoBoard, setShowMemoBoard] = useState(false);
   const [showTodoBoard, setShowTodoBoard] = useState(false);
+  const [showTagBoard, setShowTagBoard] = useState(false);
   const [showBookmarkMap, setShowBookmarkMap] = useState(false);
   const [showGitHubRanking, setShowGitHubRanking] = useState(false);
   const [showWikiRanking, setShowWikiRanking] = useState(false);
@@ -101,7 +105,7 @@ function AppContent() {
   async function handleExportJSON() {
     const response = (await chrome.runtime.sendMessage({ type: "EXPORT_DATA" })) as MessageResponse;
     if (!response.success) return;
-    const data = response.data as StorageData;
+    const data = response.data as ClickBookBackupData;
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -136,12 +140,15 @@ function AppContent() {
       if (!file) return;
       const text = await file.text();
       try {
-        const data: StorageData = JSON.parse(text);
+        const data: ClickBookBackupData = JSON.parse(text);
         const response = (await chrome.runtime.sendMessage({ type: "IMPORT_DATA", data })) as MessageResponse;
         if (response.success) {
-          loadData();
           const count = (response.data as { count: number })?.count ?? 0;
           showSettingsMessage(t("importSuccess", { n: count }), "info");
+          // 1초 뒤 강제 새로고침을 통해 TodoBoard, memos, settings를 완벽하게 재정비합니다.
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         }
       } catch (err) {
         console.warn("Operation failed:", err);
@@ -265,6 +272,7 @@ function AppContent() {
           setSelectedFolderId(id);
           setShowMemoBoard(false);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setShowGitHubRanking(false);
           setShowWikiRanking(false);
           setShowHFRanking(false);
@@ -274,11 +282,13 @@ function AppContent() {
         showChromePanel={sidebarChromeOpen}
         showMemoBoard={showMemoBoard}
         showTodoBoard={showTodoBoard}
+        showTagBoard={showTagBoard}
         showBookmarkMap={showBookmarkMap}
         memoCount={Object.keys(memos).length}
         onSelectMemoBoard={() => {
           setShowMemoBoard(true);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setShowBookmarkMap(false);
           setSelectedFolderId(null);
           setShowGitHubRanking(false);
@@ -288,6 +298,18 @@ function AppContent() {
         }}
         onSelectTodoBoard={() => {
           setShowTodoBoard(true);
+          setShowMemoBoard(false);
+          setShowTagBoard(false);
+          setShowBookmarkMap(false);
+          setSelectedFolderId(null);
+          setShowGitHubRanking(false);
+          setShowWikiRanking(false);
+          setShowHFRanking(false);
+          setShowHNRanking(false);
+        }}
+        onSelectTagBoard={() => {
+          setShowTagBoard(true);
+          setShowTodoBoard(false);
           setShowMemoBoard(false);
           setShowBookmarkMap(false);
           setSelectedFolderId(null);
@@ -300,6 +322,7 @@ function AppContent() {
           setShowGitHubRanking(true);
           setShowMemoBoard(false);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setSelectedFolderId(null);
           setShowWikiRanking(false);
           setShowHFRanking(false);
@@ -310,6 +333,7 @@ function AppContent() {
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setSelectedFolderId(null);
           setShowHFRanking(false);
           setShowHNRanking(false);
@@ -320,6 +344,7 @@ function AppContent() {
           setShowGitHubRanking(false);
           setShowMemoBoard(false);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setSelectedFolderId(null);
           setShowHNRanking(false);
           setShowBookmarkMap(false);
@@ -328,6 +353,7 @@ function AppContent() {
           setShowBookmarkMap(true);
           setShowMemoBoard(false);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setShowGitHubRanking(false);
           setShowWikiRanking(false);
           setShowHFRanking(false);
@@ -342,6 +368,7 @@ function AppContent() {
           setShowBookmarkMap(false);
           setShowMemoBoard(false);
           setShowTodoBoard(false);
+          setShowTagBoard(false);
           setSelectedFolderId(null);
         } : undefined}
         maxFolderDepth={settings.maxFolderDepth}
@@ -363,6 +390,8 @@ function AppContent() {
           <main className="flex-1 overflow-y-auto p-6">
             {showTodoBoard ? (
               <TodoBoard />
+            ) : showTagBoard ? (
+              <TagBoard bookmarks={filtered} folders={folders} onRefresh={loadData} />
             ) : showGitHubRanking ? (
               <GitHubRankingPage />
             ) : showWikiRanking ? (
@@ -386,6 +415,8 @@ function AppContent() {
                 onSelectFolder={(id) => {
                   setSelectedFolderId(id);
                   setShowMemoBoard(false);
+                  setShowTodoBoard(false);
+                  setShowTagBoard(false);
                   setShowGitHubRanking(false);
                   setShowWikiRanking(false);
                   setShowHFRanking(false);
@@ -412,6 +443,8 @@ function AppContent() {
                 onSelectFolder={(id) => {
                   setSelectedFolderId(id);
                   setShowMemoBoard(false);
+                  setShowTodoBoard(false);
+                  setShowTagBoard(false);
                   setShowGitHubRanking(false);
                   setShowWikiRanking(false);
                   setShowHFRanking(false);

@@ -262,30 +262,51 @@ export default function SettingsModal({
               </div>
             </div>
 
-            {/* データ管理 */}
+            {/* 데이터 관리 */}
             <div className="mt-4">
             <SectionHeader icon={<Database size={13} />} title={t("settingsDataManagement")} />
             <div className="bg-gray-50 dark:bg-surface-800 rounded-xl overflow-hidden">
               <button
                 onClick={onExportJSON}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors border-b border-gray-100 dark:border-surface-700"
+                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors border-b border-gray-100 dark:border-surface-700"
               >
-                <Download size={13} className="text-gray-400 shrink-0" />
-                {t("exportJson")}
+                <Download size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-tight">
+                    {t("exportJson")}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-normal">
+                    {t("exportJsonDesc")}
+                  </span>
+                </div>
               </button>
               <button
                 onClick={onExportHTML}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors border-b border-gray-100 dark:border-surface-700"
+                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors border-b border-gray-100 dark:border-surface-700"
               >
-                <Download size={13} className="text-gray-400 shrink-0" />
-                {t("exportHtml")}
+                <Download size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-tight">
+                    {t("exportHtml")}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-normal">
+                    {t("exportHtmlDesc") || "Export bookmarks in Netscape HTML format."}
+                  </span>
+                </div>
               </button>
               <button
                 onClick={onImport}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
               >
-                <Upload size={13} className="text-gray-400 shrink-0" />
-                {t("importBtn")}
+                <Upload size={14} className="text-gray-400 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-tight">
+                    {t("importBtn")}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-normal">
+                    {t("importBtnDesc")}
+                  </span>
+                </div>
               </button>
               
               <div className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-600 dark:text-gray-300 border-t border-gray-100 dark:border-surface-700">

@@ -94,6 +94,16 @@ export type StorageData = {
   folders: Folder[];
 };
 
+export interface ClickBookBackupData {
+  version: string;
+  exportedAt: number;
+  bookmarks: Bookmark[];
+  folders: Folder[];
+  memos?: Record<string, BookmarkMemo>;
+  todoBoard?: TodoBoardData;
+  settings?: AppSettings;
+}
+
 export interface Pattern {
   id: string;
   name: string;
@@ -152,7 +162,7 @@ export type Message =
   | { type: "TOGGLE_FOLDER"; id: string }
   | { type: "TOGGLE_FOLDER_LOCK"; id: string }
   | { type: "EXPORT_DATA" }
-  | { type: "IMPORT_DATA"; data: StorageData }
+  | { type: "IMPORT_DATA"; data: ClickBookBackupData }
   | { type: "GET_CHROME_BOOKMARKS" }
   | { type: "SYNC_TO_CHROME" }
   | { type: "SAVE_CHROME_SNAPSHOT" }
@@ -166,7 +176,7 @@ export type Message =
   | { type: "SAVE_PATTERN"; name: string }
   | { type: "LOAD_PATTERN"; id: string }
   | { type: "DELETE_PATTERN"; id: string }
-  | { type: "UPDATE_BOOKMARK"; id: string; title: string; url: string; folderId: string }
+  | { type: "UPDATE_BOOKMARK"; id: string; title: string; url: string; folderId: string; tags?: string[] }
   | { type: "ADD_BOOKMARK"; url: string; title: string; folderId: string }
   | { type: "INCREMENT_VISIT"; id: string }
   | { type: "RENAME_CHROME_BOOKMARK"; id: string; title: string }
@@ -195,9 +205,25 @@ export type MessageResponse =
 // TODO Board (Kanban) Models
 // =============================
 
+export interface TodoChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface TodoTask {
   id: string;
-  content: string;
+  content: string; // Title
+  description?: string; // Detailed description
+  tags?: string[];
+  checklist?: TodoChecklistItem[];
+  progress?: number; // 0 to 100
+  completed?: boolean;
+  color?: string; // Task card color
+  startDate?: string; // "YYYY-MM-DD"
+  dueDate?: string;   // "YYYY-MM-DD"
+  dueTime?: string;   // "HH:MM"
+  reminder?: string;  // "none" | "at_due" | "1h_before" | "1d_before"
   createdAt: number;
 }
 
@@ -205,6 +231,7 @@ export interface TodoColumn {
   id: string;
   title: string;
   taskIds: string[];
+  color?: string;
 }
 
 export interface TodoBoardData {

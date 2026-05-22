@@ -133,13 +133,17 @@ async function classifyWithNano(
   url: string,
   title: string
 ): Promise<string | null> {
+  let session: any = null;
   try {
     const lm = await getAIModel();
     if (!lm) return null;
 
-    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
-    });
+    session = await Promise.race([
+      (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+        expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+    ]);
 
     const promptText = `System: You are a URL categorizer. Given a URL and page title, respond with exactly ONE category ID from this list:
 technology, design, business, entertainment, science, sports, travel, other
@@ -159,34 +163,48 @@ Respond with only the category ID, nothing else.
 URL: ${url}
 Title: ${title}`;
 
-    const response: string = await session.prompt(promptText);
+    const response: string = await Promise.race([
+      session.prompt(promptText),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+    ]);
     const trimmed = response.trim().toLowerCase();
-    session.destroy();
 
     return isValidCategoryId(trimmed) ? trimmed : null;
   } catch (err) {
     return null;
+  } finally {
+    if (session && typeof session.destroy === "function") {
+      try {
+        session.destroy();
+      } catch { /* ignore */ }
+    }
   }
 }
 
 // 사용자의 서술형 검색어를 핵심 키워드 리스트로 확장 (시맨틱 검색 보조)
 export async function expandSearchQuery(query: string): Promise<string[]> {
   if (!query.trim() || query.length < 2) return [];
+  let session: any = null;
   try {
     const lm = await getAIModel();
     if (!lm) return [query];
 
-    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
-    });
+    session = await Promise.race([
+      (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+        expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+    ]);
 
     const promptText = `System: You are a search assistant. Given a user's natural language query, extract 5-8 core keywords, synonyms, and related terms in both English and the user's language. 
 Output ONLY a JSON array of strings. No markdown, no conversational text.
 
 User query: "${query}"`;
 
-    const response: string = await session.prompt(promptText);
-    session.destroy();
+    const response: string = await Promise.race([
+      session.prompt(promptText),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+    ]);
 
     const jsonMatch = response.match(/\[[\s\S]*?\]/);
     if (jsonMatch) {
@@ -198,19 +216,29 @@ User query: "${query}"`;
     return [query];
   } catch (err) {
     return [query];
+  } finally {
+    if (session && typeof session.destroy === "function") {
+      try {
+        session.destroy();
+      } catch { /* ignore */ }
+    }
   }
 }
 
 // AI 가 키워드에 근접한 베스트 사이트 추천 (추천 검색용)
 export async function recommendSites(keyword: string, count = 6): Promise<Array<{ title: string; url: string }>> {
   if (!keyword.trim()) return [];
+  let session: any = null;
   try {
     const lm = await getAIModel();
     if (!lm) return [];
 
-    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
-    });
+    session = await Promise.race([
+      (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+        expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+    ]);
 
     const promptText = `System: You are a helpful assistant. Your task is to recommend top websites for a given keyword.
 You MUST output ONLY a valid JSON array of objects. Each object must have "title" and "url" keys.
@@ -220,8 +248,10 @@ Task: Provide exactly ${count} popular websites for the keyword "${keyword}".
 Output format: [{"title": "...", "url": "..."}]
 Output:`;
 
-    const response: string = await session.prompt(promptText);
-    session.destroy();
+    const response: string = await Promise.race([
+      session.prompt(promptText),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+    ]);
 
     if (!response || !response.trim()) return [];
 
@@ -250,6 +280,12 @@ Output:`;
     return [];
   } catch (err) {
     return [];
+  } finally {
+    if (session && typeof session.destroy === "function") {
+      try {
+        session.destroy();
+      } catch { /* ignore */ }
+    }
   }
 }
 
@@ -282,11 +318,16 @@ export async function generateSummaryAndTags(
     const lm = await getAIModel();
     if (!lm) return {};
 
-    const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
-    });
+    let session: any = null;
+    try {
+      session = await Promise.race([
+        (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+          expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
+        }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+      ]);
 
-    const promptText = `Task: Summarize the given webpage.
+      const promptText = `Task: Summarize the given webpage.
 Provide a 1-2 sentence summary (in the same language as the title) and exactly 3 broad keyword tags (ALWAYS in English, lowercase).
 Output ONLY a valid JSON object. No markdown, no conversational text.
 Format: {"summary": "...", "tags": ["tag1", "tag2", "tag3"]}
@@ -296,23 +337,34 @@ Title: ${title}
 Description: ${description}
 Output:`;
 
-    const response = await session.prompt(promptText);
-    session.destroy();
+      const response = await Promise.race([
+        session.prompt(promptText),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+      ]);
 
-    let jsonStr = response.trim();
-    const startIdx = jsonStr.indexOf("{");
-    const endIdx = jsonStr.lastIndexOf("}");
-    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-      jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+      let jsonStr = response.trim();
+      const startIdx = jsonStr.indexOf("{");
+      const endIdx = jsonStr.lastIndexOf("}");
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        jsonStr = jsonStr.substring(startIdx, endIdx + 1);
+      }
+
+      const parsed = JSON.parse(jsonStr);
+      return {
+        summary: parsed.summary,
+        tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : undefined,
+      };
+    } catch (err) {
+      console.warn("AI summary failed:", err);
+      return {};
+    } finally {
+      if (session && typeof session.destroy === "function") {
+        try {
+          session.destroy();
+        } catch { /* ignore */ }
+      }
     }
-
-    const parsed = JSON.parse(jsonStr);
-    return {
-      summary: parsed.summary,
-      tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 3) : undefined,
-    };
   } catch (err) {
-    console.warn("AI summary failed:", err);
     return {};
   }
 }
@@ -616,12 +668,18 @@ ${lines}
 
 Output:`;
 
+        let session: any = null;
         try {
-          const session = await (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-            expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
-          });
-          const raw: string = await session.prompt(prompt);
-          session.destroy();
+          session = await Promise.race([
+            (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+              expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
+            }),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+          ]);
+          const raw: string = await Promise.race([
+            session.prompt(prompt),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+          ]);
           ok = true;
 
           let js = raw.trim();
@@ -638,6 +696,13 @@ Output:`;
             }
           }
         } catch { /* batch failed, skip */ }
+        finally {
+          if (session && typeof session.destroy === "function") {
+            try {
+              session.destroy();
+            } catch { /* ignore */ }
+          }
+        }
       }
 
       if (ok) {
