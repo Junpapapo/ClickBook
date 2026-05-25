@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook (클릭북)",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "1클릭으로 간편하게 탭을 저장하고, 온디바이스 제미나이 나노 AI로 자동 분류하여 관리하는 북마크 솔루션.",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "현재 탭을 북마크로 저장",
+    "description": "Command description for saving current tab"
+  }
+}

@@ -48,7 +48,9 @@ function MapControls({ layoutDir, onToggleLayout }: { layoutDir: "LR"|"TB", onTo
       </button>
       <div className="w-px h-6 bg-gray-300 dark:bg-surface-600 mx-1"></div>
       <button onClick={onToggleLayout} className="px-3 py-1.5 text-sm font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-colors flex items-center gap-1.5">
-        {layoutDir === "LR" ? "➡️ 수평" : "⬇️ 수직"}
+        {layoutDir === "LR" 
+          ? (lang === "ko" ? "➡️ 수평" : lang === "ja" ? "➡️ 水平" : "➡️ Horizontal") 
+          : (lang === "ko" ? "⬇️ 수직" : lang === "ja" ? "⬇️ 垂直" : "⬇️ Vertical")}
       </button>
     </Panel>
   );
@@ -94,13 +96,13 @@ function MapToolbar({
         </span>
         <div className="flex items-center gap-1">
           <button onClick={() => onBookmarkModeChange("HIDE")} className={`px-2 py-1 text-xs font-medium rounded transition-colors ${bookmarkMode === "HIDE" ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-surface-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-600'}`}>
-            {lang === "ko" ? "숨김" : "Hide"}
+            {lang === "ko" ? "숨김" : lang === "ja" ? "非表示" : "Hide"}
           </button>
           <button onClick={() => onBookmarkModeChange("COLLAPSED")} className={`px-2 py-1 text-xs font-medium rounded transition-colors ${bookmarkMode === "COLLAPSED" ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-surface-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-600'}`}>
-            {lang === "ko" ? "전부 닫기" : "Close All"}
+            {lang === "ko" ? "전부 닫기" : lang === "ja" ? "全て閉じる" : "Close All"}
           </button>
           <button onClick={() => onBookmarkModeChange("EXPANDED")} className={`px-2 py-1 text-xs font-medium rounded transition-colors ${bookmarkMode === "EXPANDED" ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-surface-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-600'}`}>
-            {lang === "ko" ? "전부 펼치기" : "Expand All"}
+            {lang === "ko" ? "전부 펼치기" : lang === "ja" ? "全て展開" : "Expand All"}
           </button>
         </div>
       </div>
@@ -110,9 +112,15 @@ function MapToolbar({
           {lang === "ko" ? "폴더 펼침" : lang === "ja" ? "フォルダ展開" : "Expand"}
         </span>
         <div className="flex items-center gap-1">
-          <button onClick={() => onExpandDepth(1)} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded transition-colors">1단계</button>
-          <button onClick={() => onExpandDepth(2)} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded transition-colors">2단계</button>
-          <button onClick={() => onExpandDepth(Infinity)} className="px-2 py-1 text-xs font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors">전체</button>
+          <button onClick={() => onExpandDepth(1)} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded transition-colors">
+            {lang === "ko" ? "1단계" : lang === "ja" ? "1段階" : "Level 1"}
+          </button>
+          <button onClick={() => onExpandDepth(2)} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded transition-colors">
+            {lang === "ko" ? "2단계" : lang === "ja" ? "2段階" : "Level 2"}
+          </button>
+          <button onClick={() => onExpandDepth(Infinity)} className="px-2 py-1 text-xs font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors">
+            {lang === "ko" ? "전체" : lang === "ja" ? "全展開" : "All"}
+          </button>
         </div>
       </div>
     </Panel>

@@ -10,6 +10,7 @@ import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { getLocalizedFolderName, DEFAULT_FOLDER_ID } from "@/shared/categories";
 import { FolderIcon } from "@/components/DynamicIcon";
+import { sendMsg } from "@/shared/utils";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -61,10 +62,10 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
   }, []);
 
   async function handleDelete(id: string) {
-    const response = (await chrome.runtime.sendMessage({
+    const response = await sendMsg({
       type: "DELETE_BOOKMARK",
       id,
-    })) as MessageResponse;
+    });
     if (response.success) onRefresh();
   }
 
@@ -74,12 +75,12 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       ? t("folderDeleteWithBookmarks", { n: count })
       : t("folderDeleteConfirm");
     if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
-    await chrome.runtime.sendMessage({ type: "DELETE_FOLDER", id });
+    await sendMsg({ type: "DELETE_FOLDER", id });
     onRefresh();
   }
 
   async function handleToggleLock(id: string) {
-    await chrome.runtime.sendMessage({ type: "TOGGLE_FOLDER_LOCK", id });
+    await sendMsg({ type: "TOGGLE_FOLDER_LOCK", id });
     onRefresh();
   }
 
@@ -123,7 +124,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
   async function commitRename(folderId: string, original: string) {
     const v = renameValue.trim();
     if (v && v !== original) {
-      await chrome.runtime.sendMessage({ type: "RENAME_FOLDER", id: folderId, name: v });
+      await sendMsg({ type: "RENAME_FOLDER", id: folderId, name: v });
       onRefresh();
     }
     setRenamingFolderId(null);

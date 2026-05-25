@@ -32,6 +32,7 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 7 | **Chrome Sync** | Import, export, and sync with native Chrome bookmarks. |
 | 8 | **Theming** | Support for Dark and Light modes, persisting via `localStorage`. |
 | 9 | **100% Offline** | Runs entirely locally using `chrome.storage.local` (No external servers). |
+| 10 | **Multi-Language** | Full localized experience for English, Korean, and Japanese using Chrome Extension i18n. |
 
 ---
 
@@ -48,6 +49,56 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | Manifest | Chrome Manifest V3 | — |
 | Storage | chrome.storage.local | 10MB limit |
 | AI | Chrome Gemini Nano | `window.ai.languageModel` (Experimental) |
+
+---
+
+## Directory Structure
+
+```
+ClickBook/
+├── manifest.json              # Chrome extension manifest (MV3)
+├── vite.config.ts             # Vite + vite-plugin-web-extension config
+├── tailwind.config.js
+├── tsconfig.json
+├── public/
+│   ├── _locales/              # Standard localization folders (en, ko, ja)
+│   ├── icons/                 # Extension icons (16/48/128px)
+│   ├── help.html              # Documentation page (English)
+│   ├── help.ko.html           # Documentation page (Korean)
+│   ├── help.ja.html           # Documentation page (Japanese)
+│   └── privacy.html           # Privacy policy page
+├── src/
+│   ├── background/
+│   │   └── service-worker.ts  # MV3 background service worker
+│   ├── components/
+│   │   ├── Sidebar.tsx        # Directory tree navigation & AI actions
+│   │   ├── BookmarkCard.tsx   # Bookmark card component supporting drag & drop
+│   │   ├── BookmarkEditPanel.tsx
+│   │   ├── ChromeBookmarkPanel.tsx
+│   │   ├── PatternBar.tsx     # Backup pattern saving/restoration
+│   │   ├── RankingWidget.tsx
+│   │   ├── RecentWidget.tsx
+│   │   ├── SearchBar.tsx
+│   │   └── ThemeToggle.tsx
+│   ├── newtab/
+│   │   ├── App.tsx            # Main bookmark manager dashboard
+│   │   ├── index.html
+│   │   └── main.tsx
+│   ├── pages/
+│   │   ├── Dashboard.tsx      # Default view for all bookmarks
+│   │   └── FolderView.tsx     # Specialized category view
+│   ├── popup/
+│   │   ├── Popup.tsx          # Mini popover window on icon click
+│   │   ├── index.html
+│   │   └── main.tsx
+│   └── shared/
+│       ├── categories.ts      # Default folder definitions and fallback rules
+│       ├── categorizer.ts     # Multi-stage category matching engine (AI + Rule-based)
+│       ├── storage.ts         # Wrapper on top of chrome.storage.local
+│       ├── types.ts           # Shared TypeScript interfaces & types
+│       ├── ThemeContext.tsx
+│       └── useDialog.tsx      # Customized dialog hook
+```
 
 ---
 

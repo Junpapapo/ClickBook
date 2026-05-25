@@ -16,6 +16,7 @@ import HFRankingPage from "@/pages/HFRanking";
 import HNRankingPage from "@/pages/HNRanking";
 import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings, ClickBookBackupData } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
+import { sendMsg } from "@/shared/utils";
 import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -87,7 +88,7 @@ function AppContent() {
   }
 
   async function handleSaveSettings(next: AppSettings) {
-    await chrome.runtime.sendMessage({ type: "SAVE_SETTINGS", settings: next });
+    await sendMsg({ type: "SAVE_SETTINGS", settings: next });
     setSettings(next);
   }
 
@@ -103,7 +104,7 @@ function AppContent() {
   }
 
   async function handleExportJSON() {
-    const response = (await chrome.runtime.sendMessage({ type: "EXPORT_DATA" })) as MessageResponse;
+    const response = await sendMsg({ type: "EXPORT_DATA" });
     if (!response.success) return;
     const data = response.data as ClickBookBackupData;
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -141,7 +142,7 @@ function AppContent() {
       const text = await file.text();
       try {
         const data: ClickBookBackupData = JSON.parse(text);
-        const response = (await chrome.runtime.sendMessage({ type: "IMPORT_DATA", data })) as MessageResponse;
+        const response = await sendMsg({ type: "IMPORT_DATA", data });
         if (response.success) {
           const count = (response.data as { count: number })?.count ?? 0;
           showSettingsMessage(t("importSuccess", { n: count }), "info");
@@ -159,17 +160,17 @@ function AppContent() {
   }
 
   const loadData = useCallback(async () => {
-    const response = (await chrome.runtime.sendMessage({
+    const response = await sendMsg({
       type: "GET_ALL_DATA",
-    })) as MessageResponse;
+    });
     if (response.success && response.data) {
       const data = response.data as StorageData;
       setBookmarks(data.bookmarks);
       setFolders(data.folders);
     }
-    const memosRes = (await chrome.runtime.sendMessage({ type: "GET_MEMOS" })) as MessageResponse;
+    const memosRes = await sendMsg({ type: "GET_MEMOS" });
     if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
-    const settingsRes = (await chrome.runtime.sendMessage({ type: "GET_SETTINGS" })) as MessageResponse;
+    const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
     if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
   }, []);
 
@@ -202,7 +203,7 @@ function AppContent() {
     const timer = setTimeout(async () => {
       setAiLoading(true);
       try {
-        const res = await chrome.runtime.sendMessage({ type: "EXPAND_SEARCH", query: aiSearchQuery }) as MessageResponse;
+        const res = await sendMsg({ type: "EXPAND_SEARCH", query: aiSearchQuery });
         if (res.success && Array.isArray(res.data)) {
           setExpandedKeywords(res.data);
         }

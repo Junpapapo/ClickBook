@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "Save, organize, and manage bookmarks by category with one click. Powered by Gemini Nano on-device AI.",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "Save current tab as a bookmark",
+    "description": "Command description for saving current tab"
+  }
+}

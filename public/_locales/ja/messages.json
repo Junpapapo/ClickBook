@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "1クリックでタブを保存し、オンデバイスGemini Nano AIで自動的にフォルダ分類・管理できるブックマークツール。",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "現在のタブをブックマークに保存",
+    "description": "Command description for saving current tab"
+  }
+}

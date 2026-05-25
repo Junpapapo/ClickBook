@@ -543,7 +543,11 @@ export default function Sidebar({
                   {f.locked ? <Lock size={11} /> : <LockOpen size={11} />}
                 </button>
               ) : (
-                <div className="p-0.5 text-amber-500 cursor-not-allowed" title="기본 폴더는 이름 변경이나 삭제가 불가능합니다.">
+                <div className="p-0.5 text-amber-500 cursor-not-allowed" title={
+                  lang === "ko" ? "기본 폴더는 이름 변경이나 삭제가 불가능합니다." :
+                  lang === "ja" ? "デフォルトフォルダーの名前変更や削除はできません。" :
+                  "Default folders cannot be renamed or deleted."
+                }>
                   <Lock size={11} />
                 </div>
               )}

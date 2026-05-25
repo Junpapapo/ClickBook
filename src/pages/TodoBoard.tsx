@@ -900,9 +900,9 @@ export default function TodoBoard() {
           </h1>
           <button
             onClick={addColumn}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-3.5 py-2 rounded-lg text-[13px] font-semibold transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95"
           >
-            <Plus size={14} strokeWidth={2.5} />
+            <Plus size={12} />
             {t("addTodoColumn") || "Add List"}
           </button>
         </div>

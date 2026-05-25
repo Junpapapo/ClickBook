@@ -3,6 +3,7 @@ import { Layers, Plus, Trash2, Check, X } from "lucide-react";
 import type { Pattern, MessageResponse } from "@/shared/types";
 import { useDialog } from "@/shared/useDialog";
 import { useLang } from "@/shared/LanguageContext";
+import { sendMsg } from "@/shared/utils";
 
 interface Props { onPatternLoad: () => void }
 
@@ -15,7 +16,7 @@ export default function PatternBar({ onPatternLoad }: Props) {
   const { showConfirm, DialogEl } = useDialog();
 
   const load = useCallback(async () => {
-    const res = await chrome.runtime.sendMessage({ type: "GET_PATTERNS" }) as MessageResponse;
+    const res = await sendMsg({ type: "GET_PATTERNS" });
     if (res.success) setPatterns(res.data as Pattern[]);
   }, []);
 
@@ -37,7 +38,7 @@ export default function PatternBar({ onPatternLoad }: Props) {
     const name = newName.trim();
     if (!name) return;
     setSaving(true);
-    await chrome.runtime.sendMessage({ type: "SAVE_PATTERN", name });
+    await sendMsg({ type: "SAVE_PATTERN", name });
     setSaving(false);
     setNewName("");
     setShowInput(false);
@@ -46,12 +47,12 @@ export default function PatternBar({ onPatternLoad }: Props) {
 
   async function handleLoad(id: string) {
     if (!await showConfirm(t("patternLoadConfirm"))) return;
-    await chrome.runtime.sendMessage({ type: "LOAD_PATTERN", id });
+    await sendMsg({ type: "LOAD_PATTERN", id });
     onPatternLoad();
   }
 
   async function handleDelete(id: string) {
-    await chrome.runtime.sendMessage({ type: "DELETE_PATTERN", id });
+    await sendMsg({ type: "DELETE_PATTERN", id });
     await load();
   }
 
