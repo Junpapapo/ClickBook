@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClickBook Help - Smart Bookmark Manager</title>
+  <title>ClickBook Help - Smart Bookmark Management</title>
   <style>
     :root {
       --primary: #6366f1;
@@ -179,6 +179,18 @@
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background-color: #6366f115;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
     .card-title {
       font-weight: 700;
       margin-bottom: 0.5rem;
@@ -255,24 +267,26 @@
     <aside class="sidebar">
       <nav>
         <ul class="nav-list">
-          <li class="nav-item"><a href="#intro" class="nav-link active">Introduction</a></li>
+          <li class="nav-item"><a href="#intro" class="nav-link active">Intro & Installation</a></li>
           <li class="nav-item"><a href="#getting-started" class="nav-link">Getting Started</a></li>
           <li class="nav-item"><a href="#ai-features" class="nav-link">AI Features</a></li>
-          <li class="nav-item"><a href="#folders" class="nav-link">Management</a></li>
+          <li class="nav-item"><a href="#productivity" class="nav-link">Productivity Tools</a></li>
+          <li class="nav-item"><a href="#rankings" class="nav-link">Trends & Rankings</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">Folder Management</a></li>
           <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome Sync</a></li>
-          <li class="nav-item"><a href="#settings" class="nav-link">Settings</a></li>
-          <li class="nav-item"><a href="#privacy" class="nav-link">Privacy</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">Settings & Data</a></li>
+          <li class="nav-item"><a href="#privacy" class="nav-link">Privacy & Security</a></li>
         </ul>
       </nav>
     </aside>
 
     <main class="content">
       <section id="intro">
-        <h1 class="section-title">Welcome to ClickBook</h1>
-        <p>ClickBook is an innovative bookmark manager that uses Chrome's built-in AI (Gemini Nano) to automatically categorize and organize your links. Save any page with one click and find it later without the hassle of manual sorting.</p>
+        <h1 class="section-title">Intro & Installation</h1>
+        <p>ClickBook is an innovative tool that uses Chrome's built-in AI (Gemini Nano) to intelligently categorize and manage your bookmarks. Save websites with a single click and find them easily later without the hassle of manual organization.</p>
         
         <div class="alert alert-info">
-          <strong>Pro Tip:</strong> Pin the ClickBook icon to your toolbar for instant access and 1-click saving.
+          <strong>💡 Tip:</strong> <strong>Pin</strong> the extension icon to your toolbar for instant access anytime, anywhere.
         </div>
       </section>
 
@@ -280,16 +294,16 @@
         <h2 class="section-title">Getting Started</h2>
         <div class="feature-grid">
           <div class="card">
-            <div class="card-title">1-Click Save</div>
-            <div class="card-desc">Click the extension icon while browsing. AI analyzes the page and places it in the best folder automatically.</div>
+            <div class="card-title">1-Click Quick Save</div>
+            <div class="card-desc">Just click the ClickBook icon on any page you want to save. The AI analyzes the content and places it in the most appropriate folder.</div>
           </div>
           <div class="card">
-            <div class="card-title">Keyboard Shortcut</div>
-            <div class="card-desc">Press <span class="shortcut">Alt + S</span> to save your active tab instantly without even moving your mouse.</div>
+            <div class="card-title">Keyboard Shortcuts</div>
+            <div class="card-desc">No need to move your mouse. Press <span class="shortcut">Alt + S</span> to instantly save the current tab.</div>
           </div>
           <div class="card">
             <div class="card-title">Management Dashboard</div>
-            <div class="card-desc">Access all your bookmarks in a dedicated tab. Search, edit, move, and organize everything in one place.</div>
+            <div class="card-desc">View all your saved bookmarks at a glance on the dedicated dashboard. Search, edit, move, and more.</div>
           </div>
         </div>
       </section>
@@ -298,58 +312,99 @@
         <h2 class="section-title">AI Intelligent Features <span class="badge">Core</span></h2>
         <div class="feature-grid">
           <div class="card">
-            <div class="card-title">Auto Categorization</div>
-            <div class="card-desc">Analyzes site titles and URLs to sort them into 8 broad categories like Technology, Design, and Business.</div>
+            <div class="card-title">AI Auto-Categorization</div>
+            <div class="card-desc">Automatically classifies bookmarks into various categories like Tech, Design, and Business by analyzing the page title and content.</div>
           </div>
           <div class="card">
-            <div class="card-title">AI Bulk Reorganize</div>
-            <div class="card-desc">Tidies up your entire collection at once. It even backs up your current state automatically before running.</div>
+            <div class="card-title">AI Auto-Cleanup</div>
+            <div class="card-desc">Want to reorganize all your existing bookmarks at once? Click "AI Auto Cleanup" in the sidebar.</div>
           </div>
           <div class="card">
-            <div class="card-title">Semantic Search <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
-            <div class="card-desc">Search by describing what you need. Try "I'm looking for React tutorials" or "Latest news sites."</div>
+            <div class="card-title">AI Semantic Search <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
+            <div class="card-desc">Goes beyond simple keyword matching to understand your intent. Search with sentences like "that cosmetics site I saw recently."</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="productivity">
+        <h2 class="section-title">Productivity Tools</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Memo Board</div>
+            <div class="card-desc">Add important notes to each bookmark and see them all together on the Memo Board.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Todo Board</div>
+            <div class="card-desc">Create todo lists linked to your bookmarks to systematically manage your reading or tasks.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Tag Board</div>
+            <div class="card-desc">Assign free tags regardless of the folder structure and filter bookmarks by your interests.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Bookmark Map</div>
+            <div class="card-desc">Understand the relationships between your bookmarks at a glance in a visual map format.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rankings">
+        <h2 class="section-title">Real-time Trends & Rankings</h2>
+        <p>Don't miss out on global trends. ClickBook provides real-time rankings from various platforms.</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">GitHub Trending</div>
+            <div class="card-desc">Check out the hottest open-source projects in real-time and bookmark them instantly.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hugging Face Rankings</div>
+            <div class="card-desc">Keep track of the latest AI models and dataset trends at a glance.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hacker News & Wiki</div>
+            <div class="card-desc">Explore IT industry news and popular knowledge from Wikipedia directly.</div>
           </div>
         </div>
       </section>
 
       <section id="folders">
-        <h2 class="section-title">Folders & Management</h2>
+        <h2 class="section-title">Folder & Bookmark Management</h2>
         <ul>
-          <li><strong>Infinite Hierarchy:</strong> Create subfolders within folders to keep things organized.</li>
-          <li><strong>Drag & Drop:</strong> Move sites and folders intuitively. Reorder top-level folders by dragging them between others.</li>
-          <li><strong>Folder Locking:</strong> Prevent AI from moving bookmarks out of specific folders by using the lock icon.</li>
-          <li><strong>Emoji Icons:</strong> Personalize your folders with any emoji to make them stand out.</li>
+          <li><strong>Infinite Hierarchy:</strong> Create unlimited subfolders within folders for systematic organization.</li>
+          <li><strong>Drag & Drop:</strong> Easily drag and drop sites or folders to where you want them.</li>
+          <li><strong>Folder Lock:</strong> Lock specific folders to prevent their content from being changed during AI Auto Cleanup.</li>
+          <li><strong>Custom Icons:</strong> Decorate your folders with unique emojis or icons to make them stand out visually.</li>
         </ul>
       </section>
 
       <section id="chrome-sync">
-        <h2 class="section-title">Chrome Sync</h2>
+        <h2 class="section-title">Chrome Bookmark Sync</h2>
         <div class="feature-grid">
           <div class="card">
             <div class="card-title">Import Bookmarks</div>
-            <div class="card-desc">Instantly bring your existing Chrome bookmarks into ClickBook. You can choose to auto-categorize them using AI during import.</div>
+            <div class="card-desc">Instantly import your existing Chrome bookmarks into ClickBook. You can even auto-categorize them with AI during the process.</div>
           </div>
           <div class="card">
             <div class="card-title">Export to Chrome</div>
-            <div class="card-desc">Export your organized ClickBook folders back to Chrome's native bookmark manager to keep them in sync across devices.</div>
+            <div class="card-desc">Export your organized folder structure back to the native Chrome bookmark manager to sync with other devices.</div>
           </div>
         </div>
       </section>
 
       <section id="settings">
-        <h2 class="section-title">Settings & Data</h2>
+        <h2 class="section-title">Settings & Data Management</h2>
         <ul>
-          <li><strong>Theme Options:</strong> Switch between Light, Dark, or System theme to match your preference.</li>
-          <li><strong>Backup & Restore:</strong> Export your entire ClickBook data as a JSON file for safekeeping, and restore it anytime.</li>
-          <li><strong>Data Reset:</strong> Clear all local data to start fresh. (Warning: This action cannot be undone.)</li>
+          <li><strong>Theme Settings:</strong> Choose freely between Light, Dark, or System themes.</li>
+          <li><strong>Backup & Restore:</strong> Export all your data to a JSON file for safe keeping and restore it anytime.</li>
+          <li><strong>Data Reset:</strong> Delete all local data and start fresh. (Warning: Deleted data cannot be recovered.)</li>
         </ul>
       </section>
 
       <section id="privacy">
         <h2 class="section-title" style="color: #10b981;">Privacy & Security</h2>
         <div class="card" style="border-left: 4px solid #10b981;">
-          <div class="card-title">100% Local Processing</div>
-          <div class="card-desc">ClickBook never connects to external servers. Your data stays ONLY on your computer (Local Storage). No one else can access it.</div>
+          <div class="card-title">100% Local Operation</div>
+          <div class="card-desc">ClickBook does not communicate with any external servers. Your data is stored only inside your computer (Local Storage).</div>
         </div>
       </section>
     </main>

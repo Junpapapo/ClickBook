@@ -33,7 +33,7 @@
     }
 
     body {
-      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -270,8 +270,10 @@
           <li class="nav-item"><a href="#intro" class="nav-link active">紹介とインストール</a></li>
           <li class="nav-item"><a href="#getting-started" class="nav-link">はじめに</a></li>
           <li class="nav-item"><a href="#ai-features" class="nav-link">AI インテリジェント機能</a></li>
-          <li class="nav-item"><a href="#folders" class="nav-link">フォルダー管理</a></li>
-          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome ブックマーク連携</a></li>
+          <li class="nav-item"><a href="#productivity" class="nav-link">生産性ツール (メモ、Todo、タグ)</a></li>
+          <li class="nav-item"><a href="#rankings" class="nav-link">トレンドとランキング</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">フォルダとブックマーク管理</a></li>
+          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome ブックマーク同期</a></li>
           <li class="nav-item"><a href="#settings" class="nav-link">設定とデータ管理</a></li>
           <li class="nav-item"><a href="#privacy" class="nav-link">プライバシーとセキュリティ</a></li>
         </ul>
@@ -280,11 +282,11 @@
 
     <main class="content">
       <section id="intro">
-        <h1 class="section-title">ClickBook へようこそ</h1>
-        <p>ClickBookは、Chrome内蔵AI（Gemini Nano）を活用してブックマークをスマートに自動分類し、整理する革新的なツールです。ワンクリックでタブを保存し、手動での整理の手間を省きます。</p>
+        <h1 class="section-title">紹介とインストール</h1>
+        <p>ClickBookは、Chrome内蔵AI（Gemini Nano）を活用してブックマークをスマートに自動分類・管理する革新的なツールです。複雑な整理の手間なく、ワンクリックでウェブサイトを保存し、後で簡単に見つけることができます。</p>
         
         <div class="alert alert-info">
-          <strong>ヒント:</strong> 拡張機能アイコンをツールバーに<strong>固定（Pin）</strong>すると、いつでもすぐに保存できます。
+          <strong>💡 ヒント:</strong> 拡張機能アイコンをツールバーに<strong>固定（Pin）</strong>すると、いつでもどこでもすぐに保存できます。
         </div>
       </section>
 
@@ -292,16 +294,16 @@
         <h2 class="section-title">はじめに</h2>
         <div class="feature-grid">
           <div class="card">
-            <div class="card-title">ワンクリック保存</div>
-            <div class="card-desc">閲覧中にアイコンをクリックするだけ。AIがページを分析し、最適なフォルダーに自動で振り分けます。</div>
+            <div class="card-title">1クリック即時保存</div>
+            <div class="card-desc">保存したいページでClickBookアイコンをクリックするだけです。AIが内容を分析し、最適なフォルダに自動的に振り分けます。</div>
           </div>
           <div class="card">
-            <div class="card-title">キーボードショートカット</div>
-            <div class="card-desc"><span class="shortcut">Alt + S</span> を押すと、マウスを動かさずに現在のアクティブタブを即座に保存できます。</div>
+            <div class="card-title">ショートカットキー</div>
+            <div class="card-desc">マウスを動かす必要もありません。<span class="shortcut">Alt + S</span>キーを押して、現在のタブを即座に保存しましょう。</div>
           </div>
           <div class="card">
             <div class="card-title">管理ダッシュボード</div>
-            <div class="card-desc">専用タブですべてのブックマークにアクセス。検索、編集、移動、整理が1か所で行えます。</div>
+            <div class="card-desc">保存したブックマークは専用のダッシュボードで一目で確認できます。検索、編集、移動などのすべての操作がここで行えます。</div>
           </div>
         </div>
       </section>
@@ -310,40 +312,81 @@
         <h2 class="section-title">AI インテリジェント機能 <span class="badge">Core</span></h2>
         <div class="feature-grid">
           <div class="card">
-            <div class="card-title">自動カテゴリー分類</div>
-            <div class="card-desc">サイトのタイトルとURLを分析し、テクノロジー、デザイン、ビジネスなどの8つのカテゴリーに分類します。</div>
+            <div class="card-title">AI 自動分類</div>
+            <div class="card-desc">保存時にサイトのタイトルと内容を分析し、テック、デザイン、ビジネスなどの様々なカテゴリに自動分類します。</div>
           </div>
           <div class="card">
-            <div class="card-title">AI一括整理</div>
-            <div class="card-desc">サイドバーの「AI整理」ボタンで全サイトを再配置。実行前に現在の状態を自動でバックアップします。</div>
+            <div class="card-title">AI 自動整理</div>
+            <div class="card-desc">既存の大量のサイトを一括で再配置したい場合は、サイドバーの「AI自動整理」をクリックしてください。</div>
           </div>
           <div class="card">
-            <div class="card-title">セマンティック検索 <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
-            <div class="card-desc">意図に基づいた検索が可能です。「Reactのチュートリアルを探して」などの文章で検索してみてください。</div>
+            <div class="card-title">AI セマンティック検索 <span class="badge" style="background-color: #f59e0b;">Beta</span></div>
+            <div class="card-desc">単純なキーワード一致を超えて、検索の意図を把握します。「最近見た化粧品のサイト」のような文章で検索してみてください。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="productivity">
+        <h2 class="section-title">生産性ツール</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">メモボード (Memo Board)</div>
+            <div class="card-desc">ブックマークごとに重要な内容をメモし、メモボードですべてのメモをまとめて確認できます。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Todoボード (Todo Board)</div>
+            <div class="card-desc">ブックマークと連動したTodoリストを作成し、読むべき記事やタスクを体系的に管理できます。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">タグボード (Tag Board)</div>
+            <div class="card-desc">フォルダ構造とは別に自由なタグを設定し、関心事ごとにブックマークをフィルタリングできます。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">ブックマークマップ (Bookmark Map)</div>
+            <div class="card-desc">ブックマーク同士の関係を視覚的なマップ形式で一目で把握できます。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rankings">
+        <h2 class="section-title">リアルタイムトレンドとランキング</h2>
+        <p>グローバルトレンドを逃さないでください。ClickBookは様々なプラットフォームのリアルタイムランキングを提供します。</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">GitHub Trending</div>
+            <div class="card-desc">今最もホットなオープンソースプロジェクトをリアルタイムで確認し、すぐにブックマークできます。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hugging Face ランキング</div>
+            <div class="card-desc">最新のAIモデルやデータセットのトレンドを一目で把握できます。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hacker News & Wiki</div>
+            <div class="card-desc">IT業界のニュースやWikipediaの人気知識を直接探索できます。</div>
           </div>
         </div>
       </section>
 
       <section id="folders">
-        <h2 class="section-title">フォルダーと管理</h2>
+        <h2 class="section-title">フォルダとブックマーク管理</h2>
         <ul>
-          <li><strong>無限階層:</strong> フォルダー内にフォルダーを無制限에 작성して 정리できます。</li>
-          <li><strong>ドラッグ＆ドロップ:</strong> 직관적으로 북마크나 폴더를 이동. 폴더 사이로 드롭하면 같은 층위로 이동합니다.</li>
-          <li><strong>フォルダーのロック:</strong> AI整理の対象外にしたいフォルダーは、ロックアイコンで保護できます.</li>
-          <li><strong>絵文字アイコン:</strong> 各フォルダーに好きな絵文字を設定して、視覚的に分かりやすくカスタ마이즈できます。</li>
+          <li><strong>無限階層:</strong> フォルダの中にフォルダを無制限に作成し、体系的に管理できます.</li>
+          <li><strong>ドラッグ&ドロップ:</strong> サイトやフォルダを好きな場所にドラッグして移動できます。</li>
+          <li><strong>フォルダロック:</strong> AI自動整理時に、そのフォルダの内容が変更されないようにロックできます。</li>
+          <li><strong>カスタムアイコン:</strong> 各フォルダに個性的な絵文字やアイコンを設定し、視覚的に装飾できます。</li>
         </ul>
       </section>
 
       <section id="chrome-sync">
-        <h2 class="section-title">Chrome ブックマーク連携</h2>
+        <h2 class="section-title">Chrome ブックマーク同期</h2>
         <div class="feature-grid">
           <div class="card">
             <div class="card-title">ブックマークのインポート</div>
-            <div class="card-desc">既存のChromeブックマークを即座にClickBookへ取り込みます。インポート時にAIによる自動分類も可能です。</div>
+            <div class="card-desc">既存のChromeブックマークをClickBookに即座に取り込めます。インポート中にAIで自動分類することも可能です。</div>
           </div>
           <div class="card">
             <div class="card-title">Chromeへのエクスポート</div>
-            <div class="card-desc">ClickBookで整理したフォルダー構造をChrome純正ブックマークマネージャーへ書き戻し、他デバイスと同期できます。</div>
+            <div class="card-desc">ClickBookで整理したフォルダ構造をChrome純正のブックマークマネージャに書き出し、他のデバイスと同期できます。</div>
           </div>
         </div>
       </section>
@@ -352,17 +395,16 @@
         <h2 class="section-title">設定とデータ管理</h2>
         <ul>
           <li><strong>テーマ設定:</strong> ライト、ダーク、またはシステム設定に合わせたテーマを自由に選択できます。</li>
-          <li><strong>バックアップと復元:</strong> 全データをJSONファイルとして書き出し保存し、いつでも復元できます。</li>
-          <li><strong>データの初期化:</strong> すべてのローカルデータを削除してリセットできます。（注意：一度削除したデータは復旧できません。）</li>
+          <li><strong>バックアップと復元:</strong> すべてのデータをJSONファイルとしてエクスポートして安全に保管し、いつでも復元できます。</li>
+          <li><strong>データのリセット:</strong> すべてのローカルデータを削除して新しく開始できます。（注意：削除されたデータは復元できません。）</li>
         </ul>
       </section>
-
 
       <section id="privacy">
         <h2 class="section-title" style="color: #10b981;">プライバシーとセキュリティ</h2>
         <div class="card" style="border-left: 4px solid #10b981;">
           <div class="card-title">100% ローカル動作</div>
-          <div class="card-desc">ClickBookは外部サーバーと通信しません。データはすべてユーザーのコンピューター内（Local Storage）にのみ保存されます。</div>
+          <div class="card-desc">ClickBookはいかなる外部サーバーとも通信しません。データはお使いのコンピュータの内部（Local Storage）にのみ保存されます。</div>
         </div>
       </section>
     </main>
