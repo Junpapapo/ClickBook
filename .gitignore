@@ -4,4 +4,5 @@ dist/
 .DS_Store
 docs/*
 !docs/assets/
+!docs/assets/**/*.zip
 *.zip
