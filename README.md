@@ -37,6 +37,8 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 12 | **Smart Tab Suspender (Premium)** | Automatically suspends inactive background tabs to save up to 90% of RAM (smart filters for audible/pinned tabs, with easy hover/one-click restore). |
 | 13 | **Chrome Tab Groups Sync (Premium)** | Back up active Chrome tab groups into folders, and instantly restore folders back into native, colored Chrome tab groups with naming and state intact. |
 | 14 | **Privacy Session Sweeper (Premium)** | Designate folders as 'Secure Folders'. When closing secure tabs, their origin-specific cookies, cache, storage, and history are instantly and completely shredded. |
+| 15 | **FTS Body Search (Premium)** | Scrapes webpage text in background on bookmarking, supporting ultra-fast space-separated multi-keyword AND searches across title, URL, tags, summaries, and full body text. |
+| 16 | **Offline Reader & Zen Mode (Premium)** | Read bookmarked pages and long memos distraction-free in a premium viewer with Light/Sepia/Dark themes, adjustable typography, dynamic Table of Contents, scroll progress, and text export utilities. |
 
 ---
 

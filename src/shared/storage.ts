@@ -73,6 +73,7 @@ export async function deleteBookmark(id: string): Promise<void> {
   data.bookmarks = data.bookmarks.filter((b) => b.id !== id);
   await writeStorage(data);
   await deleteMemo(id);
+  await deletePageContent(id);
 }
 
 export async function moveBookmark(
@@ -515,4 +516,49 @@ export async function getTodoBoard(): Promise<import("./types").TodoBoardData> {
 
 export async function saveTodoBoard(data: import("./types").TodoBoardData): Promise<void> {
   await chrome.storage.local.set({ [TODO_BOARD_KEY]: data });
+}
+
+// ── Page Contents (FTS & Offline Reader) ───────────────────
+
+const PAGE_CONTENTS_KEY = "clickbook_page_contents";
+
+export async function getPageContents(): Promise<Record<string, string>> {
+  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
+  const data = r[PAGE_CONTENTS_KEY] ?? {};
+  const map: Record<string, string> = {};
+  for (const [id, content] of Object.entries(data)) {
+    if (content && typeof content === "object" && (content as any).rawText) {
+      map[id] = (content as any).rawText;
+    }
+  }
+  return map;
+}
+
+export async function getPageContent(bookmarkId: string): Promise<import("./types").PageContent | null> {
+  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
+  const data = r[PAGE_CONTENTS_KEY] ?? {};
+  return data[bookmarkId] ?? null;
+}
+
+export async function savePageContent(
+  bookmarkId: string,
+  rawText: string,
+  readableContent: string
+): Promise<void> {
+  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
+  const data = r[PAGE_CONTENTS_KEY] ?? {};
+  data[bookmarkId] = {
+    bookmarkId,
+    rawText,
+    readableContent,
+    scrapedAt: Date.now()
+  };
+  await chrome.storage.local.set({ [PAGE_CONTENTS_KEY]: data });
+}
+
+export async function deletePageContent(bookmarkId: string): Promise<void> {
+  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
+  const data = r[PAGE_CONTENTS_KEY] ?? {};
+  delete data[bookmarkId];
+  await chrome.storage.local.set({ [PAGE_CONTENTS_KEY]: data });
 }

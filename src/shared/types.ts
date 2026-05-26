@@ -143,6 +143,13 @@ export interface BookmarkMemo {
 
 export type MemoMap = Record<string, BookmarkMemo>;
 
+export interface PageContent {
+  bookmarkId: string;
+  rawText: string;
+  readableContent: string;
+  scrapedAt: number;
+}
+
 export interface ChromePattern {
   id: string;
   name: string;
@@ -205,7 +212,11 @@ export type Message =
   | { type: "SUSPEND_TAB"; tabId: number }
   | { type: "SUSPEND_ALL_INACTIVE" }
   | { type: "UNSUSPEND_ALL" }
-  | { type: "GET_SUSPEND_COUNT" };
+  | { type: "GET_SUSPEND_COUNT" }
+  | { type: "GET_PAGE_CONTENTS" }
+  | { type: "GET_PAGE_CONTENT"; bookmarkId: string }
+  | { type: "SAVE_PAGE_CONTENT"; bookmarkId: string; rawText: string; readableContent: string }
+  | { type: "DELETE_PAGE_CONTENT"; bookmarkId: string };
 
 
 export type MessageResponse =

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2, Copy, Trash2 } from "lucide-react";
+import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2, Copy, Trash2, BookOpen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
 import { refineMemoDraft } from "@/shared/categorizer";
@@ -244,6 +244,23 @@ function MemoCard({
                 <Info size={12} />
               </button>
             )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new CustomEvent("OPEN_READER_MODE", {
+                  detail: {
+                    bookmarkId: `memo-${memo.bookmarkId}`,
+                    title: bookmark ? `Memo: ${bookmark.title}` : "Memo",
+                    url: bookmark?.url,
+                    content: memo.content
+                  }
+                }));
+              }}
+              className="p-0.5 text-gray-400 hover:text-indigo-500"
+              title={t("readerTooltipOpenZen")}
+            >
+              <BookOpen size={12} />
+            </button>
             <button
               onClick={handleDelete}
               className="p-0.5 text-gray-400 hover:text-red-400"

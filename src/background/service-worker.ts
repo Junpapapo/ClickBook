@@ -854,6 +854,26 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
         return { success: false, error: String(e) };
       }
     }
+    case "GET_PAGE_CONTENTS": {
+      const { getPageContents } = await import("@/shared/storage");
+      const data = await getPageContents();
+      return { success: true, data };
+    }
+    case "GET_PAGE_CONTENT": {
+      const { getPageContent } = await import("@/shared/storage");
+      const data = await getPageContent(message.bookmarkId);
+      return { success: true, data };
+    }
+    case "SAVE_PAGE_CONTENT": {
+      const { savePageContent } = await import("@/shared/storage");
+      await savePageContent(message.bookmarkId, message.rawText, message.readableContent);
+      return { success: true };
+    }
+    case "DELETE_PAGE_CONTENT": {
+      const { deletePageContent } = await import("@/shared/storage");
+      await deletePageContent(message.bookmarkId);
+      return { success: true };
+    }
     default:
       return { success: false, error: "Unknown message type" };
   }
@@ -932,19 +952,22 @@ async function saveActiveTab(): Promise<MessageResponse> {
   const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
   let description = "";
+  let rawText = "";
+  let readableContent = "";
+
   try {
     const [injectionResult] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => {
-        const meta = document.querySelector('meta[name="description"]');
-        return meta ? meta.getAttribute("content") : "";
-      }
+      target: { tabId: tab.id! },
+      func: scrapePageContent
     });
     if (injectionResult?.result) {
-      description = injectionResult.result as string;
+      const res = injectionResult.result as { description: string; rawText: string; readableContent: string };
+      description = res.description;
+      rawText = res.rawText;
+      readableContent = res.readableContent;
     }
   } catch (err) {
-    // ignore
+    console.warn("Scraping failed inside saveActiveTab:", err);
   }
 
   const bookmark: Bookmark = {
@@ -961,11 +984,18 @@ async function saveActiveTab(): Promise<MessageResponse> {
 
   await addBookmark(bookmark);
 
-  // Run AI summary and tags generation asynchronously in the background
+  // Run AI summary, tags generation, and page content saving asynchronously in the background
   (async () => {
     try {
+      // 1. Save page content if available
+      if (rawText || readableContent) {
+        const { savePageContent } = await import("@/shared/storage");
+        await savePageContent(bookmark.id, rawText, readableContent);
+      }
+
+      // 2. Generate summary & tags
       const { generateSummaryAndTags } = await import("@/shared/categorizer");
-      const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description);
+      const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description || readableContent.slice(0, 300));
       if (aiData && (aiData.summary || aiData.tags)) {
         const { updateBookmark } = await import("@/shared/storage");
         await updateBookmark(bookmark.id, {
@@ -974,7 +1004,7 @@ async function saveActiveTab(): Promise<MessageResponse> {
         });
       }
     } catch (err) {
-      console.warn("Background AI summary failed for saveActiveTab:", err);
+      console.warn("Background processes failed for saveActiveTab:", err);
     }
   })();
 
@@ -1746,19 +1776,22 @@ async function saveTabForClipping(tab: chrome.tabs.Tab): Promise<{ bookmark: Boo
   const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
   let description = "";
+  let rawText = "";
+  let readableContent = "";
+
   try {
     const [injectionResult] = await chrome.scripting.executeScript({
       target: { tabId: tab.id! },
-      func: () => {
-        const meta = document.querySelector('meta[name="description"]');
-        return meta ? meta.getAttribute("content") : "";
-      }
+      func: scrapePageContent
     });
     if (injectionResult?.result) {
-      description = injectionResult.result as string;
+      const res = injectionResult.result as { description: string; rawText: string; readableContent: string };
+      description = res.description;
+      rawText = res.rawText;
+      readableContent = res.readableContent;
     }
   } catch (err) {
-    // ignore
+    console.warn("Scraping failed inside saveTabForClipping:", err);
   }
 
   const bookmark: Bookmark = {
@@ -1774,11 +1807,16 @@ async function saveTabForClipping(tab: chrome.tabs.Tab): Promise<{ bookmark: Boo
 
   await addBookmark(bookmark);
 
-  // Run AI summary and tags generation asynchronously in the background
+  // Run AI summary, tags generation, and page content saving asynchronously in the background
   (async () => {
     try {
+      if (rawText || readableContent) {
+        const { savePageContent } = await import("@/shared/storage");
+        await savePageContent(bookmark.id, rawText, readableContent);
+      }
+
       const { generateSummaryAndTags } = await import("@/shared/categorizer");
-      const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description);
+      const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description || readableContent.slice(0, 300));
       if (aiData && (aiData.summary || aiData.tags)) {
         const { updateBookmark } = await import("@/shared/storage");
         await updateBookmark(bookmark.id, {
@@ -1787,7 +1825,7 @@ async function saveTabForClipping(tab: chrome.tabs.Tab): Promise<{ bookmark: Boo
         });
       }
     } catch (err) {
-      console.warn("Background AI summary failed for saveTabForClipping:", err);
+      console.warn("Background processes failed for saveTabForClipping:", err);
     }
   })();
 
@@ -1877,4 +1915,97 @@ async function injectToast(tabId: number, localeKey: string, replacement?: strin
   }
 }
 
+function scrapePageContent(): { description: string; rawText: string; readableContent: string } {
+  const metaDesc = document.querySelector('meta[name="description"]')?.getAttribute("content") || "";
 
+  // Helper to check if element is visible
+  function isVisible(el: HTMLElement): boolean {
+    if (!el.offsetParent && el.tagName.toLowerCase() !== "body") return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== "none" && style.visibility !== "hidden" && !el.hasAttribute("hidden");
+  }
+
+  // Clone document body
+  const clone = document.body.cloneNode(true) as HTMLElement;
+  const originalElements = Array.from(document.body.querySelectorAll("*")) as HTMLElement[];
+  const cloneElements = Array.from(clone.querySelectorAll("*")) as HTMLElement[];
+
+  // Remove invisible and blacklisted tags from clone
+  const tagsToRemove = ["script", "style", "head", "nav", "footer", "header", "form", "iframe", "noscript", "svg", "button", "aside"];
+  
+  // Since querySelectorAll('*') returns elements in the same order, we can map clone elements to original elements
+  for (let i = 0; i < cloneElements.length; i++) {
+    const cloneEl = cloneElements[i];
+    const origEl = originalElements[i];
+    const tagName = cloneEl.tagName.toLowerCase();
+    
+    if (tagsToRemove.includes(tagName)) {
+      cloneEl.remove();
+    } else if (origEl && !isVisible(origEl)) {
+      cloneEl.remove();
+    }
+  }
+
+  // Extract raw text for indexing (FTS)
+  const rawTextFull = clone.innerText || clone.textContent || "";
+  const words = rawTextFull
+    .toLowerCase()
+    .replace(/[^\w\s\uac00-\ud7a3\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]/g, " ") // English, Korean, Japanese, Chinese characters
+    .split(/\s+/)
+    .filter(w => w.length > 1);
+  const rawText = words.slice(0, 10000).join(" "); // Cap at 10,000 words
+
+  // Extract readable markdown-like content
+  let readableMarkdown = "";
+  const traverse = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.trim();
+      if (text) {
+        readableMarkdown += text + " ";
+      }
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+    const el = node as HTMLElement;
+    const tagName = el.tagName.toLowerCase();
+
+    if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tagName)) {
+      const level = tagName[1];
+      const hashes = "#".repeat(parseInt(level, 10));
+      readableMarkdown += `\n\n${hashes} ${el.textContent?.trim()}\n\n`;
+    } else if (tagName === "p") {
+      readableMarkdown += `\n\n${el.textContent?.trim()}\n\n`;
+    } else if (tagName === "li") {
+      readableMarkdown += `\n- ${el.textContent?.trim()}\n`;
+    } else if (tagName === "pre" || tagName === "code") {
+      readableMarkdown += `\n\`\`\`\n${el.textContent?.trim()}\n\`\`\`\n`;
+    } else if (tagName === "br") {
+      readableMarkdown += "\n";
+    } else {
+      // Traverse children
+      for (const child of Array.from(node.childNodes)) {
+        traverse(child);
+      }
+    }
+  };
+
+  traverse(clone);
+
+  // Post-process markdown (collapse multiple empty lines)
+  let readableContent = readableMarkdown
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+/g, " ")
+    .trim();
+
+  // Cap readable content to 50,000 chars
+  if (readableContent.length > 50000) {
+    readableContent = readableContent.slice(0, 50000) + "\n\n...[Truncated for offline reader]";
+  }
+
+  return {
+    description: metaDesc,
+    rawText,
+    readableContent: readableContent || rawTextFull.slice(0, 1000).trim()
+  };
+}

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen, Copy, Check } from "lucide-react";
+import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen, Copy, Check, BookOpen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, Folder } from "@/shared/types";
 import { MEMO_TEXTAREA_BG } from "@/shared/colors";
@@ -68,6 +68,40 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleOpenReader = async () => {
+    if (!bookmark) return;
+    try {
+      const res = await chrome.runtime.sendMessage({ type: "GET_PAGE_CONTENT", bookmarkId: bookmark.id });
+      if (res.success && res.data) {
+        window.dispatchEvent(new CustomEvent("OPEN_READER_MODE", {
+          detail: {
+            bookmarkId: bookmark.id,
+            title: bookmark.title,
+            url: bookmark.url,
+            content: res.data.readableContent
+          }
+        }));
+      } else {
+        alert(t("readerLegacyAlert"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert(t("readerLoadFailed"));
+    }
+  };
+
+  const handleOpenMemoZen = () => {
+    if (!bookmark || !memo) return;
+    window.dispatchEvent(new CustomEvent("OPEN_READER_MODE", {
+      detail: {
+        bookmarkId: `memo-${bookmark.id}`,
+        title: `Memo: ${bookmark.title}`,
+        url: bookmark.url,
+        content: memo.content
+      }
+    }));
   };
 
   const currentFolder = bookmark ? folders.find(f => f.id === bookmark.folderId) : null;
@@ -176,6 +210,25 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
                 <FolderOpen size={10} className="shrink-0" />
                 <span className="truncate">{folderDisplayName}</span>
               </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={handleOpenReader}
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 dark:text-indigo-400 rounded-lg text-xs font-semibold border border-indigo-100 dark:border-indigo-500/15 transition-all"
+            >
+              <BookOpen size={13} />
+              {t("offlineReaderBtn")}
+            </button>
+            {memo && (
+              <button
+                onClick={handleOpenMemoZen}
+                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 dark:bg-yellow-500/10 dark:hover:bg-yellow-500/20 dark:text-yellow-400 rounded-lg text-xs font-semibold border border-yellow-100 dark:border-yellow-500/15 transition-all"
+              >
+                <BookOpen size={13} />
+                {t("zenReaderBtn")}
+              </button>
             )}
           </div>
         </div>

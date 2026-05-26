@@ -23,6 +23,7 @@ import { useDialog } from "@/shared/useDialog";
 
 import TodoBoard from "@/pages/TodoBoard";
 import TagBoard from "@/pages/TagBoard";
+import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 
 // ── メインアプリケーションコンポーネント ───────────────────
 
@@ -55,6 +56,9 @@ function AppContent() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedKeywords, setExpandedKeywords] = useState<string[]>([]);
+  const [pageContents, setPageContents] = useState<Record<string, string>>({});
+  const [readerOpen, setReaderOpen] = useState(false);
+  const [readerData, setReaderData] = useState<{ bookmarkId: string; title: string; url?: string; content: string } | null>(null);
 
   // 언어가 바뀌면 탭 제목도 업데이트
   useEffect(() => {
@@ -172,6 +176,10 @@ function AppContent() {
     if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
     const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
     if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
+    const pageContentsRes = await sendMsg({ type: "GET_PAGE_CONTENTS" });
+    if (pageContentsRes.success && pageContentsRes.data) {
+      setPageContents(pageContentsRes.data as Record<string, string>);
+    }
   }, []);
 
   useEffect(() => {
@@ -184,7 +192,17 @@ function AppContent() {
       setActivePanel("info");
     };
     window.addEventListener("OPEN_BOOKMARK_INFO", handleOpenInfo as EventListener);
-    return () => window.removeEventListener("OPEN_BOOKMARK_INFO", handleOpenInfo as EventListener);
+    
+    const handleOpenReader = (e: CustomEvent) => {
+      setReaderData(e.detail);
+      setReaderOpen(true);
+    };
+    window.addEventListener("OPEN_READER_MODE", handleOpenReader as EventListener);
+
+    return () => {
+      window.removeEventListener("OPEN_BOOKMARK_INFO", handleOpenInfo as EventListener);
+      window.removeEventListener("OPEN_READER_MODE", handleOpenReader as EventListener);
+    };
   }, []);
 
   const infoBookmark = useMemo(() => {
@@ -219,23 +237,28 @@ function AppContent() {
     () => {
       if (!deferredQuery) return bookmarks;
       
-      const q = deferredQuery.toLowerCase();
+      const terms = deferredQuery.toLowerCase().split(/\s+/).filter(Boolean);
+      if (terms.length === 0) return bookmarks;
+
       return bookmarks.filter((b) => {
         const title = b.title.toLowerCase();
         const url = b.url.toLowerCase();
-        
-        // 1. 직접 포함 확인
-        if (title.includes(q) || url.includes(q)) return true;
-        
-        // 2. AI 확장 키워드 매칭
-        if (expandedKeywords.length > 0) {
-          return expandedKeywords.some(kw => title.includes(kw) || url.includes(kw));
-        }
-        
-        return false;
+        const summary = (b.summary || "").toLowerCase();
+        const tags = (b.tags || []).map(t => t.toLowerCase());
+        const pageContent = (pageContents[b.id] || "").toLowerCase();
+
+        // Each space-separated term must match in at least one of the fields (Title, URL, Summary, Tags, or Scraped Content)
+        return terms.every(term => {
+          if (title.includes(term)) return true;
+          if (url.includes(term)) return true;
+          if (summary.includes(term)) return true;
+          if (tags.some(tag => tag.includes(term))) return true;
+          if (pageContent.includes(term)) return true;
+          return false;
+        });
       });
     },
-    [bookmarks, deferredQuery, expandedKeywords]
+    [bookmarks, deferredQuery, pageContents]
   );
 
   const getBookmarksForFolder = useCallback(
@@ -516,6 +539,21 @@ function AppContent() {
           onClose={() => {
             setShowWelcome(false);
             chrome.storage.local.set({ clickbook_onboarded: true });
+          }}
+        />
+      )}
+
+      {/* Reader Mode Viewer Overlay */}
+      {readerOpen && readerData && (
+        <ReaderModeViewer
+          bookmarkId={readerData.bookmarkId}
+          title={readerData.title}
+          url={readerData.url}
+          initialContent={readerData.content}
+          onClose={() => {
+            setReaderOpen(false);
+            setReaderData(null);
+            loadData(); // Load any memo updates if applicable
           }}
         />
       )}
