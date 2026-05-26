@@ -89,6 +89,46 @@
       text-decoration: none;
     }
 
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .qna-btn {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      background-color: #6366f115;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .qna-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      text-decoration: none;
+    }
+
+    .nav-item-qna {
+      margin-top: 1.5rem;
+      border-top: 1px dashed var(--border);
+      padding-top: 1rem;
+    }
+
+    .nav-link-qna {
+      color: var(--primary) !important;
+      font-weight: 700 !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-link-qna:hover {
+      background-color: #6366f115 !important;
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -256,10 +296,13 @@
       <img src="icons/icon48.png" width="28" height="28" alt="Logo">
       <span>ClickBook</span>
     </div>
-    <div class="lang-switcher">
-      <a href="help.html" class="lang-link">English</a>
-      <a href="help.ja.html" class="lang-link">日本語</a>
-      <a href="help.ko.html" class="lang-link active">한국어</a>
+    <div class="header-nav">
+      <a href="qna.ko.html" class="qna-btn">자주 묻는 질문 & Q&A</a>
+      <div class="lang-switcher">
+        <a href="help.html" class="lang-link">English</a>
+        <a href="help.ja.html" class="lang-link">日本語</a>
+        <a href="help.ko.html" class="lang-link active">한국어</a>
+      </div>
     </div>
   </header>
 
@@ -276,6 +319,12 @@
           <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome 북마크 연동</a></li>
           <li class="nav-item"><a href="#settings" class="nav-link">설정 및 데이터 관리</a></li>
           <li class="nav-item"><a href="#privacy" class="nav-link">프라이버시 및 보안</a></li>
+          <li class="nav-item nav-item-qna">
+            <a href="qna.ko.html" class="nav-link nav-link-qna">
+              <span>자주 묻는 질문 & Q&A</span>
+              <span class="badge">QNA</span>
+            </a>
+          </li>
         </ul>
       </nav>
     </aside>

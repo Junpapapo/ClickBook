@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook Q&A - 자주 묻는 질문</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 3rem;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.3s;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .header {
+        background-color: rgba(30, 41, 59, 0.8);
+      }
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-btn {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-switcher {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-left: 1px solid var(--border);
+      padding-left: 1.5rem;
+    }
+
+    .lang-link {
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .lang-link:hover, .lang-link.active {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .title-area {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .title-area h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Q&A Accordion Style */
+    .qna-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    details {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    details[open] {
+      border-color: var(--primary);
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1), 0 4px 6px -4px rgba(99, 102, 241, 0.1);
+    }
+
+    summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary:hover {
+      background-color: rgba(99, 102, 241, 0.03);
+    }
+
+    .q-badge {
+      color: var(--primary);
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-right: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .q-text {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .arrow-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.3s, stroke 0.2s;
+    }
+
+    details[open] summary .arrow-icon {
+      transform: rotate(180deg);
+      stroke: var(--primary);
+    }
+
+    .answer-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background-color: rgba(248, 250, 252, 0.4);
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .answer-content {
+        background-color: rgba(15, 23, 42, 0.2);
+      }
+    }
+
+    .answer-content p {
+      margin-top: 1rem;
+    }
+
+    .answer-content ul, .answer-content ol {
+      margin-top: 0.75rem;
+      padding-left: 1.5rem;
+    }
+
+    .answer-content li {
+      margin-top: 0.5rem;
+    }
+
+    .step-box {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: inherit;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      background-color: var(--primary);
+      color: white;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+
+    .badge-premium {
+      background-color: #8b5cf6;
+    }
+
+    /* Support section & Footer */
+    .support-card {
+      text-align: center;
+      padding: 2rem;
+      background-color: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-top: 4rem;
+    }
+
+    .support-card h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .support-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span>ClickBook Q&A</span>
+    </div>
+    <div class="header-nav">
+      <a href="help.ko.html" class="nav-btn">← 도움말 가이드로 돌아가기</a>
+      <div class="lang-switcher">
+        <a href="qna.html" class="lang-link">English</a>
+        <a href="qna.ja.html" class="lang-link">日本語</a>
+        <a href="qna.ko.html" class="lang-link active">한국어</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="title-area">
+      <h1>자주 묻는 질문 및 Q&A</h1>
+      <p>ClickBook 프리미엄 익스텐션 사용 중 발생하는 궁금증과 해결책을 모았습니다.</p>
+    </div>
+
+    <div class="qna-list">
+      
+      <!-- Q1: New Tab Page security popup -->
+      <details open>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            새 탭으로 설정했을 때 크롬에서 "Google로 되돌리시겠습니까?"라는 알림이 떠요. 제어할 수 없나요?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>아니요, 해당 팝업은 확장 프로그램 개발자가 프로그램 코드로 강제 제어하거나 우회할 수 없습니다.</strong></p>
+          <p>이 알림창은 크롬 브라우저가 사용자 모르게 검색엔진이나 새 탭 페이지를 조작하는 악성 소프트웨어(브라우저 하이재커)로부터 사용자를 보호하기 위해 띄우는 <strong>크롬 자체의 하드코딩된 보안 장치</strong>입니다.</p>
+          <p>정상적으로 ClickBook을 새 탭 페이지로 사용하기 위해서는 최초 설치 후 첫 새 탭을 열었을 때 반드시 <strong>[유지 (Keep changes)]</strong> 버튼을 직접 클릭해 주셔야 합니다.</p>
+        </div>
+      </details>
+
+      <!-- Q2: NTP settings messed up -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            실수로 "이전 설정으로 되돌리기"를 눌렀더니 새 탭이나 대시보드가 하얗게 비어 있거나 꼬여서 안 열려요.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>실수로 <strong>[이전 설정으로 되돌리기]</strong>를 클릭하면 크롬 브라우저가 ClickBook의 새 탭 주소 우회 권한을 일방적으로 박탈합니다. 이때 ClickBook 내부 설정과 브라우저 차단 권한의 동기가 깨지며 화면이 꼬이거나 먹통이 될 수 있습니다.</p>
+          <p>이럴 때는 아래의 조치에 따라 브라우저 보안 설정을 리셋해 주면 즉시 해결됩니다.</p>
+          <div class="step-box">
+            <strong>가장 빠르고 확실한 복구 절차:</strong>
+            <ol>
+              <li>크롬 주소창에 <code>chrome://extensions/</code>를 입력하여 확장 프로그램 관리 화면으로 이동합니다.</li>
+              <li>ClickBook 카드의 오른쪽 아래 파란색 **활성화 스위치(토글)를 한 번 껐다가(OFF) 다시 켭니다(ON)**.</li>
+              <li>이제 빈 새 탭을 다시 열어봅니다. 크롬이 보안 알림 팝업을 새로 띄워줄 것입니다.</li>
+              <li>이때 반드시 **[유지 (Keep changes)]** 버튼을 클릭하면 즉시 모든 기능이 정상 복구됩니다.</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <!-- Q3: Chrome Bookmark import hanging -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            크롬 북마크를 가져오거나 대량 등록할 때 "등록 중..." 상태로 오랫동안 멈춰 있고 느립니다.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>사용자 PC 브라우저에 **크롬 내장 로컬 AI(Gemini Nano)** 환경이 완전히 구성되어 있지 않을 때 발생하던 임포트 동결 병목 버그이며, **1.2.5 업데이트를 통해 완벽히 해결**되었습니다.</p>
+          <p>현재 ClickBook은 임포트 및 등록 시 내장 로컬 AI 가용 여부를 초고속(1ms 미만)으로 실시간 사전 진단합니다. AI를 활용할 수 없는 환경일 경우 세션 생성을 전면 우회하고 초고속 패턴 매칭 카테고리 분류기로 자동 낙하(Fallback) 처리하여 정지 없이 신속한 임포트를 지원합니다.</p>
+          <p>가져온 북마크의 AI 요약과 상세 태그는 백그라운드 스레드에서 비동기로 천천히 생성되므로, 대시보드 조작과 동작에는 일절 지장을 주지 않습니다.</p>
+        </div>
+      </details>
+
+      <!-- Q4: Smart Tab suspension rules -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            스마트 절전 모드(Tab Suspender)가 작동할 때 수면 상태로 가선 안 되는 중요 탭들이 차단되나요? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>걱정하지 않으셔도 됩니다. ClickBook의 스마트 절전 알고리즘은 사용자의 웹 사용성을 최우선으로 지킵니다. 아래 탭들은 사용자의 작업 보호를 위해 **절대로 강제 절전(수면) 상태로 전환되지 않고 보존**됩니다.</p>
+          <ul>
+            <li><strong>오디오 재생 탭:</strong> 유튜브, 뮤직 스트리밍 사이트 등 백그라운드에서 음악이나 영상 음성이 송출 중인 탭.</li>
+            <li><strong>고정(Pinned) 탭:</strong> 브라우저 탭 바 왼쪽에 고정된 상시 활성화 탭.</li>
+            <li><strong>현재 활성 탭:</strong> 사용자가 지금 바라보고 조작 중인 활성화된 탭.</li>
+            <li><strong>폼 작성 중인 페이지:</strong> 인풋 입력 폼 등이 감지되는 활발한 작업 영역.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q5: Secure Folder clear items -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            보안 폴더(Secure Folder)의 자동 세션 파쇄기는 어떤 흔적들을 파쇄해 주나요? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>기밀 폴더나 개인 금융 도메인을 **보안 폴더**로 설정하면 해당 페이지를 볼 때 크롬 툴바 아이콘 위에 초록색 **`SEC` 배지**가 빛납니다. 탐색이 종료되고 관련 탭을 모두 닫는 순간, 오직 해당 웹 도메인(Origin)에 수집된 아래 정보들이 완전히 자동 파쇄됩니다.</p>
+          <ul>
+            <li><strong>쿠키 (Cookies):</strong> 자동 로그인 상태 및 트래킹 세션 데이터</li>
+            <li><strong>로컬 및 세션 스토리지 (LocalStorage, SessionStorage)</strong></li>
+            <li><strong>웹 데이터베이스:</strong> IndexedDB, WebSQL 흔적</li>
+            <li><strong>사이트 캐시 및 서비스 워커 (Service Workers, Cache)</strong></li>
+            <li><strong>방문 기록 및 파일 잔해</strong></li>
+          </ul>
+          <p>사용자가 복잡하게 매번 크롬 개인정보 삭제창을 열고 쿠키를 삭제할 필요 없이, 보안 탭을 닫기만 하면 완벽히 청소됩니다.</p>
+        </div>
+      </details>
+
+      <!-- Q6: Tab Group sync method -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            크롬 순정 탭 그룹(Tab Group)과 ClickBook 폴더는 어떻게 동기화하나요? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook은 크롬 탭 그룹과의 완벽한 양방향 보존 동기화를 지원합니다.</p>
+          <ul>
+            <li><strong>탭 그룹을 ClickBook 폴더로 저장</strong>: 확장 프로그램 아이콘(팝업)을 누르면 현재 열린 크롬 탭 그룹 목록이 컬러칩과 함께 나열됩니다. 원하는 그룹을 클릭하고 **[Save Group]**을 누르면 그룹 내부의 모든 탭이 통째로 저장된 클릭북 새 폴더가 생성됩니다.</li>
+            <li><strong>ClickBook 폴더를 크롬 탭 그룹으로 복원</strong>: 대시보드 사이드바의 폴더에 마우스 호버 시 나오는 <code>레이어</code> 버튼을 누르거나, 폴더 내부 뷰의 헤더 우측에 위치한 **[Open as Chrome Tab Group]** 버튼을 누르면 ClickBook 폴더 이름과 지정했던 고유 컬러 상태 그대로 크롬 상단 탭바에 순정 탭 그룹으로 즉시 재생성됩니다.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q7: Backup and Reset -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            새 컴퓨터로 북마크 데이터를 옮기거나 전체 데이터를 백업해 두고 싶어요.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook은 오직 사용자의 컴퓨터 내부(로컬)에만 북마크를 보존하므로 수동 백업을 제공합니다.</p>
+          <p>대시보드 우측 상단의 톱니바퀴 설정을 클릭하신 뒤 <strong>데이터 관리</strong> 탭으로 이동합니다. <strong>[백업 내보내기 (JSON)]</strong>를 누르면 전체 폴더 구조, 북마크 상세 정보, 수면 설정, 보안 내역이 파일로 다운로드됩니다.</p>
+          <p>새 컴퓨터 혹은 브라우저에서 동일한 경로의 <strong>[백업 가져오기]</strong> 버튼을 통해 해당 JSON 파일을 업로드하면 1초 만에 모든 데이터가 기존 구조와 이모지까지 일치한 상태로 깔끔하게 복원됩니다.</p>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="support-card">
+      <h2>ClickBook 프로젝트 후원하기</h2>
+      <p>ClickBook 익스텐션이 마음에 드셨다면 따뜻한 커피 한 잔으로 프로젝트 지속 개발에 힘을 보태주세요!</p>
+      <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 ClickBook - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

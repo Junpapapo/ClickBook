@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook Q&A - Frequently Asked Questions</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 3rem;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.3s;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .header {
+        background-color: rgba(30, 41, 59, 0.8);
+      }
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-btn {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-switcher {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-left: 1px solid var(--border);
+      padding-left: 1.5rem;
+    }
+
+    .lang-link {
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .lang-link:hover, .lang-link.active {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .title-area {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .title-area h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Q&A Accordion Style */
+    .qna-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    details {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    details[open] {
+      border-color: var(--primary);
+      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1), 0 4px 6px -4px rgba(99, 102, 241, 0.1);
+    }
+
+    summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary:hover {
+      background-color: rgba(99, 102, 241, 0.03);
+    }
+
+    .q-badge {
+      color: var(--primary);
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin-right: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .q-text {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .arrow-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.3s, stroke 0.2s;
+    }
+
+    details[open] summary .arrow-icon {
+      transform: rotate(180deg);
+      stroke: var(--primary);
+    }
+
+    .answer-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background-color: rgba(248, 250, 252, 0.4);
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .answer-content {
+        background-color: rgba(15, 23, 42, 0.2);
+      }
+    }
+
+    .answer-content p {
+      margin-top: 1rem;
+    }
+
+    .answer-content ul, .answer-content ol {
+      margin-top: 0.75rem;
+      padding-left: 1.5rem;
+    }
+
+    .answer-content li {
+      margin-top: 0.5rem;
+    }
+
+    .step-box {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: inherit;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      background-color: var(--primary);
+      color: white;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+
+    .badge-premium {
+      background-color: #8b5cf6;
+    }
+
+    /* Support section & Footer */
+    .support-card {
+      text-align: center;
+      padding: 2rem;
+      background-color: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-top: 4rem;
+    }
+
+    .support-card h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .support-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span>ClickBook Q&A</span>
+    </div>
+    <div class="header-nav">
+      <a href="help.html" class="nav-btn">← Back to Help Guide</a>
+      <div class="lang-switcher">
+        <a href="qna.html" class="lang-link active">English</a>
+        <a href="qna.ja.html" class="lang-link">日本語</a>
+        <a href="qna.ko.html" class="lang-link">한국어</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="title-area">
+      <h1>Frequently Asked Questions & Q&A</h1>
+      <p>We've collected solutions and answers to common questions while using ClickBook Premium.</p>
+    </div>
+
+    <div class="qna-list">
+      
+      <!-- Q1: New Tab Page security popup -->
+      <details open>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            When I open a new tab, Chrome prompts: "Change back to Google?" Can this be disabled or controlled?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>No, this popup cannot be programmatically controlled, disabled, or bypassed by extension developers.</strong></p>
+          <p>This alert is an <strong>inherent, hardcoded security mechanism of the Chrome browser</strong> designed to protect users from malicious software (browser hijackers) that might modify search engines or new tab pages without permission.</p>
+          <p>To use ClickBook as your customized new tab page, you must manually click the <strong>[Keep changes]</strong> button the first time the prompt appears after installation.</p>
+        </div>
+      </details>
+
+      <!-- Q2: NTP settings messed up -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            I accidentally clicked "Restore settings" (or "Change back") and now my new tab or dashboard is a blank white screen, or won't open.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>If you accidentally clicked <strong>[Restore settings]</strong>, Chrome unilaterally revokes ClickBook's permission to override the new tab page. When this happens, the sync between ClickBook's internal state and the browser's blocked state becomes inconsistent, resulting in blank screens or unresponsive tabs.</p>
+          <p>You can easily resolve this by resetting the browser's extension permission using the following steps:</p>
+          <div class="step-box">
+            <strong>Fastest & Most Reliable Recovery Procedure:</strong>
+            <ol>
+              <li>Type <code>chrome://extensions/</code> in your Chrome address bar to open the Extension Management page.</li>
+              <li>Find the ClickBook card and <strong>toggle the blue active switch OFF, then toggle it back ON</strong>.</li>
+              <li>Open a blank new tab. Chrome will prompt you with the security confirmation again.</li>
+              <li>This time, make sure to click the <strong>[Keep changes]</strong> button. Everything will immediately return to normal!</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <!-- Q3: Chrome Bookmark import hanging -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            When importing bookmarks or registering large batches, it freezes or stays at "Registering..." for a long time.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>This was a freezing/bottleneck issue that occurred when the browser's <strong>built-in local AI (Gemini Nano)</strong> environment was not fully configured or downloaded on the user's computer. <strong>This has been completely resolved in the v1.2.5 update.</strong></p>
+          <p>ClickBook now pre-diagnoses the availability of the built-in local AI in real-time (under 1ms). If the AI is not ready or unavailable, it completely bypasses the local AI session creation and automatically falls back to our ultra-fast pattern-matching category classifier, ensuring a smooth and rapid import without freezing.</p>
+          <p>AI summaries and tags for the imported bookmarks will be processed asynchronously in a background thread, meaning there will be absolutely no interruption to your dashboard navigation or browser performance.</p>
+        </div>
+      </details>
+
+      <!-- Q4: Smart Tab suspension rules -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            When Smart Tab Suspender triggers, will it suspend important tabs that shouldn't go to sleep? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Don't worry! ClickBook's smart tab suspension algorithm is designed with user workflow safety in mind. The following tabs are <strong>fully excluded and protected from being forced into suspension (sleep)</strong>:</p>
+          <ul>
+            <li><strong>Audio Playback Tabs:</strong> Background tabs playing music or videos (e.g., YouTube, music streaming sites).</li>
+            <li><strong>Pinned Tabs:</strong> Tabs pinned to the left side of the tab bar.</li>
+            <li><strong>Currently Active Tab:</strong> The tab you are currently viewing and working on.</li>
+            <li><strong>Form Input Pages:</strong> Pages with active text inputs or forms to prevent data loss.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q5: Secure Folder clear items -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            What data does the Secure Folder's automatic session shredder delete? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>When you designate confidential directories or sensitive domains as <strong>Secure Folders</strong>, a green <strong>`SEC` badge</strong> lights up on the Chrome toolbar icon while viewing those pages. The moment you close all related tabs and end your browsing session, the following tracking items collected by that domain (Origin) are permanently and automatically shredded:</p>
+          <ul>
+            <li><strong>Cookies:</strong> Auto-login sessions and tracking cookie data.</li>
+            <li><strong>Local and Session Storage:</strong> LocalStorage and SessionStorage remnants.</li>
+            <li><strong>Web Databases:</strong> IndexedDB and WebSQL data.</li>
+            <li><strong>Cache & Service Workers:</strong> Cached files and background service workers.</li>
+            <li><strong>Browsing History & File Residues:</strong> Individual history records and temporary files.</li>
+          </ul>
+          <p>You never have to manually clear your Chrome browsing data; simply closing the secure tab takes care of your privacy perfectly.</p>
+        </div>
+      </details>
+
+      <!-- Q6: Tab Group sync method -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            How do I synchronize Chrome's native Tab Groups with ClickBook folders? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook offers seamless two-way integration and preservation with Chrome's native tab groups:</p>
+          <ul>
+            <li><strong>Save Tab Group as ClickBook Folder:</strong> Click the ClickBook extension icon (popup) in your toolbar. It will list your currently open Chrome tab groups along with their color labels. Click the desired group and select <strong>[Save Group]</strong> to instantly create a ClickBook folder containing all those tabs.</li>
+            <li><strong>Restore ClickBook Folder as Tab Group:</strong> Hover over any folder in your dashboard sidebar and click the <code>Layer</code> icon, or click <strong>[Open as Chrome Tab Group]</strong> in the folder detail view. Your ClickBook folder will instantly be restored as a native Chrome tab group, complete with its original name and color.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q7: Backup and Reset -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            How can I back up my data or migrate bookmarks to a new computer?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook stores all bookmark data strictly inside your local computer to guarantee maximum privacy. Therefore, we provide a manual backup system.</p>
+          <p>Click the gear icon (Settings) in the top-right of your dashboard, then go to the <strong>Data Management</strong> tab. Click <strong>[Export Backup (JSON)]</strong> to download a file containing your entire folder structure, bookmark details, suspender configurations, and secure folders.</p>
+          <p>On your new computer or browser, simply navigate to the same settings page and upload your backup file using the <strong>[Import Backup]</strong> button. All folders, bookmarks, and even folder emojis will be fully restored in less than a second!</p>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="support-card">
+      <h2>Support the ClickBook Project</h2>
+      <p>If ClickBook has helped you, please consider supporting its continuous development with a warm cup of coffee!</p>
+      <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 ClickBook - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
