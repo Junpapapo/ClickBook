@@ -241,6 +241,14 @@ export async function toggleFolderLock(id: string): Promise<void> {
   await writeStorage(data);
 }
 
+export async function toggleFolderSecure(id: string): Promise<void> {
+  const data = await readStorage();
+  data.folders = data.folders.map((f) =>
+    f.id === id ? { ...f, secure: !f.secure } : f
+  );
+  await writeStorage(data);
+}
+
 // ── Export / Import ────────────────────────────────────────
 
 export async function exportData(): Promise<ClickBookBackupData> {
@@ -448,6 +456,7 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   maxFolderDepth: 3,
   keepExistingFolders: false,
   openDashboardInNewTab: false,
+  useClickBookAsNewTab: true,
   customSearchConfigs: [
     { id: "cs-google", name: "Google", urlTemplate: "https://www.google.com/search?q={keyword}" },
     { id: "cs-youtube", name: "YouTube", urlTemplate: "https://www.youtube.com/results?search_query={keyword}" },

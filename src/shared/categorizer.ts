@@ -91,18 +91,34 @@ export async function verifyAISession(): Promise<boolean> {
   }
 }
 
+let cachedAIAvailable: boolean | null = null;
+
+try {
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes) => {
+      if (changes[AI_ENABLED_KEY]) {
+        cachedAIAvailable = changes[AI_ENABLED_KEY].newValue === true;
+      }
+    });
+  }
+} catch { /* 무시 */ }
+
 /**
  * AI 사용이 활성화되어 있는지 확인
  * - 최초 (값 없음): 실제 세션으로 자동 체크하여 결과 저장
  * - 이후: 저장된 수동 설정값 반환
  */
 export async function isAIAvailable(): Promise<boolean> {
+  if (cachedAIAvailable !== null) {
+    return cachedAIAvailable;
+  }
   try {
     const result = await chrome.storage.local.get(AI_ENABLED_KEY);
 
     // 이미 설정값이 있으면 그대로 반환 (수동 설정 우선)
     if (result[AI_ENABLED_KEY] !== undefined) {
-      return result[AI_ENABLED_KEY] === true;
+      cachedAIAvailable = result[AI_ENABLED_KEY] === true;
+      return cachedAIAvailable;
     }
   } catch {
     return false;
@@ -120,11 +136,13 @@ export async function isAIAvailable(): Promise<boolean> {
     await chrome.storage.local.set({ [AI_ENABLED_KEY]: available });
   } catch { /* 무시 */ }
 
+  cachedAIAvailable = available;
   return available;
 }
 
 /** AI 활성화 상태를 설정 */
 export async function setAIEnabled(enabled: boolean): Promise<void> {
+  cachedAIAvailable = enabled;
   await chrome.storage.local.set({ [AI_ENABLED_KEY]: enabled });
 }
 
@@ -135,6 +153,9 @@ async function classifyWithNano(
 ): Promise<string | null> {
   let session: any = null;
   try {
+    const aiAvailable = await isAIAvailable();
+    if (!aiAvailable) return null;
+
     const lm = await getAIModel();
     if (!lm) return null;
 
@@ -184,6 +205,13 @@ Title: ${title}`;
 // 사용자의 서술형 검색어를 핵심 키워드 리스트로 확장 (시맨틱 검색 보조)
 export async function expandSearchQuery(query: string): Promise<string[]> {
   if (!query.trim() || query.length < 2) return [];
+  try {
+    const aiAvailable = await isAIAvailable();
+    if (!aiAvailable) return [query];
+  } catch {
+    return [query];
+  }
+
   let session: any = null;
   try {
     const lm = await getAIModel();
@@ -228,6 +256,13 @@ User query: "${query}"`;
 // AI 가 키워드에 근접한 베스트 사이트 추천 (추천 검색용)
 export async function recommendSites(keyword: string, count = 6): Promise<Array<{ title: string; url: string }>> {
   if (!keyword.trim()) return [];
+  try {
+    const aiAvailable = await isAIAvailable();
+    if (!aiAvailable) return [];
+  } catch {
+    return [];
+  }
+
   let session: any = null;
   try {
     const lm = await getAIModel();
@@ -312,8 +347,8 @@ export async function generateSummaryAndTags(
   description: string
 ): Promise<{ summary?: string; tags?: string[] }> {
   try {
-    const { clickbook_ai_enabled } = await chrome.storage.local.get("clickbook_ai_enabled");
-    if (clickbook_ai_enabled === false) return {};
+    const aiAvailable = await isAIAvailable();
+    if (!aiAvailable) return {};
 
     const lm = await getAIModel();
     if (!lm) return {};
@@ -385,8 +420,8 @@ export async function generateMemoDraft(
   const fallback = buildFallbackDraft(title, url, summary, tags, lang);
 
   try {
-    const { clickbook_ai_enabled } = await chrome.storage.local.get("clickbook_ai_enabled");
-    if (clickbook_ai_enabled === false) return { draft: fallback, aiUsed: false };
+    const aiAvailable = await isAIAvailable();
+    if (!aiAvailable) return { draft: fallback, aiUsed: false };
 
     const lm = await getAIModel();
     if (!lm) return { draft: fallback, aiUsed: false };
@@ -449,20 +484,55 @@ export async function refineMemoDraft(
   lang: "en" | "ja" | "ko"
 ): Promise<{ draft: string; aiUsed: boolean }> {
   try {
-    const { clickbook_ai_enabled } = await chrome.storage.local.get("clickbook_ai_enabled");
-    if (clickbook_ai_enabled === false) return { draft: originalMemo, aiUsed: false };
+    const aiAvailable = await isAIAvailable();
+    if (!aiAvailable) return { draft: originalMemo, aiUsed: false };
 
     const lm = await getAIModel();
     if (!lm) return { draft: originalMemo, aiUsed: false };
 
-    const langInstruction =
-      lang === "ko" ? "반드시 한국어로 작성하세요." :
-      lang === "ja" ? "必ず日本語で記述してください。" :
-      "Write in English.";
+    let systemPrompt = "You are an insightful and extremely concise expert note-taking assistant. You organize memos and supplement them with professional opinions, creative ideas, and useful context, using short, punchy bullet points.";
+    let prompt = "";
 
-    const systemPrompt = "You are an insightful and extremely concise expert note-taking assistant. You organize memos and supplement them with professional opinions, creative ideas, and useful context, using short, punchy bullet points.";
+    if (lang === "ko") {
+      systemPrompt = "당신은 통찰력 있고 매우 간결한 전문 메모 작성 도우미입니다. 글머리 기호(•)를 사용하여 메모를 구성하고 전문적인 의견, 창의적인 아이디어 및 유용한 맥락을 보완합니다.";
+      prompt = `다음 메모 내용을 개선하고 구조화하여 정리해 주세요.
 
-    const prompt = `Please enhance and organize the following memo.
+규칙:
+- 반드시 한국어(Korean)로 작성하세요. 다른 언어(영어 등)를 절대 사용하지 마십시오.
+- 내용을 명확하고 매우 간결한 글머리 기호(• )로 정리하세요.
+- 메모의 의도를 분석하여, 주제와 관련된 짧은 전문가 의견, 전략적 아이디어 또는 유용한 실용적 맥락을 덧붙이세요.
+- 불필요하게 장황하지 않게 하십시오. 전문가 통찰은 최대 1~2개의 짧고 강력한 문장으로 한정하세요.
+- 전체 출력은 3~6개의 글머리 기호로 구성되도록 하십시오.
+- 대화체 서두(예: "여기에 정리된 메모가 있습니다", "이해했습니다")는 절대 출력하지 마십시오.
+- 오직 개선된 메모 본문만 출력하고, 불필요한 설명은 제외하십시오.
+
+기존 메모 내용:
+"""
+${originalMemo}
+"""
+
+개선된 메모:`;
+    } else if (lang === "ja") {
+      systemPrompt = "あなたは洞察力があり、非常に簡潔な専門メモ作成アシスタントです。箇条書き（•）を使用してメモを整理し、専門的な意見、創造的なアイデア、役立つコンテキストを補完します。";
+      prompt = `以下のメモ内容を改善し、構造化して整理してください。
+
+ルール：
+- 必ず日本語で記述してください。他の言語（英語など）を絶対に使用しないでください。
+- 内容を明確かつ非常に簡潔な箇条書き（• ）で整理してください。
+- メモの意図を分析し、トピックに関連する短い専門家の意見、戦略的なアイデア、または実用的なコンテキストを追加してください。
+- 不要に冗長にしないでください。専門的な洞察は最大1〜2文の短く効果的な文章にしてください。
+- 出力全体は3〜6個の箇条書きに収めてください。
+- 会話的な前置き（例：「以下は整理されたメモです」、「理解しました」など）は絶対に出力しないでください。
+- 改善されたメモのテキストのみを出力し、余計な解説は除外してください。
+
+元のメモ内容:
+"""
+${originalMemo}
+"""
+
+改善されたメモ:`;
+    } else {
+      prompt = `Please enhance and organize the following memo.
 
 Rules:
 - Organize into clear, extremely concise bullet points (use "• " prefix).
@@ -470,7 +540,7 @@ Rules:
 - DO NOT be overly verbose. Keep your expert insights to 1-2 short, impactful sentences max.
 - The total output should be no more than 3-6 bullet points.
 - DO NOT use conversational filler (e.g., "Here is the memo", "I understand").
-- ${langInstruction}
+- Write in English.
 - Output ONLY the enhanced memo text.
 
 Original Memo:
@@ -479,6 +549,7 @@ ${originalMemo}
 """
 
 Enhanced Memo:`;
+    }
 
     const session = await (lm.create as any)({
       systemPrompt: systemPrompt
@@ -638,9 +709,11 @@ export async function findDuplicateGroups(
 
   // ── AI 시도 ────────────────────────────────────────────────
   try {
-    const lm = await getAIModel();
+    const aiAvailable = await isAIAvailable();
+    if (aiAvailable) {
+      const lm = await getAIModel();
 
-    if (lm) {
+      if (lm) {
       const BATCH = 50;
       const all: DuplicateGroup[] = [];
       const seq2id = new Map<number, string>();
@@ -717,6 +790,7 @@ Output:`;
         }
         return { groups: uniqueGroups, aiUsed: true };
       }
+    }
     }
   } catch { /* AI init failed */ }
 

@@ -86,6 +86,7 @@ export interface Folder {
   isDefault: boolean;
   collapsed: boolean;
   locked?: boolean;
+  secure?: boolean;
   createdAt: number;
 }
 
@@ -127,6 +128,7 @@ export interface AppSettings {
   maxFolderDepth: number;       // 最大フォルダー段階数 default: 3
   keepExistingFolders: boolean; // AI整理時に既存フォルダーを変更しない default: false
   openDashboardInNewTab: boolean; // Dashboard 탭 열기 방식 default: false
+  useClickBookAsNewTab: boolean; // 새 탭 페이지로 ClickBook 사용 여부 default: true
   customSearchConfigs?: CustomSearchConfig[]; // 커스텀 검색 설정
   customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
 }
@@ -193,12 +195,21 @@ export type Message =
   | { type: "FACTORY_RESET" }
   | { type: "GET_SETTINGS" }
   | { type: "SAVE_SETTINGS"; settings: AppSettings }
+  | { type: "GET_CHROME_TAB_GROUPS" }
+  | { type: "SAVE_TAB_GROUP_AS_FOLDER"; groupId: number; name: string }
+  | { type: "OPEN_FOLDER_AS_TAB_GROUP"; folderId: string }
+  | { type: "TOGGLE_FOLDER_SECURE"; id: string }
   | { type: "UPDATE_AI_INFO"; id: string; url: string; title: string }
   | { type: "GET_TODO_BOARD" }
-  | { type: "SAVE_TODO_BOARD"; data: TodoBoardData };
+  | { type: "SAVE_TODO_BOARD"; data: TodoBoardData }
+  | { type: "SUSPEND_TAB"; tabId: number }
+  | { type: "SUSPEND_ALL_INACTIVE" }
+  | { type: "UNSUSPEND_ALL" }
+  | { type: "GET_SUSPEND_COUNT" };
+
 
 export type MessageResponse =
-  | { success: true; data?: unknown }
+  | { success: true; data?: unknown; isSecure?: boolean }
   | { success: false; error: string; isDuplicate?: boolean };
 
 // =============================

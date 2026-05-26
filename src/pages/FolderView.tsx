@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2, Sparkles } from "lucide-react";
+import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2, Sparkles, Shield, Layers } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import { getFolderById, buildFolderTree, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
@@ -298,13 +298,24 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
             </button>
           </div>
         ) : (
-          <h2
-            className="text-xl font-bold text-gray-800 dark:text-gray-100 cursor-text select-none"
-            onDoubleClick={startEditName}
-            title={t("doubleClickEditName")}
-          >
-            {getLocalizedFolderName(folder, lang)}
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2
+              className="text-xl font-bold text-gray-800 dark:text-gray-100 cursor-text select-none"
+              onDoubleClick={startEditName}
+              title={t("doubleClickEditName")}
+            >
+              {getLocalizedFolderName(folder, lang)}
+            </h2>
+            {folder?.secure && (
+              <div 
+                className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/30 shadow-sm animate-pulse cursor-help"
+                title={t("secureFolderTooltip")}
+              >
+                <Shield size={11} className="fill-emerald-500/15" />
+                <span>{t("secureFolder")}</span>
+              </div>
+            )}
+          </div>
         )}
         <span className="text-sm text-gray-500">{t("itemCount", { n: bookmarks.length })}</span>
 
@@ -327,6 +338,32 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                 </button>
               ))}
             </div>
+          )}
+
+          {/* 크롬 탭 그룹으로 열기 */}
+          <button
+            onClick={() => chrome.runtime.sendMessage({ type: "OPEN_FOLDER_AS_TAB_GROUP", folderId })}
+            title={t("openAsTabGroup")}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border bg-white text-gray-700 border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 dark:bg-surface-800 dark:text-gray-300 dark:border-surface-700 dark:hover:bg-indigo-500/10 dark:hover:border-indigo-500/30 dark:hover:text-indigo-400 transition-all shadow-sm"
+          >
+            <Layers size={14} className="text-indigo-500" />
+            <span>{t("openAsTabGroup")}</span>
+          </button>
+
+          {/* [개인정보 보호 극대화] 보안 세션 파쇄기(Secure Session Shredder) 활성화 버튼: 브라우징 흔적 및 세션 실시간 완전 파쇄 */}
+          {folderId !== DEFAULT_FOLDER_ID && (
+            <button
+              onClick={() => chrome.runtime.sendMessage({ type: "TOGGLE_FOLDER_SECURE", id: folderId }).then(() => onRefresh())}
+              title={folder?.secure ? t("secureToggleOff") : t("secureToggleOn")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm ${
+                folder?.secure
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30 hover:bg-emerald-100/50"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 dark:bg-surface-800 dark:text-gray-300 dark:border-surface-700 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 dark:hover:text-emerald-400"
+              }`}
+            >
+              <Shield size={14} className={folder?.secure ? "text-emerald-500 fill-emerald-500/15" : "text-emerald-500"} />
+              <span>{t("secureFolder")}</span>
+            </button>
           )}
 
           {/* 기타 폴더 전용 AI 정리 버튼 */}
@@ -509,6 +546,11 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                         onDragLeave={() => setDragOverFolderId(null)}
                         onDrop={(e) => handleDropToFolder(e, f.id)}
                       >
+                        {f.secure && !isRenaming && (
+                          <div className="absolute top-1.5 left-1.5">
+                            <Shield size={10} className="text-emerald-500 fill-emerald-500/20 animate-pulse" title={t("secureFolderTooltip")} />
+                          </div>
+                        )}
                         {!isRenaming && (
                           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
                             <button

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   BookmarkPlus, BookmarkCheck, ExternalLink, AlertCircle, CheckCircle2, Loader2,
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
-  Settings, Globe2, Check, Sun, Moon,
+  Settings, Globe2, Check, Sun, Moon, ShieldCheck,
   Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy, Book, Newspaper
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
@@ -48,6 +48,8 @@ export default function Popup() {
   const [memoText, setMemoText] = useState("");
   const [memoColor, setMemoColor] = useState<MemoColor>("yellow");
   const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [tabGroups, setTabGroups] = useState<chrome.tabGroups.TabGroup[]>([]);
+  const [isCurrentTabSecure, setIsCurrentTabSecure] = useState(false);
 
   const [popupTheme, setPopupThemeState] = useState<"light" | "dark">(() => {
     const s = localStorage.getItem("clickbook_theme");
@@ -101,6 +103,17 @@ export default function Popup() {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tab?.url) {
         setTabUrl(tab.url);
+
+        // Check if current tab is secure
+        try {
+          const secRes = await chrome.runtime.sendMessage({ type: "CHECK_DOMAIN_SECURE", url: tab.url }) as MessageResponse;
+          if (secRes.success && secRes.isSecure) {
+            setIsCurrentTabSecure(true);
+          }
+        } catch (err) {
+          console.warn("Failed to check if domain is secure:", err);
+        }
+
         const res = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
         if (res.success && res.data) {
           const data = res.data as { bookmarks: Array<{ id: string; url: string }> };
@@ -120,6 +133,16 @@ export default function Popup() {
         }
       }
       if (tab?.title) setTabTitle(tab.title);
+
+      // Get tab groups
+      try {
+        const groupsRes = await chrome.runtime.sendMessage({ type: "GET_CHROME_TAB_GROUPS" }) as MessageResponse;
+        if (groupsRes.success && Array.isArray(groupsRes.data)) {
+          setTabGroups(groupsRes.data as chrome.tabGroups.TabGroup[]);
+        }
+      } catch (e) {
+        console.warn("Failed to get tab groups:", e);
+      }
     }
     init();
   }, []);
@@ -233,6 +256,28 @@ export default function Popup() {
     await chrome.runtime.sendMessage({ type: "SAVE_MEMO", bookmarkId, content: memoText.trim(), color: memoColor });
     setMemoStatus("done");
     setTimeout(() => setMemoStatus("idle"), 1500);
+  }
+
+  async function handleSaveTabGroup(groupId: number, name: string) {
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: "SAVE_TAB_GROUP_AS_FOLDER",
+        groupId,
+        name
+      }) as MessageResponse;
+      if (res.success) {
+        setStatus("success");
+        setTabGroups(prev => prev.filter(g => g.id !== groupId));
+        const d = res.data as { folder?: { name: string }; savedCount?: number };
+        setMessage(t("popupSaved") + ` (${d.savedCount} tabs saved to ${d.folder?.name})`);
+      } else {
+        setStatus("error");
+        setMessage(res.error || t("popupSaveFailed"));
+      }
+    } catch (e) {
+      setStatus("error");
+      setMessage(t("popupError"));
+    }
   }
 
   async function handleClearData() {
@@ -491,6 +536,61 @@ export default function Popup() {
           </div>
         </div>
       </div>
+
+      {isCurrentTabSecure && (
+        <div className="flex gap-3 items-start bg-emerald-950/30 border border-emerald-500/20 rounded-xl p-3 shadow-lg backdrop-blur-md transition-all duration-300">
+          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.15)] animate-pulse">
+            <ShieldCheck size={16} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 tracking-tight">
+              {t("popupSecureActive")}
+            </p>
+            <p className="text-[10px] text-emerald-500/80 leading-relaxed font-medium">
+              {t("popupSecureDesc")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 탭 그룹 동기화 (Tab Groups Sync) */}
+      {tabGroups.length > 0 && (
+        <div className="flex flex-col gap-2 bg-indigo-950/40 border border-indigo-900/60 rounded-xl p-3">
+          <p className="text-[10px] text-indigo-400 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+            <Layers size={12} />
+            {t("saveTabGroupAsFolder")}
+          </p>
+          <div className="flex flex-col gap-2 max-h-32 overflow-y-auto pr-1">
+            {tabGroups.map((group) => {
+              const colorClasses: Record<string, string> = {
+                grey: "border-gray-500 bg-gray-500/10 text-gray-300",
+                blue: "border-blue-500 bg-blue-500/10 text-blue-300",
+                red: "border-red-500 bg-red-500/10 text-red-300",
+                yellow: "border-yellow-500 bg-yellow-500/10 text-yellow-300",
+                green: "border-emerald-500 bg-emerald-500/10 text-emerald-300",
+                pink: "border-pink-500 bg-pink-500/10 text-pink-300",
+                purple: "border-purple-500 bg-purple-500/10 text-purple-300",
+                cyan: "border-cyan-500 bg-cyan-500/10 text-cyan-300",
+                orange: "border-orange-500 bg-orange-500/10 text-orange-300",
+              };
+              const cls = colorClasses[group.color] || colorClasses.grey;
+              const title = group.title || `${group.color.toUpperCase()} Group`;
+              return (
+                <div key={group.id} className={`flex items-center justify-between border rounded-lg px-2.5 py-1.5 ${cls}`}>
+                  <span className="text-xs font-semibold truncate max-w-[180px]">{title}</span>
+                  <button
+                    onClick={() => handleSaveTabGroup(group.id, title)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold active:scale-95 transition-all cursor-pointer"
+                  >
+                    <BookmarkPlus size={10} />
+                    {t("saveGroup")}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ブックマック管理 */}
       <p className="text-[10px] text-orange-400 uppercase tracking-wider font-medium -mb-1">{t("popupBookmarkSection")}</p>

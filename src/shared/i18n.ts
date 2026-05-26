@@ -204,7 +204,7 @@ const en = {
   dropToOrganize: "Drop bookmarks on folders to organize",
   aiOrganizeDone: "✓ AI Organize done",
   privacyTitle: "Privacy First",
-  privacyDesc: "ClickBook is designed to protect your personal data. Your bookmarks and tabs are stored ONLY on your local computer and are never shared with ClickBook developers or any third parties.",
+  privacyDesc: "ClickBook is designed to protect your personal data. All bookmarks are stored ONLY locally. For sensitive pages, enable 'Secure Folder' to automatically shred cookies, local storage, cache, and history immediately upon closing tabs.",
   helpTooltip: "Help Center",
   backupPrefix: "Backup: ",
   settingsRecentCountLabel: "Recently added count",
@@ -214,6 +214,8 @@ const en = {
   settingsRecommendCountDesc: "Number of items shown in AI recommendations",
   settingsOpenNewTabLabel: "Open dashboard in new tab",
   settingsOpenNewTabDesc: "When clicking the management icon, open the dashboard in a new tab instead of the current one.",
+  settingsUseAsNewTabLabel: "Use ClickBook as New Tab page",
+  settingsUseAsNewTabDesc: "When opening a blank tab, show the ClickBook dashboard.",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub Real-time Ranking",
@@ -408,6 +410,32 @@ const en = {
   tagSearchPlaceholder: "Filter tags...",
   tagEditModalTitle: "Edit bookmark tags",
   tagEditModalPlaceholder: "Press Enter to add tag...",
+  // ── Premium Features ─────────────────────────────────────
+  toastHighlightSaved: "Saved Highlight! AI refining note...",
+  toastHighlightRefined: "AI refined your clipping note!",
+  toastHighlightRefineFailed: "Saved Highlight! (AI unavailable)",
+  openAsTabGroup: "Open as Chrome Tab Group",
+  saveTabGroupAsFolder: "Save Tab Group as ClickBook Folder",
+  noTabGroupsFound: "No active tab groups found in this window",
+  saveGroup: "Save Group",
+  secureFolder: "Secure Folder",
+  secureFolderTooltip: "Secure Folder: Automatically clear cookies/cache/history for site domains when closed",
+  secureToggleOn: "Enable Secure Session Cleaner",
+  secureToggleOff: "Disable Secure Session Cleaner",
+  sessionCleanedToast: "Secure Folder: Cleared browsing data for {domain}",
+  secureSessionActiveToast: "🔒 Secure Session Active: ClickBook is safeguarding this site under Session Shredding.",
+  popupSecureActive: "🔒 Secure Session Protected",
+  popupSecureDesc: "Active: This site's cookies, local storage, cache, and history will be securely shredded immediately upon closing this tab.",
+  memorySaver: "Memory Saver (Tab Suspender)",
+  sleepInactive: "Sleep Inactive Tabs",
+  resumeAll: "Resume All Sleeping Tabs",
+  sleepingTabsCount: "Sleeping Tabs: {n}",
+  autoSuspendDelay: "Auto Sleep Delay",
+  autoResumeOnFocus: "Auto Resume on Tab Focus",
+  never: "Disabled",
+  minutesCount: "{n} mins",
+  toastAllSuspended: "Suspended {n} inactive tabs!",
+  toastAllResumed: "Resumed {n} suspended tabs!",
 };
 
 const ja: typeof en = {
@@ -609,7 +637,7 @@ const ja: typeof en = {
   dropToOrganize: "フォルダーにドロップして整理",
   aiOrganizeDone: "✓ AI整理完了",
   privacyTitle: "プライバシー優先",
-  privacyDesc: "ClickBookはユーザーの個人データを保護するように設計されています。ブックマークやタブの情報はユーザーのコンピューターにのみローカルで保存され、開発者や第三者と共有されることはありません。",
+  privacyDesc: "ClickBookはユーザーの個人データを保護するように設計されています。データはローカルにのみ保存されます。機密性の高いページについては、「保護フォルダ」を有効にすると、タブを閉じた直後にクッキー、ローカルストレージ、キャッシュ、履歴などの閲覧データを自動で完全に消去（シュレッダー）します。",
   helpTooltip: "ヘルプセンター",
   backupPrefix: "バックアップ: ",
 
@@ -621,6 +649,8 @@ const ja: typeof en = {
   settingsRecommendCountDesc: "AI おすすめ検索に表示する件数",
   settingsOpenNewTabLabel: "新しくタブで管理画面を開く",
   settingsOpenNewTabDesc: "管理アイコンをクリックした際、現在のタブではなく新しいタブでダッシュボードを開きます。",
+  settingsUseAsNewTabLabel: "新しいタブページとしてClickBookを使用",
+  settingsUseAsNewTabDesc: "新しいタブを開いた際、ClickBookのダッシュボードを表示します。",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub リアルタイムランキング",
@@ -815,6 +845,32 @@ const ja: typeof en = {
   tagSearchPlaceholder: "タグを検索...",
   tagEditModalTitle: "ブックマークのタグ編集",
   tagEditModalPlaceholder: "Enterキーでタグを追加...",
+  // ── Premium Features ─────────────────────────────────────
+  toastHighlightSaved: "ハイライトを保存しました！AIがメモを整理中...",
+  toastHighlightRefined: "AIが切り取りメモを整理しました！",
+  toastHighlightRefineFailed: "ハイライトを保存しました！（AIを利用できません）",
+  openAsTabGroup: "Chromeタブグループとして開く",
+  saveTabGroupAsFolder: "タブグループをClickBookフォルダーとして保存",
+  noTabGroupsFound: "このウィンドウに有効なタブグループが見つかりません",
+  saveGroup: "グループを保存",
+  secureFolder: "保護フォルダー",
+  secureFolderTooltip: "保護フォルダー：関連するサイトを閉じるとクッキー・キャッシュ・履歴を自動削除します",
+  secureToggleOn: "セッション自動クリーナーを有効にする",
+  secureToggleOff: "セッション自動クリーナーを無効にする",
+  sessionCleanedToast: "保護フォルダー：{domain} の閲覧データを削除しました",
+  secureSessionActiveToast: "🔒 セッション保護有効：このサイトはタブを閉じると履歴やクッキーが完全に自動消去されます。",
+  popupSecureActive: "🔒 保護セッション有効化中",
+  popupSecureDesc: "有効：このタブを閉じると、関連するクッキー、ローカルストレージ、キャッシュ、履歴が完全に自動消去されます。",
+  memorySaver: "メモリセーバー (タブの一時停止)",
+  sleepInactive: "待機タブを一時停止",
+  resumeAll: "すべての一時停止タブを復元",
+  sleepingTabsCount: "一時停止中のタブ: {n}",
+  autoSuspendDelay: "自動一時停止までの時間",
+  autoResumeOnFocus: "タブにフォーカスした際に自動復元",
+  never: "無効",
+  minutesCount: "{n}分",
+  toastAllSuspended: "{n}個の待機タブを一時停止しました！",
+  toastAllResumed: "{n}個の一時停止タブを復元しました！",
 };
 
 const ko: typeof en = {
@@ -1015,7 +1071,7 @@ const ko: typeof en = {
   dropToOrganize: "폴더에 드롭하여 정리",
   aiOrganizeDone: "✓ AI 정리 완료",
   privacyTitle: "프라이버시 우선",
-  privacyDesc: "ClickBook은 사용자의 개인 데이터를 보호하도록 설계되었습니다. 북마크와 탭 정보는 사용자의 컴퓨터에만 로컬로 저장되며, 개발자나 그 외 누구와도 공유되지 않습니다.",
+  privacyDesc: "ClickBook은 사용자의 개인 데이터를 보호하도록 설계되었습니다. 북마크 데이터는 오직 로컬에만 보관됩니다. 특히 기밀/금융 페이지의 경우 '보안 폴더'를 지정하면 관련 탭을 종료하는 즉시 쿠키, 로컬 스토리지, 캐시, 방문 흔적까지 완전히 자동으로 파기하여 완벽한 보안을 유지합니다.",
   helpTooltip: "도움말 센터",
   backupPrefix: "백업: ",
   settingsRecentCountLabel: "최근 추가 표시 수",
@@ -1024,6 +1080,8 @@ const ko: typeof en = {
   settingsRecommendCountDesc: "AI 추천 검색 결과에 표시할 개수",
   settingsOpenNewTabLabel: "관리 화면을 새 탭에서 열기",
   settingsOpenNewTabDesc: "관리 아이콘을 클릭했을 때 현재 탭이 아닌 새로운 탭에서 관리 화면을 엽니다.",
+  settingsUseAsNewTabLabel: "새 탭 페이지로 ClickBook 사용",
+  settingsUseAsNewTabDesc: "새 탭을 열 때 ClickBook 대시보드를 표시합니다.",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub 실시간 랭킹",
@@ -1217,9 +1275,35 @@ const ko: typeof en = {
   tagSearchPlaceholder: "태그 필터링...",
   tagEditModalTitle: "북마크 태그 편집",
   tagEditModalPlaceholder: "태그 입력 후 Enter...",
+  // ── Premium Features ─────────────────────────────────────
+  toastHighlightSaved: "하이라이트를 저장했습니다! AI가 메모를 정리 중...",
+  toastHighlightRefined: "AI가 스크랩 메모를 정리했습니다!",
+  toastHighlightRefineFailed: "하이라이트를 저장했습니다! (AI 사용 불가)",
+  openAsTabGroup: "크롬 탭 그룹으로 열기",
+  saveTabGroupAsFolder: "탭 그룹을 ClickBook 폴더로 저장",
+  noTabGroupsFound: "이 창에서 활성화된 탭 그룹을 찾을 수 없습니다",
+  saveGroup: "그룹 저장",
+  secureFolder: "보안 폴더",
+  secureFolderTooltip: "보안 폴더: 관련 사이트 탭을 닫으면 쿠키, 캐시, 방문 기록을 자동으로 파기합니다",
+  secureToggleOn: "세션 자동 클리너 활성화",
+  secureToggleOff: "세션 자동 클리너 비활성화",
+  sessionCleanedToast: "보안 폴더: {domain}의 브라우징 데이터를 안전하게 소거했습니다",
+  secureSessionActiveToast: "🔒 보안 세션 활성화: 이 사이트는 탭 종료 시 쿠키, 캐시, 스토리지 흔적이 안전하게 자동 파쇄됩니다.",
+  popupSecureActive: "🔒 보안 보호 세션 가동 중",
+  popupSecureDesc: "활성화: 이 탭을 닫으면 이 사이트의 쿠키, 로컬스토리지, 캐시, 방문 흔적이 즉시 안전하게 자동 소거 파쇄됩니다.",
+  memorySaver: "스마트 절전 모드 (메모리 세이버)",
+  sleepInactive: "안 보는 탭 즉시 절전",
+  resumeAll: "모든 절전 탭 즉시 복원",
+  sleepingTabsCount: "절전 중인 탭: {n}개",
+  autoSuspendDelay: "자동 절전 타이머",
+  autoResumeOnFocus: "탭 선택 시 자동 복원",
+  never: "사용 안 함",
+  minutesCount: "{n}분",
+  toastAllSuspended: "사용하지 않는 탭 {n}개를 절전 모드로 전환했습니다!",
+  toastAllResumed: "{n}개의 절전 탭을 모두 복원했습니다!",
 };
 
-const DICT: Record<Lang, typeof en> = { en, ja, ko };
+export const DICT: Record<Lang, typeof en> = { en, ja, ko };
 
 // ── Browser language detection ────────────────────────────
 

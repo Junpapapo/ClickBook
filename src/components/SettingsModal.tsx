@@ -180,7 +180,8 @@ export default function SettingsModal({
     draft.recommendCount !== settings.recommendCount ||
     draft.maxFolderDepth !== settings.maxFolderDepth ||
     draft.keepExistingFolders !== settings.keepExistingFolders ||
-    draft.openDashboardInNewTab !== settings.openDashboardInNewTab;
+    draft.openDashboardInNewTab !== settings.openDashboardInNewTab ||
+    draft.useClickBookAsNewTab !== settings.useClickBookAsNewTab;
 
 
   return (
@@ -366,6 +367,12 @@ export default function SettingsModal({
                   checked={draft.openDashboardInNewTab}
                   onChange={(v) => set("openDashboardInNewTab", v)}
                   description={t("settingsOpenNewTabDesc")}
+                />
+                <Toggle
+                  label={t("settingsUseAsNewTabLabel")}
+                  checked={draft.useClickBookAsNewTab !== false}
+                  onChange={(v) => set("useClickBookAsNewTab", v)}
+                  description={t("settingsUseAsNewTabDesc")}
                 />
                 <NumInput
                   label={t("settingsRecentCountLabel")}

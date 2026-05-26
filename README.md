@@ -33,6 +33,10 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 8 | **Theming** | Support for Dark and Light modes, persisting via `localStorage`. |
 | 9 | **100% Offline** | Runs entirely locally using `chrome.storage.local` (No external servers). |
 | 10 | **Multi-Language** | Full localized experience for English, Korean, and Japanese using Chrome Extension i18n. |
+| 11 | **AI Highlight Clipper (Premium)** | Highlight webpage text and use right-click context menu to automatically refine and save it as multi-lingual memos using on-device AI. |
+| 12 | **Smart Tab Suspender (Premium)** | Automatically suspends inactive background tabs to save up to 90% of RAM (smart filters for audible/pinned tabs, with easy hover/one-click restore). |
+| 13 | **Chrome Tab Groups Sync (Premium)** | Back up active Chrome tab groups into folders, and instantly restore folders back into native, colored Chrome tab groups with naming and state intact. |
+| 14 | **Privacy Session Sweeper (Premium)** | Designate folders as 'Secure Folders'. When closing secure tabs, their origin-specific cookies, cache, storage, and history are instantly and completely shredded. |
 
 ---
 

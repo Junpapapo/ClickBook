@@ -1,18 +1,380 @@
 import type { Bookmark, Message, MessageResponse } from "@/shared/types";
-import { categorize, recommendSites, expandSearchQuery, getAIModel, generateSummaryAndTags } from "@/shared/categorizer";
+import { categorize, recommendSites, expandSearchQuery, getAIModel, generateSummaryAndTags, isAIAvailable, refineMemoDraft } from "@/shared/categorizer";
 import { getBookmarks, addBookmark, getAllData } from "@/shared/storage";
 import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
+import { DICT, type Lang } from "@/shared/i18n";
+
+async function getEffectiveLanguage(): Promise<Lang> {
+  try {
+    const { clickbook_lang } = await chrome.storage.local.get("clickbook_lang");
+    if (clickbook_lang === "en" || clickbook_lang === "ja" || clickbook_lang === "ko") {
+      return clickbook_lang as Lang;
+    }
+  } catch (e) {
+    console.error("Error fetching clickbook_lang from storage:", e);
+  }
+
+  try {
+    const uiLang = chrome.i18n.getUILanguage().toLowerCase();
+    if (uiLang.startsWith("ko")) return "ko";
+    if (uiLang.startsWith("ja")) return "ja";
+  } catch (e) {
+    console.error("Error getting UI language:", e);
+  }
+
+  return "en";
+}
 
 // ============================================================
 // Service Worker — Chrome MV3 Background
 // ============================================================
 
-// キーボードショートカット: Alt+S で現在のタブを保存
+// キーボードショートカット: Alt+S で現在のタブ을 저장
 chrome.commands.onCommand.addListener(async (command) => {
   if (command === "save-current-tab") {
     await saveActiveTab();
   }
 });
+
+// contextMenus 우클릭 메뉴 등록
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "clickbook-clip-selection",
+    title: "ClickBook: Save Highlight as Memo",
+    contexts: ["selection"]
+  });
+});
+
+// contextMenus 우클릭 메뉴 클릭 이벤트 핸들러
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "clickbook-clip-selection") {
+    await clipSelection(info.selectionText, tab);
+  }
+});
+
+// Tab cache for Privacy-First Session Sweeper
+async function initializeTabCache() {
+  try {
+    const tabs = await chrome.tabs.query({});
+    const tabMap: Record<string, string> = {};
+    for (const tab of tabs) {
+      if (tab.id && tab.url) {
+        tabMap[String(tab.id)] = tab.url;
+      }
+    }
+    await chrome.storage.session.set({ tabUrls: tabMap });
+  } catch (err) {
+    console.warn("Failed to initialize tab cache:", err);
+  }
+}
+
+// Initialize on startup
+initializeTabCache();
+
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (tab.id && tab.url) {
+    try {
+      const res = await chrome.storage.session.get("tabUrls");
+      const tabMap = res.tabUrls || {};
+      tabMap[String(tab.id)] = tab.url;
+      await chrome.storage.session.set({ tabUrls: tabMap });
+    } catch (e) {
+      console.warn("Failed to update tab cache on create:", e);
+    }
+  }
+  if (tab.id && tab.active) {
+    await trackTabAccessed(tab.id);
+  }
+});
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    try {
+      const res = await chrome.storage.session.get("tabUrls");
+      const tabMap = res.tabUrls || {};
+      tabMap[String(tabId)] = changeInfo.url;
+      await chrome.storage.session.set({ tabUrls: tabMap });
+    } catch (e) {
+      console.warn("Failed to update tab cache on update:", e);
+    }
+
+    // URL 변경 시 보안 검사를 수행하고 크롬 툴바 배지 상태를 동적 업데이트합니다.
+    await checkAndSetSecureTabIndicator(tabId, changeInfo.url);
+  }
+  
+  if (changeInfo.status === "complete") {
+    // 추가: 탭 로드 완료 및 활성화 시 시간 트래킹
+    if (tab.active) {
+      await trackTabAccessed(tabId);
+    }
+
+    // 2안) 보안 세션 진입 완료 토스트 알림 1회 노출
+    if (tab.url) {
+      const isSecure = await checkIsDomainSecure(tab.url);
+      if (isSecure) {
+        await injectToast(tabId, "secureSessionActiveToast");
+      }
+    }
+  }
+});
+
+chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
+  try {
+    const res = await chrome.storage.session.get("tabUrls");
+    const tabMap = res.tabUrls || {};
+    const closedUrl = tabMap[String(tabId)];
+
+    // 추가: 활성 탭 시간 추적 데이터 삭제
+    const accessRes = await chrome.storage.session.get("tabLastAccessed");
+    const lastAccessedMap = accessRes.tabLastAccessed || {};
+    if (lastAccessedMap[String(tabId)]) {
+      delete lastAccessedMap[String(tabId)];
+      await chrome.storage.session.set({ tabLastAccessed: lastAccessedMap });
+    }
+
+    if (!closedUrl) return;
+
+    delete tabMap[String(tabId)];
+    await chrome.storage.session.set({ tabUrls: tabMap });
+
+    await handleTabClosed(closedUrl, tabMap);
+  } catch (e) {
+    console.warn("Failed to handle tab remove:", e);
+  }
+});
+
+// 추가: 탭이 전환(Activated)될 때 시간 트래킹 및 자동 서스펜드 검사, 보안 배지 즉시 업데이트, 자동 복원(옵션) 처리
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  await trackTabAccessed(activeInfo.tabId);
+
+  try {
+    const tab = await chrome.tabs.get(activeInfo.tabId);
+    await checkAndSetSecureTabIndicator(activeInfo.tabId, tab.url);
+
+    // 자동 복원(clickbook_auto_resume) 활성화 시 탭 포커스 되었을 때 즉시 세션 복원
+    if (tab && tab.url && tab.url.includes("suspend.html")) {
+      const res = await chrome.storage.local.get("clickbook_auto_resume");
+      if (res.clickbook_auto_resume === true) {
+        try {
+          const urlObj = new URL(tab.url);
+          const originalUrl = urlObj.searchParams.get("url");
+          if (originalUrl) {
+            await chrome.tabs.update(activeInfo.tabId, { url: originalUrl });
+          }
+        } catch (urlErr) {
+          console.warn("Failed to parse original url from suspend.html url:", urlErr);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to update secure badge or auto-resume on tab activate:", e);
+  }
+});
+
+// ── 보안 폴더 및 세션 파쇄 실시간 검사 헬퍼 ──
+async function checkIsDomainSecure(url: string): Promise<boolean> {
+  if (!url || (!url.startsWith("http://") && !url.startsWith("https://"))) {
+    return false;
+  }
+  let domain = "";
+  try {
+    const urlObj = new URL(url);
+    domain = urlObj.hostname;
+  } catch (e) {
+    return false;
+  }
+
+  try {
+    const { getAllData } = await import("@/shared/storage");
+    const data = await getAllData();
+    const secureFolders = data.folders.filter(f => f.secure === true);
+    if (secureFolders.length === 0) return false;
+
+    const secureFolderIds = new Set<string>();
+    function collectSecure(folderId: string) {
+      secureFolderIds.add(folderId);
+      const children = data.folders.filter(f => f.parentId === folderId);
+      for (const child of children) {
+        collectSecure(child.id);
+      }
+    }
+    for (const sf of secureFolders) {
+      collectSecure(sf.id);
+    }
+
+    const secureBookmarks = data.bookmarks.filter(b => secureFolderIds.has(b.folderId));
+    return secureBookmarks.some(b => b.domain === domain);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function checkAndSetSecureTabIndicator(tabId: number, url?: string) {
+  if (!url) {
+    try {
+      await chrome.action.setBadgeText({ text: "", tabId });
+    } catch (e) {}
+    return;
+  }
+
+  try {
+    const isSecure = await checkIsDomainSecure(url);
+    if (isSecure) {
+      // 1안) 크롬 툴바 아이콘 위에 초록색 SEC 배지 표시 (탭 한정)
+      await chrome.action.setBadgeText({ text: "SEC", tabId });
+      await chrome.action.setBadgeBackgroundColor({ color: "#10b981", tabId });
+      try {
+        await chrome.action.setBadgeTextColor({ color: "#ffffff", tabId });
+      } catch (e) {}
+    } else {
+      // 일반 탭인 경우 배지 텍스트 클리어
+      await chrome.action.setBadgeText({ text: "", tabId });
+    }
+  } catch (err) {
+    // console.warn(err);
+  }
+}
+
+async function handleTabClosed(closedUrl: string, activeTabMap: Record<string, string>) {
+  let closedDomain = "";
+  let closedOrigin = "";
+  try {
+    const urlObj = new URL(closedUrl);
+    closedDomain = urlObj.hostname;
+    closedOrigin = urlObj.origin;
+  } catch (e) {
+    return;
+  }
+
+  if (!closedDomain || (!closedUrl.startsWith("http://") && !closedUrl.startsWith("https://"))) {
+    return;
+  }
+
+  // 해당 도메인의 다른 탭이 브라우저에 여전히 열려 있는지 체크합니다.
+  // (모든 관련 탭이 닫혀 완벽히 세션이 끝났을 때만 보안 파쇄를 수행하기 위함)
+  let domainStillOpen = false;
+  for (const url of Object.values(activeTabMap)) {
+    try {
+      const u = new URL(url);
+      if (u.hostname === closedDomain) {
+        domainStillOpen = true;
+        break;
+      }
+    } catch (e) {}
+  }
+
+  if (domainStillOpen) return;
+
+  // ── [개인정보 보호 극대화: 보안 폴더 기반 세션 자동 파쇄] ──
+  // 도메인의 마지막 탭이 닫히면, 이 도메인이 '보안 폴더(Secure Folder)'에 포함되어 있는지 검사합니다.
+  // 일치하는 경우 쿠키, 로컬스토리지, IndexedDB, 캐시, 세션 데이터 등을 완전 소거(Shredding)하여 
+  // 기밀/금융/개인정보 데이터 유출 및 쿠키 세션 하이재킹을 원천 차단합니다.
+  const { getAllData } = await import("@/shared/storage");
+  const data = await getAllData();
+  const secureFolders = data.folders.filter(f => f.secure === true);
+  if (secureFolders.length === 0) return;
+
+  // 재귀적으로 보안 폴더의 모든 하위 폴더 ID를 수집합니다 (하위 구조 자동 상속 보안 모델).
+  const secureFolderIds = new Set<string>();
+  function collectSecure(folderId: string) {
+    secureFolderIds.add(folderId);
+    const children = data.folders.filter(f => f.parentId === folderId);
+    for (const child of children) {
+      collectSecure(child.id);
+    }
+  }
+  for (const sf of secureFolders) {
+    collectSecure(sf.id);
+  }
+
+  const secureBookmarks = data.bookmarks.filter(b => secureFolderIds.has(b.folderId));
+  const matchesSecure = secureBookmarks.some(b => b.domain === closedDomain);
+
+  if (matchesSecure) {
+    try {
+      // chrome.browsingData API를 사용하여 해당 Origin(출처)의 세션/로컬 잔재를 '파쇄(Shred)'합니다.
+      // 전체 브라우저 데이터를 삭제하는 것이 아니라, 해당 보안 도메인 전용 데이터만 정밀 타격하여 삭제하므로
+      // 다른 일반 탭들의 편리성은 그대로 유지하면서 초고강도 프라이버시 보호를 달성합니다.
+      await chrome.browsingData.remove(
+        { origins: [closedOrigin] },
+        {
+          cache: true,          // 캐시 파쇄 (네트워크 요청 흔적 제거)
+          cookies: true,        // 쿠키 파쇄 (활성 로그인 세션 및 추적 토큰 완전 무효화)
+          fileSystems: true,    // 로컬 파일시스템 잔재 제거
+          indexedDB: true,      // 오프라인 데이터베이스 IndexedDB 소거
+          localStorage: true,   // HTML5 로컬 스토리지 키-값 파괴
+          serviceWorkers: true, // 등록된 백그라운드 서비스 워커 등록 취소
+          webSQL: true          // 레거시 WebSQL 데이터 삭제
+        }
+      );
+      console.log(`[Privacy-First Session Sweeper] Successfully shredded and cleared browsing session data for secure origin: ${closedDomain}`);
+
+      // 파쇄 완료 사실을 사용자에게 실시간으로 피드백하기 위해, 현재 활성화된 탭의 화면에 글래스모피즘 알림(Toast)을 주입합니다.
+      const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (activeTab && activeTab.id) {
+        await injectToast(activeTab.id, "sessionCleanedToast", closedDomain);
+      }
+    } catch (err) {
+      console.warn("Failed to clean browsing data for secure origin:", err);
+    }
+  }
+}
+
+// ── 스마트 탭 서스펜더 (시간 트래킹 및 자동 절전 모드 검사) ──
+async function trackTabAccessed(tabId: number) {
+  try {
+    const now = Date.now();
+    const res = await chrome.storage.session.get("tabLastAccessed");
+    const lastAccessedMap = res.tabLastAccessed || {};
+    lastAccessedMap[String(tabId)] = now;
+    await chrome.storage.session.set({ tabLastAccessed: lastAccessedMap });
+    
+    // 온디맨드 자동 절전 검사 실행
+    await checkAndAutoSuspend(now, lastAccessedMap);
+  } catch (e) {
+    console.warn("Failed to track tab access:", e);
+  }
+}
+
+async function checkAndAutoSuspend(now: number, lastAccessedMap: Record<string, number>) {
+  try {
+    const settings = await chrome.storage.local.get("clickbook_auto_suspend_time");
+    const autoSuspendTime = settings.clickbook_auto_suspend_time || 0; // 0은 자동 절전 사용 안 함 (기본값)
+    if (autoSuspendTime <= 0) return;
+
+    const tabs = await chrome.tabs.query({});
+    const thresholdMs = autoSuspendTime * 60 * 1000;
+    let mapChanged = false;
+
+    for (const tab of tabs) {
+      if (!tab.id || tab.active || tab.pinned || tab.audible) continue;
+      if (!tab.url || (!tab.url.startsWith("http://") && !tab.url.startsWith("https://"))) continue;
+      // 이미 절전 모드인 탭은 건너뜀
+      if (tab.url.includes(chrome.runtime.getURL("suspend.html"))) continue;
+
+      const lastAccessed = lastAccessedMap[String(tab.id)];
+      if (!lastAccessed) {
+        lastAccessedMap[String(tab.id)] = now;
+        mapChanged = true;
+        continue;
+      }
+
+      if (now - lastAccessed > thresholdMs) {
+        const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}`);
+        await chrome.tabs.update(tab.id, { url: suspendUrl });
+        delete lastAccessedMap[String(tab.id)];
+        mapChanged = true;
+      }
+    }
+
+    if (mapChanged) {
+      await chrome.storage.session.set({ tabLastAccessed: lastAccessedMap });
+    }
+  } catch (e) {
+    console.warn("Failed to auto suspend check:", e);
+  }
+}
+
 
 // ── AI 정리: 포트 기반 장기 연결 (MV3에서 Service Worker 슬립 방지) ──
 // sendMessage와 달리 포트가 열려있는 동안 Service Worker가 슬립하지 않음
@@ -62,7 +424,7 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       return { success: true };
     }
     case "ADD_BOOKMARK": {
-      const { isDuplicateUrl } = await import("@/shared/storage");
+      const { isDuplicateUrl, addBookmark } = await import("@/shared/storage");
       const dup = await isDuplicateUrl(message.url);
       if (dup) return { success: false, error: "This URL is already registered", isDuplicate: true };
       if (!message.url.startsWith("http://") && !message.url.startsWith("https://")) {
@@ -70,8 +432,6 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       }
       const parsedUrl = new URL(message.url);
       const domain = parsedUrl.hostname;
-      
-      const aiData = await generateSummaryAndTags(message.url, message.title || message.url, "");
       
       const bookmark: Bookmark = {
         id: crypto.randomUUID(),
@@ -82,11 +442,27 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
         domain,
         visitCount: 0,
         savedAt: Date.now(),
-        summary: aiData.summary,
-        tags: aiData.tags,
       };
       await addBookmark(bookmark);
-      return { success: true };
+
+      // Run AI summary and tags generation asynchronously in the background
+      (async () => {
+        try {
+          const { generateSummaryAndTags } = await import("@/shared/categorizer");
+          const aiData = await generateSummaryAndTags(message.url, message.title || message.url, "");
+          if (aiData && (aiData.summary || aiData.tags)) {
+            const { updateBookmark } = await import("@/shared/storage");
+            await updateBookmark(bookmark.id, {
+              summary: aiData.summary,
+              tags: aiData.tags,
+            });
+          }
+        } catch (err) {
+          console.warn("Background AI summary failed:", err);
+        }
+      })();
+
+      return { success: true, data: bookmark };
     }
     case "INCREMENT_VISIT": {
       const { incrementVisitCount } = await import("@/shared/storage");
@@ -327,9 +703,205 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       // 포트 기반으로 처리됨 (chrome.runtime.onConnect "ai-reorganize")
       return { success: true, data: null };
     }
+    case "GET_CHROME_TAB_GROUPS": {
+      try {
+        const currentWindow = await chrome.windows.getLastFocused();
+        const groups = await chrome.tabGroups.query({ windowId: currentWindow.id });
+        return { success: true, data: groups };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
+    case "SAVE_TAB_GROUP_AS_FOLDER": {
+      try {
+        const { createFolder, addBookmark } = await import("@/shared/storage");
+        const folder = await createFolder(message.name, null, "📁");
+        const tabs = await chrome.tabs.query({ groupId: message.groupId });
+        let savedCount = 0;
+        for (const t of tabs) {
+          if (t.url && (t.url.startsWith("http://") || t.url.startsWith("https://"))) {
+            const urlObj = new URL(t.url);
+            const domain = urlObj.hostname;
+            const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            const bookmark: Bookmark = {
+              id: crypto.randomUUID(),
+              url: t.url,
+              title: t.title ?? t.url,
+              favicon,
+              folderId: folder.id,
+              domain,
+              visitCount: 0,
+              savedAt: Date.now()
+            };
+            await addBookmark(bookmark);
+            savedCount++;
+          }
+        }
+        // Close tabs in group after saving!
+        const tabIds = tabs.map(t => t.id).filter((id): id is number => id !== undefined);
+        if (tabIds.length > 0) {
+          await chrome.tabs.remove(tabIds);
+        }
+        return { success: true, data: { folder, savedCount } };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
+    case "OPEN_FOLDER_AS_TAB_GROUP": {
+      try {
+        const { getAllData } = await import("@/shared/storage");
+        const data = await getAllData();
+        const folderId = message.folderId;
+        const folder = data.folders.find(f => f.id === folderId);
+        if (!folder) return { success: false, error: "Folder not found" };
+
+        const targetFolderIds = await collectAllFolderIds(folderId);
+        const folderBookmarks = data.bookmarks.filter(b => targetFolderIds.includes(b.folderId));
+        if (folderBookmarks.length === 0) {
+          return { success: false, error: "No bookmarks in this folder" };
+        }
+
+        const tabIds: number[] = [];
+        for (const bm of folderBookmarks) {
+          const tab = await chrome.tabs.create({ url: bm.url, active: false });
+          if (tab.id) tabIds.push(tab.id);
+        }
+
+        if (tabIds.length > 0) {
+          const groupId = await chrome.tabs.group({ tabIds });
+          const groupTitle = folder.name;
+          const groupColor = mapFolderColorToGroupColor(folder.color);
+          await chrome.tabGroups.update(groupId, { title: groupTitle, color: groupColor });
+        }
+        return { success: true };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
+    case "TOGGLE_FOLDER_SECURE": {
+      const { toggleFolderSecure } = await import("@/shared/storage");
+      await toggleFolderSecure(message.id);
+      return { success: true };
+    }
+    case "CHECK_DOMAIN_SECURE": {
+      try {
+        const isSecure = await checkIsDomainSecure(message.url);
+        return { success: true, isSecure };
+      } catch (e) {
+        return { success: false, isSecure: false, error: String(e) };
+      }
+    }
+    case "SUSPEND_TAB": {
+      try {
+        const tab = await chrome.tabs.get(message.tabId);
+        if (tab && tab.url && !tab.url.includes(chrome.runtime.getURL("suspend.html"))) {
+          const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}`);
+          await chrome.tabs.update(message.tabId, { url: suspendUrl });
+        }
+        return { success: true };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
+    case "SUSPEND_ALL_INACTIVE": {
+      try {
+        const tabs = await chrome.tabs.query({});
+        let count = 0;
+        for (const tab of tabs) {
+          if (tab.id && !tab.active && !tab.pinned && tab.url && (tab.url.startsWith("http://") || tab.url.startsWith("https://")) && !tab.audible && !tab.url.includes(chrome.runtime.getURL("suspend.html"))) {
+            const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}`);
+            await chrome.tabs.update(tab.id, { url: suspendUrl });
+            count++;
+          }
+        }
+        return { success: true, data: count };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
+    case "UNSUSPEND_ALL": {
+      try {
+        const tabs = await chrome.tabs.query({});
+        let count = 0;
+        for (const tab of tabs) {
+          if (tab.id && tab.url && tab.url.includes(chrome.runtime.getURL("suspend.html"))) {
+            try {
+              const urlObj = new URL(tab.url);
+              const originalUrl = urlObj.searchParams.get("url");
+              if (originalUrl) {
+                await chrome.tabs.update(tab.id, { url: originalUrl });
+                count++;
+              }
+            } catch (err) {}
+          }
+        }
+        return { success: true, data: count };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
+    case "GET_SUSPEND_COUNT": {
+      try {
+        const tabs = await chrome.tabs.query({});
+        let count = 0;
+        for (const tab of tabs) {
+          if (tab.url && tab.url.includes(chrome.runtime.getURL("suspend.html"))) {
+            count++;
+          }
+        }
+        return { success: true, data: count };
+      } catch (e) {
+        return { success: false, error: String(e) };
+      }
+    }
     default:
       return { success: false, error: "Unknown message type" };
   }
+}
+
+async function collectAllFolderIds(folderId: string): Promise<string[]> {
+  const { getFolders } = await import("@/shared/storage");
+  const folders = await getFolders();
+  const ids: string[] = [folderId];
+  function collect(id: string) {
+    const children = folders.filter((f) => f.parentId === id);
+    for (const child of children) {
+      ids.push(child.id);
+      collect(child.id);
+    }
+  }
+  collect(folderId);
+  return ids;
+}
+
+function mapFolderColorToGroupColor(color?: string): chrome.tabGroups.Color {
+  if (!color) return "grey";
+  const c = color.toLowerCase();
+  if (c.includes("indigo") || c.includes("purple") || c.includes("violet") || c.includes("fuchsia")) {
+    return "purple";
+  }
+  if (c.includes("rose") || c.includes("red")) {
+    return "red";
+  }
+  if (c.includes("pink")) {
+    return "pink";
+  }
+  if (c.includes("blue") || c.includes("sky")) {
+    return "blue";
+  }
+  if (c.includes("emerald") || c.includes("green") || c.includes("teal")) {
+    return "green";
+  }
+  if (c.includes("cyan")) {
+    return "cyan";
+  }
+  if (c.includes("yellow") || c.includes("amber")) {
+    return "yellow";
+  }
+  if (c.includes("orange")) {
+    return "orange";
+  }
+  return "grey";
 }
 
 // ── SAVE_TAB ──────────────────────────────────────────────
@@ -375,8 +947,6 @@ async function saveActiveTab(): Promise<MessageResponse> {
     // ignore
   }
 
-  const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description);
-
   const bookmark: Bookmark = {
     id: crypto.randomUUID(),
     url: tab.url,
@@ -387,11 +957,26 @@ async function saveActiveTab(): Promise<MessageResponse> {
     domain,
     visitCount: 0,
     savedAt: Date.now(),
-    summary: aiData.summary,
-    tags: aiData.tags,
   };
 
   await addBookmark(bookmark);
+
+  // Run AI summary and tags generation asynchronously in the background
+  (async () => {
+    try {
+      const { generateSummaryAndTags } = await import("@/shared/categorizer");
+      const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description);
+      if (aiData && (aiData.summary || aiData.tags)) {
+        const { updateBookmark } = await import("@/shared/storage");
+        await updateBookmark(bookmark.id, {
+          summary: aiData.summary,
+          tags: aiData.tags,
+        });
+      }
+    } catch (err) {
+      console.warn("Background AI summary failed for saveActiveTab:", err);
+    }
+  })();
 
   const { getFolders } = await import("@/shared/storage");
   const folders = await getFolders();
@@ -526,8 +1111,7 @@ async function findOrCreateChromeFolder(
   const folder = data.folders.find((f) => f.id === folderId);
   if (!folder) return "1";
 
-  const { clickbook_lang } = await chrome.storage.local.get("clickbook_lang");
-  const lang = clickbook_lang || "en";
+  const lang = await getEffectiveLanguage();
 
   const localizedName = getLocalizedFolderName(folder, lang);
 
@@ -998,6 +1582,12 @@ async function reorganizeWithAI(
     result.set(bm.id, domainCategory(bm.domain));
   }
 
+  const aiAvailable = await isAIAvailable();
+  if (!aiAvailable) {
+    await logAIDebug(`[AI Organize] AI is not available/enabled. Skipping AI and returning domain rules.`);
+    return stats;
+  }
+
   // ── Step 2: AI 세션 생성 시도 (실패해도 Step1 결과로 종료) ──
   const folderNames = existingFolders ? existingFolders.map((f) => f.nameJa || f.name) : [];
   const folderHint = folderNames.length > 0
@@ -1088,4 +1678,203 @@ Output:`;
   session.destroy();
   return stats;
 }
+
+// ── Feature 2: Highlight Context-Menu Snip & Refinement ──────
+
+async function clipSelection(selectionText: string | undefined, tab?: chrome.tabs.Tab) {
+  if (!selectionText || !selectionText.trim()) return;
+  if (!tab || !tab.id) {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    tab = activeTab;
+  }
+  if (!tab || !tab.id || !tab.url) return;
+
+  try {
+    const { bookmark, isNew } = await saveTabForClipping(tab);
+    
+    const { getMemos, saveMemo } = await import("@/shared/storage");
+    const memos = await getMemos();
+    const existingMemo = memos[bookmark.id];
+    let content = `• ${selectionText.trim()}`;
+    if (existingMemo && existingMemo.content) {
+      content = `${existingMemo.content}\n• ${selectionText.trim()}`;
+    }
+    
+    // Save raw snippet first
+    await saveMemo(bookmark.id, content, "purple");
+
+    const lang = await getEffectiveLanguage();
+    
+    const aiEnabled = await isAIAvailable();
+    if (aiEnabled) {
+      // Inject "Saved Highlight! AI refining note..." toast
+      await injectToast(tab.id, "toastHighlightSaved");
+
+      const refined = await refineMemoDraft(content, lang);
+      if (refined.aiUsed && refined.draft) {
+        await saveMemo(bookmark.id, refined.draft, "purple");
+        // Inject "AI refined your clipping note!" toast
+        await injectToast(tab.id, "toastHighlightRefined");
+      } else {
+        await injectToast(tab.id, "toastHighlightRefineFailed");
+      }
+    } else {
+      await injectToast(tab.id, "toastHighlightRefineFailed");
+    }
+  } catch (err) {
+    console.error("Failed to clip selection:", err);
+  }
+}
+
+async function saveTabForClipping(tab: chrome.tabs.Tab): Promise<{ bookmark: Bookmark; isNew: boolean }> {
+  if (!tab.url) {
+    throw new Error("Could not get tab URL");
+  }
+  if (!tab.url.startsWith("http://") && !tab.url.startsWith("https://")) {
+    throw new Error("Only http/https URLs can be saved");
+  }
+
+  const existing = await getBookmarks();
+  const found = existing.find((b) => b.url === tab.url);
+  if (found) {
+    return { bookmark: found, isNew: false };
+  }
+
+  const url = new URL(tab.url);
+  const domain = url.hostname;
+  const { folderId } = await categorize(tab.url, tab.title ?? "", domain);
+  const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+  let description = "";
+  try {
+    const [injectionResult] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id! },
+      func: () => {
+        const meta = document.querySelector('meta[name="description"]');
+        return meta ? meta.getAttribute("content") : "";
+      }
+    });
+    if (injectionResult?.result) {
+      description = injectionResult.result as string;
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  const bookmark: Bookmark = {
+    id: crypto.randomUUID(),
+    url: tab.url,
+    title: tab.title ?? tab.url ?? "Untitled",
+    favicon,
+    folderId,
+    domain,
+    visitCount: 0,
+    savedAt: Date.now(),
+  };
+
+  await addBookmark(bookmark);
+
+  // Run AI summary and tags generation asynchronously in the background
+  (async () => {
+    try {
+      const { generateSummaryAndTags } = await import("@/shared/categorizer");
+      const aiData = await generateSummaryAndTags(tab.url, tab.title ?? "", description);
+      if (aiData && (aiData.summary || aiData.tags)) {
+        const { updateBookmark } = await import("@/shared/storage");
+        await updateBookmark(bookmark.id, {
+          summary: aiData.summary,
+          tags: aiData.tags,
+        });
+      }
+    } catch (err) {
+      console.warn("Background AI summary failed for saveTabForClipping:", err);
+    }
+  })();
+
+  return { bookmark, isNew: true };
+}
+
+async function injectToast(tabId: number, localeKey: string, replacement?: string) {
+  try {
+    const lang = await getEffectiveLanguage();
+    const dict = DICT[lang] ?? DICT.en;
+    let message = dict[localeKey as keyof typeof DICT.en] ?? dict.toastHighlightSaved;
+    if (replacement) {
+      message = message.replace("{domain}", replacement);
+    }
+
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      args: [message],
+      func: (msg) => {
+        let toast = document.getElementById("clickbook-snip-toast");
+        if (!toast) {
+          toast = document.createElement("div");
+          toast.id = "clickbook-snip-toast";
+          
+          Object.assign(toast.style, {
+            position: "fixed",
+            bottom: "24px",
+            right: "24px",
+            backgroundColor: "rgba(15, 12, 30, 0.85)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(139, 92, 246, 0.4)",
+            boxShadow: "0 10px 30px -3px rgba(139, 92, 246, 0.25), 0 4px 6px -2px rgba(139, 92, 246, 0.1)",
+            borderRadius: "12px",
+            padding: "14px 20px",
+            color: "#ffffff",
+            fontSize: "14px",
+            fontFamily: "system-ui, -apple-system, sans-serif",
+            fontWeight: "500",
+            zIndex: "999999999",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: "translateY(100px) scale(0.9)",
+            opacity: "0",
+          });
+
+          const icon = document.createElement("div");
+          icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>`;
+          toast.appendChild(icon);
+
+          const textSpan = document.createElement("span");
+          textSpan.id = "clickbook-snip-toast-text";
+          toast.appendChild(textSpan);
+
+          document.body.appendChild(toast);
+        }
+
+        const textSpan = toast.querySelector("#clickbook-snip-toast-text");
+        if (textSpan) {
+          textSpan.textContent = msg;
+        }
+
+        setTimeout(() => {
+          if (toast) {
+            toast.style.transform = "translateY(0) scale(1)";
+            toast.style.opacity = "1";
+          }
+        }, 10);
+
+        const timeoutId = (toast as any)._timeoutId;
+        if (timeoutId) clearTimeout(timeoutId);
+
+        (toast as any)._timeoutId = setTimeout(() => {
+          if (toast) {
+            toast.style.transform = "translateY(50px) scale(0.95)";
+            toast.style.opacity = "0";
+            setTimeout(() => {
+              toast?.remove();
+            }, 400);
+          }
+        }, 4000);
+      }
+    });
+  } catch (err) {
+    console.warn("Failed to inject toast:", err);
+  }
+}
+
 
