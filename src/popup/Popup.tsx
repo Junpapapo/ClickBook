@@ -372,7 +372,7 @@ export default function Popup() {
           {/* 管理ページへ */}
           <button
             onClick={() => {
-              const url = chrome.runtime.getURL("src/newtab/index.html");
+              const url = chrome.runtime.getURL("src/newtab/index.html?mode=dashboard");
               if (openDashboardInNewTab) {
                 chrome.tabs.create({ url });
               } else {

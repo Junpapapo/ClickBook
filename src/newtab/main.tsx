@@ -9,7 +9,9 @@ import "../styles/global.css";
 if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
   chrome.storage.local.get("clickbook_settings", (res) => {
     const useAsNewTab = res.clickbook_settings?.useClickBookAsNewTab !== false;
-    if (!useAsNewTab) {
+    const isDashboardMode = window.location.search.includes("mode=dashboard");
+
+    if (!useAsNewTab && !isDashboardMode) {
       if (chrome.tabs && chrome.tabs.update) {
         chrome.tabs.update({ url: "chrome://new-tab-page/" });
       } else {
