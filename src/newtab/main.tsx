@@ -10,7 +10,11 @@ if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
   chrome.storage.local.get("clickbook_settings", (res) => {
     const useAsNewTab = res.clickbook_settings?.useClickBookAsNewTab !== false;
     if (!useAsNewTab) {
-      window.location.replace("chrome://new-tab-page/");
+      if (chrome.tabs && chrome.tabs.update) {
+        chrome.tabs.update({ url: "chrome://new-tab-page/" });
+      } else {
+        window.location.replace("chrome://new-tab-page/");
+      }
     } else {
       render();
     }
