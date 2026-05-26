@@ -7,6 +7,7 @@ import { useLang } from "@/shared/LanguageContext";
 import { getLocalizedFolderName } from "@/shared/categories";
 import { MemoPopover } from "./BookmarkCard";
 import { EditModal } from "./BookmarkEditPanel";
+import { useDialog } from "@/shared/useDialog";
 
 interface Props {
   bookmark: Bookmark | null;
@@ -18,6 +19,7 @@ interface Props {
 
 export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, onRefresh }: Props) {
   const { t, lang } = useLang();
+  const { showAlert, DialogEl } = useDialog();
   const [isUpdating, setIsUpdating] = useState(false);
   const [showMemoPopover, setShowMemoPopover] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -60,11 +62,11 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
       if (res.success && onRefresh) {
         onRefresh();
       } else if (!res.success && res.error) {
-        alert(res.error);
+        showAlert(res.error, "warn");
       }
     } catch (e) {
       console.error(e);
-      alert("Failed to update AI info.");
+      showAlert("Failed to update AI info.", "warn");
     } finally {
       setIsUpdating(false);
     }
@@ -84,11 +86,11 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
           }
         }));
       } else {
-        alert(t("readerLegacyAlert"));
+        showAlert(t("readerLegacyAlert"), "warn");
       }
     } catch (e) {
       console.error(e);
-      alert(t("readerLoadFailed"));
+      showAlert(t("readerLoadFailed"), "warn");
     }
   };
 
@@ -336,6 +338,7 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
         />
       )}
     </div>
+    {DialogEl}
     </>
   );
 }
