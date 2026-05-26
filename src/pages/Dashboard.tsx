@@ -4,6 +4,7 @@ import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 import RecommendWidget from "@/components/RecommendWidget";
 import CustomSearchArea from "@/components/CustomSearchArea";
+import RecentReaderWidget from "@/components/RecentReaderWidget";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
@@ -272,6 +273,9 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
           />
         </section>
       )}
+
+      {/* 최근 읽은 사이트 */}
+      <RecentReaderWidget bookmarks={bookmarks} />
 
       {/* 最近追加 */}
       <section>

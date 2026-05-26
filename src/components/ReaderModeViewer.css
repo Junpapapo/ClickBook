@@ -227,6 +227,33 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  justify-content: flex-end;
+  min-width: 0;
+  flex: 1; /* Allow controls to occupy remaining toolbar space */
+}
+
+.reader-controls-selectors {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+  padding: 4px 0;
+  flex-shrink: 1;
+  min-width: 0; /* Enable shrinking & horizontal scrolling */
+}
+
+.reader-controls-selectors::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.reader-controls-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0; /* Keep actions (especially close button) pinned and never shrunk */
 }
 
 .reader-pill-selector {
@@ -467,4 +494,80 @@
 /* Helper spacing */
 .reader-spacer {
   height: 100px;
+}
+
+/* ── Responsive Toolbar & Media Queries ──────────────────── */
+
+/* Sidebar-aware responsive styling */
+@media (max-width: 1280px) {
+  /* When the Table of Contents sidebar is open, the main content area is 300px narrower.
+     Hide the document title sooner to avoid layout squeeze. */
+  .reader-sidebar-open .reader-doc-title {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Hide the document title regardless of sidebar state on medium viewports */
+  .reader-doc-title {
+    display: none;
+  }
+  
+  /* If the sidebar is open, hide badges too as width is very constrained (~724px) */
+  .reader-sidebar-open .reader-doc-badge {
+    display: none;
+  }
+
+  /* Compact button styling on medium/small viewports */
+  .reader-pill-btn {
+    padding: 5px 8px;
+    font-size: 0.8rem;
+  }
+  
+  .reader-controls-selectors {
+    gap: 8px;
+  }
+  
+  .reader-controls {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 850px) {
+  /* Hide reading metrics and badges on smaller screens */
+  .reader-doc-badge {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Mobile optimization for toolbar layout */
+  .reader-toolbar {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .reader-pill-btn {
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+
+  .reader-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .reader-close-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .reader-controls-selectors {
+    gap: 6px;
+  }
+
+  .reader-controls {
+    gap: 8px;
+  }
 }

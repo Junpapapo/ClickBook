@@ -77,12 +77,15 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
     try {
       const res = await chrome.runtime.sendMessage({ type: "GET_PAGE_CONTENT", bookmarkId: bookmark.id });
       if (res.success && res.data) {
+        const content = typeof res.data === "string"
+          ? res.data
+          : (res.data.readableContent || res.data.rawText || bookmark.summary || "");
         window.dispatchEvent(new CustomEvent("OPEN_READER_MODE", {
           detail: {
             bookmarkId: bookmark.id,
             title: bookmark.title,
             url: bookmark.url,
-            content: res.data.readableContent
+            content
           }
         }));
       } else {

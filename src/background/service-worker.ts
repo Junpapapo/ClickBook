@@ -1,6 +1,6 @@
 import type { Bookmark, Message, MessageResponse } from "@/shared/types";
 import { categorize, recommendSites, expandSearchQuery, getAIModel, generateSummaryAndTags, isAIAvailable, refineMemoDraft } from "@/shared/categorizer";
-import { getBookmarks, addBookmark, getAllData } from "@/shared/storage";
+import { getBookmarks, addBookmark, getAllData, migratePageContents, runGarbageCollector } from "@/shared/storage";
 import { getFolderById, DOMAIN_RULES, DEFAULT_FOLDER_ID, getLocalizedFolderName } from "@/shared/categories";
 import { DICT, type Lang } from "@/shared/i18n";
 
@@ -68,8 +68,76 @@ async function initializeTabCache() {
   }
 }
 
+// ── 백그라운드 위생 가비지 컬렉션(GC) 알람 스케줄 조율 함수 ──
+async function updateGCAlarm(interval: "daily" | "weekly" | "off") {
+  try {
+    await chrome.alarms.clear("clickbook-gc-alarm");
+    if (interval === "off") {
+      console.log("[GC Alarm] Background garbage collection alarm is disabled.");
+      return;
+    }
+    const periodInMinutes = interval === "weekly" ? 10080 : 1440;
+    await chrome.alarms.create("clickbook-gc-alarm", {
+      delayInMinutes: 5,
+      periodInMinutes
+    });
+    console.log(`[GC Alarm] Background garbage collection alarm scheduled: ${interval} (${periodInMinutes} mins)`);
+  } catch (err) {
+    console.warn("Failed to update GC alarm schedule:", err);
+  }
+}
+
+// 백그라운드 구동 시 1회성 초기화 및 마이그레이션 작업
+async function initializeBackground() {
+  // 1. 탭 캐시 초기화
+  await initializeTabCache();
+
+  // 2. 레거시 스크랩 페이지 분산 마이그레이션 실행
+  try {
+    await migratePageContents();
+  } catch (err) {
+    console.warn("Failed during migratePageContents:", err);
+  }
+
+  // 3. 백그라운드 가비지 컬렉터(GC) 알람 등록 (설정 주기 반영)
+  try {
+    const { getSettings } = await import("@/shared/storage");
+    const settings = await getSettings();
+    const interval = settings.gcInterval ?? "daily";
+
+    const existingAlarm = await chrome.alarms.get("clickbook-gc-alarm");
+    if (interval === "off") {
+      if (existingAlarm) {
+        await chrome.alarms.clear("clickbook-gc-alarm");
+      }
+    } else {
+      const periodInMinutes = interval === "weekly" ? 10080 : 1440;
+      if (!existingAlarm || existingAlarm.periodInMinutes !== periodInMinutes) {
+        await chrome.alarms.clear("clickbook-gc-alarm");
+        await chrome.alarms.create("clickbook-gc-alarm", {
+          delayInMinutes: existingAlarm ? 1440 : 5,
+          periodInMinutes
+        });
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to register GC alarm:", err);
+  }
+}
+
 // Initialize on startup
-initializeTabCache();
+initializeBackground();
+
+// 알람 이벤트 리스너 등록
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === "clickbook-gc-alarm") {
+    try {
+      await runGarbageCollector();
+    } catch (err) {
+      console.warn("Garbage collection failed in alarm listener:", err);
+    }
+  }
+});
 
 chrome.tabs.onCreated.addListener(async (tab) => {
   if (tab.id && tab.url) {
@@ -677,7 +745,17 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     case "SAVE_SETTINGS": {
       const { saveSettings } = await import("@/shared/storage");
       await saveSettings(message.settings);
+      await updateGCAlarm(message.settings.gcInterval ?? "daily");
       return { success: true };
+    }
+    case "RUN_GARBAGE_COLLECTOR": {
+      await runGarbageCollector();
+      return { success: true };
+    }
+    case "GET_ORPHANED_STATS": {
+      const { getOrphanedStorageStats } = await import("@/shared/storage");
+      const stats = await getOrphanedStorageStats();
+      return { success: true, data: stats };
     }
     case "GET_TODO_BOARD": {
       const { getTodoBoard } = await import("@/shared/storage");

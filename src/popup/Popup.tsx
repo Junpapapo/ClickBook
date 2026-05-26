@@ -3,7 +3,7 @@ import {
   BookmarkPlus, BookmarkCheck, ExternalLink, AlertCircle, CheckCircle2, Loader2,
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
   Settings, Globe2, Check, Sun, Moon, ShieldCheck,
-  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy, Book, Newspaper
+  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy, Book, BookOpen, Newspaper
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import type { MessageResponse, MemoColor } from "@/shared/types";
@@ -50,6 +50,7 @@ export default function Popup() {
   const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done">("idle");
   const [tabGroups, setTabGroups] = useState<chrome.tabGroups.TabGroup[]>([]);
   const [isCurrentTabSecure, setIsCurrentTabSecure] = useState(false);
+  const [isReaderLoading, setIsReaderLoading] = useState(false);
 
   const [popupTheme, setPopupThemeState] = useState<"light" | "dark">(() => {
     const s = localStorage.getItem("clickbook_theme");
@@ -189,6 +190,59 @@ export default function Popup() {
         setMessage(res.error ?? t("popupSaveFailed"));
       }
     } catch (err) { console.warn("Operation failed:", err); setStatus("error"); setMessage(t("popupError")); }
+  }
+
+  async function handleOpenPopupReader() {
+    setIsReaderLoading(true);
+    let targetBookmarkId = existingBookmarkId;
+
+    if (!targetBookmarkId) {
+      // Not bookmarked yet. Save first.
+      try {
+        const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
+        if (res.success) {
+          const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
+          if (d?.bookmark?.id) {
+            targetBookmarkId = d.bookmark.id;
+            setExistingBookmarkId(d.bookmark.id);
+            if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
+          }
+        } else if (res.isDuplicate) {
+          const dataRes = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
+          if (dataRes.success && dataRes.data) {
+            const data = dataRes.data as { bookmarks: Array<{ id: string; url: string }> };
+            const bm = data.bookmarks.find((b) => b.url === tabUrl);
+            if (bm) {
+              targetBookmarkId = bm.id;
+              setExistingBookmarkId(bm.id);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Auto-save failed inside offline reader:", err);
+      }
+    }
+
+    if (!targetBookmarkId) {
+      setStatus("error");
+      setMessage(t("popupSaveFailed"));
+      setIsReaderLoading(false);
+      return;
+    }
+
+    // Redirect to dashboard with reader parameter
+    const url = chrome.runtime.getURL(`src/newtab/index.html?mode=dashboard&reader=${targetBookmarkId}`);
+    if (openDashboardInNewTab) {
+      chrome.tabs.create({ url });
+    } else {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]?.id !== undefined) {
+          chrome.tabs.update(tabs[0].id, { url });
+          window.close();
+        }
+      });
+    }
+    setIsReaderLoading(false);
   }
 
   async function handleBulkSave() {
@@ -596,46 +650,60 @@ export default function Popup() {
       <p className="text-[10px] text-orange-400 uppercase tracking-wider font-medium -mb-1">{t("popupBookmarkSection")}</p>
 
       {/* 保存ボタン行 */}
-      <div className="flex gap-2">
-        <button
-          onClick={handleSave}
-          disabled={status === "loading" || status === "success"}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-xs"
-        >
-          {status === "loading" ? <Loader2 size={14} className="animate-spin" /> : <BookmarkPlus size={14} />}
-          {t("popupSave")}
-        </button>
-        <button
-          onClick={handleBulkSave}
-          disabled={bulkStatus === "loading"}
-          title={t("popupBulkSaveTitle")}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-xs"
-        >
-          {bulkStatus === "loading" ? <Loader2 size={14} className="animate-spin" /> : <BookmarkCheck size={14} />}
-          {t("popupBulkSave")}
-        </button>
-        <button
-          onClick={() => { setTextImportOpen(o => !o); setTimeout(() => textareaRef.current?.focus(), 50); }}
-          title={t("popupTextImportTitle")}
-          className={`shrink-0 flex items-center justify-center px-3 rounded-lg active:scale-95 transition-all ${
-            textImportOpen
-              ? "bg-indigo-600 text-white"
-              : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
-          }`}
-        >
-          <ClipboardList size={16} />
-        </button>
-        <button
-          onClick={() => setMemoOpen(o => !o)}
-          title={t("popupMemoTitle")}
-          className={`shrink-0 flex items-center justify-center px-3 rounded-lg active:scale-95 transition-all ${
-            memoOpen
-              ? "bg-indigo-600 text-white"
-              : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
-          }`}
-        >
-          <StickyNote size={16} />
-        </button>
+      <div className="flex flex-col gap-2">
+        <div className="flex gap-2">
+          <button
+            onClick={handleSave}
+            disabled={status === "loading" || status === "success"}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-xs cursor-pointer"
+          >
+            {status === "loading" ? <Loader2 size={14} className="animate-spin" /> : <BookmarkPlus size={14} />}
+            {t("popupSave")}
+          </button>
+          <button
+            onClick={handleOpenPopupReader}
+            disabled={isReaderLoading}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 via-indigo-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-xs text-white shadow-[0_0_12px_rgba(139,92,246,0.25)] hover:shadow-[0_0_18px_rgba(139,92,246,0.45)] border border-purple-500/20 cursor-pointer"
+          >
+            {isReaderLoading ? <Loader2 size={14} className="animate-spin" /> : <BookOpen size={14} />}
+            {t("offlineReaderBtn")}
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleBulkSave}
+            disabled={bulkStatus === "loading"}
+            title={t("popupBulkSaveTitle")}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-[11px] cursor-pointer"
+          >
+            {bulkStatus === "loading" ? <Loader2 size={12} className="animate-spin" /> : <BookmarkCheck size={12} />}
+            {t("popupBulkSave")}
+          </button>
+          <button
+            onClick={() => { setTextImportOpen(o => !o); setTimeout(() => textareaRef.current?.focus(), 50); }}
+            title={t("popupTextImportTitle")}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
+              textImportOpen
+                ? "bg-indigo-600 text-white"
+                : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+            }`}
+          >
+            <ClipboardList size={12} />
+            {t("popupTextImportMenu")}
+          </button>
+          <button
+            onClick={() => setMemoOpen(o => !o)}
+            title={t("popupMemoTitle")}
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
+              memoOpen
+                ? "bg-indigo-600 text-white"
+                : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+            }`}
+          >
+            <StickyNote size={12} />
+            {t("memo")}
+          </button>
+        </div>
       </div>
 
       {/* テキストインポートパネル */}

@@ -182,7 +182,7 @@ export default function CustomSearchSettingsModal({ isOpen, onClose, configs, cu
               <div className="flex flex-wrap gap-2">
                 {presetTab === "custom" ? (
                   draftCustomPresets.length === 0 ? (
-                    <span className="text-xs text-gray-400 py-1">등록된 커스텀 프리셋이 없습니다.</span>
+                    <span className="text-xs text-gray-400 py-1">{t("customSearchNoPresets")}</span>
                   ) : (
                     draftCustomPresets.map((p) => (
                       <div key={p.id} className="flex items-center gap-1 bg-gray-100 dark:bg-surface-800 text-gray-700 dark:text-gray-200 rounded-lg border border-gray-200 dark:border-surface-600 overflow-hidden">
@@ -208,7 +208,7 @@ export default function CustomSearchSettingsModal({ isOpen, onClose, configs, cu
             <div className="space-y-3">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Registered Searches</h3>
               {drafts.length === 0 ? (
-                <div className="text-sm text-gray-400 text-center py-4">추가된 검색이 없습니다.</div>
+                <div className="text-sm text-gray-400 text-center py-4">{t("customSearchNoSearches")}</div>
               ) : (
                 drafts.map((c, index) => (
                   <div 
@@ -242,7 +242,7 @@ export default function CustomSearchSettingsModal({ isOpen, onClose, configs, cu
                           </div>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                          <button onClick={() => handleSaveAsPreset(c)} className="p-1.5 text-gray-400 hover:text-amber-500 transition-colors" title="프리셋에 저장"><Star size={14} /></button>
+                          <button onClick={() => handleSaveAsPreset(c)} className="p-1.5 text-gray-400 hover:text-amber-500 transition-colors" title={t("customSearchSavePreset")}><Star size={14} /></button>
                           <button onClick={() => handleEdit(c)} className="p-1.5 text-gray-400 hover:text-indigo-500 transition-colors"><Edit2 size={14} /></button>
                           <button onClick={() => handleDelete(c.id)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
                         </div>

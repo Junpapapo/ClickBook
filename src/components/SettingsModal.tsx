@@ -138,15 +138,50 @@ export default function SettingsModal({
   const [saving, setSaving] = useState(false);
   const [storageBytes, setStorageBytes] = useState<number>(0);
   const [dangerZoneExpanded, setDangerZoneExpanded] = useState(false);
+  const [gcRunning, setGcRunning] = useState(false);
+  const [orphanedStats, setOrphanedStats] = useState<{ count: number; bytes: number } | null>(null);
 
   useEffect(() => {
     chrome.storage.local.getBytesInUse(null, (bytes) => {
       setStorageBytes(bytes || 0);
     });
+    loadOrphanedStats();
   }, []);
+
+  async function loadOrphanedStats() {
+    try {
+      const res = await chrome.runtime.sendMessage({ type: "GET_ORPHANED_STATS" });
+      if (res?.success && res.data) {
+        setOrphanedStats(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to load orphaned stats:", err);
+    }
+  }
 
   function set<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleRunGC() {
+    setGcRunning(true);
+    try {
+      const res = await chrome.runtime.sendMessage({ type: "RUN_GARBAGE_COLLECTOR" });
+      if (res?.success) {
+        chrome.storage.local.getBytesInUse(null, (bytes) => {
+          setStorageBytes(bytes || 0);
+        });
+        setOrphanedStats({ count: 0, bytes: 0 });
+        await showAlert(t("gcSuccess"), "info");
+      } else {
+        await showAlert(res?.error || "Cleanup failed", "warn");
+      }
+    } catch (err) {
+      console.error("Manual GC trigger failed:", err);
+      await showAlert(String(err), "warn");
+    } finally {
+      setGcRunning(false);
+    }
   }
 
   async function handleSave() {
@@ -181,7 +216,8 @@ export default function SettingsModal({
     draft.maxFolderDepth !== settings.maxFolderDepth ||
     draft.keepExistingFolders !== settings.keepExistingFolders ||
     draft.openDashboardInNewTab !== settings.openDashboardInNewTab ||
-    draft.useClickBookAsNewTab !== settings.useClickBookAsNewTab;
+    draft.useClickBookAsNewTab !== settings.useClickBookAsNewTab ||
+    draft.gcInterval !== settings.gcInterval;
 
 
   return (
@@ -323,6 +359,61 @@ export default function SettingsModal({
                     {(storageBytes / 1024 / 1024).toFixed(2)} MB
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">/ 10 MB</span>
+                </div>
+              </div>
+
+              {/* 자동 위생 청소 알람 주기 설정 */}
+              <div className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-600 dark:text-gray-300 border-t border-gray-100 dark:border-surface-700">
+                <div className="flex flex-col flex-1 min-w-0 pr-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-tight">
+                    {t("settingsGCIntervalLabel")}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-normal">
+                    {t("settingsGCIntervalDesc")}
+                  </span>
+                </div>
+                <select
+                  value={draft.gcInterval ?? "daily"}
+                  onChange={(e) => set("gcInterval", e.target.value as "daily" | "weekly" | "off")}
+                  className="text-xs bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2.5 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:border-indigo-500 transition-all cursor-pointer shrink-0"
+                >
+                  <option value="daily">{t("settingsGCIntervalDaily")}</option>
+                  <option value="weekly">{t("settingsGCIntervalWeekly")}</option>
+                  <option value="off">{t("settingsGCIntervalOff")}</option>
+                </select>
+              </div>
+
+              {/* 저장 공간 즉시 위생 소거 (수동 GC 트리거) */}
+              <div className="w-full flex flex-col px-4 py-3 border-t border-gray-100 dark:border-surface-700 bg-white/40 dark:bg-surface-800/40">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-tight">
+                        {t("runGC")}
+                      </span>
+                      {orphanedStats !== null && orphanedStats.count > 0 && (
+                        <span className="inline-flex items-center text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded animate-pulse whitespace-nowrap">
+                          ⚠️ {t("orphanedFound", { count: orphanedStats.count, size: (orphanedStats.bytes / 1024).toFixed(1) })}
+                        </span>
+                      )}
+                      {orphanedStats !== null && orphanedStats.count === 0 && (
+                        <span className="inline-flex items-center text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded whitespace-nowrap">
+                          ✨ {t("orphanedNone")}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 mt-1 leading-normal block">
+                      {t("runGCDesc")}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleRunGC}
+                    disabled={gcRunning}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-surface-700 hover:bg-indigo-100 dark:hover:bg-surface-600 text-indigo-600 dark:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold rounded-lg transition-all shrink-0"
+                  >
+                    <Trash2 size={12} className={gcRunning ? "animate-spin" : ""} />
+                    {gcRunning ? t("gcRunning") : t("runGC")}
+                  </button>
                 </div>
               </div>
             </div>

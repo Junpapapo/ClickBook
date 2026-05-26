@@ -57,6 +57,7 @@ function AppContent() {
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedKeywords, setExpandedKeywords] = useState<string[]>([]);
   const [pageContents, setPageContents] = useState<Record<string, string>>({});
+  const [pageContentsLoaded, setPageContentsLoaded] = useState(false);
   const [readerOpen, setReaderOpen] = useState(false);
   const [readerData, setReaderData] = useState<{ bookmarkId: string; title: string; url?: string; content: string } | null>(null);
 
@@ -176,15 +177,63 @@ function AppContent() {
     if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
     const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
     if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
-    const pageContentsRes = await sendMsg({ type: "GET_PAGE_CONTENTS" });
-    if (pageContentsRes.success && pageContentsRes.data) {
-      setPageContents(pageContentsRes.data as Record<string, string>);
-    }
   }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // 사용자가 검색어 입력을 시작하면 단 1회 대용량 컴팩트 FTS 인덱스를 호출합니다.
+  useEffect(() => {
+    if (searchQuery.trim().length > 0 && !pageContentsLoaded) {
+      setPageContentsLoaded(true);
+      sendMsg({ type: "GET_PAGE_CONTENTS" }).then((res) => {
+        if (res.success && res.data) {
+          setPageContents(res.data as Record<string, string>);
+        }
+      }).catch((err) => {
+        console.warn("Failed to load page contents lazily:", err);
+        setPageContentsLoaded(false); // 에러 시 다음 키 입력 때 재시도할 수 있도록 상태 롤백
+      });
+    }
+  }, [searchQuery, pageContentsLoaded]);
+
+  // Catch the `reader` parameter in URL query on mount / bookmarks loaded
+  useEffect(() => {
+    if (bookmarks.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const readerId = params.get("reader");
+    if (readerId) {
+      const bm = bookmarks.find(b => b.id === readerId);
+      if (bm) {
+        sendMsg({ type: "GET_PAGE_CONTENT", bookmarkId: readerId }).then((res) => {
+          const content = res.success && res.data
+            ? (typeof res.data === "string" ? res.data : ((res.data as any).readableContent || (res.data as any).rawText || ""))
+            : (bm.summary || "");
+          setReaderData({
+            bookmarkId: readerId,
+            title: bm.title,
+            url: bm.url,
+            content
+          });
+          setReaderOpen(true);
+        }).catch((err) => {
+          console.warn("Failed to load page content for URL reader param:", err);
+          setReaderData({
+            bookmarkId: readerId,
+            title: bm.title,
+            url: bm.url,
+            content: bm.summary || ""
+          });
+          setReaderOpen(true);
+        });
+
+        // Clean the URL query parameters
+        const newUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, [bookmarks]);
 
   useEffect(() => {
     const handleOpenInfo = (e: CustomEvent) => {

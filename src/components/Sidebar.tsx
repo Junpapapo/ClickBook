@@ -559,13 +559,14 @@ export default function Sidebar({
             <div className="relative flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
+                onMouseDown={(e) => e.stopPropagation()}
                 onClick={() => { setRenameIcon(f.icon ?? "📁"); setShowPicker(showPicker === "rename" ? null : "rename"); }}
                 className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
               >
                 <FolderIcon iconName={renameIcon || f.icon || "📁"} />
               </button>
               {showPicker === "rename" && (
-                <IconPicker onSelect={(ic) => { setRenameIcon(ic); setShowPicker(null); }} className="left-0 -translate-x-1/4" />
+                <IconPicker onSelect={(ic) => { setRenameIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0 -translate-x-1/4" />
               )}
               <input
                 autoFocus
@@ -718,13 +719,14 @@ export default function Sidebar({
           >
             <button
               type="button"
+              onMouseDown={(e) => e.stopPropagation()}
               onClick={() => setShowPicker(showPicker === "create" ? null : "create")}
               className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
             >
               <FolderIcon iconName={newFolderIcon} />
             </button>
             {showPicker === "create" && (
-              <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} className="left-0 -translate-x-1/4" />
+              <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0 -translate-x-1/4" />
             )}
             <input
               autoFocus
@@ -1037,13 +1039,14 @@ export default function Sidebar({
         <div className="relative flex items-center gap-1 mx-1.5 mb-1 rounded-lg bg-gray-50 dark:bg-surface-800 px-3 py-1.5">
           <button
             type="button"
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={() => setShowPicker(showPicker === "create" ? null : "create")}
             className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
           >
             <FolderIcon iconName={newFolderIcon} />
           </button>
           {showPicker === "create" && (
-            <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} className="left-0" />
+            <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0" />
           )}
           <input
             autoFocus

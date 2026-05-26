@@ -115,7 +115,7 @@ export async function isDuplicateUrl(url: string, excludeId?: string): Promise<b
 export async function incrementVisitCount(id: string): Promise<void> {
   const data = await readStorage();
   data.bookmarks = data.bookmarks.map((b) =>
-    b.id === id ? { ...b, visitCount: b.visitCount + 1 } : b
+    b.id === id ? { ...b, visitCount: b.visitCount + 1, lastVisitedAt: Date.now() } : b
   );
   await writeStorage(data);
 }
@@ -458,6 +458,7 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   keepExistingFolders: false,
   openDashboardInNewTab: false,
   useClickBookAsNewTab: true,
+  gcInterval: "daily",
   customSearchConfigs: [
     { id: "cs-google", name: "Google", urlTemplate: "https://www.google.com/search?q={keyword}" },
     { id: "cs-youtube", name: "YouTube", urlTemplate: "https://www.youtube.com/results?search_query={keyword}" },
@@ -521,23 +522,18 @@ export async function saveTodoBoard(data: import("./types").TodoBoardData): Prom
 // ── Page Contents (FTS & Offline Reader) ───────────────────
 
 const PAGE_CONTENTS_KEY = "clickbook_page_contents";
+const PAGE_CONTENT_PREFIX = "clickbook_content_";
+const FTS_INDEX_KEY = "clickbook_fts_index";
 
 export async function getPageContents(): Promise<Record<string, string>> {
-  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
-  const data = r[PAGE_CONTENTS_KEY] ?? {};
-  const map: Record<string, string> = {};
-  for (const [id, content] of Object.entries(data)) {
-    if (content && typeof content === "object" && (content as any).rawText) {
-      map[id] = (content as any).rawText;
-    }
-  }
-  return map;
+  const r = await chrome.storage.local.get(FTS_INDEX_KEY);
+  return r[FTS_INDEX_KEY] ?? {};
 }
 
 export async function getPageContent(bookmarkId: string): Promise<import("./types").PageContent | null> {
-  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
-  const data = r[PAGE_CONTENTS_KEY] ?? {};
-  return data[bookmarkId] ?? null;
+  const key = PAGE_CONTENT_PREFIX + bookmarkId;
+  const r = await chrome.storage.local.get(key);
+  return r[key] ?? null;
 }
 
 export async function savePageContent(
@@ -545,20 +541,198 @@ export async function savePageContent(
   rawText: string,
   readableContent: string
 ): Promise<void> {
-  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
-  const data = r[PAGE_CONTENTS_KEY] ?? {};
-  data[bookmarkId] = {
+  // 1. 개별 PageContent 키에 정밀 타격 저장
+  const contentKey = PAGE_CONTENT_PREFIX + bookmarkId;
+  const contentObj: import("./types").PageContent = {
     bookmarkId,
     rawText,
     readableContent,
     scrapedAt: Date.now()
   };
-  await chrome.storage.local.set({ [PAGE_CONTENTS_KEY]: data });
+  await chrome.storage.local.set({ [contentKey]: contentObj });
+
+  // 2. 검색에 활용되는 컴팩트 FTS 인덱스만 단일 키에 누적 보관
+  const r = await chrome.storage.local.get(FTS_INDEX_KEY);
+  const index = r[FTS_INDEX_KEY] ?? {};
+  index[bookmarkId] = rawText;
+  await chrome.storage.local.set({ [FTS_INDEX_KEY]: index });
 }
 
 export async function deletePageContent(bookmarkId: string): Promise<void> {
-  const r = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
-  const data = r[PAGE_CONTENTS_KEY] ?? {};
-  delete data[bookmarkId];
-  await chrome.storage.local.set({ [PAGE_CONTENTS_KEY]: data });
+  // 1. 개별 PageContent 키 삭제
+  const contentKey = PAGE_CONTENT_PREFIX + bookmarkId;
+  await chrome.storage.local.remove(contentKey);
+
+  // 2. FTS 인덱스에서 제거
+  const r = await chrome.storage.local.get(FTS_INDEX_KEY);
+  const index = r[FTS_INDEX_KEY] ?? {};
+  if (index[bookmarkId] !== undefined) {
+    delete index[bookmarkId];
+    await chrome.storage.local.set({ [FTS_INDEX_KEY]: index });
+  }
 }
+
+// ── 데이터 마이그레이션 (레거시 단일 키 -> 분산 개별 키 + FTS 인덱스) ──
+export async function migratePageContents(): Promise<void> {
+  const legacyData = await chrome.storage.local.get(PAGE_CONTENTS_KEY);
+  const contents = legacyData[PAGE_CONTENTS_KEY];
+  if (!contents || typeof contents !== "object" || Object.keys(contents).length === 0) {
+    return;
+  }
+
+  console.log(`[Storage Migration] Starting migration of ${Object.keys(contents).length} legacy page contents...`);
+
+  const ftsIndex: Record<string, string> = {};
+  const batchSize = 20;
+  const entries = Object.entries(contents);
+
+  for (let i = 0; i < entries.length; i += batchSize) {
+    const batch = entries.slice(i, i + batchSize);
+    const saveObj: Record<string, any> = {};
+
+    for (const [id, content] of batch) {
+      if (content && typeof content === "object") {
+        const rawText = (content as any).rawText ?? "";
+        const readableContent = (content as any).readableContent ?? "";
+        const scrapedAt = (content as any).scrapedAt ?? Date.now();
+
+        // 1. 개별 키 세팅
+        const contentKey = PAGE_CONTENT_PREFIX + id;
+        saveObj[contentKey] = {
+          bookmarkId: id,
+          rawText,
+          readableContent,
+          scrapedAt
+        };
+
+        // 2. FTS 인덱스 구성
+        ftsIndex[id] = rawText;
+      }
+    }
+
+    if (Object.keys(saveObj).length > 0) {
+      await chrome.storage.local.set(saveObj);
+    }
+  }
+
+  // 3. 컴팩트 FTS 인덱스 반영
+  const r = await chrome.storage.local.get(FTS_INDEX_KEY);
+  const existingFts = r[FTS_INDEX_KEY] ?? {};
+  const mergedFts = { ...existingFts, ...ftsIndex };
+  await chrome.storage.local.set({ [FTS_INDEX_KEY]: mergedFts });
+
+  // 4. 레거시 마스터 키 소거 (1회성 작업 완료)
+  await chrome.storage.local.remove(PAGE_CONTENTS_KEY);
+  console.log("[Storage Migration] Migration completed successfully. Legacy clickbook_page_contents key removed.");
+}
+
+// ── 백그라운드 위생 가비지 컬렉터 (GC) ──
+export async function runGarbageCollector(): Promise<void> {
+  console.log("[GC] Starting storage garbage collection...");
+  const bookmarks = await getBookmarks();
+  const activeIds = new Set(bookmarks.map(b => b.id));
+
+  const allStorage = await chrome.storage.local.get(null);
+  const keysToRemove: string[] = [];
+
+  // 1. 살아있는 북마크가 없는 고아 clickbook_content_{bookmarkId} 키 완전 제거
+  for (const key of Object.keys(allStorage)) {
+    if (key.startsWith(PAGE_CONTENT_PREFIX)) {
+      const bookmarkId = key.substring(PAGE_CONTENT_PREFIX.length);
+      if (!activeIds.has(bookmarkId)) {
+        keysToRemove.push(key);
+      }
+    }
+  }
+
+  if (keysToRemove.length > 0) {
+    await chrome.storage.local.remove(keysToRemove);
+    console.log(`[GC] Cleaned up ${keysToRemove.length} orphaned reader content keys.`);
+  }
+
+  // 2. 살아있는 북마크가 없는 고아 FTS 인덱스 원소 소거
+  const r = await chrome.storage.local.get(FTS_INDEX_KEY);
+  const ftsIndex = r[FTS_INDEX_KEY] ?? {};
+  let ftsChanged = false;
+  for (const bookmarkId of Object.keys(ftsIndex)) {
+    if (!activeIds.has(bookmarkId)) {
+      delete ftsIndex[bookmarkId];
+      ftsChanged = true;
+    }
+  }
+  if (ftsChanged) {
+    await chrome.storage.local.set({ [FTS_INDEX_KEY]: ftsIndex });
+    console.log("[GC] Cleaned up orphaned entries from compact FTS index.");
+  }
+
+  // 3. 살아있는 북마크가 없는 고아 메모 제거 (단, standalone_ 프리픽스는 보존)
+  const memos = await readMemos();
+  let memosChanged = false;
+  for (const key of Object.keys(memos)) {
+    if (!key.startsWith("standalone_") && !activeIds.has(key)) {
+      delete memos[key];
+      memosChanged = true;
+    }
+  }
+  if (memosChanged) {
+    await chrome.storage.local.set({ [MEMOS_KEY]: memos });
+    console.log("[GC] Cleaned up orphaned memos.");
+  }
+
+  console.log("[GC] Garbage collection run completed successfully.");
+}
+
+export interface OrphanedStats {
+  count: number;
+  bytes: number;
+}
+
+export async function getOrphanedStorageStats(): Promise<OrphanedStats> {
+  const bookmarks = await getBookmarks();
+  const activeIds = new Set(bookmarks.map((b) => b.id));
+
+  const allStorage = await chrome.storage.local.get(null);
+  let count = 0;
+  let bytes = 0;
+
+  // 1. Orphaned page content keys (clickbook_content_*)
+  for (const [key, val] of Object.entries(allStorage)) {
+    if (key.startsWith(PAGE_CONTENT_PREFIX)) {
+      const bookmarkId = key.substring(PAGE_CONTENT_PREFIX.length);
+      if (!activeIds.has(bookmarkId)) {
+        count++;
+        try {
+          const str = JSON.stringify(val);
+          bytes += str ? str.length : 0;
+        } catch (_) {}
+      }
+    }
+  }
+
+  // 2. Orphaned FTS index entries
+  const ftsIndex = allStorage[FTS_INDEX_KEY] ?? {};
+  for (const [bookmarkId, rawText] of Object.entries(ftsIndex)) {
+    if (!activeIds.has(bookmarkId)) {
+      count++;
+      try {
+        const str = JSON.stringify(rawText);
+        bytes += str ? str.length : 0;
+      } catch (_) {}
+    }
+  }
+
+  // 3. Orphaned memos
+  const memos = allStorage[MEMOS_KEY] ?? {};
+  for (const [key, memo] of Object.entries(memos)) {
+    if (!key.startsWith("standalone_") && !activeIds.has(key)) {
+      count++;
+      try {
+        const str = JSON.stringify(memo);
+        bytes += str ? str.length : 0;
+      } catch (_) {}
+    }
+  }
+
+  return { count, bytes };
+}
+

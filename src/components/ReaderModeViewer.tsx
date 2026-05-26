@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   X,
@@ -53,7 +53,7 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
   initialContent,
   onClose,
 }) => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   // Theme settings (loaded from localStorage or default)
   const [theme, setTheme] = useState<"light" | "sepia" | "dark">(() => {
     return (localStorage.getItem("clickbook_reader_theme") as any) || "dark";
@@ -85,31 +85,120 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
     localStorage.setItem("clickbook_reader_size", fontSize);
   }, [fontSize]);
 
-  // Scroll tracking progress
+  // Register recently read site
   useEffect(() => {
-    const handleScroll = () => {
-      const el = containerRef.current;
-      if (!el) return;
-      const totalHeight = el.scrollHeight - el.clientHeight;
-      if (totalHeight <= 0) {
-        setScrollProgress(100);
-        return;
+    if (!bookmarkId) return;
+    chrome.storage.local.get(["clickbook_recent_reads"], (result) => {
+      const recent = (result.clickbook_recent_reads as string[]) || [];
+      const filtered = recent.filter((id) => id !== bookmarkId);
+      const updated = [bookmarkId, ...filtered].slice(0, 8);
+      chrome.storage.local.set({ clickbook_recent_reads: updated });
+    });
+  }, [bookmarkId]);
+
+  // Calculate reading metrics
+  const metrics = useMemo(() => {
+    const text = initialContent || "";
+    const cleanText = text
+      .replace(/#{1,6}\s+/g, "")
+      .replace(/[*`~_-]/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .trim();
+
+    const isAsian = lang === "ko" || lang === "ja";
+    let count = 0;
+    let readingTime = 0;
+
+    if (isAsian) {
+      count = cleanText.length;
+      readingTime = Math.max(1, Math.ceil(count / 300));
+    } else {
+      const words = cleanText.split(/\s+/).filter(Boolean);
+      count = words.length;
+      readingTime = Math.max(1, Math.ceil(count / 200));
+    }
+
+    return { count, readingTime, isAsian };
+  }, [initialContent, lang]);
+
+  const savedScrollPercentRef = useRef<number | null>(null);
+  const isRestoredRef = useRef(false);
+
+  // Load saved scroll percentage
+  useEffect(() => {
+    isRestoredRef.current = false;
+    chrome.storage.local.get(["clickbook_reader_scrolls"], (result) => {
+      const scrolls = result.clickbook_reader_scrolls || {};
+      const saved = scrolls[bookmarkId];
+      if (typeof saved === "number") {
+        savedScrollPercentRef.current = saved;
+      } else {
+        savedScrollPercentRef.current = null;
       }
+    });
+  }, [bookmarkId]);
+
+  // Restore scroll position once content is ready
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const el = containerRef.current;
+      if (!el || isRestoredRef.current || savedScrollPercentRef.current === null) return;
+      const totalHeight = el.scrollHeight - el.clientHeight;
+      if (totalHeight > 0) {
+        el.scrollTop = (savedScrollPercentRef.current / 100) * totalHeight;
+        isRestoredRef.current = true;
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [initialContent]);
+
+  // Save scroll position as the user scrolls
+  const saveScrollProgress = () => {
+    const el = containerRef.current;
+    if (!el || !isRestoredRef.current) return;
+    const totalHeight = el.scrollHeight - el.clientHeight;
+    if (totalHeight <= 0) return;
+    const progress = (el.scrollTop / totalHeight) * 100;
+    
+    chrome.storage.local.get(["clickbook_reader_scrolls"], (result) => {
+      const scrolls = result.clickbook_reader_scrolls || {};
+      scrolls[bookmarkId] = progress;
+      chrome.storage.local.set({ clickbook_reader_scrolls: scrolls });
+    });
+  };
+
+  const saveTimeoutRef = useRef<any>(null);
+  const handleScrollAndSave = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    const totalHeight = el.scrollHeight - el.clientHeight;
+    if (totalHeight <= 0) {
+      setScrollProgress(100);
+    } else {
       const progress = (el.scrollTop / totalHeight) * 100;
       setScrollProgress(progress);
-    };
+    }
 
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveScrollProgress();
+    }, 300);
+  };
+
+  useEffect(() => {
     const el = containerRef.current;
-    el?.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial call
-    return () => el?.removeEventListener("scroll", handleScroll);
-  }, [initialContent]);
+    el?.addEventListener("scroll", handleScrollAndSave);
+    return () => {
+      el?.removeEventListener("scroll", handleScrollAndSave);
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [bookmarkId, initialContent]);
 
   // Table of Contents generation
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   useEffect(() => {
     const parsed: TOCItem[] = [];
-    const lines = initialContent.split("\n");
+    const lines = (initialContent || "").split("\n");
     lines.forEach((line) => {
       const match = line.match(/^(#{1,3})\s+(.+)$/);
       if (match) {
@@ -128,14 +217,14 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
 
   // Actions
   const handleCopyMarkdown = () => {
-    navigator.clipboard.writeText(initialContent);
+    navigator.clipboard.writeText(initialContent || "");
     setCopiedMarkdown(true);
     setTimeout(() => setCopiedMarkdown(false), 2000);
   };
 
   const handleCopyText = () => {
     // Simple regex strip of markdown annotations to get plain text
-    const plainText = initialContent
+    const plainText = (initialContent || "")
       .replace(/#{1,6}\s+/g, "")
       .replace(/[*`~_-]/g, "")
       .replace(/\n\s*\n+/g, "\n\n")
@@ -177,8 +266,10 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
     h6: renderHeading(6),
   };
 
+  const showSidebar = isTOCVisible && headings.length > 0;
+
   return (
-    <div className={`reader-overlay reader-theme-${theme}`}>
+    <div className={`reader-overlay reader-theme-${theme} ${showSidebar ? "reader-sidebar-open" : ""}`}>
       {/* Top scroll progress indicator */}
       <div className="reader-progress-container">
         <div className="reader-progress-bar" style={{ width: `${scrollProgress}%` }} />
@@ -230,132 +321,141 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
               <BookOpen size={12} style={{ marginRight: 4, display: "inline" }} />
               {t("readerTitle")}
             </div>
+            <div className="reader-doc-badge" style={{ background: "rgba(139, 92, 246, 0.12)", color: "#a78bfa", borderColor: "rgba(139, 92, 246, 0.25)" }}>
+              <span>{t("estReadingTime", { n: metrics.readingTime })}</span>
+              <span style={{ margin: "0 4px", opacity: 0.5 }}>•</span>
+              <span>{metrics.isAsian ? t("characterCount", { n: metrics.count.toLocaleString() }) : t("wordsCount", { n: metrics.count.toLocaleString() })}</span>
+            </div>
             <h1 className="reader-doc-title" title={title}>
               {title}
             </h1>
           </div>
 
           <div className="reader-controls">
-            {/* Theme Toggle (Light / Sepia / Dark) */}
-            <div className="reader-pill-selector">
-              <button
-                onClick={() => setTheme("light")}
-                className={`reader-pill-btn ${theme === "light" ? "reader-pill-btn-active" : ""}`}
-                title={t("readerTooltipThemeLight")}
-              >
-                <Sun size={14} />
-              </button>
-              <button
-                onClick={() => setTheme("sepia")}
-                className={`reader-pill-btn ${theme === "sepia" ? "reader-pill-btn-active" : ""}`}
-                title={t("readerTooltipThemeSepia")}
-                style={{ fontSize: "0.8rem" }}
-              >
-                Sepia
-              </button>
-              <button
-                onClick={() => setTheme("dark")}
-                className={`reader-pill-btn ${theme === "dark" ? "reader-pill-btn-active" : ""}`}
-                title={t("readerTooltipThemeDark")}
-              >
-                <Moon size={14} />
-              </button>
+            <div className="reader-controls-selectors">
+              {/* Theme Toggle (Light / Sepia / Dark) */}
+              <div className="reader-pill-selector">
+                <button
+                  onClick={() => setTheme("light")}
+                  className={`reader-pill-btn ${theme === "light" ? "reader-pill-btn-active" : ""}`}
+                  title={t("readerTooltipThemeLight")}
+                >
+                  <Sun size={14} />
+                </button>
+                <button
+                  onClick={() => setTheme("sepia")}
+                  className={`reader-pill-btn ${theme === "sepia" ? "reader-pill-btn-active" : ""}`}
+                  title={t("readerTooltipThemeSepia")}
+                  style={{ fontSize: "0.8rem" }}
+                >
+                  Sepia
+                </button>
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={`reader-pill-btn ${theme === "dark" ? "reader-pill-btn-active" : ""}`}
+                  title={t("readerTooltipThemeDark")}
+                >
+                  <Moon size={14} />
+                </button>
+              </div>
+
+              {/* Font Family Selector */}
+              <div className="reader-pill-selector">
+                <button
+                  onClick={() => setFontFamily("serif")}
+                  className={`reader-pill-btn ${fontFamily === "serif" ? "reader-pill-btn-active" : ""}`}
+                  title={t("readerFontSerif")}
+                >
+                  {t("readerFontSerif")}
+                </button>
+                <button
+                  onClick={() => setFontFamily("sans")}
+                  className={`reader-pill-btn ${fontFamily === "sans" ? "reader-pill-btn-active" : ""}`}
+                  title={t("readerFontSans")}
+                >
+                  {t("readerFontSans")}
+                </button>
+                <button
+                  onClick={() => setFontFamily("mono")}
+                  className={`reader-pill-btn ${fontFamily === "mono" ? "reader-pill-btn-active" : ""}`}
+                  title={t("readerFontMono")}
+                >
+                  {t("readerFontMono")}
+                </button>
+              </div>
+
+              {/* Font Size Selector */}
+              <div className="reader-pill-selector">
+                <button
+                  onClick={() => setFontSize("s")}
+                  className={`reader-pill-btn ${fontSize === "s" ? "reader-pill-btn-active" : ""}`}
+                  title="A-"
+                >
+                  A-
+                </button>
+                <button
+                  onClick={() => setFontSize("m")}
+                  className={`reader-pill-btn ${fontSize === "m" ? "reader-pill-btn-active" : ""}`}
+                  title="A"
+                >
+                  A
+                </button>
+                <button
+                  onClick={() => setFontSize("l")}
+                  className={`reader-pill-btn ${fontSize === "l" ? "reader-pill-btn-active" : ""}`}
+                  title="A+"
+                >
+                  A+
+                </button>
+                <button
+                  onClick={() => setFontSize("xl")}
+                  className={`reader-pill-btn ${fontSize === "xl" ? "reader-pill-btn-active" : ""}`}
+                  title="A++"
+                >
+                  A++
+                </button>
+              </div>
             </div>
 
-            {/* Font Family Selector */}
-            <div className="reader-pill-selector">
+            <div className="reader-controls-actions">
+              {/* Utility Actions */}
               <button
-                onClick={() => setFontFamily("serif")}
-                className={`reader-pill-btn ${fontFamily === "serif" ? "reader-pill-btn-active" : ""}`}
-                title={t("readerFontSerif")}
-              >
-                {t("readerFontSerif")}
-              </button>
-              <button
-                onClick={() => setFontFamily("sans")}
-                className={`reader-pill-btn ${fontFamily === "sans" ? "reader-pill-btn-active" : ""}`}
-                title={t("readerFontSans")}
-              >
-                {t("readerFontSans")}
-              </button>
-              <button
-                onClick={() => setFontFamily("mono")}
-                className={`reader-pill-btn ${fontFamily === "mono" ? "reader-pill-btn-active" : ""}`}
-                title={t("readerFontMono")}
-              >
-                {t("readerFontMono")}
-              </button>
-            </div>
-
-            {/* Font Size Selector */}
-            <div className="reader-pill-selector">
-              <button
-                onClick={() => setFontSize("s")}
-                className={`reader-pill-btn ${fontSize === "s" ? "reader-pill-btn-active" : ""}`}
-                title="A-"
-              >
-                A-
-              </button>
-              <button
-                onClick={() => setFontSize("m")}
-                className={`reader-pill-btn ${fontSize === "m" ? "reader-pill-btn-active" : ""}`}
-                title="A"
-              >
-                A
-              </button>
-              <button
-                onClick={() => setFontSize("l")}
-                className={`reader-pill-btn ${fontSize === "l" ? "reader-pill-btn-active" : ""}`}
-                title="A+"
-              >
-                A+
-              </button>
-              <button
-                onClick={() => setFontSize("xl")}
-                className={`reader-pill-btn ${fontSize === "xl" ? "reader-pill-btn-active" : ""}`}
-                title="A++"
-              >
-                A++
-              </button>
-            </div>
-
-            {/* Utility Actions */}
-            <button
-              onClick={handleCopyMarkdown}
-              className="reader-action-btn"
-              title={t("readerTooltipCopyMarkdown")}
-            >
-              {copiedMarkdown ? <CheckCheck size={16} color="#10b981" /> : <Copy size={16} />}
-            </button>
-
-            <button
-              onClick={handleCopyText}
-              className="reader-action-btn"
-              title={t("readerTooltipCopyText")}
-            >
-              {copiedText ? <CheckCheck size={16} color="#10b981" /> : <FileText size={16} />}
-            </button>
-
-            {url && (
-              <a
-                href={url}
-                target="_blank"
-                rel="noreferrer"
+                onClick={handleCopyMarkdown}
                 className="reader-action-btn"
-                title={t("readerTooltipOpenSource")}
+                title={t("readerTooltipCopyMarkdown")}
               >
-                <ExternalLink size={16} />
-              </a>
-            )}
+                {copiedMarkdown ? <CheckCheck size={16} color="#10b981" /> : <Copy size={16} />}
+              </button>
 
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="reader-action-btn reader-close-btn"
-              title={t("readerTooltipExit")}
-            >
-              <X size={18} />
-            </button>
+              <button
+                onClick={handleCopyText}
+                className="reader-action-btn"
+                title={t("readerTooltipCopyText")}
+              >
+                {copiedText ? <CheckCheck size={16} color="#10b981" /> : <FileText size={16} />}
+              </button>
+
+              {url && (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="reader-action-btn"
+                  title={t("readerTooltipOpenSource")}
+                >
+                  <ExternalLink size={16} />
+                </a>
+              )}
+
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="reader-action-btn reader-close-btn"
+                title={t("readerTooltipExit")}
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
         </header>
 

@@ -267,6 +267,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
         <span className="text-gray-400 dark:text-gray-600">/</span>
         <div className="relative flex items-center">
           <button
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={() => setShowIconPicker(!showIconPicker)}
             className="p-1 hover:bg-gray-100 dark:hover:bg-surface-700 rounded transition-colors"
             title="Change Icon"
@@ -274,7 +275,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
             <FolderIcon iconName={folder.icon || "📁"} size={22} className="text-[22px] text-gray-700 dark:text-gray-200" />
           </button>
           {showIconPicker && (
-            <IconPicker onSelect={handleIconChange} className="left-0 mt-2" />
+            <IconPicker onSelect={handleIconChange} onClose={() => setShowIconPicker(false)} className="left-0 mt-2" />
           )}
         </div>
         {editingName ? (

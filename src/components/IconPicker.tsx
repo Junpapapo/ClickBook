@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FolderIcon, LUCIDE_ICONS_MAP, AVAILABLE_ICON_NAMES } from "./DynamicIcon";
 
 const FOLDER_ICONS = [
@@ -40,14 +40,28 @@ const FOLDER_ICONS = [
 
 interface Props {
   onSelect: (icon: string) => void;
+  onClose?: () => void;
   className?: string;
 }
 
-export function IconPicker({ onSelect, className = "" }: Props) {
+export function IconPicker({ onSelect, onClose, className = "" }: Props) {
   const [tab, setTab] = useState<"emoji" | "icon">("emoji");
-  
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        onClose?.();
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
   return (
-    <div className={`absolute top-full mt-1 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-600 rounded-lg p-2 shadow-xl w-[200px] ${className}`}>
+    <div ref={containerRef} className={`absolute top-full mt-1 z-50 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-600 rounded-lg p-2 shadow-xl w-[200px] ${className}`}>
       <div className="flex gap-1 mb-2 border-b border-gray-100 dark:border-surface-700 pb-2">
         <button
           onClick={() => setTab("emoji")}

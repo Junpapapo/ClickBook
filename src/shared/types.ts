@@ -71,6 +71,7 @@ export interface Bookmark {
   domain: string;
   visitCount: number;
   savedAt: number;
+  lastVisitedAt?: number;
   summary?: string;
   tags?: string[];
 }
@@ -129,6 +130,7 @@ export interface AppSettings {
   keepExistingFolders: boolean; // AI整理時に既存フォルダーを変更しない default: false
   openDashboardInNewTab: boolean; // Dashboard 탭 열기 방식 default: false
   useClickBookAsNewTab: boolean; // 새 탭 페이지로 ClickBook 사용 여부 default: true
+  gcInterval?: "daily" | "weekly" | "off"; // 백그라운드 위생 청소 알람 주기
   customSearchConfigs?: CustomSearchConfig[]; // 커스텀 검색 설정
   customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
 }
@@ -216,7 +218,9 @@ export type Message =
   | { type: "GET_PAGE_CONTENTS" }
   | { type: "GET_PAGE_CONTENT"; bookmarkId: string }
   | { type: "SAVE_PAGE_CONTENT"; bookmarkId: string; rawText: string; readableContent: string }
-  | { type: "DELETE_PAGE_CONTENT"; bookmarkId: string };
+  | { type: "DELETE_PAGE_CONTENT"; bookmarkId: string }
+  | { type: "RUN_GARBAGE_COLLECTOR" }
+  | { type: "GET_ORPHANED_STATS" };
 
 
 export type MessageResponse =
