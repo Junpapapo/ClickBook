@@ -460,6 +460,45 @@
         </div>
       </details>
 
+      <!-- Q8: FTS Search -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            스마트 클리퍼 및 본문 기반 검색(FTS)은 어떻게 사용하며 어떤 특징이 있나요? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>스마트 클리퍼(Smart Clipper)</strong>는 북마크 저장 시 해당 웹페이지의 레이아웃 소음(광고, 내비게이션, 푸터 등)을 백그라운드에서 분석 및 필터링하여 순수 본문 내용만 신속하게 로컬 데이터베이스에 격리 저장합니다.</p>
+          <p>이렇게 수집된 데이터는 <strong>본문 기반 로컬 검색(FTS, Full-Text Search)</strong> 기능으로 즉시 활용됩니다:</p>
+          <ul>
+            <li><strong>공백(스페이스) 구분 다중 검색:</strong> 검색창에 <code>React 상태 관리</code>와 같이 공백으로 구분된 여러 검색어를 입력하면, 해당 단어들이 모두 본문(또는 제목, 요약, 태그 등)에 포함된 항목만 실시간으로 필터링해 냅니다.</li>
+            <li><strong>오버헤드 제로:</strong> 무거운 검색 프레임워크나 외부 라이브러리 없이 순수 로컬 데이터 가공 및 인덱스 캐싱 구조로 구축되어 수천 개의 본문도 10ms 이내에 초고속 검색이 지원됩니다.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q9: Offline Reader & Zen Reader -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            오프라인 독서 모드(Offline Reader) 및 젠 리더(Zen Reader)란 무엇인가요? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>오프라인 독서 모드</strong>는 저장한 북마크의 본문 기사를 광고나 산만한 화면 레이아웃 없이 깔끔하고 고급스러운 책 형태로 변환해 주는 몰입형 독서 도구입니다.</p>
+          <ul>
+            <li><strong>감각적인 테마 및 타이포그래피:</strong> 눈의 피로를 최소화하는 라이트/다크/세피아 테마를 지원하며, 영문/일어/국문 가독성에 맞춘 최적화된 서체군(Serif, Sans, Mono)과 4단계 크기 설정을 제공합니다.</li>
+            <li><strong>지능형 목차(TOC) 생성:</strong> 본문의 제목 구조(headings)를 파싱하여 좌측 목차를 자동으로 그려주며, 클릭 시 부드럽게 해당 본문 위치로 이동합니다.</li>
+            <li><strong>진척도 및 도구 모음:</strong> 상단 스크롤 진행 바를 통해 남은 분량을 시각적으로 확인하고, 본문을 마크다운 형식이나 정제된 순수 텍스트로 원클릭 복사할 수 있는 내보내기 툴을 제공합니다.</li>
+            <li><strong>젠 리더(Zen Reader) 지원:</strong> 북마크 본문뿐만 아니라, 메모 보드에 작성한 긴 수동 메모 글도 "Zen Reader"를 눌러 동일하게 깨끗한 에세이 형태의 독서 모드로 몰입하여 열람할 수 있습니다.</li>
+          </ul>
+        </div>
+      </details>
+
     </div>
 
     <div class="support-card">
