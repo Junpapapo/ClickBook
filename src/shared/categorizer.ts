@@ -797,3 +797,180 @@ Output:`;
   // ── 규칙 기반 Fallback (AI 불가 시 항상 실제 분석) ──────────
   return { groups: _ruleBasedGroups(bookmarks, lang), aiUsed: false };
 }
+
+// ── AI 유사 태그 그룹 검출 ─────────────────────────────────
+
+export interface SimilarTagGroup {
+  reason: string;
+  tags: string[];          // 유사 태그 전체 목록
+  suggestedMaster: string; // AI 추천 마스터 태그 (병합 대상)
+}
+
+export interface FindSimilarTagsResult {
+  groups: SimilarTagGroup[];
+  aiUsed: boolean;
+}
+
+// ── Rule-based: 레벤슈타인 거리 ──────────────────────────────
+
+function _levenshtein(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function _isSimilarTag(a: string, b: string): boolean {
+  if (a === b) return false;
+  // 레벤슈타인 거리 ≤ 2
+  if (_levenshtein(a, b) <= 2) return true;
+  // 공통 접두사가 두 문자열 모두의 50% 이상
+  let common = 0;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    if (a[i] !== b[i]) break;
+    common++;
+  }
+  if (common >= Math.max(a.length, b.length) * 0.5 && common >= 3) return true;
+  // 단수/복수 (tools ↔ tool, libraries ↔ library)
+  if (a + "s" === b || b + "s" === a) return true;
+  if (a.endsWith("ies") && b + "ies" === a.replace(/y$/, "ies")) return true;
+  if (b.endsWith("ies") && a + "ies" === b.replace(/y$/, "ies")) return true;
+  return false;
+}
+
+function _ruleBasedTagGroups(
+  tags: Array<{ name: string; count: number }>,
+  lang: string
+): SimilarTagGroup[] {
+  const groups: SimilarTagGroup[] = [];
+  const used = new Set<string>();
+
+  for (let i = 0; i < tags.length; i++) {
+    if (used.has(tags[i].name)) continue;
+    const similar: string[] = [tags[i].name];
+    for (let j = i + 1; j < tags.length; j++) {
+      if (used.has(tags[j].name)) continue;
+      if (_isSimilarTag(tags[i].name, tags[j].name)) {
+        similar.push(tags[j].name);
+      }
+    }
+    if (similar.length < 2) continue;
+    similar.forEach(t => used.add(t));
+    // 가장 사용 빈도가 높은 태그를 마스터로 추천
+    const sorted = [...similar].sort((a, b) => {
+      const ca = tags.find(t => t.name === a)?.count ?? 0;
+      const cb = tags.find(t => t.name === b)?.count ?? 0;
+      return cb - ca;
+    });
+    const master = sorted[0];
+    const reason =
+      lang === "ko" ? `철자가 유사한 태그: ${similar.map(t => `#${t}`).join(", ")}` :
+      lang === "ja" ? `スペルが類似したタグ: ${similar.map(t => `#${t}`).join(", ")}` :
+      `Similar spelling: ${similar.map(t => `#${t}`).join(", ")}`;
+    groups.push({ reason, tags: similar, suggestedMaster: master });
+  }
+
+  return groups;
+}
+
+/**
+ * 태그 목록에서 의미론적으로 유사한 그룹을 반환합니다.
+ *
+ * - Gemini Nano 사용 가능 시: AI 시맨틱 분석 우선
+ * - AI 불가 / 실패 시: 레벤슈타인 + 접두사 + 단수/복수 규칙으로 fallback
+ */
+export async function findSimilarTagGroups(
+  tags: Array<{ name: string; count: number }>,
+  lang: string = "en"
+): Promise<FindSimilarTagsResult> {
+  if (tags.length < 2) return { groups: [], aiUsed: false };
+
+  // ── AI 시도 ────────────────────────────────────────────────
+  try {
+    const aiAvailable = await isAIAvailable();
+    if (aiAvailable) {
+      const lm = await getAIModel();
+      if (lm) {
+        const tagList = tags.map(t => `#${t.name} (used ${t.count}x)`).join(", ");
+        const langHint =
+          lang === "ko" ? "유사성 이유(reason)는 반드시 한국어로 작성하세요." :
+          lang === "ja" ? "類似の理由(reason)は必ず日本語で記述してください。" :
+          "Write the similarity reason in English.";
+
+        const prompt = `System: You are a tag consolidation assistant.
+Given a list of bookmark tags, identify groups of tags that are semantically similar or redundant (e.g., typos, abbreviations, synonyms, singular/plural).
+Output ONLY a valid JSON array. No markdown, no explanations.
+Each object: {"reason": "brief description", "tags": ["tag1", "tag2"], "suggestedMaster": "best_tag"}
+- "tags": all similar tag names (without #)
+- "suggestedMaster": the tag from the group that best represents the concept (consider usage count)
+If no similar groups, output: []
+${langHint}
+
+Tags: ${tagList}
+
+Output:`;
+
+        let session: any = null;
+        try {
+          session = await Promise.race([
+            (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
+              expectedOutputs: [{ type: "text", languages: ["en", "ja", "es"] }]
+            }),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
+          ]);
+          const raw: string = await Promise.race([
+            session.prompt(prompt),
+            new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+          ]);
+
+          let js = raw.trim();
+          const si = js.indexOf("["), ei = js.lastIndexOf("]");
+          if (si !== -1 && ei > si) js = js.slice(si, ei + 1);
+
+          const parsed = JSON.parse(js);
+          if (Array.isArray(parsed) && parsed.length >= 0) {
+            const validGroups: SimilarTagGroup[] = [];
+            const usedTags = new Set<string>();
+            for (const item of parsed) {
+              if (
+                item &&
+                typeof item.reason === "string" &&
+                Array.isArray(item.tags) &&
+                item.tags.length >= 2 &&
+                typeof item.suggestedMaster === "string"
+              ) {
+                const validTags = item.tags
+                  .map((t: unknown) => String(t).toLowerCase().trim())
+                  .filter((t: string) => tags.some(tag => tag.name === t) && !usedTags.has(t));
+                if (validTags.length >= 2) {
+                  const master = tags.some(t => t.name === item.suggestedMaster)
+                    ? item.suggestedMaster
+                    : validTags[0];
+                  validTags.forEach((t: string) => usedTags.add(t));
+                  validGroups.push({ reason: item.reason, tags: validTags, suggestedMaster: master });
+                }
+              }
+            }
+            return { groups: validGroups, aiUsed: true };
+          }
+        } catch { /* AI batch failed */ }
+        finally {
+          if (session && typeof session.destroy === "function") {
+            try { session.destroy(); } catch { /* ignore */ }
+          }
+        }
+      }
+    }
+  } catch { /* AI init failed */ }
+
+  // ── 규칙 기반 Fallback ──────────────────────────────────────
+  return { groups: _ruleBasedTagGroups(tags, lang), aiUsed: false };
+}

@@ -428,6 +428,30 @@ async function checkIsDomainSecure(url: string): Promise<boolean> {
   }
 }
 
+async function checkIsUrlBookmarked(url: string): Promise<boolean> {
+  if (!url || (!url.startsWith("http://") && !url.startsWith("https://"))) {
+    return false;
+  }
+  try {
+    const { getBookmarks } = await import("@/shared/storage");
+    const bookmarks = await getBookmarks();
+    
+    const normalize = (u: string) => {
+      try {
+        const p = new URL(u);
+        return p.origin + p.pathname.replace(/\/$/, '') + p.search;
+      } catch {
+        return u.split('#')[0].replace(/\/$/, '');
+      }
+    };
+    
+    const target = normalize(url);
+    return bookmarks.some(b => normalize(b.url) === target);
+  } catch (e) {
+    return false;
+  }
+}
+
 async function checkAndSetSecureTabIndicator(tabId: number, url?: string) {
   if (!url) {
     try {
@@ -446,8 +470,18 @@ async function checkAndSetSecureTabIndicator(tabId: number, url?: string) {
         await chrome.action.setBadgeTextColor({ color: "#ffffff", tabId });
       } catch (e) {}
     } else {
-      // 일반 탭인 경우 배지 텍스트 클리어
-      await chrome.action.setBadgeText({ text: "", tabId });
+      // 2안) 일반 북마크인 경우 남색 ON 배지 표시
+      const isBookmarked = await checkIsUrlBookmarked(url);
+      if (isBookmarked) {
+        await chrome.action.setBadgeText({ text: "ON", tabId });
+        await chrome.action.setBadgeBackgroundColor({ color: "#6366f1", tabId });
+        try {
+          await chrome.action.setBadgeTextColor({ color: "#ffffff", tabId });
+        } catch (e) {}
+      } else {
+        // 둘 다 아닌 일반 탭인 경우 배지 클리어
+        await chrome.action.setBadgeText({ text: "", tabId });
+      }
     }
   } catch (err) {
     // console.warn(err);
@@ -799,6 +833,10 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
     case "DELETE_BOOKMARK": {
       const { deleteBookmark } = await import("@/shared/storage");
       await deleteBookmark(message.id);
+      try {
+        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (activeTab && activeTab.id) await checkAndSetSecureTabIndicator(activeTab.id, activeTab.url);
+      } catch (e) {}
       return { success: true };
     }
     case "UPDATE_BOOKMARK": {
@@ -831,6 +869,13 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
         savedAt: Date.now(),
       };
       await addBookmark(bookmark);
+
+      try {
+        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (activeTab && activeTab.id && activeTab.url === message.url) {
+          await checkAndSetSecureTabIndicator(activeTab.id, activeTab.url);
+        }
+      } catch (e) {}
 
       // Run AI summary and tags generation asynchronously in the background
       (async () => {
@@ -1420,6 +1465,12 @@ async function saveActiveTab(): Promise<MessageResponse> {
   };
 
   await addBookmark(bookmark);
+
+  try {
+    if (tab.id && tab.url) {
+      await checkAndSetSecureTabIndicator(tab.id, tab.url);
+    }
+  } catch(e) {}
 
   // Run AI summary, tags generation, and page content saving asynchronously in the background
   (async () => {
