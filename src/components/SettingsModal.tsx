@@ -217,6 +217,7 @@ export default function SettingsModal({
     draft.keepExistingFolders !== settings.keepExistingFolders ||
     draft.openDashboardInNewTab !== settings.openDashboardInNewTab ||
     draft.useClickBookAsNewTab !== settings.useClickBookAsNewTab ||
+    draft.enableTodoNotifications !== settings.enableTodoNotifications ||
     draft.gcInterval !== settings.gcInterval;
 
 
@@ -464,6 +465,12 @@ export default function SettingsModal({
                   checked={draft.useClickBookAsNewTab !== false}
                   onChange={(v) => set("useClickBookAsNewTab", v)}
                   description={t("settingsUseAsNewTabDesc")}
+                />
+                <Toggle
+                  label={t("settingsTodoNotificationsLabel")}
+                  checked={!!draft.enableTodoNotifications}
+                  onChange={(v) => set("enableTodoNotifications", v)}
+                  description={t("settingsTodoNotificationsDesc")}
                 />
                 <NumInput
                   label={t("settingsRecentCountLabel")}

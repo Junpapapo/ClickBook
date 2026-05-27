@@ -9,7 +9,7 @@
 
 ---
 
-ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows you to instantly save your active tab with a single click and automatically organizes it into one of 8 categories using Chrome's built-in AI (Gemini Nano) or a rule-based fallback system.
+ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows you to instantly save your active tab with a single click and automatically organizes it into categories using Chrome's built-in AI (Gemini Nano) or a rule-based fallback system.
 
 ## Screenshots
 
@@ -26,19 +26,22 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 1 | **1-Click Save** | Instantly save the active tab by clicking the extension icon. |
 | 2 | **AI Categorization** | Uses Chrome Gemini Nano (`window.ai`) to analyze URL/Title and sort into folders. |
 | 3 | **Bulk AI Reorganize** | One-click button in the sidebar to re-classify all saved bookmarks (with auto-backup). |
-| 4 | **Hierarchy Folders** | Infinite nesting support. Create, rename, move, delete, and set emoji icons. |
-| 5 | **Drag & Drop** | Intuitive reordering for both bookmarks and folders. |
-| 6 | **Pattern Snapshots** | Save and restore your entire folder/bookmark layout as a snapshot. |
-| 7 | **Chrome Sync** | Import, export, and sync with native Chrome bookmarks. |
-| 8 | **Theming** | Support for Dark and Light modes, persisting via `localStorage`. |
-| 9 | **100% Offline** | Runs entirely locally using `chrome.storage.local` (No external servers). |
-| 10 | **Multi-Language** | Full localized experience for English, Korean, and Japanese using Chrome Extension i18n. |
-| 11 | **AI Highlight Clipper (Premium)** | Highlight webpage text and use right-click context menu to automatically refine and save it as multi-lingual memos using on-device AI. |
-| 12 | **Smart Tab Suspender (Premium)** | Automatically suspends inactive background tabs to save up to 90% of RAM (smart filters for audible/pinned tabs, with easy hover/one-click restore). |
-| 13 | **Chrome Tab Groups Sync (Premium)** | Back up active Chrome tab groups into folders, and instantly restore folders back into native, colored Chrome tab groups with naming and state intact. |
-| 14 | **Privacy Session Sweeper (Premium)** | Designate folders as 'Secure Folders'. When closing secure tabs, their origin-specific cookies, cache, storage, and history are instantly and completely shredded. |
-| 15 | **FTS Body Search (Premium)** | Scrapes webpage text in background on bookmarking, supporting ultra-fast space-separated multi-keyword AND searches across title, URL, tags, summaries, and full body text. |
-| 16 | **Offline Reader & Zen Mode (Premium)** | Read bookmarked pages and long memos distraction-free in a premium viewer with Light/Sepia/Dark themes, adjustable typography, dynamic Table of Contents, scroll progress, and text export utilities. |
+| 4 | **Auto Tag** | AI auto-generates tags for all untagged bookmarks via a long-running background port. Falls back to domain/title-based rule tagging if AI is unavailable. |
+| 5 | **Task Control Center** | Unified real-time panel to monitor all background AI tasks (AI Organize, Auto Tag). Shows live progress bars, success/failure state, and enforces a 1-concurrent AI task limit. Completed tasks auto-dismiss after 3 seconds; failed tasks persist until manually dismissed. |
+| 6 | **AI Tag Cloud & Management** | Collapsible interactive HSL tag cloud. Filter bookmarks by tag, merge redundant tags, and edit tags inline. Auto Tag button integrated directly into the Tag Cloud page header. |
+| 7 | **Hierarchy Folders** | Infinite nesting support. Create, rename, move, delete, and set emoji icons. |
+| 8 | **Drag & Drop** | Intuitive reordering for both bookmarks and folders. |
+| 9 | **Pattern Snapshots** | Save and restore your entire folder/bookmark layout as a snapshot. |
+| 10 | **Chrome Sync** | Import, export, and sync with native Chrome bookmarks. |
+| 11 | **Theming** | Support for Dark and Light modes, persisting via `localStorage`. |
+| 12 | **100% Offline** | Runs entirely locally using `chrome.storage.local` (No external servers). |
+| 13 | **Multi-Language** | Full localized experience for English, Korean, and Japanese. |
+| 14 | **AI Highlight Clipper (Premium)** | Highlight webpage text and use right-click context menu to automatically refine and save it as multi-lingual memos using on-device AI. |
+| 15 | **Smart Tab Suspender (Premium)** | Automatically suspends inactive background tabs to save up to 90% of RAM. |
+| 16 | **Chrome Tab Groups Sync (Premium)** | Back up active Chrome tab groups into folders, and instantly restore them back into native, colored Chrome tab groups. |
+| 17 | **Privacy Session Sweeper (Premium)** | Designate folders as 'Secure Folders'. Cookies, cache, storage, and history are instantly shredded when closing secure tabs. |
+| 18 | **FTS Body Search (Premium)** | Scrapes webpage text in background on bookmarking, supporting ultra-fast multi-keyword AND searches across title, URL, tags, summaries, and full body text. |
+| 19 | **Offline Reader & Zen Mode (Premium)** | Read bookmarked pages distraction-free with Light/Sepia/Dark themes, dynamic Table of Contents, scroll progress, and text export. |
 
 ---
 
@@ -66,6 +69,8 @@ ClickBook/
 ├── vite.config.ts             # Vite + vite-plugin-web-extension config
 ├── tailwind.config.js
 ├── tsconfig.json
+├── docs/
+│   └── TASK_CONTROL_CENTER.md # Task Control Center design spec
 ├── public/
 │   ├── _locales/              # Standard localization folders (en, ko, ja)
 │   ├── icons/                 # Extension icons (16/48/128px)
@@ -75,9 +80,9 @@ ClickBook/
 │   └── privacy.html           # Privacy policy page
 ├── src/
 │   ├── background/
-│   │   └── service-worker.ts  # MV3 background service worker
+│   │   └── service-worker.ts  # MV3 background service worker (AI Organize, Auto Tag ports)
 │   ├── components/
-│   │   ├── Sidebar.tsx        # Directory tree navigation & AI actions
+│   │   ├── Sidebar.tsx        # Navigation, AI Organize (80%) + Auto Tag (20%) buttons, Task Control menu
 │   │   ├── BookmarkCard.tsx   # Bookmark card component supporting drag & drop
 │   │   ├── BookmarkEditPanel.tsx
 │   │   ├── ChromeBookmarkPanel.tsx
@@ -87,12 +92,21 @@ ClickBook/
 │   │   ├── SearchBar.tsx
 │   │   └── ThemeToggle.tsx
 │   ├── newtab/
-│   │   ├── App.tsx            # Main bookmark manager dashboard
+│   │   ├── App.tsx            # Main bookmark manager dashboard & page routing
 │   │   ├── index.html
 │   │   └── main.tsx
 │   ├── pages/
 │   │   ├── Dashboard.tsx      # Default view for all bookmarks
-│   │   └── FolderView.tsx     # Specialized category view
+│   │   ├── FolderView.tsx     # Specialized category view
+│   │   ├── TagBoard.tsx       # AI Tag Cloud, tag filter, merge, and Auto Tag
+│   │   ├── TaskControlPage.tsx # Task Control Center — real-time background task monitor
+│   │   ├── TodoBoard.tsx      # Kanban-style TODO board with reminders
+│   │   ├── MemoBoard.tsx      # Memo management board
+│   │   ├── BookmarkMap.tsx    # Visual bookmark map
+│   │   ├── GitHubRanking.tsx  # GitHub trending repositories
+│   │   ├── HFRanking.tsx      # Hugging Face AI trending
+│   │   ├── HNRanking.tsx      # Hacker News trending
+│   │   └── WikiRanking.tsx    # Wikipedia trending
 │   ├── popup/
 │   │   ├── Popup.tsx          # Mini popover window on icon click
 │   │   ├── index.html
@@ -101,7 +115,10 @@ ClickBook/
 │       ├── categories.ts      # Default folder definitions and fallback rules
 │       ├── categorizer.ts     # Multi-stage category matching engine (AI + Rule-based)
 │       ├── storage.ts         # Wrapper on top of chrome.storage.local
-│       ├── types.ts           # Shared TypeScript interfaces & types
+│       ├── types.ts           # Shared TypeScript interfaces & types (incl. TaskItem)
+│       ├── useTaskQueue.ts    # Task queue React hook (Concurrency Guard, auto-dismiss)
+│       ├── i18n.ts            # Translation dictionary (EN / JA / KO)
+│       ├── LanguageContext.tsx
 │       ├── ThemeContext.tsx
 │       └── useDialog.tsx      # Customized dialog hook
 ```
@@ -119,8 +136,8 @@ ClickBook/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-name/clickbook.git
-cd clickbook
+git clone https://github.com/Junpapapo/ClickBook.git
+cd ClickBook
 
 # Install dependencies
 npm install
@@ -141,13 +158,11 @@ npm run dev
 
 ---
 
-## AI Bulk Reorganize (Core Feature)
+## AI Features
 
-### Overview
+### AI Bulk Reorganize
 
-By clicking the "**AI Organize**" button in the sidebar, the extension will automatically re-categorize all your saved bookmarks into the most appropriate folders.
-
-### Classification Flow
+By clicking the **"AI Organize"** button (80% width) in the sidebar, the extension re-categorizes all saved bookmarks into the most appropriate folders using a 3-stage pipeline:
 
 ```
 categorize(url, title, domain)
@@ -162,6 +177,30 @@ categorize(url, title, domain)
     │
     └─ 3. "Other" (Fallback folder)
 ```
+
+### Auto Tag
+
+By clicking the **"Auto Tag"** button (icon-only, 20% width in sidebar; or full button in Tag Cloud page header), the extension generates tags for all untagged bookmarks:
+
+```
+autoTag(bookmark)
+    │
+    ├─ 1. generateSummaryAndTags() via Gemini Nano
+    │      └─ Tags returned → updateBookmark() saved to storage
+    │      └─ No tags / Failure ↓
+    │
+    └─ 2. generateFallbackTags() — domain map + title keyword extraction
+           └─ Tags returned → updateBookmark() saved to storage
+```
+
+### Task Control Center
+
+Accessed via the **"Task Control"** menu item in the sidebar. All AI background tasks are tracked here:
+
+- **Concurrency Guard**: Only 1 AI task runs at a time. Additional tasks are queued.
+- **Live progress**: Real-time progress bars via `chrome.runtime.connect` port messaging.
+- **Auto-dismiss**: Completed tasks disappear after 3 seconds.
+- **Persistent errors**: Failed tasks stay visible until manually dismissed or retried.
 
 ---
 

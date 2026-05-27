@@ -79,46 +79,58 @@ export default function RankingPanel({ bookmarks, onClose }: Props) {
         className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-surface-700 shrink-0 w-full text-left group hover:bg-gray-50 dark:hover:bg-surface-800 transition-colors"
         title={t("rankingClose")}
       >
-        <Trophy size={14} className="text-amber-400 animate-pulse" />
-        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex-1">{t("rankingPanelLabel")}</span>
+        {activeTab === "top" ? (
+          <Trophy size={14} className="text-amber-400 animate-pulse shrink-0" />
+        ) : activeTab === "recent" ? (
+          <Clock size={14} className="text-blue-400 animate-pulse shrink-0" />
+        ) : (
+          <BookOpen size={14} className="text-emerald-400 animate-pulse shrink-0" />
+        )}
+        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex-1">
+          {activeTab === "top"
+            ? t("rankingTitle")
+            : activeTab === "recent"
+            ? t("recentTitle")
+            : t("recentReadsTitle")}
+        </span>
         <span className="text-[10px] text-gray-400 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
           {t("closeBtn")}
         </span>
       </button>
 
       {/* 탭 헤더 */}
-      <div className="flex border-b border-gray-150 dark:border-surface-700 bg-gray-50/50 dark:bg-surface-850/50 shrink-0 p-1 gap-1">
+      <div className="flex border-b border-gray-150 dark:border-surface-800 bg-gray-50 dark:bg-[#1E1E20]/50 shrink-0 p-1.5 gap-1.5">
         <button
           onClick={() => setActiveTab("top")}
-          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight ${
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border ${
             activeTab === "top"
-              ? "bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-300 shadow-sm border border-gray-200/50 dark:border-surface-600/50"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-surface-800/50"
+              ? "bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-sm"
+              : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800/40"
           }`}
         >
-          <Trophy size={11} className={activeTab === "top" ? "text-amber-500" : ""} />
+          <Trophy size={11} className={activeTab === "top" ? "text-amber-500" : "text-gray-400 dark:text-gray-500"} />
           <span>{t("rankingTitle")}</span>
         </button>
         <button
           onClick={() => setActiveTab("recent")}
-          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight ${
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border ${
             activeTab === "recent"
-              ? "bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-300 shadow-sm border border-gray-200/50 dark:border-surface-600/50"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-surface-800/50"
+              ? "bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-sm"
+              : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800/40"
           }`}
         >
-          <Clock size={11} className={activeTab === "recent" ? "text-blue-500" : ""} />
+          <Clock size={11} className={activeTab === "recent" ? "text-blue-500" : "text-gray-400 dark:text-gray-500"} />
           <span>{t("recentTitle")}</span>
         </button>
         <button
           onClick={() => setActiveTab("reads")}
-          className={`flex-1 flex flex-col items-center gap-0.5 py-1 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight ${
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border ${
             activeTab === "reads"
-              ? "bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-300 shadow-sm border border-gray-200/50 dark:border-surface-600/50"
-              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-surface-800/50"
+              ? "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-sm"
+              : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800/40"
           }`}
         >
-          <BookOpen size={11} className={activeTab === "reads" ? "text-emerald-500" : ""} />
+          <BookOpen size={11} className={activeTab === "reads" ? "text-emerald-500" : "text-gray-400 dark:text-gray-500"} />
           <span>{t("recentReadsTitle")}</span>
         </button>
       </div>

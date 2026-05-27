@@ -131,6 +131,7 @@ export interface AppSettings {
   openDashboardInNewTab: boolean; // Dashboard 탭 열기 방식 default: false
   useClickBookAsNewTab: boolean; // 새 탭 페이지로 ClickBook 사용 여부 default: true
   gcInterval?: "daily" | "weekly" | "off"; // 백그라운드 위생 청소 알람 주기
+  enableTodoNotifications?: boolean; // TODO 알림 수신 여부
   customSearchConfigs?: CustomSearchConfig[]; // 커스텀 검색 설정
   customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
 }
@@ -265,3 +266,44 @@ export interface TodoBoardData {
   columns: Record<string, TodoColumn>;
   columnOrder: string[];
 }
+
+// =============================
+// Task Control Center Models
+// =============================
+
+export type TaskStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
+
+export type TaskCategory = "ai-organize" | "ai-tag" | "ai-clean" | "chrome-sync" | "scrape";
+
+export interface TaskItem {
+  id: string;
+  category: TaskCategory;
+  name: string;
+  status: TaskStatus;
+  progress: number;              // 0~100
+  detail?: string;               // e.g. "45/66 bookmarks"
+  error?: string;                // error message on failure
+  startedAt?: number;
+  completedAt?: number;
+  result?: {
+    summary: string;
+    [key: string]: unknown;
+  };
+}
+
+// =============================
+// Page Navigation Types
+// =============================
+
+export type PageId =
+  | "dashboard"
+  | "folder"
+  | "memo"
+  | "todo"
+  | "tagboard"
+  | "map"
+  | "github"
+  | "wiki"
+  | "hf"
+  | "hn"
+  | "taskcontrol";

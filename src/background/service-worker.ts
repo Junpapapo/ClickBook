@@ -68,6 +68,132 @@ async function initializeTabCache() {
   }
 }
 
+function formatDateStr(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+async function updateBadgeCount(todoBoard: any) {
+  try {
+    if (!todoBoard || !todoBoard.tasks || !todoBoard.columns || !todoBoard.columnOrder) {
+      await chrome.action.setBadgeText({ text: "" });
+      return;
+    }
+    const todayStr = formatDateStr(new Date());
+    let urgentCount = 0;
+    
+    Object.values(todoBoard.tasks).forEach((task: any) => {
+      if (!task.completed && task.dueDate) {
+        if (task.dueDate <= todayStr) {
+          urgentCount++;
+        }
+      }
+    });
+
+    if (urgentCount > 0) {
+      await chrome.action.setBadgeText({ text: String(urgentCount) });
+      await chrome.action.setBadgeBackgroundColor({ color: "#ef4444" });
+      try {
+        await chrome.action.setBadgeTextColor({ color: "#ffffff" });
+      } catch (e) {}
+    } else {
+      await chrome.action.setBadgeText({ text: "" });
+    }
+  } catch (err) {
+    console.warn("Failed to update badge count:", err);
+  }
+}
+
+async function checkTodoReminders() {
+  try {
+    const { getSettings, getTodoBoard } = await import("@/shared/storage");
+    const settings = await getSettings();
+    
+    // 알림 비활성화되어 있으면 즉시 리턴
+    if (!settings.enableTodoNotifications) return;
+    
+    const todoBoard = await getTodoBoard();
+    if (!todoBoard || !todoBoard.tasks) return;
+    
+    const now = Date.now();
+    
+    // 이미 알림 전송된 태스크 ID/시간 추적용 캐시 로드
+    const { clickbook_notified_tasks } = await chrome.storage.local.get("clickbook_notified_tasks");
+    const notifiedMap: Record<string, number> = clickbook_notified_tasks || {};
+    let cacheChanged = false;
+    
+    // 알림 만료 시간 청소 (7일 이전의 캐시는 지우기)
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    Object.keys(notifiedMap).forEach(key => {
+      if (notifiedMap[key] < sevenDaysAgo) {
+        delete notifiedMap[key];
+        cacheChanged = true;
+      }
+    });
+
+    for (const task of Object.values(todoBoard.tasks) as any[]) {
+      if (task.completed || !task.dueDate) continue;
+      
+      const timeStr = task.dueTime || "12:00";
+      const dueDateTime = new Date(`${task.dueDate}T${timeStr}`);
+      if (isNaN(dueDateTime.getTime())) continue;
+      
+      const dueTimestamp = dueDateTime.getTime();
+      
+      const reminderType = task.reminder || "none";
+      if (reminderType === "none") continue;
+      
+      let offsetMs = 0;
+      if (reminderType === "at_due") offsetMs = 0;
+      else if (reminderType === "15m_before") offsetMs = 15 * 60 * 1000;
+      else if (reminderType === "1h_before") offsetMs = 60 * 60 * 1000;
+      else if (reminderType === "3h_before") offsetMs = 3 * 60 * 60 * 1000;
+      else if (reminderType === "1d_before") offsetMs = 24 * 60 * 60 * 1000;
+      
+      const triggerTimestamp = dueTimestamp - offsetMs;
+      
+      // 현재 시간이 trigger 시간 이상이고, trigger 시간으로부터 5분 이내인 경우에만 발송
+      if (now >= triggerTimestamp && now <= triggerTimestamp + 5 * 60 * 1000) {
+        const cacheKey = `${task.id}_${reminderType}_${dueTimestamp}`;
+        if (!notifiedMap[cacheKey]) {
+          const lang = await getEffectiveLanguage();
+          let message = "";
+          if (reminderType === "at_due") {
+            message = DICT[lang].reminderNotifyAtDue.replace("{time}", timeStr);
+          } else if (reminderType === "15m_before") {
+            message = DICT[lang].reminderNotify15m;
+          } else if (reminderType === "1h_before") {
+            message = DICT[lang].reminderNotify1h;
+          } else if (reminderType === "3h_before") {
+            message = DICT[lang].reminderNotify3h;
+          } else if (reminderType === "1d_before") {
+            message = DICT[lang].reminderNotify1d;
+          }
+
+          chrome.notifications.create(task.id, {
+            type: "basic",
+            iconUrl: chrome.runtime.getURL("icons/icon128.png"),
+            title: task.content || DICT[lang].reminderNotifyTitle,
+            message: message,
+            requireInteraction: true
+          });
+          
+          notifiedMap[cacheKey] = now;
+          cacheChanged = true;
+        }
+      }
+    }
+    
+    if (cacheChanged) {
+      await chrome.storage.local.set({ clickbook_notified_tasks: notifiedMap });
+    }
+  } catch (err) {
+    console.warn("Failed to check todo reminders:", err);
+  }
+}
+
 // ── 백그라운드 위생 가비지 컬렉션(GC) 알람 스케줄 조율 함수 ──
 async function updateGCAlarm(interval: "daily" | "weekly" | "off") {
   try {
@@ -123,6 +249,29 @@ async function initializeBackground() {
   } catch (err) {
     console.warn("Failed to register GC alarm:", err);
   }
+
+  // 4. TODO 보드 기반 확장프로그램 뱃지 개수 초기화
+  try {
+    const { getTodoBoard } = await import("@/shared/storage");
+    const todoBoard = await getTodoBoard();
+    await updateBadgeCount(todoBoard);
+  } catch (err) {
+    console.warn("Failed to initialize badge count:", err);
+  }
+
+  // 5. TODO 리마인드 알람 등록 (매 1분마다 주기적 체크)
+  try {
+    const existingAlarm = await chrome.alarms.get("clickbook-todo-reminder-alarm");
+    if (!existingAlarm) {
+      await chrome.alarms.create("clickbook-todo-reminder-alarm", {
+        delayInMinutes: 1,
+        periodInMinutes: 1
+      });
+      console.log("[Todo Alarm] Registered clickbook-todo-reminder-alarm (1 min)");
+    }
+  } catch (err) {
+    console.warn("Failed to register todo reminder alarm:", err);
+  }
 }
 
 // Initialize on startup
@@ -136,6 +285,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     } catch (err) {
       console.warn("Garbage collection failed in alarm listener:", err);
     }
+  } else if (alarm.name === "clickbook-todo-reminder-alarm") {
+    await checkTodoReminders();
   }
 });
 
@@ -451,8 +602,176 @@ chrome.runtime.onConnect.addListener((port) => {
     runAIReorganizeViaPort(port);
   } else if (port.name === "ai-reorganize-other") {
     runAIReorganizeOtherViaPort(port);
+  } else if (port.name === "auto-tag") {
+    runAutoTagViaPort(port);
   }
 });
+
+// ── Auto Tag: 태그가 없는 북마크에 AI 자동 태그 부여 ──
+async function runAutoTagViaPort(port: chrome.runtime.Port): Promise<void> {
+  let disconnected = false;
+  port.onDisconnect.addListener(() => { disconnected = true; });
+
+  const send = (msg: object) => {
+    if (disconnected) return;
+    try { port.postMessage(msg); } catch (_) { /* port closed */ }
+  };
+
+  try {
+    send({ type: "running" });
+
+    const data = await getAllData();
+    if (disconnected) return;
+
+    // 태그가 없거나 빈 배열인 북마크만 필터링
+    const untagged = data.bookmarks.filter(
+      (b) => !b.tags || b.tags.length === 0
+    );
+
+    if (untagged.length === 0) {
+      send({ type: "done", tagged: 0, total: 0 });
+      return;
+    }
+
+    const total = untagged.length;
+    let tagged = 0;
+    let failed = 0;
+
+    // AI 사용 가능 여부 확인
+    const { generateSummaryAndTags } = await import("@/shared/categorizer");
+    const { updateBookmark } = await import("@/shared/storage");
+
+    for (let i = 0; i < untagged.length; i++) {
+      if (disconnected) return;
+
+      const bm = untagged[i];
+      const progress = Math.round(((i + 1) / total) * 100);
+
+      try {
+        const aiData = await generateSummaryAndTags(bm.url, bm.title, bm.summary || "");
+
+        if (aiData.tags && aiData.tags.length > 0) {
+          // AI 태그 결과를 스토리지에 실제로 저장
+          const updates: Record<string, unknown> = { tags: aiData.tags };
+          // 요약이 아직 없는 경우 요약도 같이 저장
+          if (!bm.summary && aiData.summary) {
+            updates.summary = aiData.summary;
+          }
+          await updateBookmark(bm.id, updates);
+          tagged++;
+        } else {
+          // AI가 태그를 생성하지 못한 경우: 도메인 기반 폴백
+          const fallbackTags = generateFallbackTags(bm.url, bm.title);
+          if (fallbackTags.length > 0) {
+            await updateBookmark(bm.id, { tags: fallbackTags });
+            tagged++;
+          } else {
+            failed++;
+          }
+        }
+      } catch (err) {
+        console.warn(`[Auto Tag] Failed for "${bm.title}":`, err);
+        // 개별 실패 시 폴백 태그 시도
+        try {
+          const fallbackTags = generateFallbackTags(bm.url, bm.title);
+          if (fallbackTags.length > 0) {
+            await updateBookmark(bm.id, { tags: fallbackTags });
+            tagged++;
+          } else {
+            failed++;
+          }
+        } catch {
+          failed++;
+        }
+      }
+
+      send({
+        type: "progress",
+        progress,
+        detail: `${i + 1}/${total}`,
+        tagged,
+      });
+    }
+
+    send({
+      type: "done",
+      tagged,
+      total,
+      failed,
+    });
+  } catch (err) {
+    console.error("[Auto Tag] Critical error:", err);
+    send({ type: "error", error: String(err) });
+  }
+}
+
+// ── 도메인/타이틀 기반 폴백 태그 생성 ──
+function generateFallbackTags(url: string, title: string): string[] {
+  const tags: string[] = [];
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname.replace(/^www\./, "");
+
+    // 도메인 기반 태그
+    const domainTagMap: Record<string, string[]> = {
+      "github.com": ["github", "development"],
+      "stackoverflow.com": ["stackoverflow", "programming"],
+      "youtube.com": ["youtube", "video"],
+      "medium.com": ["medium", "blog"],
+      "dev.to": ["dev", "blog"],
+      "twitter.com": ["twitter", "social"],
+      "x.com": ["twitter", "social"],
+      "reddit.com": ["reddit", "community"],
+      "wikipedia.org": ["wikipedia", "reference"],
+      "notion.so": ["notion", "productivity"],
+      "figma.com": ["figma", "design"],
+      "dribbble.com": ["dribbble", "design"],
+      "npm.js.com": ["npm", "javascript"],
+      "vercel.com": ["vercel", "deployment"],
+      "netlify.com": ["netlify", "deployment"],
+      "aws.amazon.com": ["aws", "cloud"],
+      "cloud.google.com": ["gcp", "cloud"],
+      "azure.microsoft.com": ["azure", "cloud"],
+      "docs.google.com": ["google-docs", "productivity"],
+      "kaggle.com": ["kaggle", "data-science"],
+      "arxiv.org": ["arxiv", "research"],
+      "huggingface.co": ["huggingface", "ai"],
+    };
+
+    // 정확한 도메인 매칭
+    for (const [d, t] of Object.entries(domainTagMap)) {
+      if (domain === d || domain.endsWith(`.${d}`)) {
+        tags.push(...t);
+        break;
+      }
+    }
+
+    // 도메인 자체를 태그로 (짧은 경우)
+    const shortDomain = domain.split(".").slice(0, -1).join(".");
+    if (shortDomain.length <= 12 && !tags.includes(shortDomain)) {
+      tags.push(shortDomain);
+    }
+
+    // 타이틀에서 키워드 추출 (영문 단어 기준)
+    const stopWords = new Set(["the","a","an","of","in","to","for","and","or","is","are","how","what","with","on","at","by","from"]);
+    const titleWords = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s\uAC00-\uD7A3\u3040-\u30FF]/g, " ")
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !stopWords.has(w));
+
+    // 가장 긴 단어를 태그 후보로 (최대 1개)
+    if (titleWords.length > 0) {
+      const sorted = [...new Set(titleWords)].sort((a, b) => b.length - a.length);
+      const candidate = sorted[0];
+      if (candidate && !tags.includes(candidate)) {
+        tags.push(candidate);
+      }
+    }
+  } catch { /* ignore URL parse errors */ }
+
+  return tags.slice(0, 3);
+}
 
 chrome.runtime.onMessage.addListener(
   (message: Message, _sender, sendResponse) => {
@@ -762,8 +1081,48 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       return { success: true, data: await getTodoBoard() };
     }
     case "SAVE_TODO_BOARD": {
-      const { saveTodoBoard } = await import("@/shared/storage");
+      const { getTodoBoard, saveTodoBoard } = await import("@/shared/storage");
+      
+      // 알림 캐시 정리 목적: 태스크의 기한, 시간, 리마인드 설정이 바뀌면 알림 전송 캐시에서 제거
+      try {
+        const oldBoard = await getTodoBoard();
+        const newBoard = message.data;
+        if (oldBoard && oldBoard.tasks && newBoard && newBoard.tasks) {
+          const { clickbook_notified_tasks } = await chrome.storage.local.get("clickbook_notified_tasks");
+          const notifiedMap = clickbook_notified_tasks || {};
+          let cacheChanged = false;
+          
+          for (const [taskId, newTask] of Object.entries(newBoard.tasks) as [string, any][]) {
+            const oldTask = oldBoard.tasks[taskId];
+            if (oldTask) {
+              const dateChanged = oldTask.dueDate !== newTask.dueDate;
+              const timeChanged = oldTask.dueTime !== newTask.dueTime;
+              const reminderChanged = oldTask.reminder !== newTask.reminder;
+              const completedChanged = oldTask.completed !== newTask.completed;
+              
+              if (dateChanged || timeChanged || reminderChanged || completedChanged) {
+                // 이전 리마인드 관련 캐시 삭제
+                const reminderTypes = ["at_due", "15m_before", "1h_before", "3h_before", "1d_before"];
+                reminderTypes.forEach(type => {
+                  const cacheKey = `${taskId}_${type}`;
+                  if (notifiedMap[cacheKey]) {
+                    delete notifiedMap[cacheKey];
+                    cacheChanged = true;
+                  }
+                });
+              }
+            }
+          }
+          if (cacheChanged) {
+            await chrome.storage.local.set({ clickbook_notified_tasks: notifiedMap });
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to clear notified cache on save:", err);
+      }
+
       await saveTodoBoard(message.data);
+      await updateBadgeCount(message.data);
       return { success: true };
     }
     case "UPDATE_AI_INFO": {

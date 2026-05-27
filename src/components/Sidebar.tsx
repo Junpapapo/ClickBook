@@ -22,13 +22,15 @@ import {
   ScanSearch,
   ListTodo,
   Tag,
+  Tags,
   Map,
   Shield,
   Layers,
+  Activity,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
-import type { Bookmark, Folder } from "@/shared/types";
+import type { Bookmark, Folder, PageId } from "@/shared/types";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import { isAIAvailable } from "@/shared/categorizer";
 import { useDialog } from "@/shared/useDialog";
@@ -39,24 +41,20 @@ interface Props {
   bookmarks: Bookmark[];
   folders: Folder[];
   selectedFolderId: string | null;
-  onSelect: (id: string | null) => void;
+  activePage: PageId;
+  onNavigate: (page: PageId, folderId?: string | null) => void;
   onRefresh: () => void;
+  todoStats?: { overdueCount: number; dueTodayCount: number };
   showChromePanel?: boolean;
-  showMemoBoard?: boolean;
-  showTodoBoard?: boolean;
-  showTagBoard?: boolean;
-  showBookmarkMap?: boolean;
   memoCount?: number;
-  onSelectMemoBoard?: () => void;
-  onSelectTodoBoard?: () => void;
-  onSelectTagBoard?: () => void;
-  onSelectBookmarkMap?: () => void;
-  onSelectGitHubRanking?: () => void;
-  onSelectWikiRanking?: () => void;
-  onSelectHFRanking?: () => void;
-  onSelectHNRanking?: () => void;
+  onAutoTag?: () => void;
+  taskCount?: number;
   maxFolderDepth?: number;
   onAiLoadingChange?: (loading: boolean) => void;
+  showGitHubRankingMenu?: boolean;
+  showWikiRankingMenu?: boolean;
+  showHFRankingMenu?: boolean;
+  showHNRankingMenu?: boolean;
 }
 
 const COLOR_DOT: Record<string, string> = {
@@ -78,24 +76,20 @@ export default function Sidebar({
   bookmarks,
   folders,
   selectedFolderId,
-  onSelect,
+  activePage,
+  onNavigate,
   onRefresh,
   showChromePanel = false,
-  showMemoBoard = false,
-  showTodoBoard = false,
-  showTagBoard = false,
-  showBookmarkMap = false,
   memoCount,
-  onSelectMemoBoard,
-  onSelectTodoBoard,
-  onSelectTagBoard,
-  onSelectBookmarkMap,
-  onSelectGitHubRanking,
-  onSelectWikiRanking,
-  onSelectHFRanking,
-  onSelectHNRanking,
+  onAutoTag,
+  taskCount = 0,
   maxFolderDepth = 3,
   onAiLoadingChange,
+  todoStats,
+  showGitHubRankingMenu = true,
+  showWikiRankingMenu = true,
+  showHFRankingMenu = true,
+  showHNRankingMenu = true,
 }: Props) {
   const [creatingUnder, setCreatingUnder] = useState<string | null | false>(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -373,7 +367,7 @@ export default function Sidebar({
       : t("folderDeleteConfirm");
     if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
     await chrome.runtime.sendMessage({ type: "DELETE_FOLDER", id });
-    if (selectedFolderId === id) onSelect(null);
+    if (selectedFolderId === id) onNavigate("dashboard");
     onRefresh();
   }
 
@@ -497,7 +491,7 @@ export default function Sidebar({
 
   function renderNode(node: FolderTreeNode, depth: number) {
     const f = node.folder;
-    const isActive = selectedFolderId === f.id;
+    const isActive = activePage === "folder" && selectedFolderId === f.id;
     const hasChildren = node.children.length > 0;
     const isRenaming = renamingId === f.id;
     const isDragOverInfo = dragOverInfo?.id === f.id ? dragOverInfo : null;
@@ -517,7 +511,7 @@ export default function Sidebar({
           onDragLeave={onDragLeave}
           onDrop={(e) => onDrop(e, f.id)}
           onClick={() => {
-            onSelect(f.id);
+            onNavigate("folder", f.id);
             if (hasChildren) handleToggle(f.id);
           }}
           className={`
@@ -787,23 +781,23 @@ export default function Sidebar({
       {/* ホーム & Tag Cloud & Bookmark Map */}
       <div className="px-1.5 mt-2 mb-1 grid grid-cols-12 gap-1.5">
         <button
-          onClick={() => window.location.reload()}
-          className={`col-span-6 flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg transition-all duration-150
-            ${selectedFolderId === null && !showBookmarkMap && !showTagBoard
-              ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-medium"
+          onClick={() => onNavigate("dashboard")}
+          className={`col-span-6 flex items-center justify-center gap-1 px-1.5 py-2 text-[10px] rounded-lg transition-all duration-150
+            ${activePage === "dashboard"
+              ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold"
               : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"
             }
           `}
         >
-          <Home size={15} className="shrink-0" />
-          <span className="truncate">{t("dashboard")}</span>
+          <Home size={13} className="shrink-0" />
+          <span className="truncate leading-none">{t("dashboard")}</span>
         </button>
 
         <button
-          onClick={onSelectTagBoard}
+          onClick={() => onNavigate("tagboard")}
           className={`relative group col-span-3 flex items-center justify-center px-2 py-2 text-sm rounded-lg transition-all duration-150
-            ${showTagBoard
-              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20"
+            ${activePage === "tagboard"
+              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-semibold"
               : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/25"
             }`}
         >
@@ -817,10 +811,10 @@ export default function Sidebar({
         </button>
 
         <button
-          onClick={onSelectBookmarkMap}
+          onClick={() => onNavigate("map")}
           className={`relative group col-span-3 flex items-center justify-center px-2 py-2 text-sm rounded-lg transition-all duration-150
-            ${showBookmarkMap
-              ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 font-medium"
+            ${activePage === "map"
+              ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 font-semibold"
               : "bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 dark:hover:bg-blue-500/25 font-medium"
             }`}
         >
@@ -834,8 +828,32 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* AI 自動整理 */}
-      <div className="px-1.5 mb-2">
+      {/* AI 自動整理 (80:20 split) */}
+      <div className="px-1.5 mb-2 flex gap-1.5">
+        {/* 왼쪽 20%: Auto Tag 아이콘 버튼 */}
+        <button
+          disabled={!aiAvailable || isOrganizing}
+          onClick={onAutoTag}
+          title={t("autoTagTooltip") || "자동 태깅 (Auto Tag)"}
+          className={`
+            relative group flex items-center justify-center w-[20%] py-2.5 rounded-lg font-medium
+            transition-all duration-200 overflow-hidden shrink-0
+            ${
+              aiAvailable && !isOrganizing
+                ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/35 cursor-pointer"
+                : "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+            }
+          `}
+        >
+          <Tags size={14} className={`shrink-0 ${aiAvailable ? "text-white" : ""}`} />
+          {/* Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+            {t("autoTagTooltip") || "자동 태깅"}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+          </span>
+        </button>
+
+        {/* 오른쪽 80%: AI Organize 버튼 */}
         <button
           disabled={!aiAvailable || isOrganizing}
           onClick={handleAIOrganize}
@@ -845,7 +863,7 @@ export default function Sidebar({
               : t("aiOrganizeTooltip")
           }
           className={`
-            relative flex items-center gap-2.5 w-full px-3 py-2.5 text-sm rounded-lg font-medium
+            relative flex items-center gap-2.5 flex-1 px-3 py-2.5 text-sm rounded-lg font-medium
             transition-all duration-200 overflow-hidden
             ${
               aiAvailable && !isOrganizing
@@ -980,9 +998,9 @@ export default function Sidebar({
       {/* Memo & TODO Boards (Side-by-side) */}
       <div className="px-1.5 mb-1 flex gap-1.5">
         <button
-          onClick={onSelectMemoBoard}
+          onClick={() => onNavigate("memo")}
           className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
-            ${showMemoBoard
+            ${activePage === "memo"
               ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-medium"
               : "bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 dark:hover:bg-amber-500/25 font-medium"
             }`}
@@ -997,15 +1015,21 @@ export default function Sidebar({
         </button>
 
         <button
-          onClick={onSelectTodoBoard}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
-            ${showTodoBoard
+          onClick={() => onNavigate("todo")}
+          className={`relative flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
+            ${activePage === "todo"
               ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 font-medium"
               : "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 font-medium"
             }`}
         >
           <ListTodo size={14} className="shrink-0" />
           <span className="truncate">{t("todoBoardMenu") || "TODO"}</span>
+          {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
+            <span className="absolute top-1 right-1 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+          )}
         </button>
       </div>
 
@@ -1155,42 +1179,82 @@ export default function Sidebar({
           </div>
         </div>
 
+        {/* Task Control Center 메뉴 */}
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 space-y-0.5 px-1.5 pb-2">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold px-2 mb-1 block">
+            Control
+          </span>
+          <button
+            onClick={() => onNavigate("taskcontrol")}
+            className={`relative flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
+              ${activePage === "taskcontrol"
+                ? "bg-violet-500/15 text-violet-600 dark:text-violet-300 font-semibold"
+                : "text-gray-600 dark:text-gray-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+              }`}
+          >
+            <Activity size={15} className="shrink-0" />
+            {t("taskControlMenu") || "Task Control"}
+            {taskCount > 0 && (
+              <span className="ml-auto flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* 랭킹 메뉴 */}
-        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 space-y-0.5 px-1.5 pb-4">
+        <div className="pt-2 border-t border-gray-200/50 dark:border-surface-700/50 space-y-0.5 px-1.5 pb-4">
           <span className="text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold px-2 mb-1 block">
             Trending
           </span>
-          {onSelectGitHubRanking && (
+          {showGitHubRankingMenu && (
             <button
-              onClick={onSelectGitHubRanking}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              onClick={() => onNavigate("github")}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
+                ${activePage === "github"
+                  ? "bg-blue-500/15 text-blue-700 dark:text-blue-300 font-semibold"
+                  : "text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                }`}
             >
               <Trophy size={15} className="shrink-0" />
               {t("githubRanking")}
             </button>
           )}
-          {onSelectWikiRanking && (
+          {showWikiRankingMenu && (
             <button
-              onClick={onSelectWikiRanking}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+              onClick={() => onNavigate("wiki")}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
+                ${activePage === "wiki"
+                  ? "bg-blue-500/15 text-blue-600 dark:text-blue-300 font-semibold"
+                  : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+                }`}
             >
               <Book size={15} className="shrink-0" />
               {t("wikiRanking")}
             </button>
           )}
-          {onSelectHFRanking && (
+          {showHFRankingMenu && (
             <button
-              onClick={onSelectHFRanking}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/10"
+              onClick={() => onNavigate("hf")}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
+                ${activePage === "hf"
+                  ? "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 font-semibold"
+                  : "text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/10"
+                }`}
             >
               <Sparkles size={15} className="shrink-0" />
               {t("hfRanking")}
             </button>
           )}
-          {onSelectHNRanking && (
+          {showHNRankingMenu && (
             <button
-              onClick={onSelectHNRanking}
-              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/10"
+              onClick={() => onNavigate("hn")}
+              className={`flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg transition-all duration-150
+                ${activePage === "hn"
+                  ? "bg-orange-500/15 text-orange-700 dark:text-orange-300 font-semibold"
+                  : "text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/10"
+                }`}
             >
               <Newspaper size={15} className="shrink-0" />
               {t("hnRanking")}

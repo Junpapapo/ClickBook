@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_appName__",
   "short_name": "ClickBook",
-  "version": "1.3.1",
+  "version": "1.3.5",
   "description": "__MSG_appDesc__",
   "default_locale": "en",
   "author": "Junpapapo",
@@ -36,7 +36,8 @@
     "unlimitedStorage",
     "contextMenus",
     "tabGroups",
-    "alarms"
+    "alarms",
+    "notifications"
   ],
   "host_permissions": [
     "https://api.github.com/*",

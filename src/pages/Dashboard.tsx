@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Check, X, Pencil, Lock, LockOpen, Trash2, Wand2 } from "lucide-react";
+import { Check, X, Pencil, Lock, LockOpen, Trash2, Wand2, AlertOctagon } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 import RecommendWidget from "@/components/RecommendWidget";
@@ -28,6 +28,9 @@ interface Props {
   customSearchConfigs?: import("@/shared/types").CustomSearchConfig[];
   customPresets?: import("@/shared/types").CustomSearchConfig[];
   onSaveCustomSearchConfigs?: (configs: import("@/shared/types").CustomSearchConfig[], presets?: import("@/shared/types").CustomSearchConfig[]) => void;
+  todoStats?: { overdueCount: number; dueTodayCount: number };
+  urgentTasks?: import("@/shared/types").TodoTask[];
+  onSelectTodoBoard?: () => void;
 }
 
 const EMOJI_MAP: Record<string, string> = {
@@ -41,7 +44,7 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
@@ -139,6 +142,48 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
   return (
     <div className="flex flex-col gap-8">
       {DialogEl}
+      
+      {/* Urgent TODO Banner */}
+      {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
+        <div className="relative overflow-hidden bg-rose-500/10 dark:bg-rose-500/25 border border-rose-500/20 dark:border-rose-500/30 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-500/30 animate-pulse shrink-0">
+              <AlertOctagon size={24} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-base">
+                {t("todoBannerTitle") || "Action Required on Tasks"}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {t("todoBannerDesc", { count: todoStats.overdueCount + todoStats.dueTodayCount }) || 
+                  `You have ${todoStats.overdueCount + todoStats.dueTodayCount} tasks that are due today or overdue.`}
+              </p>
+              {urgentTasks && urgentTasks.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5 items-center text-xs text-rose-600 dark:text-rose-450 font-medium">
+                  <span className="shrink-0 bg-rose-500/10 dark:bg-rose-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                    📍 {lang === "ko" ? "긴급 할 일" : lang === "ja" ? "緊急タスク" : "Urgent"}
+                  </span>
+                  <span className="truncate max-w-[400px]">
+                    {(() => {
+                      const titles = urgentTasks.map(t => t.content);
+                      if (titles.length <= 2) return titles.join(", ");
+                      return `${titles.slice(0, 2).join(", ")} ${lang === "ko" ? `외 ${titles.length - 2}개` : lang === "ja" ? `ほか ${titles.length - 2}件` : `and ${titles.length - 2} more`}`;
+                    })()}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          {onSelectTodoBoard && (
+            <button
+              onClick={onSelectTodoBoard}
+              className="px-4 py-2 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-rose-500/20 whitespace-nowrap shrink-0"
+            >
+              {t("todoBannerBtn") || "View Board"}
+            </button>
+          )}
+        </div>
+      )}
       
       {/* AI 추천 검색 (엔터 쳐서 aiSearchQuery 있을 때만) */}
       {aiAvailable && aiSearchQuery && (

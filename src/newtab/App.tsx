@@ -14,7 +14,7 @@ import GitHubRankingPage from "@/pages/GitHubRanking";
 import WikiRankingPage from "@/pages/WikiRanking";
 import HFRankingPage from "@/pages/HFRanking";
 import HNRankingPage from "@/pages/HNRanking";
-import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings, ClickBookBackupData } from "@/shared/types";
+import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings, ClickBookBackupData, TodoBoardData, PageId } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
 import { sendMsg } from "@/shared/utils";
 import { ThemeProvider } from "@/shared/ThemeContext";
@@ -23,7 +23,9 @@ import { useDialog } from "@/shared/useDialog";
 
 import TodoBoard from "@/pages/TodoBoard";
 import TagBoard from "@/pages/TagBoard";
+import TaskControlPage from "@/pages/TaskControlPage";
 import { ReaderModeViewer } from "@/components/ReaderModeViewer";
+import { useTaskQueue } from "@/shared/useTaskQueue";
 
 // ── メインアプリケーションコンポーネント ───────────────────
 
@@ -36,14 +38,7 @@ function AppContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [aiSearchQuery, setAiSearchQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [showMemoBoard, setShowMemoBoard] = useState(false);
-  const [showTodoBoard, setShowTodoBoard] = useState(false);
-  const [showTagBoard, setShowTagBoard] = useState(false);
-  const [showBookmarkMap, setShowBookmarkMap] = useState(false);
-  const [showGitHubRanking, setShowGitHubRanking] = useState(false);
-  const [showWikiRanking, setShowWikiRanking] = useState(false);
-  const [showHFRanking, setShowHFRanking] = useState(false);
-  const [showHNRanking, setShowHNRanking] = useState(false);
+  const [activePage, setActivePage] = useState<PageId>("dashboard");
   const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
   const [infoBookmarkId, setInfoBookmarkId] = useState<string | null>(null);
   const [sidebarChromeOpen, setSidebarChromeOpen] = useState(false);
@@ -60,6 +55,114 @@ function AppContent() {
   const [pageContentsLoaded, setPageContentsLoaded] = useState(false);
   const [readerOpen, setReaderOpen] = useState(false);
   const [readerData, setReaderData] = useState<{ bookmarkId: string; title: string; url?: string; content: string } | null>(null);
+  const [todoBoard, setTodoBoard] = useState<TodoBoardData | null>(null);
+
+  // Task Control Center
+  const taskQueue = useTaskQueue();
+
+  const loadData = useCallback(async () => {
+    const response = await sendMsg({
+      type: "GET_ALL_DATA",
+    });
+    if (response.success && response.data) {
+      const data = response.data as StorageData;
+      setBookmarks(data.bookmarks);
+      setFolders(data.folders);
+    }
+    const memosRes = await sendMsg({ type: "GET_MEMOS" });
+    if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
+    const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
+    if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
+    
+    const todoBoardRes = await sendMsg({ type: "GET_TODO_BOARD" });
+    if (todoBoardRes.success && todoBoardRes.data) {
+      setTodoBoard(todoBoardRes.data as TodoBoardData);
+    }
+  }, []);
+
+  const navigate = useCallback((page: PageId, folderId?: string | null) => {
+    setActivePage(page);
+    setSelectedFolderId(folderId ?? null);
+  }, []);
+
+  const handleAutoTag = useCallback(() => {
+    if (taskQueue.tasks.some(t => t.category === "ai-tag" && (t.status === "running" || t.status === "queued"))) return;
+
+    const taskId = taskQueue.addTask("ai-tag", "Auto Tag");
+    const port = chrome.runtime.connect({ name: "auto-tag" });
+
+    port.onMessage.addListener((msg: any) => {
+      if (msg.type === "progress") {
+        taskQueue.updateProgress(taskId, msg.progress ?? 0, msg.detail ?? "");
+      } else if (msg.type === "done") {
+        const tagged = msg.tagged ?? 0;
+        const total = msg.total ?? 0;
+        const failed = msg.failed ?? 0;
+        let summary = `${tagged}/${total} bookmarks tagged`;
+        if (failed > 0) summary += ` (${failed} failed)`;
+        taskQueue.completeTask(taskId, summary);
+        loadData();
+      } else if (msg.type === "error") {
+        taskQueue.failTask(taskId, msg.error ?? "Auto tagging failed");
+      }
+    });
+
+    port.onDisconnect.addListener(() => {
+      if (chrome.runtime.lastError) {
+        taskQueue.failTask(taskId, chrome.runtime.lastError.message ?? "Connection lost");
+      }
+    });
+  }, [taskQueue, loadData]);
+
+  // Sync todo board from other pages or background via storage changes
+  useEffect(() => {
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+      if (areaName === "local" && changes["clickbook_todo_board"]) {
+        const nextVal = changes["clickbook_todo_board"].newValue;
+        if (nextVal) {
+          setTodoBoard(nextVal);
+        }
+      }
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
+
+  const todayStr = useMemo(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }, []);
+
+  const urgentTasks = useMemo(() => {
+    if (!todoBoard || !todoBoard.tasks) return [];
+    return Object.values(todoBoard.tasks).filter((task: any) => {
+      if (task.completed || !task.dueDate) return false;
+      return task.dueDate <= todayStr;
+    });
+  }, [todoBoard, todayStr]);
+
+  const todoStats = useMemo(() => {
+    let overdueCount = 0;
+    let dueTodayCount = 0;
+    
+    for (const task of urgentTasks) {
+      if (task.dueDate === todayStr) {
+        dueTodayCount++;
+      } else if (task.dueDate && task.dueDate < todayStr) {
+        overdueCount++;
+      }
+    }
+    return { overdueCount, dueTodayCount };
+  }, [urgentTasks, todayStr]);
+
+  const handleSelectTodoBoard = useCallback(() => {
+    navigate("todo");
+  }, [navigate]);
 
   // 언어가 바뀌면 탭 제목도 업데이트
   useEffect(() => {
@@ -163,21 +266,6 @@ function AppContent() {
     };
     input.click();
   }
-
-  const loadData = useCallback(async () => {
-    const response = await sendMsg({
-      type: "GET_ALL_DATA",
-    });
-    if (response.success && response.data) {
-      const data = response.data as StorageData;
-      setBookmarks(data.bookmarks);
-      setFolders(data.folders);
-    }
-    const memosRes = await sendMsg({ type: "GET_MEMOS" });
-    if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
-    const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
-    if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
-  }, []);
 
   useEffect(() => {
     loadData();
@@ -341,111 +429,20 @@ function AppContent() {
         bookmarks={filtered}
         folders={folders}
         selectedFolderId={selectedFolderId}
-        onSelect={(id) => {
-          setSelectedFolderId(id);
-          setShowMemoBoard(false);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setShowGitHubRanking(false);
-          setShowWikiRanking(false);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-        }}
+        activePage={activePage}
+        onNavigate={navigate}
         onRefresh={loadData}
         showChromePanel={sidebarChromeOpen}
-        showMemoBoard={showMemoBoard}
-        showTodoBoard={showTodoBoard}
-        showTagBoard={showTagBoard}
-        showBookmarkMap={showBookmarkMap}
         memoCount={Object.keys(memos).length}
-        onSelectMemoBoard={() => {
-          setShowMemoBoard(true);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setShowBookmarkMap(false);
-          setSelectedFolderId(null);
-          setShowGitHubRanking(false);
-          setShowWikiRanking(false);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-        }}
-        onSelectTodoBoard={() => {
-          setShowTodoBoard(true);
-          setShowMemoBoard(false);
-          setShowTagBoard(false);
-          setShowBookmarkMap(false);
-          setSelectedFolderId(null);
-          setShowGitHubRanking(false);
-          setShowWikiRanking(false);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-        }}
-        onSelectTagBoard={() => {
-          setShowTagBoard(true);
-          setShowTodoBoard(false);
-          setShowMemoBoard(false);
-          setShowBookmarkMap(false);
-          setSelectedFolderId(null);
-          setShowGitHubRanking(false);
-          setShowWikiRanking(false);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-        }}
-        onSelectGitHubRanking={showGitHubRankingMenu ? () => {
-          setShowGitHubRanking(true);
-          setShowMemoBoard(false);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setSelectedFolderId(null);
-          setShowWikiRanking(false);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-        } : undefined}
-        onSelectWikiRanking={showWikiRankingMenu ? () => {
-          setShowWikiRanking(true);
-          setShowGitHubRanking(false);
-          setShowMemoBoard(false);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setSelectedFolderId(null);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-        } : undefined}
-        onSelectHFRanking={showHFRankingMenu ? () => {
-          setShowHFRanking(true);
-          setShowWikiRanking(false);
-          setShowGitHubRanking(false);
-          setShowMemoBoard(false);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setSelectedFolderId(null);
-          setShowHNRanking(false);
-          setShowBookmarkMap(false);
-        } : undefined}
-        onSelectBookmarkMap={() => {
-          setShowBookmarkMap(true);
-          setShowMemoBoard(false);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setShowGitHubRanking(false);
-          setShowWikiRanking(false);
-          setShowHFRanking(false);
-          setShowHNRanking(false);
-          setSelectedFolderId(null);
-        }}
-        onSelectHNRanking={showHNRankingMenu ? () => {
-          setShowHNRanking(true);
-          setShowHFRanking(false);
-          setShowWikiRanking(false);
-          setShowGitHubRanking(false);
-          setShowBookmarkMap(false);
-          setShowMemoBoard(false);
-          setShowTodoBoard(false);
-          setShowTagBoard(false);
-          setSelectedFolderId(null);
-        } : undefined}
+        onAutoTag={handleAutoTag}
+        taskCount={taskQueue.tasks.length}
         maxFolderDepth={settings.maxFolderDepth}
         onAiLoadingChange={setAiLoading}
+        todoStats={todoStats}
+        showGitHubRankingMenu={showGitHubRankingMenu}
+        showWikiRankingMenu={showWikiRankingMenu}
+        showHFRankingMenu={showHFRankingMenu}
+        showHNRankingMenu={showHNRankingMenu}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -461,41 +458,53 @@ function AppContent() {
 
         <div className="flex flex-1 overflow-hidden">
           <main className="flex-1 overflow-y-auto p-6">
-            {showTodoBoard ? (
-              <TodoBoard />
-            ) : showTagBoard ? (
-              <TagBoard bookmarks={filtered} folders={folders} onRefresh={loadData} />
-            ) : showGitHubRanking ? (
+            {activePage === "taskcontrol" ? (
+              <TaskControlPage
+                tasks={taskQueue.tasks}
+                aiRunningCount={taskQueue.aiRunningCount}
+                aiQueuedCount={taskQueue.aiQueuedCount}
+                onCancel={(taskId) => taskQueue.cancelTask(taskId)}
+                onDismiss={(taskId) => taskQueue.dismissTask(taskId)}
+                onRetry={(task) => {
+                  taskQueue.dismissTask(task.id);
+                  // Re-add the task
+                  taskQueue.addTask(task.category, task.name);
+                }}
+              />
+            ) : activePage === "todo" ? (
+              <TodoBoard settings={settings} />
+            ) : activePage === "tagboard" ? (
+              <TagBoard
+                bookmarks={filtered}
+                folders={folders}
+                onRefresh={loadData}
+                isAutoTagging={taskQueue.tasks.some(t => t.category === "ai-tag" && (t.status === "running" || t.status === "queued"))}
+                onAutoTag={handleAutoTag}
+              />
+            ) : activePage === "github" ? (
               <GitHubRankingPage />
-            ) : showWikiRanking ? (
+            ) : activePage === "wiki" ? (
               <WikiRankingPage />
-            ) : showHFRanking ? (
+            ) : activePage === "hf" ? (
               <HFRankingPage />
-            ) : showHNRanking ? (
+            ) : activePage === "hn" ? (
               <HNRankingPage />
-            ) : showBookmarkMap ? (
+            ) : activePage === "map" ? (
               <BookmarkMap bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
-            ) : showMemoBoard ? (
+            ) : activePage === "memo" ? (
               <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
-            ) : selectedFolderId === null ? (
+            ) : activePage === "dashboard" ? (
               <Dashboard
                 bookmarks={filtered}
                 folders={folders}
                 memos={memos}
+                todoStats={todoStats}
+                urgentTasks={urgentTasks}
+                onSelectTodoBoard={handleSelectTodoBoard}
                 recentCount={settings.recentCount}
                 rankingCount={settings.rankingCount}
                 recommendCount={settings.recommendCount}
-                onSelectFolder={(id) => {
-                  setSelectedFolderId(id);
-                  setShowMemoBoard(false);
-                  setShowTodoBoard(false);
-                  setShowTagBoard(false);
-                  setShowGitHubRanking(false);
-                  setShowWikiRanking(false);
-                  setShowHFRanking(false);
-                  setShowHNRanking(false);
-                  setShowBookmarkMap(false);
-                }}
+                onSelectFolder={(id) => navigate("folder", id)}
                 onRefresh={loadData}
                 searchQuery={deferredQuery}
                 aiSearchQuery={aiSearchQuery}
@@ -512,18 +521,8 @@ function AppContent() {
                 folders={folders}
                 folderId={selectedFolderId}
                 memos={memos}
-                onBack={() => setSelectedFolderId(null)}
-                onSelectFolder={(id) => {
-                  setSelectedFolderId(id);
-                  setShowMemoBoard(false);
-                  setShowTodoBoard(false);
-                  setShowTagBoard(false);
-                  setShowGitHubRanking(false);
-                  setShowWikiRanking(false);
-                  setShowHFRanking(false);
-                  setShowHNRanking(false);
-                  setShowBookmarkMap(false);
-                }}
+                onBack={() => navigate("dashboard")}
+                onSelectFolder={(id) => navigate("folder", id)}
                 onRefresh={loadData}
               />
             )}
@@ -558,25 +557,25 @@ function AppContent() {
           onToggleGitHubRankingMenu={(v) => {
             setShowGitHubRankingMenu(v);
             chrome.storage.local.set({ clickbook_show_github_ranking: v });
-            if (!v && showGitHubRanking) setShowGitHubRanking(false);
+            if (!v && activePage === "github") navigate("dashboard");
           }}
           showWikiRankingMenu={showWikiRankingMenu}
           onToggleWikiRankingMenu={(v) => {
             setShowWikiRankingMenu(v);
             chrome.storage.local.set({ clickbook_show_wiki_ranking: v });
-            if (!v && showWikiRanking) setShowWikiRanking(false);
+            if (!v && activePage === "wiki") navigate("dashboard");
           }}
           showHFRankingMenu={showHFRankingMenu}
           onToggleHFRankingMenu={(v) => {
             setShowHFRankingMenu(v);
             chrome.storage.local.set({ clickbook_show_hf_ranking: v });
-            if (!v && showHFRanking) setShowHFRanking(false);
+            if (!v && activePage === "hf") navigate("dashboard");
           }}
           showHNRankingMenu={showHNRankingMenu}
           onToggleHNRankingMenu={(v) => {
             setShowHNRankingMenu(v);
             chrome.storage.local.set({ clickbook_show_hn_ranking: v });
-            if (!v && showHNRanking) setShowHNRanking(false);
+            if (!v && activePage === "hn") navigate("dashboard");
           }}
           settingsMessage={settingsMessage}
         />

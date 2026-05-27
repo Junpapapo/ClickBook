@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DraggableProvided } from "@hello-pangea/dnd";
-import { Plus, Check, Trash2, GripVertical, Loader2, X, AlignLeft, CheckSquare, Tag, CheckCircle2, Circle, Palette, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, ChevronDown } from "lucide-react";
-import type { TodoBoardData, TodoColumn, TodoTask, MessageResponse } from "@/shared/types";
+import { Plus, Check, Trash2, GripVertical, Loader2, X, AlignLeft, CheckSquare, Tag, CheckCircle2, Circle, Palette, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, ChevronDown, RotateCcw, Bell } from "lucide-react";
+import type { TodoBoardData, TodoColumn, TodoTask, MessageResponse, AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 
@@ -512,12 +512,14 @@ const TodoColumnView = React.memo(function TodoColumnView({
   );
 });
 
-export default function TodoBoard() {
+export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   const { t } = useLang();
   const { showConfirm, DialogEl } = useDialog();
 
   const [data, setData] = useState<TodoBoardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [localSettings, setLocalSettings] = useState<AppSettings | null>(null);
+  const activeSettings = settings || localSettings;
 
   // Focus management
   const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
@@ -553,6 +555,10 @@ export default function TodoBoard() {
     const res = (await chrome.runtime.sendMessage({ type: "GET_TODO_BOARD" })) as MessageResponse;
     if (res.success && res.data) {
       setData(res.data as TodoBoardData);
+    }
+    const settingsRes = (await chrome.runtime.sendMessage({ type: "GET_SETTINGS" })) as MessageResponse;
+    if (settingsRes.success && settingsRes.data) {
+      setLocalSettings(settingsRes.data as AppSettings);
     }
     setLoading(false);
   }, []);
@@ -1157,29 +1163,132 @@ export default function TodoBoard() {
                   </div>
 
                   {/* Dates & Reminders Section */}
-                  <div className="flex flex-col gap-2 pt-3 border-t border-gray-200/50 dark:border-white/[0.03] relative">
-                    <h4 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Dates & Reminders</h4>
-                    <button
-                      type="button"
-                      onClick={() => setShowDatePickerPopover(!showDatePickerPopover)}
-                      className="flex items-center justify-between w-full px-3 py-2 bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-700 rounded-xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all text-left shadow-sm"
-                    >
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <Calendar size={14} className="text-indigo-500 shrink-0" />
-                        <span className="text-xs font-semibold truncate max-w-[170px]">
-                          {editTaskStartDate || editTaskDueDate ? (
+                  <div className="flex flex-col gap-1.5 pt-3 border-t border-gray-200/50 dark:border-white/[0.03] relative">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Dates & Reminders</h4>
+                      {(editTaskStartDate || editTaskDueDate || editTaskDueTime || editTaskReminder !== "none") && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditTaskStartDate(undefined);
+                            setEditTaskDueDate(undefined);
+                            setEditTaskDueTime(undefined);
+                            setEditTaskReminder("none");
+                          }}
+                          className="text-gray-450 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors p-0.5 rounded hover:bg-gray-100 dark:hover:bg-surface-800"
+                          title="초기화"
+                        >
+                          <RotateCcw size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      {/* 날짜 선택 버튼 */}
+                      <button
+                        type="button"
+                        onClick={() => setShowDatePickerPopover(!showDatePickerPopover)}
+                        className="flex items-center justify-between w-full px-3 py-2 bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-700 rounded-xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all text-left shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <Calendar size={14} className="text-indigo-500 shrink-0" />
+                          <span className="text-xs font-semibold truncate max-w-[170px]">
+                            {editTaskStartDate || editTaskDueDate ? (
+                              <>
+                                {editTaskStartDate ? formatDateKorean(editTaskStartDate) : ""}
+                                {editTaskStartDate && editTaskDueDate ? " ~ " : ""}
+                                {editTaskDueDate ? formatDateKorean(editTaskDueDate) : ""}
+                              </>
+                            ) : (
+                              "날짜 설정..."
+                            )}
+                          </span>
+                        </div>
+                        <ChevronRight size={14} className="text-gray-400 shrink-0" />
+                      </button>
+
+                      {/* 시간 설정 (기한일이 설정된 경우에만 노출) */}
+                      {editTaskDueDate && (
+                        <div className="relative flex items-center w-full">
+                          <Clock size={14} className="absolute left-3 text-indigo-500 shrink-0 pointer-events-none" />
+                          <input
+                            type="text"
+                            value={editTaskDueTime || "12:00"}
+                            onChange={(e) => setEditTaskDueTime(e.target.value)}
+                            onFocus={() => setShowTimeDropdown(true)}
+                            placeholder="12:00"
+                            className="w-full text-xs bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-700 rounded-xl pl-9 pr-8 py-2 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all focus:outline-none shadow-sm font-semibold"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowTimeDropdown(!showTimeDropdown)}
+                            className="absolute right-3 text-gray-400 dark:text-gray-550 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          >
+                            <ChevronDown size={14} />
+                          </button>
+
+                          {showTimeDropdown && (
                             <>
-                              {editTaskStartDate ? formatDateKorean(editTaskStartDate) : ""}
-                              {editTaskStartDate && editTaskDueDate ? " ~ " : ""}
-                              {editTaskDueDate ? `${formatDateKorean(editTaskDueDate)}${editTaskDueTime ? ` ${editTaskDueTime}` : ""}` : ""}
+                              <div 
+                                className="fixed inset-0 z-[95]" 
+                                onClick={() => setShowTimeDropdown(false)} 
+                              />
+                              <div className="absolute left-0 right-0 top-full mt-1 z-[100] max-h-[160px] overflow-y-auto bg-white dark:bg-[#1E1E20] border border-gray-200/80 dark:border-white/10 rounded-xl shadow-xl py-1 text-xs animate-in fade-in slide-in-from-top-2 duration-150 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-600">
+                                {timeOptions.map((t) => (
+                                  <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => {
+                                      setEditTaskDueTime(t);
+                                      setShowTimeDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                                      editTaskDueTime === t ? "bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-semibold" : "text-gray-700 dark:text-gray-300"
+                                    }`}
+                                  >
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
                             </>
-                          ) : (
-                            "날짜 및 알림 설정..."
                           )}
-                        </span>
-                      </div>
-                      <ChevronRight size={14} className="text-gray-400 shrink-0" />
-                    </button>
+                        </div>
+                      )}
+
+                      {/* 리마인드 알림 */}
+                      {editTaskDueDate && (
+                        <div className="flex flex-col w-full relative">
+                          <div className="relative flex items-center w-full">
+                            <Bell size={14} className={`absolute left-3 shrink-0 pointer-events-none ${(!activeSettings?.enableTodoNotifications) ? "text-gray-400 dark:text-gray-550" : "text-indigo-500"}`} />
+                            <select
+                              value={editTaskReminder || "none"}
+                              onChange={(e) => setEditTaskReminder(e.target.value)}
+                              disabled={!activeSettings?.enableTodoNotifications}
+                              className="text-xs bg-white dark:bg-surface-900 border border-gray-200/80 dark:border-surface-700 rounded-xl pl-9 pr-8 py-2 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all focus:outline-none w-full shadow-sm disabled:bg-gray-100/50 dark:disabled:bg-surface-800/50 disabled:text-gray-400 dark:disabled:text-gray-550 disabled:cursor-not-allowed disabled:border-gray-100 dark:disabled:border-surface-800 appearance-none font-semibold"
+                            >
+                              {REMINDER_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.value === "none" ? t("reminderNone") :
+                                   opt.value === "at_due" ? t("reminderAtDue") :
+                                   opt.value === "15m_before" ? t("reminder15m") :
+                                   opt.value === "1h_before" ? t("reminder1h") :
+                                   opt.value === "3h_before" ? t("reminder3h") :
+                                   opt.value === "1d_before" ? t("reminder1d") : opt.label}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="absolute right-3 pointer-events-none text-gray-400 dark:text-gray-555">
+                              <ChevronDown size={14} />
+                            </div>
+                          </div>
+                          {!activeSettings?.enableTodoNotifications && (
+                            <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 leading-tight px-1">
+                              {t("todoNotificationsDisabledWarning") || "※ 설정에서 'Todo 알림 받기'를 활성화해야 알림을 수신할 수 있습니다."}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Popover */}
                     {showDatePickerPopover && (
@@ -1362,96 +1471,29 @@ export default function TodoBoard() {
                             </div>
 
                             {/* Due Date Switcher */}
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300 font-semibold cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={!!editTaskDueDate}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setEditTaskDueDate(editTaskDueDate || formatDateStr(new Date()));
-                                        setActiveTab("due");
-                                      } else {
-                                        setEditTaskDueDate(undefined);
-                                        setEditTaskDueTime(undefined);
-                                      }
-                                    }}
-                                    className="w-3 h-3 text-indigo-650 rounded border-gray-300 focus:ring-indigo-500 dark:border-surface-700 dark:bg-surface-800"
-                                  />
-                                  <span>기한</span>
-                                </label>
-                                {editTaskDueDate && (
-                                  <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-surface-800 px-1.5 py-0.5 rounded border border-gray-200/50 dark:border-surface-700/50">
-                                    {formatDateKorean(editTaskDueDate)}
-                                  </span>
-                                )}
-                              </div>
-
+                            <div className="flex items-center justify-between">
+                              <label className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300 font-semibold cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={!!editTaskDueDate}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setEditTaskDueDate(editTaskDueDate || formatDateStr(new Date()));
+                                      setActiveTab("due");
+                                    } else {
+                                      setEditTaskDueDate(undefined);
+                                      setEditTaskDueTime(undefined);
+                                    }
+                                  }}
+                                  className="w-3 h-3 text-indigo-650 rounded border-gray-300 focus:ring-indigo-500 dark:border-surface-700 dark:bg-surface-800"
+                                />
+                                <span>기한</span>
+                              </label>
                               {editTaskDueDate && (
-                                <div className="relative flex items-center gap-1.5 pl-4.5 mt-0.5 animate-in slide-in-from-left-1 duration-150">
-                                  <Clock size={11} className="text-gray-400 dark:text-gray-500 shrink-0" />
-                                  <div className="relative flex-1 flex items-center">
-                                    <input
-                                      type="text"
-                                      value={editTaskDueTime || "12:00"}
-                                      onChange={(e) => setEditTaskDueTime(e.target.value)}
-                                      onFocus={() => setShowTimeDropdown(true)}
-                                      placeholder="12:00"
-                                      className="w-full text-[10px] bg-gray-50 dark:bg-surface-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-surface-700 rounded px-1.5 py-0.5 pr-5 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => setShowTimeDropdown(!showTimeDropdown)}
-                                      className="absolute right-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-0.5 transition-colors"
-                                    >
-                                      <ChevronDown size={11} />
-                                    </button>
-
-                                    {showTimeDropdown && (
-                                      <>
-                                        <div 
-                                          className="fixed inset-0 z-[95]" 
-                                          onClick={() => setShowTimeDropdown(false)} 
-                                        />
-                                        <div className="absolute left-0 right-0 bottom-full mb-1 z-[100] max-h-[160px] overflow-y-auto bg-white dark:bg-[#1E1E20] border border-gray-200/80 dark:border-white/10 rounded-lg shadow-xl py-1 text-[10px] animate-in fade-in slide-in-from-bottom-2 duration-150 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-600">
-                                          {timeOptions.map((t) => (
-                                            <button
-                                              key={t}
-                                              type="button"
-                                              onClick={() => {
-                                                setEditTaskDueTime(t);
-                                                setShowTimeDropdown(false);
-                                              }}
-                                              className={`w-full text-left px-2.5 py-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-                                                editTaskDueTime === t ? "bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-semibold" : "text-gray-700 dark:text-gray-300"
-                                              }`}
-                                            >
-                                              {t}
-                                            </button>
-                                          ))}
-                                        </div>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-surface-800 px-1.5 py-0.5 rounded border border-gray-200/50 dark:border-surface-700/50">
+                                  {formatDateKorean(editTaskDueDate)}
+                                </span>
                               )}
-                            </div>
-
-                            {/* Reminder Switcher */}
-                            <div className="flex items-center justify-between border-t border-gray-100 dark:border-white/[0.03] pt-2 mt-0.5">
-                              <span className="text-gray-700 dark:text-gray-300 font-semibold">리마인드 알림</span>
-                              <select
-                                value={editTaskReminder || "none"}
-                                onChange={(e) => setEditTaskReminder(e.target.value)}
-                                className="text-[10px] bg-gray-50 dark:bg-surface-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-surface-700 rounded px-1 py-0.5 focus:outline-none w-[100px]"
-                              >
-                                {REMINDER_OPTIONS.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                  </option>
-                                ))}
-                              </select>
                             </div>
                           </div>
 

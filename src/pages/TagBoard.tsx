@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Tag as TagIcon,
+  Tags as TagsIcon,
   Merge as MergeIcon,
   Layers as LayersIcon,
   Edit as EditIcon,
   X as XIcon,
   Filter as FilterIcon,
+  ChevronDown as ChevronDownIcon,
+  ChevronUp as ChevronUpIcon,
   Trash2 as TrashIcon,
   Plus as PlusIcon,
   Check as CheckIcon,
@@ -14,7 +17,8 @@ import {
   RefreshCw as RefreshIcon,
   SlidersHorizontal as SlidersIcon,
   CheckCircle2 as CheckCircleIcon,
-  Sparkles as SparklesIcon
+  Sparkles as SparklesIcon,
+  Loader2 as Loader2Icon
 } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import type { Bookmark, Folder, MessageResponse } from "@/shared/types";
@@ -25,9 +29,11 @@ interface Props {
   bookmarks: Bookmark[];
   folders: Folder[];
   onRefresh: () => void;
+  onAutoTag?: () => void;
+  isAutoTagging?: boolean;
 }
 
-export default function TagBoard({ bookmarks, folders, onRefresh }: Props) {
+export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isAutoTagging = false }: Props) {
   const { t } = useLang();
   const { showConfirm, DialogEl } = useDialog();
 
@@ -46,6 +52,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh }: Props) {
   const [newTagInput, setNewTagInput] = useState("");
 
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
+  const [tagCloudOpen, setTagCloudOpen] = useState(true);
 
   const showToast = (text: string, type: "success" | "error" | "info" = "success") => {
     setToastMessage({ text, type });
@@ -361,13 +368,36 @@ export default function TagBoard({ bookmarks, folders, onRefresh }: Props) {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowMergeModal(true)}
-            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95 shrink-0"
-          >
-            <MergeIcon size={14} />
-            {t("tagMergeBtn") || "Merge Tags"}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Auto Tag Button */}
+            {onAutoTag && (
+              <button
+                disabled={isAutoTagging}
+                onClick={onAutoTag}
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shrink-0
+                  ${isAutoTagging
+                    ? "bg-gray-200 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed shadow-none hover:shadow-none hover:translate-y-0"
+                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/20 hover:shadow-emerald-500/30"
+                  }`}
+              >
+                {isAutoTagging ? (
+                  <Loader2Icon size={14} className="animate-spin" />
+                ) : (
+                  <TagsIcon size={14} />
+                )}
+                {t("autoTagTooltip") || "Auto Tag"}
+              </button>
+            )}
+
+            {/* Merge Tags Button */}
+            <button
+              onClick={() => setShowMergeModal(true)}
+              className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95 shrink-0"
+            >
+              <MergeIcon size={14} />
+              {t("tagMergeBtn") || "Merge Tags"}
+            </button>
+          </div>
         </div>
 
         {/* Analytics Grid */}
@@ -448,101 +478,116 @@ export default function TagBoard({ bookmarks, folders, onRefresh }: Props) {
         </div>
 
         {/* HSL Interactive Tag Cloud Card */}
-        <div className="bg-white dark:bg-surface-900/60 backdrop-blur border border-gray-200/50 dark:border-white/[0.05] rounded-3xl p-5 shadow-sm mb-6 shrink-0 relative overflow-hidden flex flex-col max-h-[360px]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 shrink-0">
+        <div className={`bg-white dark:bg-surface-900/60 backdrop-blur border border-gray-200/50 dark:border-white/[0.05] rounded-3xl shadow-sm mb-6 shrink-0 relative overflow-hidden flex flex-col transition-all duration-300 ${tagCloudOpen ? "p-5 max-h-[360px]" : "p-4"}`}>
+          <div
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0 cursor-pointer select-none"
+            onClick={() => setTagCloudOpen(prev => !prev)}
+          >
             <h2 className="text-[14px] font-bold text-gray-900 dark:text-gray-100 tracking-tight flex items-center gap-1.5">
               <SparklesIcon size={15} className="text-yellow-500" />
               {t("tagCloudTitle") || "AI Tag Cloud"}
+              <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 ml-1">
+                ({filteredTagsList.length})
+              </span>
+              {tagCloudOpen ? (
+                <ChevronUpIcon size={14} className="text-gray-400 dark:text-gray-500 ml-0.5" />
+              ) : (
+                <ChevronDownIcon size={14} className="text-gray-400 dark:text-gray-500 ml-0.5" />
+              )}
             </h2>
 
-            {/* Tag Search and Controls */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-[220px]">
-                <SearchIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-                <input
-                  value={tagSearch}
-                  onChange={(e) => setTagSearch(e.target.value)}
-                  className="w-full bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-150 pl-8 pr-3 py-2 rounded-xl outline-none border border-gray-200 dark:border-surface-800 focus:border-indigo-500 dark:focus:border-indigo-500 placeholder-gray-450 dark:placeholder-gray-500 transition-colors"
-                  placeholder={t("tagSearchPlaceholder") || "Filter tags..."}
-                />
-                {tagSearch && (
-                  <button
-                    onClick={() => setTagSearch("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <XIcon size={12} />
-                  </button>
-                )}
-              </div>
-
-              {/* Tag Selection Shortkeys */}
-              <div className="flex gap-1">
-                <button
-                  onClick={handleSelectAllTags}
-                  className="px-2.5 py-2 bg-gray-55 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
-                >
-                  {t("tagSelectAll") || "All"}
-                </button>
-                <button
-                  onClick={handleDeselectAllTags}
-                  className="px-2.5 py-2 bg-gray-55 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
-                >
-                  {t("tagDeselectAll") || "Clear"}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Cloud container with custom thin scrollbar */}
-          <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-800">
-            {filteredTagsList.length === 0 ? (
-              <div className="h-28 flex flex-col items-center justify-center text-center">
-                <TagIcon size={24} className="text-gray-300 dark:text-gray-600 mb-2" />
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">
-                  {t("tagBoardEmpty") || "No tags found"}
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-x-4 gap-y-3 py-2 items-center justify-start">
-                {filteredTagsList.map(tagObj => {
-                  const isSelected = selectedTags.includes(tagObj.name);
-                  const colors = getTagColor(tagObj.name);
-                  
-                  // Calculate dynamic font size based on weight (frequency)
-                  const fontSize = Math.min(1.4, Math.max(0.78, 0.78 + (tagObj.count * 0.045))) + "rem";
-
-                  return (
+            {/* Tag Search and Controls - only when open */}
+            {tagCloudOpen && (
+              <div className="flex items-center gap-2 w-full sm:w-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="relative flex-1 sm:w-[220px]">
+                  <SearchIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                  <input
+                    value={tagSearch}
+                    onChange={(e) => setTagSearch(e.target.value)}
+                    className="w-full bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-150 pl-8 pr-3 py-2 rounded-xl outline-none border border-gray-200 dark:border-surface-800 focus:border-indigo-500 dark:focus:border-indigo-500 placeholder-gray-450 dark:placeholder-gray-500 transition-colors"
+                    placeholder={t("tagSearchPlaceholder") || "Filter tags..."}
+                  />
+                  {tagSearch && (
                     <button
-                      key={tagObj.name}
-                      onClick={() => handleTagClick(tagObj.name)}
-                      className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[11px] font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm hover:shadow-md relative
-                        ${isSelected 
-                          ? "ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-surface-950 scale-105 z-10 font-extrabold shadow-md" 
-                          : "opacity-85 hover:opacity-100 hover:scale-103 z-0"
-                        }
-                      `}
-                      style={{
-                        fontSize,
-                        backgroundColor: isSelected ? colors.activeBg : colors.bg,
-                        borderColor: isSelected ? colors.activeBorder : colors.border,
-                        color: isSelected ? colors.activeText : colors.text
-                      }}
+                      onClick={() => setTagSearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
-                      <span>#{tagObj.name}</span>
-                      <span className={`inline-flex items-center justify-center text-[9px] px-1.5 py-0.5 rounded-full font-bold ml-0.5
-                        ${isSelected 
-                          ? "bg-white/20 text-white" 
-                          : "bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400"
-                        }
-                      `}>
-                        {tagObj.count}
-                      </span>
+                      <XIcon size={12} />
                     </button>
-                  );
-                })}
+                  )}
+                </div>
+
+                {/* Tag Selection Shortkeys */}
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleSelectAllTags}
+                    className="px-2.5 py-2 bg-gray-55 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
+                  >
+                    {t("tagSelectAll") || "All"}
+                  </button>
+                  <button
+                    onClick={handleDeselectAllTags}
+                    className="px-2.5 py-2 bg-gray-55 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
+                  >
+                    {t("tagDeselectAll") || "Clear"}
+                  </button>
+                </div>
               </div>
             )}
           </div>
+
+          {/* Cloud container - collapsible */}
+          {tagCloudOpen && (
+            <div className="flex-1 overflow-y-auto pr-1 mt-4 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-800">
+              {filteredTagsList.length === 0 ? (
+                <div className="h-28 flex flex-col items-center justify-center text-center">
+                  <TagIcon size={24} className="text-gray-300 dark:text-gray-600 mb-2" />
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">
+                    {t("tagBoardEmpty") || "No tags found"}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-x-4 gap-y-3 py-2 items-center justify-start">
+                  {filteredTagsList.map(tagObj => {
+                    const isSelected = selectedTags.includes(tagObj.name);
+                    const colors = getTagColor(tagObj.name);
+                    
+                    // Calculate dynamic font size based on weight (frequency)
+                    const fontSize = Math.min(1.4, Math.max(0.78, 0.78 + (tagObj.count * 0.045))) + "rem";
+
+                    return (
+                      <button
+                        key={tagObj.name}
+                        onClick={() => handleTagClick(tagObj.name)}
+                        className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-[11px] font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm hover:shadow-md relative
+                          ${isSelected 
+                            ? "ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-surface-950 scale-105 z-10 font-extrabold shadow-md" 
+                            : "opacity-85 hover:opacity-100 hover:scale-103 z-0"
+                          }
+                        `}
+                        style={{
+                          fontSize,
+                          backgroundColor: isSelected ? colors.activeBg : colors.bg,
+                          borderColor: isSelected ? colors.activeBorder : colors.border,
+                          color: isSelected ? colors.activeText : colors.text
+                        }}
+                      >
+                        <span>#{tagObj.name}</span>
+                        <span className={`inline-flex items-center justify-center text-[9px] px-1.5 py-0.5 rounded-full font-bold ml-0.5
+                          ${isSelected 
+                            ? "bg-white/20 text-white" 
+                            : "bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400"
+                          }
+                        `}>
+                          {tagObj.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Filter State Banner & Switch */}

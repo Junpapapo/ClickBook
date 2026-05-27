@@ -459,6 +459,7 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   openDashboardInNewTab: false,
   useClickBookAsNewTab: true,
   gcInterval: "daily",
+  enableTodoNotifications: false,
   customSearchConfigs: [
     { id: "cs-google", name: "Google", urlTemplate: "https://www.google.com/search?q={keyword}" },
     { id: "cs-youtube", name: "YouTube", urlTemplate: "https://www.youtube.com/results?search_query={keyword}" },
