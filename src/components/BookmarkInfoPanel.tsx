@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen, Copy, Check, BookOpen } from "lucide-react";
+import { X, Info, Tag, ExternalLink, RefreshCw, StickyNote, Pencil, FolderOpen, Copy, Check, BookOpen, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, Folder } from "@/shared/types";
 import { MEMO_TEXTAREA_BG } from "@/shared/colors";
@@ -23,6 +23,9 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
   const [isUpdating, setIsUpdating] = useState(false);
   const [showMemoPopover, setShowMemoPopover] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [editingTagIndex, setEditingTagIndex] = useState<number | null>(null);
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [tagEditValue, setTagEditValue] = useState("");
   const [copied, setCopied] = useState(false);
   const memoBtnRef = useRef<HTMLButtonElement | null>(null);
 
@@ -107,6 +110,93 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
         content: memo.content
       }
     }));
+  };
+
+  const handleRemoveTag = async (tagToRemove: string) => {
+    if (!bookmark) return;
+    const nextTags = (bookmark.tags || []).filter(t => t !== tagToRemove);
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "UPDATE_BOOKMARK",
+        id: bookmark.id,
+        title: bookmark.title,
+        url: bookmark.url,
+        folderId: bookmark.folderId,
+        tags: nextTags
+      });
+      if (response.success && onRefresh) {
+        onRefresh();
+      }
+    } catch (err) {
+      console.error("Failed to remove tag:", err);
+    }
+  };
+
+  const handleInlineTagEdit = async (index: number) => {
+    if (!bookmark) return;
+    const val = tagEditValue.trim().toLowerCase();
+    const currentTags = [...(bookmark.tags || [])];
+    
+    if (!val) {
+      // If empty, remove it
+      currentTags.splice(index, 1);
+    } else {
+      currentTags[index] = val;
+    }
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "UPDATE_BOOKMARK",
+        id: bookmark.id,
+        title: bookmark.title,
+        url: bookmark.url,
+        folderId: bookmark.folderId,
+        tags: Array.from(new Set(currentTags)) // Deduplicate
+      });
+      if (response.success && onRefresh) {
+        onRefresh();
+      }
+    } catch (err) {
+      console.error("Failed to update tag:", err);
+    } finally {
+      setEditingTagIndex(null);
+    }
+  };
+
+  const handleAddTag = async () => {
+    if (!bookmark) return;
+    const val = tagEditValue.trim().toLowerCase();
+    if (!val) {
+      setIsAddingTag(false);
+      return;
+    }
+
+    const currentTags = [...(bookmark.tags || [])];
+    if (currentTags.includes(val)) {
+      setIsAddingTag(false);
+      return;
+    }
+
+    currentTags.push(val);
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: "UPDATE_BOOKMARK",
+        id: bookmark.id,
+        title: bookmark.title,
+        url: bookmark.url,
+        folderId: bookmark.folderId,
+        tags: currentTags
+      });
+      if (response.success && onRefresh) {
+        onRefresh();
+      }
+    } catch (err) {
+      console.error("Failed to add tag:", err);
+    } finally {
+      setIsAddingTag(false);
+      setTagEditValue("");
+    }
   };
 
   const currentFolder = bookmark ? folders.find(f => f.id === bookmark.folderId) : null;
@@ -268,22 +358,78 @@ export default function BookmarkInfoPanel({ bookmark, memo, folders, onClose, on
 
         {/* AI Tags */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1.5 uppercase tracking-wider">
-            <Tag size={12} className="text-emerald-500" />
-            Tags
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1.5 uppercase tracking-wider">
+              <Tag size={12} className="text-emerald-500" />
+              {t("tagsLabel") || "Tags"}
+            </h4>
+            <button
+              onClick={() => {
+                setIsAddingTag(true);
+                setTagEditValue("");
+              }}
+              className="p-1 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded transition-colors"
+              title="Add Tag"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
           <div className="flex flex-wrap gap-1.5">
             {bookmark.tags && bookmark.tags.length > 0 ? (
               bookmark.tags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium rounded-md border border-emerald-100 dark:border-emerald-500/20"
-                >
-                  #{tag}
-                </span>
+                editingTagIndex === i ? (
+                  <input
+                    key={i}
+                    autoFocus
+                    value={tagEditValue}
+                    onChange={(e) => setTagEditValue(e.target.value)}
+                    onBlur={() => handleInlineTagEdit(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleInlineTagEdit(i);
+                      if (e.key === "Escape") setEditingTagIndex(null);
+                    }}
+                    className="px-2 py-0.5 w-20 bg-white dark:bg-surface-800 border border-emerald-500 rounded text-[10px] outline-none text-emerald-600 dark:text-emerald-400"
+                  />
+                ) : (
+                  <span
+                    key={i}
+                    onDoubleClick={() => {
+                      setEditingTagIndex(i);
+                      setTagEditValue(tag);
+                    }}
+                    className="group/tag relative px-2 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium rounded-md border border-emerald-100 dark:border-emerald-500/20 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-500/40 transition-all select-none"
+                    title="Double-click to edit"
+                  >
+                    #{tag}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveTag(tag);
+                      }}
+                      className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/tag:opacity-100 transition-opacity shadow-sm hover:bg-rose-600"
+                      title="Remove tag"
+                    >
+                      <X size={8} strokeWidth={3} />
+                    </button>
+                  </span>
+                )
               ))
-            ) : (
+            ) : !isAddingTag && (
               <span className="text-xs text-gray-400 italic">No tags</span>
+            )}
+            {isAddingTag && (
+              <input
+                autoFocus
+                value={tagEditValue}
+                onChange={(e) => setTagEditValue(e.target.value)}
+                onBlur={handleAddTag}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddTag();
+                  if (e.key === "Escape") setIsAddingTag(false);
+                }}
+                className="px-2 py-0.5 w-20 bg-white dark:bg-surface-800 border border-emerald-500 rounded text-[10px] outline-none text-emerald-600 dark:text-emerald-400"
+                placeholder="New tag..."
+              />
             )}
           </div>
         </div>

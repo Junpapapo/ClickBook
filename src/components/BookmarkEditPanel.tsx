@@ -40,6 +40,8 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
   const [title, setTitle] = useState(bookmark?.title ?? "");
   const [url, setUrl] = useState(bookmark?.url ?? "");
   const [folderId, setFolderId] = useState(bookmark?.folderId ?? defaultFolderId ?? folders[0]?.id ?? "");
+  const [tags, setTags] = useState<string[]>(bookmark?.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<Status>(null);
   const [copied, setCopied] = useState(false);
@@ -59,6 +61,18 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
     }
   }
 
+  const addTag = () => {
+    const val = tagInput.trim().toLowerCase();
+    if (val && !tags.includes(val)) {
+      setTags([...tags, val]);
+    }
+    setTagInput("");
+  };
+
+  const removeTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag));
+  };
+
   async function handleSave() {
     const trimUrl = url.trim();
     const trimTitle = title.trim() || trimUrl;
@@ -75,6 +89,7 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
         title: trimTitle,
         url: trimUrl,
         folderId,
+        tags,
       }) as MessageResponse;
     } else {
       res = await chrome.runtime.sendMessage({
@@ -202,7 +217,7 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
               </div>
             </div>
 
-            {/* タイトル */}
+            {/* 타이틀 */}
             <div>
               <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">{t("titleLabel")}</label>
               <input
@@ -210,8 +225,46 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
                 onChange={e => setTitle(e.target.value)}
                 autoFocus={mode === "edit"}
                 placeholder={mode === "add" ? t("titleOptionalPlaceholder") : ""}
-                className="w-full text-sm bg-gray-50 dark:bg-surface-800 border border-gray-300 dark:border-surface-600 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-100 outline-none focus:border-indigo-500 transition-colors placeholder-gray-400 dark:placeholder-gray-600"
+                className="w-full text-sm bg-gray-50 dark:bg-surface-800 border border-gray-300 dark:border-surface-600 rounded-lg px-3 py-2.5 text-gray-800 dark:text-gray-100 outline-none focus:border-indigo-500 transition-colors placeholder-gray-450 dark:placeholder-gray-600"
               />
+            </div>
+
+            {/* 태그 */}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">{t("tagsLabel") || "Tags"}</label>
+              <div className="flex flex-wrap gap-1.5 p-2.5 bg-gray-50 dark:bg-surface-800 border border-gray-300 dark:border-surface-600 rounded-lg min-h-[42px]">
+                {tags.map(tag => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium rounded border border-emerald-100 dark:border-emerald-500/20"
+                  >
+                    #{tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors"
+                    >
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTag();
+                    } else if (e.key === "," || e.key === " ") {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                  onBlur={addTag}
+                  placeholder={tags.length === 0 ? "Add tags..." : ""}
+                  className="flex-1 min-w-[60px] bg-transparent text-sm text-gray-800 dark:text-gray-100 outline-none placeholder-gray-450 dark:placeholder-gray-600"
+                />
+              </div>
             </div>
 
             {/* フォルダー */}

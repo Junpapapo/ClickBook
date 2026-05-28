@@ -417,6 +417,7 @@ const en = {
   // ── Tag Dashboard ────────────────────────────────────────
   tagBoardTitle: "AI Tag Cloud & Management",
   tagBoardMenu: "Tag Cloud",
+  tagsLabel: "Tags",
   tagMergeTitle: "Merge Similar Tags",
   tagMergeDesc: "Combine two tags into a single master tag. This updates all associated bookmarks.",
   tagMergeBtn: "Merge Tags",
@@ -946,6 +947,7 @@ const ja: typeof en = {
   // ── Tag Dashboard ────────────────────────────────────────
   tagBoardTitle: "AI タグクラウド & 管理",
   tagBoardMenu: "タグクラウド",
+  tagsLabel: "タグ",
   tagMergeTitle: "タグの統合・結合",
   tagMergeDesc: "類似する2つのタグを1つのマスタータグに統合します。関連するすべてのブックマークが更新されます。",
   tagMergeBtn: "タグを統合",
