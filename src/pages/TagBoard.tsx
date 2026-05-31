@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   Tag as TagIcon,
   Tags as TagsIcon,
@@ -9,7 +9,6 @@ import {
   Filter as FilterIcon,
   ChevronDown as ChevronDownIcon,
   ChevronUp as ChevronUpIcon,
-  Trash2 as TrashIcon,
   Plus as PlusIcon,
   Check as CheckIcon,
   Search as SearchIcon,
@@ -24,6 +23,7 @@ import BookmarkCard from "@/components/BookmarkCard";
 import type { Bookmark, Folder, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
+import { getLocalizedFolderName } from "@/shared/categories";
 import { findSimilarTagGroups } from "@/shared/categorizer";
 import type { SimilarTagGroup } from "@/shared/categorizer";
 
@@ -34,6 +34,21 @@ interface Props {
   onAutoTag?: () => void;
   isAutoTagging?: boolean;
 }
+
+const tagColorCache = new Map<string, {
+  h: number;
+  bg: string;
+  border: string;
+  text: string;
+  hoverBg: string;
+  activeBg: string;
+  activeBorder: string;
+  activeText: string;
+  darkBg: string;
+  darkBorder: string;
+  darkText: string;
+  darkHoverBg: string;
+}>();
 
 export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isAutoTagging = false }: Props) {
   const { t, lang } = useLang();
@@ -64,19 +79,39 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
   const [tagCloudOpen, setTagCloudOpen] = useState(true);
 
-  const showToast = (text: string, type: "success" | "error" | "info" = "success") => {
+  const toastTimeoutRef = useRef<number | null>(null);
+
+  const showToast = useCallback((text: string, type: "success" | "error" | "info" = "success") => {
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
     setToastMessage({ text, type });
-    setTimeout(() => setToastMessage(null), 3500);
-  };
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setToastMessage(null);
+      toastTimeoutRef.current = null;
+    }, 3500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Unique HSL Tag Color Generator
   const getTagColor = (tag: string) => {
+    const cacheKey = tag.toLowerCase().trim();
+    if (tagColorCache.has(cacheKey)) {
+      return tagColorCache.get(cacheKey)!;
+    }
     let hash = 0;
     for (let i = 0; i < tag.length; i++) {
       hash = tag.charCodeAt(i) + ((hash << 5) - hash);
     }
     const h = Math.abs(hash) % 360;
-    return {
+    const colorObj = {
       h,
       bg: `hsla(${h}, 70%, 50%, 0.08)`,
       border: `hsla(${h}, 70%, 50%, 0.25)`,
@@ -92,14 +127,16 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
       darkText: `hsl(${h}, 75%, 80%)`,
       darkHoverBg: `hsla(${h}, 60%, 40%, 0.25)`,
     };
+    tagColorCache.set(cacheKey, colorObj);
+    return colorObj;
   };
 
   // Folder Name mapping for BookmarkCard
   const folderMap = useMemo(() => {
     const map = new Map<string, string>();
-    folders.forEach(f => map.set(f.id, f.name));
+    folders.forEach(f => map.set(f.id, getLocalizedFolderName(f, lang)));
     return map;
-  }, [folders]);
+  }, [folders, lang]);
 
   // Aggregate and calculate all unique tags with count
   const allTagsWithCount = useMemo(() => {
@@ -149,8 +186,6 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
       return bookmarks.filter(b => b.tags && b.tags.length > 0);
     }
 
-    const selectedSet = new Set(selectedTags.map(t => t.toLowerCase()));
-
     return bookmarks.filter(b => {
       if (!b.tags || b.tags.length === 0) return false;
       const bTags = b.tags.map(t => t.toLowerCase());
@@ -176,7 +211,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
 
   // Select/Deselect All tags
   const handleSelectAllTags = () => {
-    const allNames = allTagsWithCount.map(t => t.name);
+    const allNames = filteredTagsList.map(t => t.name);
     setSelectedTags(allNames);
   };
 
@@ -293,29 +328,37 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
 
     setIsMerging(true);
     try {
-      // Loop and merge tags for all affected bookmarks
-      const updatePromises = affected.map(async (b) => {
-        const currentTags = b.tags || [];
-        // Remove source, add destination, make unique, lowercase
-        const mergedTagsSet = new Set(
-          currentTags
-            .map(t => t.trim().toLowerCase())
-            .filter(t => t !== src)
-        );
-        mergedTagsSet.add(dest);
-        const nextTags = Array.from(mergedTagsSet);
+      // Loop and merge tags for all affected bookmarks in batches of 10
+      const batchSize = 10;
+      const results: MessageResponse[] = [];
 
-        return chrome.runtime.sendMessage({
-          type: "UPDATE_BOOKMARK",
-          id: b.id,
-          title: b.title,
-          url: b.url,
-          folderId: b.folderId,
-          tags: nextTags
-        }) as Promise<MessageResponse>;
-      });
+      for (let i = 0; i < affected.length; i += batchSize) {
+        const chunk = affected.slice(i, i + batchSize);
+        const chunkPromises = chunk.map(async (b) => {
+          const currentTags = b.tags || [];
+          // Remove source, add destination, make unique, lowercase
+          const mergedTagsSet = new Set(
+            currentTags
+              .map(t => t.trim().toLowerCase())
+              .filter(t => t !== src)
+          );
+          mergedTagsSet.add(dest);
+          const nextTags = Array.from(mergedTagsSet);
 
-      const results = await Promise.all(updatePromises);
+          return chrome.runtime.sendMessage({
+            type: "UPDATE_BOOKMARK",
+            id: b.id,
+            title: b.title,
+            url: b.url,
+            folderId: b.folderId,
+            tags: nextTags
+          }) as Promise<MessageResponse>;
+        });
+
+        const chunkResults = await Promise.all(chunkPromises);
+        results.push(...chunkResults);
+      }
+
       const failures = results.filter(r => !r.success);
 
       if (failures.length === 0) {
@@ -365,7 +408,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
   }, [allTagsWithCount, lang]);
 
   // AI 그룹에서 non-master 태그들을 master로 일괄 병합
-  const handleAiGroupMerge = async (group: SimilarTagGroup) => {
+  const handleAiGroupMerge = async (group: SimilarTagGroup, gi: number) => {
     const dest = group.suggestedMaster.trim().toLowerCase();
     const sources = group.tags.filter(t => t !== dest);
     if (!dest || sources.length === 0) return;
@@ -384,23 +427,27 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
         const affected = bookmarks.filter(b =>
           b.tags && b.tags.map(t => t.toLowerCase()).includes(src)
         );
-        await Promise.all(affected.map(b => {
-          const nextTags = Array.from(
-            new Set([...((b.tags || []).map(t => t.trim().toLowerCase()).filter(t => t !== src)), dest])
-          );
-          return chrome.runtime.sendMessage({
-            type: "UPDATE_BOOKMARK",
-            id: b.id,
-            title: b.title,
-            url: b.url,
-            folderId: b.folderId,
-            tags: nextTags
-          });
-        }));
+        const batchSize = 10;
+        for (let i = 0; i < affected.length; i += batchSize) {
+          const chunk = affected.slice(i, i + batchSize);
+          await Promise.all(chunk.map(b => {
+            const nextTags = Array.from(
+              new Set([...((b.tags || []).map(t => t.trim().toLowerCase()).filter(t => t !== src)), dest])
+            );
+            return chrome.runtime.sendMessage({
+              type: "UPDATE_BOOKMARK",
+              id: b.id,
+              title: b.title,
+              url: b.url,
+              folderId: b.folderId,
+              tags: nextTags
+            });
+          }));
+        }
       }
       showToast(t("tagMergeSuccess", { src: sources.join(", "), dest }) || `Merged into #${dest}!`, "success");
       // 그룹 목록에서 해당 그룹 제거
-      setAiTagGroups(prev => prev.filter((_, i) => prev[i] !== group));
+      setAiTagGroups(prev => prev.filter((_, i) => i !== gi));
       onRefresh();
     } catch {
       showToast("Merge failed", "error");
@@ -418,7 +465,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
       setAiTagPhase("idle");
       setAiTagGroups([]);
     }
-  }, [showMergeModal]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showMergeModal, mergeTab, aiTagPhase, analyzeAiTags]);
 
   return (
     <>
@@ -426,7 +473,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
       <div className="h-full flex flex-col font-sans relative">
         {/* Toast Notification */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl border animate-in fade-in slide-in-from-bottom-5 duration-300 bg-white dark:bg-surface-900 border-gray-100 dark:border-surface-800">
+          <div role="alert" aria-live="assertive" className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl border animate-in fade-in slide-in-from-bottom-5 duration-300 bg-white dark:bg-surface-900 border-gray-100 dark:border-surface-800">
             {toastMessage.type === "success" && (
               <CheckCircleIcon size={18} className="text-emerald-500 shrink-0" />
             )}
@@ -892,7 +939,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                                   <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">{group.reason}</p>
                                 </div>
                                 <button
-                                  onClick={() => handleAiGroupMerge(group)}
+                                  onClick={() => handleAiGroupMerge(group, gi)}
                                   disabled={isMerging}
                                   className="shrink-0 flex items-center gap-1 px-3 py-1 text-[10px] font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 rounded-lg transition-all active:scale-95 disabled:opacity-50"
                                 >

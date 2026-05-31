@@ -14,7 +14,8 @@ interface Props {
 
 type ModalMode = "edit" | "add";
 
-type Status = { type: "ok" | "err" | "warn"; text: string } | null;
+type StatusInfo = { type: "ok" | "err" | "warn"; text: string };
+type Status = StatusInfo | null;
 
 function isEmoji(s: string) { return !!s && !/^[A-Za-z0-9_]+$/.test(s); }
 
@@ -46,7 +47,7 @@ export function EditModal({ mode, bookmark, folders, defaultFolderId, onSaved, o
   const [status, setStatus] = useState<Status>(null);
   const [copied, setCopied] = useState(false);
 
-  function flash(type: Status["type"], text: string) {
+  function flash(type: StatusInfo["type"], text: string) {
     setStatus({ type, text });
     setTimeout(() => setStatus(null), 3000);
   }

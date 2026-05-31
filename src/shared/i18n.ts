@@ -192,6 +192,12 @@ const en = {
   settingsFactoryResetConfirm: "Are you sure you want to PERMANENTLY delete all ClickBook data? This action cannot be undone.",
   settingsFactoryResetDone: "All ClickBook data has been reset successfully.",
   settingsSaving: "Saving...",
+  settingsLanguage: "Language",
+  wikiRankingMenuDesc: "Show Wikipedia Trending menu in sidebar and popup.",
+  hfRankingMenuDesc: "Show Hugging Face AI ranking menu in sidebar and popup.",
+  hnRankingMenuDesc: "Show Hacker News menu in sidebar and popup.",
+  collapseAll: "Collapse All",
+  infoTooltip: "Site Info",
 
   settingsChromePanelLabel: "Chrome Panel (Sidebar)",
   settingsChromePanelDesc: "Show Chrome bookmarks panel in sidebar",
@@ -233,6 +239,7 @@ const en = {
   todoBannerTitle: "Action Required on Tasks",
   todoBannerDesc: "You have {count} tasks that are due today or overdue.",
   todoBannerBtn: "View Board",
+  todoUrgent: "Urgent",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub Real-time Ranking",
@@ -719,6 +726,11 @@ const ja: typeof en = {
   settingsFactoryResetConfirm: "ClickBook の全データを【永久に】削除して初期化しますか？ この操作は取り消せません。",
   settingsFactoryResetDone: "ClickBook の全データを初期化しました。",
   settingsLanguage: "言語",
+  wikiRankingMenuDesc: "サイドバーメニューとポップアップにWikipedia急上昇メニューを表示します。",
+  hfRankingMenuDesc: "サイドバーメニューとポップアップにHugging Face AIランキングメニューを表示します。",
+  hnRankingMenuDesc: "サイドバーメニューとポップアップにHacker Newsメニューを表示します。",
+  collapseAll: "すべて折りたたむ",
+  infoTooltip: "サイト情報",
 
   settingsChromePanelLabel: "Chrome パネル（サイドバー）",
   settingsChromePanelDesc: "サイドバーにChromeブックマークのパネルを表示します",
@@ -734,7 +746,7 @@ const ja: typeof en = {
   saveBtn: "保存",
   confirmBtn: "続ける",
   cancelBtn: "キャンセル",
-  githubRanking: "GitHub ラン킹",
+  githubRanking: "GitHub ランキング",
   wikiRanking: "Wikipedia 急上昇",
   hfRanking: "Hugging Face AI",
   hnRanking: "Hacker News",
@@ -763,6 +775,7 @@ const ja: typeof en = {
   todoBannerTitle: "タスクの確認が必要です",
   todoBannerDesc: "本日が期限または期限遅れのタスクが {count} 件あります。",
   todoBannerBtn: "ボードを表示",
+  todoUrgent: "緊急タスク",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub リアルタイムランキング",
@@ -1248,7 +1261,13 @@ const ko: typeof en = {
   settingsFactoryResetDesc: "ClickBook의 모든 데이터(북마크, 폴더, 메모, 패턴, 설정)를 영구적으로 삭제하고 초기 상태로 되돌립니다. Chrome 브라우저의 실제 북마크는 삭제되지 않습니다.",
   settingsFactoryResetConfirm: "정말로 모든 ClickBook 데이터를 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
   settingsFactoryResetDone: "모든 데이터가 초기화되었습니다.",
+  settingsSaving: "저장 중...",
   settingsLanguage: "언어 설정",
+  wikiRankingMenuDesc: "사이드바 메뉴와 팝업에 Wikipedia 급상승 메뉴를 표시합니다.",
+  hfRankingMenuDesc: "사이드바 메뉴와 팝업에 Hugging Face AI 랭킹 메뉴를 표시합니다.",
+  hnRankingMenuDesc: "사이드바 메뉴와 팝업에 Hacker News 메뉴를 표시합니다.",
+  collapseAll: "모두 접기",
+  infoTooltip: "사이트 정보",
 
   settingsChromePanelLabel: "Chrome 패널 (사이드바)",
   settingsChromePanelDesc: "사이드바에 Chrome 북마크 패널을 표시합니다.",
@@ -1289,6 +1308,7 @@ const ko: typeof en = {
   todoBannerTitle: "할 일 확인 필요",
   todoBannerDesc: "오늘 마감이거나 지연된 할 일이 {count}개 있습니다.",
   todoBannerBtn: "보드 보기",
+  todoUrgent: "긴급 할 일",
 
   // ── GitHubRanking ──────────────────────────────────────────
   githubRankingTitle: "GitHub 실시간 랭킹",
@@ -1472,6 +1492,7 @@ const ko: typeof en = {
   // ── Tag Dashboard ────────────────────────────────────────
   tagBoardTitle: "AI 태그 클라우드 & 관리",
   tagBoardMenu: "태그 클라우드",
+  tagsLabel: "태그",
   tagMergeTitle: "태그 통합 및 병합",
   tagMergeDesc: "유사하거나 중복된 두 개의 태그를 하나의 마스터 태그로 영구 통합합니다. 관련 북마크가 모두 자동 업데이트됩니다.",
   tagMergeBtn: "태그 병합하기",

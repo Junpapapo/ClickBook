@@ -763,7 +763,7 @@ Output:`;
           if (Array.isArray(parsed)) {
             for (const item of parsed) {
               if (item && typeof item.reason === "string" && Array.isArray(item.ids) && item.ids.length >= 2) {
-                const ids = item.ids.map((n: number) => seq2id.get(Number(n))).filter((id): id is string => !!id);
+                const ids = item.ids.map((n: number) => seq2id.get(Number(n))).filter((id: string | undefined): id is string => !!id);
                 if (ids.length >= 2) all.push({ reason: item.reason, ids });
               }
             }

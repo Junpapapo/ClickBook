@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Check, X, Pencil, Lock, LockOpen, Trash2, Wand2, AlertOctagon } from "lucide-react";
+import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 import RecommendWidget from "@/components/RecommendWidget";
@@ -44,7 +44,7 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
@@ -63,24 +63,50 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       }
     }
     checkAI();
+
+    const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.clickbook_ai_enabled) {
+        setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
   async function handleDelete(id: string) {
-    const response = await sendMsg({
-      type: "DELETE_BOOKMARK",
-      id,
-    });
-    if (response.success) onRefresh();
+    try {
+      const response = await sendMsg({
+        type: "DELETE_BOOKMARK",
+        id,
+      }) as MessageResponse;
+      if (response && response.success) {
+        onRefresh();
+      } else {
+        alert(response?.error || t("saveFailed") || "Failed to delete bookmark");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting bookmark");
+    }
   }
 
-  async function handleDeleteFolder(id: string, name: string) {
+  async function handleDeleteFolder(id: string, _name: string) {
     const count = countByFolder[id] ?? 0;
     const msg = count > 0
       ? t("folderDeleteWithBookmarks", { n: count })
       : t("folderDeleteConfirm");
     if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
-    await sendMsg({ type: "DELETE_FOLDER", id });
-    onRefresh();
+    try {
+      const response = await sendMsg({ type: "DELETE_FOLDER", id }) as MessageResponse;
+      if (response && response.success) {
+        onRefresh();
+      } else {
+        alert(response?.error || t("saveFailed") || "Failed to delete folder");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting folder");
+    }
   }
 
   async function handleToggleLock(id: string) {
@@ -90,14 +116,25 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
 
   const folderToRoot = useMemo(() => {
     const map: Record<string, string> = {};
-    const getRoot = (id: string): string => {
-      const f = folders.find(f => f.id === id);
-      if (!f) return id; // Fallback
-      if (f.parentId === null) return id;
-      return getRoot(f.parentId);
-    };
     for (const f of folders) {
-      map[f.id] = getRoot(f.id);
+      const visited = new Set<string>();
+      let curId = f.id;
+      visited.add(curId);
+      let cur = f;
+      while (cur && cur.parentId !== null) {
+        if (visited.has(cur.parentId)) {
+          break;
+        }
+        visited.add(cur.parentId);
+        const next = folders.find(p => p.id === cur.parentId);
+        if (!next) {
+          curId = cur.parentId;
+          break;
+        }
+        cur = next;
+        curId = cur.id;
+      }
+      map[f.id] = curId;
     }
     return map;
   }, [folders]);
@@ -111,12 +148,23 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
   }, [bookmarks, folderToRoot]);
 
   const subfolderCountByFolder = useMemo(() => {
-    return folders.reduce<Record<string, number>>((acc, f) => {
-      if (f.parentId !== null) {
-        acc[f.parentId] = (acc[f.parentId] ?? 0) + 1;
+    const acc: Record<string, number> = {};
+    for (const f of folders) {
+      if (f.parentId === null) continue;
+      const visited = new Set<string>();
+      let parentId: string | null = f.parentId;
+      while (parentId !== null) {
+        if (visited.has(parentId)) {
+          break;
+        }
+        visited.add(parentId);
+        acc[parentId] = (acc[parentId] ?? 0) + 1;
+        const parentFolder = folders.find(p => p.id === parentId);
+        if (!parentFolder) break;
+        parentId = parentFolder.parentId;
       }
-      return acc;
-    }, {});
+    }
+    return acc;
   }, [folders]);
 
   function startRename(f: Folder) {
@@ -161,7 +209,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
               {urgentTasks && urgentTasks.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5 items-center text-xs text-rose-600 dark:text-rose-450 font-medium">
                   <span className="shrink-0 bg-rose-500/10 dark:bg-rose-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
-                    📍 {lang === "ko" ? "긴급 할 일" : lang === "ja" ? "緊急タスク" : "Urgent"}
+                    📍 {t("todoUrgent")}
                   </span>
                   <span className="truncate max-w-[400px]">
                     {(() => {

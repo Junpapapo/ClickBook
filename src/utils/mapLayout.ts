@@ -9,7 +9,7 @@ const nodeHeight = 60; // Approximate
 export function getLayoutedElements(
   folders: Folder[],
   bookmarks: Bookmark[],
-  memos: BookmarkMemo[],
+  memos: Record<string, BookmarkMemo>,
   expandedFolderIds: Set<string>,
   lang: "en" | "ja" | "ko",
   onRenameBookmark?: (id: string, newTitle: string) => void,
@@ -133,7 +133,7 @@ export function getLayoutedElements(
       const marks = bookmarksByFolder.get(parentId) || [];
       marks.sort((a, b) => b.savedAt - a.savedAt).forEach((b) => {
         const nodeId = `bookmark-${b.id}`;
-        const memo = Array.isArray(memos) ? memos.find(m => m.bookmarkId === b.id) : undefined;
+        const memo = memos[b.id];
         const isBookmarkHighlighted = q !== "" && b.title.toLowerCase().includes(q);
         nodes.push({
           id: nodeId,

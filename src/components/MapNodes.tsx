@@ -4,6 +4,7 @@ import { FolderIcon } from "./DynamicIcon";
 import { ChevronRight, ChevronDown, Pencil, Trash2, StickyNote } from "lucide-react";
 import { MemoPopover } from "./BookmarkCard";
 import { MEMO_DOT } from "@/shared/colors";
+import type { MemoColor } from "@/shared/types";
 
 export function FolderNode({ data }: { data: any }) {
   const { label, icon, isExpanded, isBookmarksExpanded, count, isRoot, layoutDir, onToggleSubfolders, onToggleBookmarks, onRenameFolder, folderId, isHighlighted } = data;
@@ -142,7 +143,7 @@ export function BookmarkNode({ data }: { data: any }) {
       title={title}
     >
       {memo && (
-        <div className={`absolute -top-1.5 -left-1.5 w-2.5 h-2.5 rounded-full z-10 shadow-sm ${MEMO_DOT[memo.color]}`} />
+        <div className={`absolute -top-1.5 -left-1.5 w-2.5 h-2.5 rounded-full z-10 shadow-sm ${MEMO_DOT[memo.color as MemoColor]}`} />
       )}
       <Handle type="target" position={isTB ? Position.Top : Position.Left} className="w-2 h-2 !bg-gray-400 border-none" />
       <img 

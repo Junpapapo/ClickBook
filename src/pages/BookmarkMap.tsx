@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { 
   ReactFlow, 
-  Controls, 
   MiniMap, 
   Background, 
   useNodesState, 
@@ -10,10 +9,12 @@ import {
   ReactFlowProvider,
   useReactFlow,
   useOnViewportChange,
-  Panel
+  Panel,
+  Node,
+  Edge
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import type { Bookmark, Folder } from "@/shared/types";
+import type { Bookmark, Folder, BookmarkMemo } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { getLayoutedElements } from "@/utils/mapLayout";
 import { FolderNode, BookmarkNode } from "@/components/MapNodes";
@@ -26,7 +27,7 @@ const nodeTypes = {
 interface Props {
   bookmarks: Bookmark[];
   folders: Folder[];
-  memos: BookmarkMemo[];
+  memos: Record<string, BookmarkMemo>;
   onRefresh: () => void;
 }
 
@@ -136,8 +137,8 @@ function BookmarkMapContent({ bookmarks, folders, memos, onRefresh }: Props) {
   const [layoutDir, setLayoutDir] = useState<"LR"|"TB">("LR");
   const [bookmarkMode, setBookmarkMode] = useState<"HIDE" | "COLLAPSED" | "EXPANDED">("EXPANDED");
   const [searchQuery, setSearchQuery] = useState("");
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
   const [expandedBookmarkFolderIds, setExpandedBookmarkFolderIds] = useState<Set<string>>(new Set());
   const [initialViewport, setInitialViewport] = useState<{ x: number, y: number, zoom: number } | null>(null);
@@ -321,7 +322,7 @@ function BookmarkMapContent({ bookmarks, folders, memos, onRefresh }: Props) {
     }
   }, [searchQuery, nodes, setCenter]);
 
-  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
+  const onNodeClick: NodeMouseHandler = useCallback(() => {
     // Left empty because toggles are handled by node internals
   }, []);
 

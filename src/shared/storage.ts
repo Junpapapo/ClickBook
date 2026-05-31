@@ -41,7 +41,9 @@ async function writeStorage(data: StorageData): Promise<void> {
 async function withStorageLock<T>(fn: (data: StorageData) => Promise<T>): Promise<T> {
   return navigator.locks.request("clickbook_storage", async () => {
     const data = await readStorage();
-    return await fn(data);
+    const result = await fn(data);
+    await writeStorage(data);
+    return result;
   });
 }
 
@@ -57,21 +59,21 @@ export async function getAllData(): Promise<StorageData> {
 }
 
 export async function addBookmark(bookmark: Bookmark): Promise<void> {
-  const data = await readStorage();
-  data.bookmarks = [bookmark, ...data.bookmarks];
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.bookmarks = [bookmark, ...data.bookmarks];
+  });
 }
 
 export async function addBookmarks(newBookmarks: Bookmark[]): Promise<void> {
-  const data = await readStorage();
-  data.bookmarks = [...newBookmarks, ...data.bookmarks];
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.bookmarks = [...newBookmarks, ...data.bookmarks];
+  });
 }
 
 export async function deleteBookmark(id: string): Promise<void> {
-  const data = await readStorage();
-  data.bookmarks = data.bookmarks.filter((b) => b.id !== id);
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.bookmarks = data.bookmarks.filter((b) => b.id !== id);
+  });
   await deleteMemo(id);
   await deletePageContent(id);
 }
@@ -80,31 +82,31 @@ export async function moveBookmark(
   id: string,
   folderId: string
 ): Promise<void> {
-  const data = await readStorage();
-  data.bookmarks = data.bookmarks.map((b) =>
-    b.id === id ? { ...b, folderId } : b
-  );
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.bookmarks = data.bookmarks.map((b) =>
+      b.id === id ? { ...b, folderId } : b
+    );
+  });
 }
 
 export async function updateBookmark(
   id: string,
   changes: { title?: string; url?: string; folderId?: string; summary?: string; tags?: string[] }
 ): Promise<void> {
-  const data = await readStorage();
-  data.bookmarks = data.bookmarks.map((b) => {
-    if (b.id !== id) return b;
-    const url = changes.url ?? b.url;
-    let domain = b.domain;
-    let favicon = b.favicon;
-    try {
-      const parsed = new URL(url);
-      domain = parsed.hostname;
-      favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-    } catch (err) { console.warn("Invalid URL, kept original:", err); }
-    return { ...b, ...changes, url, domain, favicon };
+  await withStorageLock(async (data) => {
+    data.bookmarks = data.bookmarks.map((b) => {
+      if (b.id !== id) return b;
+      const url = changes.url ?? b.url;
+      let domain = b.domain;
+      let favicon = b.favicon;
+      try {
+        const parsed = new URL(url);
+        domain = parsed.hostname;
+        favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      } catch (err) { console.warn("Invalid URL, kept original:", err); }
+      return { ...b, ...changes, url, domain, favicon };
+    });
   });
-  await writeStorage(data);
 }
 
 export async function isDuplicateUrl(url: string, excludeId?: string): Promise<boolean> {
@@ -113,11 +115,11 @@ export async function isDuplicateUrl(url: string, excludeId?: string): Promise<b
 }
 
 export async function incrementVisitCount(id: string): Promise<void> {
-  const data = await readStorage();
-  data.bookmarks = data.bookmarks.map((b) =>
-    b.id === id ? { ...b, visitCount: b.visitCount + 1, lastVisitedAt: Date.now() } : b
-  );
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.bookmarks = data.bookmarks.map((b) =>
+      b.id === id ? { ...b, visitCount: b.visitCount + 1, lastVisitedAt: Date.now() } : b
+    );
+  });
 }
 
 // ── Folders ───────────────────────────────────────────────
@@ -132,26 +134,27 @@ export async function createFolder(
   parentId: string | null,
   icon = "📁"
 ): Promise<Folder> {
-  const data = await readStorage();
-  const siblings = data.folders.filter((f) => f.parentId === parentId);
-  const maxOrder = siblings.reduce((max, f) => Math.max(max, f.order), -1);
+  return await withStorageLock(async (data) => {
+    const siblings = data.folders.filter((f) => f.parentId === parentId);
+    const maxOrder = siblings.reduce((max, f) => Math.max(max, f.order), -1);
 
-  const folder: Folder = {
-    id: crypto.randomUUID(),
-    name,
-    nameJa: name,
-    icon,
-    color: "indigo",
-    parentId,
-    order: maxOrder + 1,
-    isDefault: false,
-    collapsed: false,
-    createdAt: Date.now(),
-  };
+    const folder: Folder = {
+      id: crypto.randomUUID(),
+      name,
+      nameJa: name,
+      nameKo: name,
+      icon,
+      color: "indigo",
+      parentId,
+      order: maxOrder + 1,
+      isDefault: false,
+      collapsed: false,
+      createdAt: Date.now(),
+    };
 
-  data.folders = [...data.folders, folder];
-  await writeStorage(data);
-  return folder;
+    data.folders = [...data.folders, folder];
+    return folder;
+  });
 }
 
 export async function renameFolder(
@@ -159,11 +162,11 @@ export async function renameFolder(
   name: string,
   icon?: string
 ): Promise<void> {
-  const data = await readStorage();
-  data.folders = data.folders.map((f) =>
-    f.id === id ? { ...f, name, nameJa: name, ...(icon ? { icon } : {}) } : f
-  );
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.folders = data.folders.map((f) =>
+      f.id === id ? { ...f, name, nameJa: name, nameKo: name, ...(icon ? { icon } : {}) } : f
+    );
+  });
 }
 
 export async function moveFolder(
@@ -171,83 +174,108 @@ export async function moveFolder(
   parentId: string | null,
   order: number
 ): Promise<void> {
-  const data = await readStorage();
-  
-  // Update parentId of the target folder first
-  const targetFolder = data.folders.find((f) => f.id === id);
-  if (!targetFolder) return;
-  targetFolder.parentId = parentId;
+  await withStorageLock(async (data) => {
+    const targetFolderIndex = data.folders.findIndex((f) => f.id === id);
+    if (targetFolderIndex === -1) return;
+    const targetFolder = { ...data.folders[targetFolderIndex], parentId };
 
-  // Get all siblings in the new parent, sorted by current order
-  let siblings = data.folders
-    .filter((f) => f.parentId === parentId && f.id !== id)
-    .sort((a, b) => a.order - b.order);
+    const updatedFolders = [...data.folders];
+    updatedFolders[targetFolderIndex] = targetFolder;
 
-  // Insert the target folder at the specified order (index)
-  siblings.splice(order, 0, targetFolder);
+    let siblings = updatedFolders
+      .filter((f) => f.parentId === parentId && f.id !== id)
+      .sort((a, b) => a.order - b.order)
+      .map(f => ({ ...f }));
 
-  // Re-assign sequential order to all siblings
-  siblings.forEach((f, index) => {
-    f.order = index;
+    siblings.splice(order, 0, targetFolder);
+
+    siblings.forEach((f, index) => {
+      f.order = index;
+    });
+
+    const siblingIds = new Set(siblings.map(f => f.id));
+    data.folders = [
+      ...updatedFolders.filter(f => !siblingIds.has(f.id)),
+      ...siblings
+    ];
   });
-
-  await writeStorage(data);
 }
 
 export async function deleteFolder(id: string): Promise<void> {
-  const data = await readStorage();
-  const target = data.folders.find((f) => f.id === id);
-  if (!target || target.id === DEFAULT_FOLDER_ID) return; // "other" フォルダーのみ削除不可
+  await withStorageLock(async (data) => {
+    const target = data.folders.find((f) => f.id === id);
+    if (!target || target.id === DEFAULT_FOLDER_ID) return;
 
-  // 子フォルダーのIDを再帰的に収集
-  function collectDescendants(folderId: string): string[] {
-    const children = data.folders.filter((f) => f.parentId === folderId);
-    const ids: string[] = [];
-    for (const child of children) {
-      ids.push(child.id);
-      ids.push(...collectDescendants(child.id));
+    function collectDescendants(folderId: string): string[] {
+      const children = data.folders.filter((f) => f.parentId === folderId);
+      const ids: string[] = [];
+      for (const child of children) {
+        ids.push(child.id);
+        ids.push(...collectDescendants(child.id));
+      }
+      return ids;
     }
-    return ids;
-  }
 
-  const toDelete = new Set([id, ...collectDescendants(id)]);
+    const toDelete = new Set([id, ...collectDescendants(id)]);
 
-  // 削除対象フォルダーのブックマークを "other" へ移動
-  data.bookmarks = data.bookmarks.map((b) =>
-    toDelete.has(b.folderId) ? { ...b, folderId: DEFAULT_FOLDER_ID } : b
-  );
-  data.folders = data.folders.filter((f) => !toDelete.has(f.id));
-  await writeStorage(data);
+    data.bookmarks = data.bookmarks.map((b) =>
+      toDelete.has(b.folderId) ? { ...b, folderId: DEFAULT_FOLDER_ID } : b
+    );
+    data.folders = data.folders.filter((f) => !toDelete.has(f.id));
+  });
+}
+
+export async function deleteEmptyFolders(): Promise<number> {
+  return await withStorageLock(async (data) => {
+    let foldersDeleted = 0;
+    let keepChecking = true;
+    while (keepChecking) {
+      keepChecking = false;
+      const indexToDelete = data.folders.findIndex((folder) => {
+        if (folder.isDefault || folder.locked) return false;
+        const hasBookmarks = data.bookmarks.some((b) => b.folderId === folder.id);
+        const hasChildren = data.folders.some((f) => f.parentId === folder.id);
+        return !hasBookmarks && !hasChildren;
+      });
+
+      if (indexToDelete !== -1) {
+        data.folders.splice(indexToDelete, 1);
+        foldersDeleted++;
+        keepChecking = true;
+      }
+    }
+    return foldersDeleted;
+  });
 }
 
 export async function toggleFolderCollapsed(id: string): Promise<void> {
-  const data = await readStorage();
-  data.folders = data.folders.map((f) =>
-    f.id === id ? { ...f, collapsed: !f.collapsed } : f
-  );
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.folders = data.folders.map((f) =>
+      f.id === id ? { ...f, collapsed: !f.collapsed } : f
+    );
+  });
 }
 
 export async function collapseAllFolders(): Promise<void> {
-  const data = await readStorage();
-  data.folders = data.folders.map((f) => ({ ...f, collapsed: true }));
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.folders = data.folders.map((f) => ({ ...f, collapsed: true }));
+  });
 }
 
 export async function toggleFolderLock(id: string): Promise<void> {
-  const data = await readStorage();
-  data.folders = data.folders.map((f) =>
-    f.id === id ? { ...f, locked: !f.locked } : f
-  );
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.folders = data.folders.map((f) =>
+      f.id === id ? { ...f, locked: !f.locked } : f
+    );
+  });
 }
 
 export async function toggleFolderSecure(id: string): Promise<void> {
-  const data = await readStorage();
-  data.folders = data.folders.map((f) =>
-    f.id === id ? { ...f, secure: !f.secure } : f
-  );
-  await writeStorage(data);
+  await withStorageLock(async (data) => {
+    data.folders = data.folders.map((f) =>
+      f.id === id ? { ...f, secure: !f.secure } : f
+    );
+  });
 }
 
 // ── Export / Import ────────────────────────────────────────
@@ -286,53 +314,46 @@ export async function importData(incoming: ClickBookBackupData): Promise<{ count
     throw new Error("Invalid import data format");
   }
   const validBookmarks = incoming.bookmarks.filter(isValidBookmark);
-  // フォルダーが無ければデフォルトを使用
   const incomingFolders = Array.isArray(incoming.folders)
     ? incoming.folders
     : [...DEFAULT_FOLDERS];
 
-  const existing = await readStorage();
+  return await withStorageLock(async (data) => {
+    const existingFolderIds = new Set(data.folders.map(f => f.id));
+    const newFolders = incomingFolders.filter(f => !existingFolderIds.has(f.id));
+    data.folders = [...data.folders, ...newFolders];
 
-  const existingFolderIds = new Set(existing.folders.map(f => f.id));
-  const newFolders = incomingFolders.filter(f => !existingFolderIds.has(f.id));
-  const mergedFolders = [...existing.folders, ...newFolders];
+    const existingUrls = new Set(data.bookmarks.map(b => b.url));
+    const newBookmarks = validBookmarks.filter(b => !existingUrls.has(b.url));
+    data.bookmarks = [...newBookmarks, ...data.bookmarks];
 
-  const existingUrls = new Set(existing.bookmarks.map(b => b.url));
-  const newBookmarks = validBookmarks.filter(b => !existingUrls.has(b.url));
-  const mergedBookmarks = [...newBookmarks, ...existing.bookmarks];
-
-  await writeStorage({ bookmarks: mergedBookmarks, folders: mergedFolders });
-
-  // ── Memos Restore ──
-  if (incoming.memos && typeof incoming.memos === "object") {
-    const existingMemos = await readMemos();
-    const mergedMemos = { ...existingMemos, ...incoming.memos };
-    await chrome.storage.local.set({ [MEMOS_KEY]: mergedMemos });
-  }
-
-  // ── TODO Board Restore ──
-  if (incoming.todoBoard && typeof incoming.todoBoard === "object") {
-    await saveTodoBoard(incoming.todoBoard);
-  }
-
-  // ── Settings Restore ──
-  if (incoming.settings && typeof incoming.settings === "object") {
-    await saveSettings(incoming.settings);
-  }
-
-  // インポート後に孤立したメモ (対応ブックマークなし・非スタンドアロン) を削除
-  const validIds = new Set(mergedBookmarks.map(b => b.id));
-  const memos = await readMemos();
-  const cleaned: typeof memos = {};
-  for (const [key, memo] of Object.entries(memos)) {
-    if (key.startsWith("standalone_") || validIds.has(key)) {
-      cleaned[key] = memo;
+    // ── Memos Restore & Cleaning ──
+    let finalMemos = await readMemos();
+    if (incoming.memos && typeof incoming.memos === "object") {
+      finalMemos = { ...finalMemos, ...incoming.memos };
     }
-  }
-  await chrome.storage.local.set({ [MEMOS_KEY]: cleaned });
+    const validIds = new Set(data.bookmarks.map(b => b.id));
+    const cleanedMemos: typeof finalMemos = {};
+    for (const [key, memo] of Object.entries(finalMemos)) {
+      if (key.startsWith("standalone_") || validIds.has(key)) {
+        cleanedMemos[key] = memo;
+      }
+    }
 
-  return { count: newBookmarks.length };
+    await Promise.all([
+      chrome.storage.local.set({ [MEMOS_KEY]: cleanedMemos }),
+      incoming.todoBoard && typeof incoming.todoBoard === "object"
+        ? saveTodoBoard(incoming.todoBoard)
+        : Promise.resolve(),
+      incoming.settings && typeof incoming.settings === "object"
+        ? saveSettings(incoming.settings)
+        : Promise.resolve(),
+    ]);
+
+    return { count: newBookmarks.length };
+  });
 }
+
 
 // ── Patterns ───────────────────────────────────────────────
 
@@ -555,7 +576,11 @@ export async function savePageContent(
   // 2. 검색에 활용되는 컴팩트 FTS 인덱스만 단일 키에 누적 보관
   const r = await chrome.storage.local.get(FTS_INDEX_KEY);
   const index = r[FTS_INDEX_KEY] ?? {};
-  index[bookmarkId] = rawText;
+  
+  // Truncate rawText for FTS index to avoid exceeding storage quota (e.g. 10,000 chars max, and clean up whitespace)
+  const cleanedText = rawText.replace(/\s+/g, " ").substring(0, 10000);
+  index[bookmarkId] = cleanedText;
+  
   await chrome.storage.local.set({ [FTS_INDEX_KEY]: index });
 }
 
@@ -630,55 +655,56 @@ export async function migratePageContents(): Promise<void> {
 // ── 백그라운드 위생 가비지 컬렉터 (GC) ──
 export async function runGarbageCollector(): Promise<void> {
   console.log("[GC] Starting storage garbage collection...");
-  const bookmarks = await getBookmarks();
-  const activeIds = new Set(bookmarks.map(b => b.id));
+  
+  await withStorageLock(async (data) => {
+    const activeIds = new Set(data.bookmarks.map(b => b.id));
 
-  const allStorage = await chrome.storage.local.get(null);
-  const keysToRemove: string[] = [];
+    const allStorage = await chrome.storage.local.get(null);
+    const keysToRemove: string[] = [];
 
-  // 1. 살아있는 북마크가 없는 고아 clickbook_content_{bookmarkId} 키 완전 제거
-  for (const key of Object.keys(allStorage)) {
-    if (key.startsWith(PAGE_CONTENT_PREFIX)) {
-      const bookmarkId = key.substring(PAGE_CONTENT_PREFIX.length);
-      if (!activeIds.has(bookmarkId)) {
-        keysToRemove.push(key);
+    // 1. 살아있는 북마크가 없는 고아 clickbook_content_{bookmarkId} 키 완전 제거
+    for (const key of Object.keys(allStorage)) {
+      if (key.startsWith(PAGE_CONTENT_PREFIX)) {
+        const bookmarkId = key.substring(PAGE_CONTENT_PREFIX.length);
+        if (!activeIds.has(bookmarkId)) {
+          keysToRemove.push(key);
+        }
       }
     }
-  }
 
-  if (keysToRemove.length > 0) {
-    await chrome.storage.local.remove(keysToRemove);
-    console.log(`[GC] Cleaned up ${keysToRemove.length} orphaned reader content keys.`);
-  }
-
-  // 2. 살아있는 북마크가 없는 고아 FTS 인덱스 원소 소거
-  const r = await chrome.storage.local.get(FTS_INDEX_KEY);
-  const ftsIndex = r[FTS_INDEX_KEY] ?? {};
-  let ftsChanged = false;
-  for (const bookmarkId of Object.keys(ftsIndex)) {
-    if (!activeIds.has(bookmarkId)) {
-      delete ftsIndex[bookmarkId];
-      ftsChanged = true;
+    if (keysToRemove.length > 0) {
+      await chrome.storage.local.remove(keysToRemove);
+      console.log(`[GC] Cleaned up ${keysToRemove.length} orphaned reader content keys.`);
     }
-  }
-  if (ftsChanged) {
-    await chrome.storage.local.set({ [FTS_INDEX_KEY]: ftsIndex });
-    console.log("[GC] Cleaned up orphaned entries from compact FTS index.");
-  }
 
-  // 3. 살아있는 북마크가 없는 고아 메모 제거 (단, standalone_ 프리픽스는 보존)
-  const memos = await readMemos();
-  let memosChanged = false;
-  for (const key of Object.keys(memos)) {
-    if (!key.startsWith("standalone_") && !activeIds.has(key)) {
-      delete memos[key];
-      memosChanged = true;
+    // 2. 살아있는 북마크가 없는 고아 FTS 인덱스 원소 소거
+    const ftsIndex = allStorage[FTS_INDEX_KEY] ?? {};
+    let ftsChanged = false;
+    for (const bookmarkId of Object.keys(ftsIndex)) {
+      if (!activeIds.has(bookmarkId)) {
+        delete ftsIndex[bookmarkId];
+        ftsChanged = true;
+      }
     }
-  }
-  if (memosChanged) {
-    await chrome.storage.local.set({ [MEMOS_KEY]: memos });
-    console.log("[GC] Cleaned up orphaned memos.");
-  }
+    if (ftsChanged) {
+      await chrome.storage.local.set({ [FTS_INDEX_KEY]: ftsIndex });
+      console.log("[GC] Cleaned up orphaned entries from compact FTS index.");
+    }
+
+    // 3. 살아있는 북마크가 없는 고아 메모 제거 (단, standalone_ 프리픽스는 보존)
+    const memos = allStorage[MEMOS_KEY] && typeof allStorage[MEMOS_KEY] === "object" ? allStorage[MEMOS_KEY] : {};
+    let memosChanged = false;
+    for (const key of Object.keys(memos)) {
+      if (!key.startsWith("standalone_") && !activeIds.has(key)) {
+        delete memos[key];
+        memosChanged = true;
+      }
+    }
+    if (memosChanged) {
+      await chrome.storage.local.set({ [MEMOS_KEY]: memos });
+      console.log("[GC] Cleaned up orphaned memos.");
+    }
+  });
 
   console.log("[GC] Garbage collection run completed successfully.");
 }

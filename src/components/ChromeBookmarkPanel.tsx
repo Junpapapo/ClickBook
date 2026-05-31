@@ -115,7 +115,7 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     for (const id of ids) newTree = applyLocalDelete(newTree, id);
     setTree(newTree);
     setPending((prev) => [
-      ...prev.filter((p) => !ids.includes(p.id)),
+      ...prev.filter((p) => p.kind !== "add" && !ids.includes(p.id)),
       ...ids.map((id) => ({ kind: "delete" as const, id, isFolder: false })),
     ]);
     setSelected(new Set());
@@ -129,7 +129,8 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     setBusy(true);
     const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items }) as MessageResponse;
     setBusy(false);
-    flash(t("chromeBulkImportDone", { n: (res.data as { count: number })?.count ?? items.length }));
+    const count = res.success && res.data ? (res.data as { count: number }).count : items.length;
+    flash(t("chromeBulkImportDone", { n: count }));
     setSelected(new Set());
     onRefresh();
   }
@@ -182,20 +183,6 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     flash(t("chromeQueueRename")); // Reuse "Added to queue" message
   }
 
-
-  async function handleSyncToChrome() {
-    if (!await showConfirm(t("chromeSyncConfirm"))) return;
-    setBusy(true);
-    const res = await chrome.runtime.sendMessage({ type: "SYNC_TO_CHROME" }) as MessageResponse;
-    setBusy(false);
-    if (res.success && res.data) {
-      const { added, updated, deleted } = res.data as { added: number; updated: number; deleted: number };
-      flash(t("chromeSyncDone", { added, updated, deleted }));
-    } else {
-      flash(t("chromeSyncSuccess"));
-    }
-    await loadTree();
-  }
 
   async function handleReset() {
     if (!await showConfirm(t("chromeResetConfirm"))) return;
@@ -279,7 +266,7 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
     if (!await showConfirm(msg, t("chromeDeleteBtn"))) return;
     setTree((prev) => applyLocalDelete(prev, id));
     setPending((prev) => [
-      ...prev.filter((p) => p.id !== id || (p.kind !== "rename" && p.kind !== "move")),
+      ...prev.filter((p) => p.kind !== "add" && p.id !== id || (p.kind !== "rename" && p.kind !== "move")),
       { kind: "delete", id, isFolder },
     ]);
     flash(t("chromeQueueRename"));

@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   X,
-  Type,
   Copy,
-  Check,
   Sun,
   Moon,
   BookOpen,
@@ -133,7 +131,9 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
       if (typeof saved === "number") {
         savedScrollPercentRef.current = saved;
       } else {
+        // No saved position: mark as restored immediately so scroll saving works from the start
         savedScrollPercentRef.current = null;
+        isRestoredRef.current = true;
       }
     });
   }, [bookmarkId]);

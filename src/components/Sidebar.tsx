@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import {
   Home,
   ChevronRight,
@@ -20,13 +20,13 @@ import {
   Book,
   Newspaper,
   ScanSearch,
+  Activity,
   ListTodo,
   Tag,
   Tags,
-  Map,
+  Map as MapIcon,
   Shield,
   Layers,
-  Activity,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -69,7 +69,7 @@ const COLOR_DOT: Record<string, string> = {
   indigo: "bg-indigo-400",
 };
 
-import { FolderIcon, isEmoji } from "./DynamicIcon";
+import { FolderIcon } from "./DynamicIcon";
 import { IconPicker } from "./IconPicker";
 
 export default function Sidebar({
@@ -212,8 +212,14 @@ export default function Sidebar({
         setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
       }
     };
-    chrome.storage.onChanged.addListener(listener);
-    return () => chrome.storage.onChanged.removeListener(listener);
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener(listener);
+    }
+    return () => {
+      if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.removeListener(listener);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -229,28 +235,44 @@ export default function Sidebar({
 
   const tree = buildFolderTree(folders, counts);
 
+  const foldersMap = useMemo(() => {
+    const map = new Map<string, Folder>();
+    folders.forEach((f) => map.set(f.id, f));
+    return map;
+  }, [folders]);
+
   /** フォルダーの深さを返す（トップレベル=1） */
-  function getFolderDepth(folderId: string): number {
+  const getFolderDepth = useCallback((folderId: string): number => {
     let depth = 0;
     let current: string | null = folderId;
+    const visited = new Set<string>();
     while (current) {
+      if (visited.has(current)) {
+        break;
+      }
+      visited.add(current);
       depth++;
-      const f = folders.find((x) => x.id === current);
+      const f = foldersMap.get(current);
       current = f?.parentId ?? null;
     }
     return depth;
-  }
+  }, [foldersMap]);
 
   /** 자식인지 확인 (순환 방지) */
-  function isDescendantOf(targetId: string, folderId: string): boolean {
+  const isDescendantOf = useCallback((targetId: string, folderId: string): boolean => {
     let current: string | null = targetId;
+    const visited = new Set<string>();
     while (current) {
+      if (visited.has(current)) {
+        break;
+      }
+      visited.add(current);
       if (current === folderId) return true;
-      const f = folders.find((x) => x.id === current);
+      const f = foldersMap.get(current);
       current = f?.parentId ?? null;
     }
     return false;
-  }
+  }, [foldersMap]);
 
   // ── AI 자동 정리 ──────────────────────────
 
@@ -323,7 +345,7 @@ export default function Sidebar({
     const name = newFolderName.trim();
     if (!name) return;
     // 深さチェック（creatingUnder が null = ルート作成 = depth 1）
-    const parentDepth = creatingUnder && creatingUnder !== false ? getFolderDepth(creatingUnder) : 0;
+    const parentDepth = typeof creatingUnder === "string" ? getFolderDepth(creatingUnder) : 0;
     if (parentDepth + 1 > maxFolderDepth) {
       await showConfirm(
         t("maxDepthError", { n: maxFolderDepth }),
@@ -416,7 +438,7 @@ export default function Sidebar({
   }
 
   function onDragLeave(e: React.DragEvent) {
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as Node)) return;
     setDragOverInfo(null);
   }
 
@@ -487,271 +509,6 @@ export default function Sidebar({
     onRefresh();
   }
 
-  // ── ツリーノード描画 ────────────────────────
-
-  function renderNode(node: FolderTreeNode, depth: number) {
-    const f = node.folder;
-    const isActive = activePage === "folder" && selectedFolderId === f.id;
-    const hasChildren = node.children.length > 0;
-    const isRenaming = renamingId === f.id;
-    const isDragOverInfo = dragOverInfo?.id === f.id ? dragOverInfo : null;
-    const dotColor = COLOR_DOT[f.color] ?? "bg-gray-400";
-
-    return (
-      <div key={f.id} className="relative">
-        {/* Drop "before" indicator */}
-        {isDragOverInfo?.position === "before" && (
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500 z-10 mx-2 rounded-full" />
-        )}
-
-        <div
-          draggable={true}
-          onDragStart={(e) => onDragStart(e, f.id, "folder")}
-          onDragOver={(e) => onDragOver(e, f.id)}
-          onDragLeave={onDragLeave}
-          onDrop={(e) => onDrop(e, f.id)}
-          onClick={() => {
-            onNavigate("folder", f.id);
-            if (hasChildren) handleToggle(f.id);
-          }}
-          className={`
-            group flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer
-            transition-all duration-150 rounded-lg mx-1.5
-            ${isActive ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"}
-            ${isDragOverInfo?.position === "inside" ? "ring-2 ring-indigo-500/50 bg-indigo-500/10" : ""}
-          `}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        >
-          <GripVertical
-            size={12}
-            className="opacity-0 group-hover:opacity-40 shrink-0 cursor-grab"
-          />
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (hasChildren) handleToggle(f.id);
-            }}
-            className="w-4 h-4 flex items-center justify-center shrink-0"
-          >
-            {hasChildren ? (
-              f.collapsed ? (
-                <ChevronRight size={13} className="text-gray-400 dark:text-gray-600" />
-              ) : (
-                <ChevronDown size={13} className="text-gray-400 dark:text-gray-600" />
-              )
-            ) : (
-              <span className="w-[5px] h-[5px] rounded-full block" />
-            )}
-          </button>
-
-          {!isRenaming && (
-            <FolderIcon iconName={f.icon} fallbackColorClass={dotColor} />
-          )}
-
-          {isRenaming ? (
-            <div className="relative flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={() => { setRenameIcon(f.icon ?? "📁"); setShowPicker(showPicker === "rename" ? null : "rename"); }}
-                className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
-              >
-                <FolderIcon iconName={renameIcon || f.icon || "📁"} />
-              </button>
-              {showPicker === "rename" && (
-                <IconPicker onSelect={(ic) => { setRenameIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0 -translate-x-1/4" />
-              )}
-              <input
-                autoFocus
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleRename();
-                  if (e.key === "Escape") { setRenamingId(null); setShowPicker(null); }
-                }}
-                className="flex-1 min-w-0 bg-gray-100 dark:bg-surface-700 border border-gray-300 dark:border-surface-600 rounded px-1.5 py-0.5 text-xs text-gray-800 dark:text-gray-200 outline-none focus:border-indigo-500"
-              />
-              <button onClick={handleRename} className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-400 dark:hover:text-emerald-300">
-                <Check size={12} />
-              </button>
-              <button onClick={() => setRenamingId(null)} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                <X size={12} />
-              </button>
-            </div>
-          ) : (
-            <span
-              className="truncate flex-1 min-w-0 font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors"
-              onDoubleClick={(e) => {
-                if (f.id === "other") return;
-                e.stopPropagation();
-                setRenamingId(f.id);
-                setRenameValue(f.name);
-                setRenameIcon(!/^[A-Za-z0-9_]+$/.test(f.icon ?? "") ? (f.icon ?? "📁") : "📁");
-              }}
-              title={f.id === "other" ? undefined : t("doubleClickRename")}
-            >
-              {getLocalizedFolderName(f, lang)}
-            </span>
-          )}
-
-          {!isRenaming && node.bookmarkCount > 0 && (
-            <span className="text-[10px] bg-gray-100 dark:bg-surface-700 text-gray-500 rounded-full px-1.5 py-0.5 min-w-[18px] text-center shrink-0">
-              {node.bookmarkCount}
-            </span>
-          )}
-
-          {/* ロック済みインジケーター（非ホバー時のみ表示） */}
-          {(f.locked || f.id === "other") && !isRenaming && (
-            <Lock size={10} className="text-amber-500 shrink-0 group-hover:hidden" />
-          )}
-
-          {/* 보안 폴더 인디케이터 (개인정보 보호 극대화: 마지막 탭 닫을 때 쿠키/스토리지/방문흔적 실시간 자동 파쇄 상태 표시) */}
-          {f.secure && !isRenaming && (
-            <Shield size={10} className="text-emerald-500 fill-emerald-500/25 shrink-0 group-hover:hidden animate-pulse" title={t("secureFolderTooltip")} />
-          )}
-
-          {!isRenaming && (
-            <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
-              {/* 보안 세션 파쇄기(Secure Session Shredder) 토글 버튼: 개인정보 및 로그인 세션 자동 파괴 */}
-              {f.id !== "other" && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    chrome.runtime.sendMessage({ type: "TOGGLE_FOLDER_SECURE", id: f.id }).then(() => onRefresh());
-                  }}
-                  title={f.secure ? t("secureToggleOff") : t("secureToggleOn")}
-                  className={`p-0.5 transition-colors ${
-                    f.secure
-                      ? "text-emerald-500 hover:text-emerald-400"
-                      : "text-gray-400 dark:text-gray-600 hover:text-emerald-500 dark:hover:text-emerald-400"
-                  }`}
-                >
-                  <Shield size={11} className={f.secure ? "fill-current" : ""} />
-                </button>
-              )}
-
-              {/* 탭 그룹으로 열기 */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  chrome.runtime.sendMessage({ type: "OPEN_FOLDER_AS_TAB_GROUP", folderId: f.id });
-                }}
-                title={t("openAsTabGroup")}
-                className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-              >
-                <Layers size={11} />
-              </button>
-
-              {/* 鍵トグル */}
-              {f.id !== "other" ? (
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
-                  title={f.locked ? t("unlockTooltip") : t("lockTooltip")}
-                  className={`p-0.5 transition-colors ${
-                    f.locked
-                      ? "text-amber-500 hover:text-amber-400"
-                      : "text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400"
-                  }`}
-                >
-                  {f.locked ? <Lock size={11} /> : <LockOpen size={11} />}
-                </button>
-              ) : (
-                <div className="p-0.5 text-amber-500 cursor-not-allowed" title={
-                  lang === "ko" ? "기본 폴더는 이름 변경이나 삭제가 불가능합니다." :
-                  lang === "ja" ? "デフォルトフォルダーの名前変更や削除はできません。" :
-                  "Default folders cannot be renamed or deleted."
-                }>
-                  <Lock size={11} />
-                </div>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCreatingUnder(f.id);
-                  setNewFolderName("");
-                }}
-                title={getFolderDepth(f.id) >= maxFolderDepth ? t("maxDepthTooltip", { n: maxFolderDepth }) : t("addSubfolderTooltip")}
-                disabled={getFolderDepth(f.id) >= maxFolderDepth}
-                className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <FolderPlus size={12} />
-              </button>
-              {f.id !== "other" && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setRenamingId(f.id);
-                      setRenameValue(f.name);
-                    }}
-                    title={t("renameTooltip")}
-                    className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
-                  >
-                    <Pencil size={11} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(f.id);
-                    }}
-                    title={t("deleteTooltip")}
-                    className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={11} />
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        {creatingUnder === f.id && (
-          <div
-            className="flex items-center gap-1 mx-1.5 my-1 rounded-lg bg-gray-50 dark:bg-surface-800 px-2 py-1.5 relative"
-            style={{ paddingLeft: `${(depth + 1) * 16 + 8}px` }}
-          >
-            <button
-              type="button"
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={() => setShowPicker(showPicker === "create" ? null : "create")}
-              className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
-            >
-              <FolderIcon iconName={newFolderIcon} />
-            </button>
-            {showPicker === "create" && (
-              <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0 -translate-x-1/4" />
-            )}
-            <input
-              autoFocus
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreateFolder();
-                if (e.key === "Escape") { setCreatingUnder(false); setShowPicker(null); }
-              }}
-              placeholder={t("folderNamePlaceholder")}
-              className="flex-1 min-w-0 bg-gray-100 dark:bg-surface-700 border border-gray-300 dark:border-surface-600 rounded px-2 py-1 text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 outline-none focus:border-indigo-500"
-            />
-            <button onClick={handleCreateFolder} className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-400 dark:hover:text-emerald-300">
-              <Check size={13} />
-            </button>
-            <button onClick={() => setCreatingUnder(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-              <X size={13} />
-            </button>
-          </div>
-        )}
-
-        {/* Drop "after" indicator */}
-        {isDragOverInfo?.position === "after" && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 z-10 mx-2 rounded-full" />
-        )}
-
-        {!f.collapsed && node.children.map((child) => renderNode(child, depth + 1))}
-      </div>
-    );
-  }
-
   // ── メイン描画 ──────────────────────────────
 
   return (
@@ -762,7 +519,7 @@ export default function Sidebar({
       <div className="px-4 py-4 flex items-center justify-between shrink-0">
         <div
           className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform"
-          onClick={() => window.location.reload()}
+          onClick={() => onNavigate("dashboard")}
           title={t("pageTitle")}
         >
           <img src="/icons/icon128.png" alt="" className="w-6 h-6" />
@@ -818,7 +575,7 @@ export default function Sidebar({
               : "bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 dark:hover:bg-blue-500/25 font-medium"
             }`}
         >
-          <Map size={15} className="shrink-0" />
+          <MapIcon size={15} className="shrink-0" />
           
           {/* Custom Tooltip */}
           <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
@@ -950,7 +707,7 @@ export default function Sidebar({
           }
           
           return (
-            <div className={`mt-1.5 px-3 py-2 rounded-lg border text-xs ${bgClass}`}>
+            <div className={`mt-1.5 px-3 py-2 rounded-lg border text-xs w-full overflow-hidden ${bgClass}`}>
               <p className={`font-medium ${textTitleClass}`}>{title}</p>
               <p className={`mt-0.5 ${textDescClass}`}>{desc}</p>
               <p className="text-gray-400 dark:text-gray-500 mt-1 text-[10px] truncate" title={backupName}>
@@ -1094,7 +851,45 @@ export default function Sidebar({
 
       {/* フォルダーツリー */}
       <nav className="flex-1 overflow-y-auto py-1 space-y-0.5 bg-gray-50 dark:bg-surface-950 border-t border-gray-200 dark:border-surface-700">
-        {tree.map((node) => renderNode(node, 0))}
+        {tree.map((node) => (
+          <SidebarFolderNode
+            key={node.folder.id}
+            node={node}
+            depth={0}
+            activePage={activePage}
+            selectedFolderId={selectedFolderId}
+            renamingId={renamingId}
+            setRenamingId={setRenamingId}
+            renameValue={renameValue}
+            setRenameValue={setRenameValue}
+            renameIcon={renameIcon}
+            setRenameIcon={setRenameIcon}
+            showPicker={showPicker}
+            setShowPicker={setShowPicker}
+            creatingUnder={creatingUnder}
+            setCreatingUnder={setCreatingUnder}
+            newFolderName={newFolderName}
+            setNewFolderName={setNewFolderName}
+            newFolderIcon={newFolderIcon}
+            setNewFolderIcon={setNewFolderIcon}
+            dragOverInfo={dragOverInfo}
+            maxFolderDepth={maxFolderDepth}
+            lang={lang}
+            t={t}
+            onNavigate={onNavigate}
+            onRefresh={onRefresh}
+            onDragStart={onDragStart}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            handleToggle={handleToggle}
+            handleToggleLock={handleToggleLock}
+            handleDelete={handleDelete}
+            handleRename={handleRename}
+            handleCreateFolder={handleCreateFolder}
+            getFolderDepth={getFolderDepth}
+          />
+        ))}
 
         {/* Memory Saver (Tab Suspender) Widget */}
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 px-3 pb-2">
@@ -1282,4 +1077,375 @@ export default function Sidebar({
     </>
   );
 }
+
+interface SidebarFolderNodeProps {
+  node: FolderTreeNode;
+  depth: number;
+  activePage: PageId;
+  selectedFolderId: string | null;
+  renamingId: string | null;
+  setRenamingId: (id: string | null) => void;
+  renameValue: string;
+  setRenameValue: (val: string) => void;
+  renameIcon: string;
+  setRenameIcon: (val: string) => void;
+  showPicker: "create" | "rename" | null;
+  setShowPicker: (val: "create" | "rename" | null) => void;
+  creatingUnder: string | null | false;
+  setCreatingUnder: (val: string | null | false) => void;
+  newFolderName: string;
+  setNewFolderName: (val: string) => void;
+  newFolderIcon: string;
+  setNewFolderIcon: (val: string) => void;
+  dragOverInfo: { id: string; position: "before" | "inside" | "after" } | null;
+  maxFolderDepth: number;
+  lang: string;
+  t: any;
+  onNavigate: (page: PageId, folderId?: string | null) => void;
+  onRefresh: () => void;
+  onDragStart: (e: React.DragEvent, id: string, type: "folder" | "bookmark") => void;
+  onDragOver: (e: React.DragEvent, id: string) => void;
+  onDragLeave: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent, id: string) => void;
+  handleToggle: (id: string) => void;
+  handleToggleLock: (id: string) => void;
+  handleDelete: (id: string) => void;
+  handleRename: () => void;
+  handleCreateFolder: () => void;
+  getFolderDepth: (id: string) => number;
+}
+
+const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(({
+  node,
+  depth,
+  activePage,
+  selectedFolderId,
+  renamingId,
+  setRenamingId,
+  renameValue,
+  setRenameValue,
+  renameIcon,
+  setRenameIcon,
+  showPicker,
+  setShowPicker,
+  creatingUnder,
+  setCreatingUnder,
+  newFolderName,
+  setNewFolderName,
+  newFolderIcon,
+  setNewFolderIcon,
+  dragOverInfo,
+  maxFolderDepth,
+  lang,
+  t,
+  onNavigate,
+  onRefresh,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  handleToggle,
+  handleToggleLock,
+  handleDelete,
+  handleRename,
+  handleCreateFolder,
+  getFolderDepth,
+}) => {
+  const f = node.folder;
+  const isActive = activePage === "folder" && selectedFolderId === f.id;
+  const hasChildren = node.children.length > 0;
+  const isRenaming = renamingId === f.id;
+  const isDragOverInfo = dragOverInfo?.id === f.id ? dragOverInfo : null;
+  const dotColor = COLOR_DOT[f.color] ?? "bg-gray-400";
+
+  return (
+    <div key={f.id} className="relative">
+      {/* Drop "before" indicator */}
+      {isDragOverInfo?.position === "before" && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-indigo-500 z-10 mx-2 rounded-full" />
+      )}
+
+      <div
+        draggable={true}
+        onDragStart={(e) => onDragStart(e, f.id, "folder")}
+        onDragOver={(e) => onDragOver(e, f.id)}
+        onDragLeave={onDragLeave}
+        onDrop={(e) => onDrop(e, f.id)}
+        onClick={() => {
+          onNavigate("folder", f.id);
+          if (hasChildren) handleToggle(f.id);
+        }}
+        className={`
+          group flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer
+          transition-all duration-150 rounded-lg mx-1.5
+          ${isActive ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"}
+          ${isDragOverInfo?.position === "inside" ? "ring-2 ring-indigo-500/50 bg-indigo-500/10" : ""}
+        `}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+      >
+        <GripVertical
+          size={12}
+          className="opacity-0 group-hover:opacity-40 shrink-0 cursor-grab"
+        />
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasChildren) handleToggle(f.id);
+          }}
+          className="w-4 h-4 flex items-center justify-center shrink-0"
+        >
+          {hasChildren ? (
+            f.collapsed ? (
+              <ChevronRight size={13} className="text-gray-400 dark:text-gray-600" />
+            ) : (
+              <ChevronDown size={13} className="text-gray-400 dark:text-gray-600" />
+            )
+          ) : (
+            <span className="w-[5px] h-[5px] rounded-full block" />
+          )}
+        </button>
+
+        {!isRenaming && (
+          <FolderIcon iconName={f.icon} fallbackColorClass={dotColor} />
+        )}
+
+        {isRenaming ? (
+          <div className="relative flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => { setRenameIcon(f.icon ?? "📁"); setShowPicker(showPicker === "rename" ? null : "rename"); }}
+              className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
+            >
+              <FolderIcon iconName={renameIcon || f.icon || "📁"} />
+            </button>
+            {showPicker === "rename" && (
+              <IconPicker onSelect={(ic) => { setRenameIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0 -translate-x-1/4" />
+            )}
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") { setRenamingId(null); setShowPicker(null); }
+              }}
+              className="flex-1 min-w-0 bg-gray-100 dark:bg-surface-700 border border-gray-300 dark:border-surface-600 rounded px-1.5 py-0.5 text-xs text-gray-800 dark:text-gray-200 outline-none focus:border-indigo-500"
+            />
+            <button onClick={handleRename} className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-400 dark:hover:text-emerald-300">
+              <Check size={12} />
+            </button>
+            <button onClick={() => setRenamingId(null)} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+              <X size={12} />
+            </button>
+          </div>
+        ) : (
+          <span
+            className="truncate flex-1 min-w-0 font-medium text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors"
+            onDoubleClick={(e) => {
+              if (f.id === "other") return;
+              e.stopPropagation();
+              setRenamingId(f.id);
+              setRenameValue(f.name);
+              setRenameIcon(!/^[A-Za-z0-9_]+$/.test(f.icon ?? "") ? (f.icon ?? "📁") : "📁");
+            }}
+            title={f.id === "other" ? undefined : t("doubleClickRename")}
+          >
+            {getLocalizedFolderName(f, lang)}
+          </span>
+        )}
+
+        {!isRenaming && node.bookmarkCount > 0 && (
+          <span className="text-[10px] bg-gray-100 dark:bg-surface-700 text-gray-500 rounded-full px-1.5 py-0.5 min-w-[18px] text-center shrink-0">
+            {node.bookmarkCount}
+          </span>
+        )}
+
+        {(f.locked || f.id === "other") && !isRenaming && (
+          <Lock size={10} className="text-amber-500 shrink-0 group-hover:hidden" />
+        )}
+
+        {f.secure && !isRenaming && (
+          <span className="shrink-0 group-hover:hidden" title={t("secureFolderTooltip")}>
+            <Shield size={10} className="text-emerald-500 fill-emerald-500/25 animate-pulse" />
+          </span>
+        )}
+
+        {!isRenaming && (
+          <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
+            {f.id !== "other" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  chrome.runtime.sendMessage({ type: "TOGGLE_FOLDER_SECURE", id: f.id }).then(() => onRefresh());
+                }}
+                title={f.secure ? t("secureToggleOff") : t("secureToggleOn")}
+                className={`p-0.5 transition-colors ${
+                  f.secure
+                    ? "text-emerald-500 hover:text-emerald-400"
+                    : "text-gray-400 dark:text-gray-600 hover:text-emerald-500 dark:hover:text-emerald-400"
+                }`}
+              >
+                <Shield size={11} className={f.secure ? "fill-current" : ""} />
+              </button>
+            )}
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                chrome.runtime.sendMessage({ type: "OPEN_FOLDER_AS_TAB_GROUP", folderId: f.id });
+              }}
+              title={t("openAsTabGroup")}
+              className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+            >
+              <Layers size={11} />
+            </button>
+
+            {f.id !== "other" ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
+                title={f.locked ? t("unlockTooltip") : t("lockTooltip")}
+                className={`p-0.5 transition-colors ${
+                  f.locked
+                    ? "text-amber-500 hover:text-amber-400"
+                    : "text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400"
+                }`}
+              >
+                {f.locked ? <Lock size={11} /> : <LockOpen size={11} />}
+              </button>
+            ) : (
+              <div className="p-0.5 text-amber-500 cursor-not-allowed" title={
+                lang === "ko" ? "기본 폴더는 이름 변경이나 삭제가 불가능합니다." :
+                lang === "ja" ? "デフォルトフォルダーの名前変更や削除はできません。" :
+                "Default folders cannot be renamed or deleted."
+              }>
+                <Lock size={11} />
+              </div>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCreatingUnder(f.id);
+                setNewFolderName("");
+              }}
+              title={getFolderDepth(f.id) >= maxFolderDepth ? t("maxDepthTooltip", { n: maxFolderDepth }) : t("addSubfolderTooltip")}
+              disabled={getFolderDepth(f.id) >= maxFolderDepth}
+              className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <FolderPlus size={12} />
+            </button>
+            {f.id !== "other" && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRenamingId(f.id);
+                    setRenameValue(f.name);
+                  }}
+                  title={t("renameTooltip")}
+                  className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+                >
+                  <Pencil size={11} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(f.id);
+                  }}
+                  title={t("deleteTooltip")}
+                  className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={11} />
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {creatingUnder === f.id && (
+        <div
+          className="flex items-center gap-1 mx-1.5 my-1 rounded-lg bg-gray-50 dark:bg-surface-800 px-2 py-1.5 relative"
+          style={{ paddingLeft: `${(depth + 1) * 16 + 8}px` }}
+        >
+          <button
+            type="button"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => setShowPicker(showPicker === "create" ? null : "create")}
+            className="shrink-0 text-sm leading-none hover:bg-gray-100 dark:hover:bg-surface-700 rounded p-0.5 transition-colors"
+          >
+            <FolderIcon iconName={newFolderIcon} />
+          </button>
+          {showPicker === "create" && (
+            <IconPicker onSelect={(ic) => { setNewFolderIcon(ic); setShowPicker(null); }} onClose={() => setShowPicker(null)} className="left-0 -translate-x-1/4" />
+          )}
+          <input
+            autoFocus
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreateFolder();
+              if (e.key === "Escape") { setCreatingUnder(false); setShowPicker(null); }
+            }}
+            placeholder={t("folderNamePlaceholder")}
+            className="flex-1 min-w-0 bg-gray-100 dark:bg-surface-700 border border-gray-300 dark:border-surface-600 rounded px-2 py-1 text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 outline-none focus:border-indigo-500"
+          />
+          <button onClick={handleCreateFolder} className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-400 dark:hover:text-emerald-300">
+            <Check size={13} />
+          </button>
+          <button onClick={() => setCreatingUnder(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+            <X size={13} />
+          </button>
+        </div>
+      )}
+
+      {/* Drop "after" indicator */}
+      {isDragOverInfo?.position === "after" && (
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 z-10 mx-2 rounded-full" />
+      )}
+
+      {!f.collapsed && node.children.map((child) => (
+        <SidebarFolderNode
+          key={child.folder.id}
+          node={child}
+          depth={depth + 1}
+          activePage={activePage}
+          selectedFolderId={selectedFolderId}
+          renamingId={renamingId}
+          setRenamingId={setRenamingId}
+          renameValue={renameValue}
+          setRenameValue={setRenameValue}
+          renameIcon={renameIcon}
+          setRenameIcon={setRenameIcon}
+          showPicker={showPicker}
+          setShowPicker={setShowPicker}
+          creatingUnder={creatingUnder}
+          setCreatingUnder={setCreatingUnder}
+          newFolderName={newFolderName}
+          setNewFolderName={setNewFolderName}
+          newFolderIcon={newFolderIcon}
+          setNewFolderIcon={setNewFolderIcon}
+          dragOverInfo={dragOverInfo}
+          maxFolderDepth={maxFolderDepth}
+          lang={lang}
+          t={t}
+          onNavigate={onNavigate}
+          onRefresh={onRefresh}
+          onDragStart={onDragStart}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          handleToggle={handleToggle}
+          handleToggleLock={handleToggleLock}
+          handleDelete={handleDelete}
+          handleRename={handleRename}
+          handleCreateFolder={handleCreateFolder}
+          getFolderDepth={getFolderDepth}
+        />
+      ))}
+    </div>
+  );
+});
+
 

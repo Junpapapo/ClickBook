@@ -33,7 +33,7 @@ interface GroupWithBookmarks {
 
 function getFavicon(url: string): string {
   try {
-    const { hostname, protocol } = new URL(url);
+    const { hostname } = new URL(url);
     return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
   } catch {
     return "";
@@ -50,7 +50,7 @@ function getDomain(url: string): string {
 
 export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh }: Props) {
   const { t, lang } = useLang();
-  const { showConfirm, showAlert, DialogEl } = useDialog();
+  const { showConfirm, DialogEl } = useDialog();
 
   // folderId → folder name 룩업 맵
   const folderMap = new Map(folders.map(f => [f.id, f]));
@@ -86,9 +86,9 @@ export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh 
             .filter((b): b is Bookmark => !!b);
           if (items.length < 2) return null;
 
-          // 가장 오래된 북마크(createdAt 기준, 없으면 첫 번째)를 keep 추천
+          // 가장 오래된 북마크(savedAt 기준, 없으면 첫 번째)를 keep 추천
           const oldest = items.reduce((prev, cur) =>
-            (prev.createdAt ?? 0) <= (cur.createdAt ?? 0) ? prev : cur
+            (prev.savedAt ?? 0) <= (cur.savedAt ?? 0) ? prev : cur
           );
 
           return { reason: g.reason, items, keepId: oldest.id };
@@ -107,7 +107,7 @@ export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function toggleDelete(id: string, keepId: string) {
+  function toggleDelete(id: string) {
     // keep으로 표시된 항목을 삭제 대상으로 토글할 때는 허용
     setDeleteSet((prev) => {
       const next = new Set(prev);
@@ -151,7 +151,7 @@ export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh 
       // keepId가 삭제되었다면 남은 것 중 가장 오래된 것으로 갱신
       let newKeepId = g.keepId;
       if (deleteSet.has(g.keepId)) {
-        const oldest = remainingItems.reduce((p, c) => (p.createdAt ?? 0) <= (c.createdAt ?? 0) ? p : c);
+        const oldest = remainingItems.reduce((p, c) => (p.savedAt ?? 0) <= (c.savedAt ?? 0) ? p : c);
         newKeepId = oldest.id;
       }
       return { ...g, items: remainingItems, keepId: newKeepId };
@@ -367,7 +367,7 @@ export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh 
                                       Open
                                     </a>
                                     <button
-                                      onClick={() => toggleDelete(bm.id, group.keepId)}
+                                      onClick={() => toggleDelete(bm.id)}
                                       className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
                                         isMarkedDelete
                                           ? "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 hover:bg-rose-200 dark:hover:bg-rose-900/50"

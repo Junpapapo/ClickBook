@@ -36,7 +36,6 @@ export default function GitHubRankingPage() {
   const [query, setQuery] = useState("");
   const [filterQuery, setFilterQuery] = useState("");
   const [error, setError] = useState("");
-  const [custom, setCustom] = useState(false);
   const [selectedLang, setSelectedLang] = useState("All");
   const [dateFilter, setDateFilter] = useState("week");
   const [showLimits, setShowLimits] = useState(false);
@@ -114,9 +113,7 @@ export default function GitHubRankingPage() {
     setLoading(true);
     setError("");
     setFilterQuery("");
-    setCustom(langId !== "All" || filter !== "all");
     try {
-      let items: GitHubRepo[] = [];
       const dateQ = getDateQueryStr(filter);
 
       let newItems: GitHubRepo[] = [];
@@ -167,7 +164,6 @@ export default function GitHubRankingPage() {
   const executeSearch = async (q: string, filter: string, forceRefresh: boolean = false) => {
     if (!q.trim()) return;
     setLoading(true);
-    setCustom(true);
     setFilterQuery("");
     setSelectedLang("");
     setError("");
@@ -374,7 +370,7 @@ export default function GitHubRankingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
-                {filtered.map((repo, i) => {
+                {filtered.map((repo) => {
                   const isSaved = savedIds.has(repo.id);
                   const getRankBadge = (rank: number) => {
                     if (rank === 1) return <span className="text-lg">🥇</span>;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DraggableProvided } from "@hello-pangea/dnd";
 import { Plus, Check, Trash2, GripVertical, Loader2, X, AlignLeft, CheckSquare, Tag, CheckCircle2, Circle, Palette, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, ChevronDown, RotateCcw, Bell } from "lucide-react";
 import type { TodoBoardData, TodoColumn, TodoTask, MessageResponse, AppSettings } from "@/shared/types";
@@ -8,7 +8,6 @@ import { useDialog } from "@/shared/useDialog";
 import ReactMarkdown from "react-markdown";
 
 // --- Types ---
-type PartialData = Omit<TodoBoardData, "tasks"> & { tasks: Record<string, TodoTask> };
 
 const COLUMN_BG_COLORS: Record<string, string> = {
   default: "bg-gray-100 dark:bg-[#1A1A1C]",
@@ -71,11 +70,6 @@ const formatDateStr = (date: Date) => {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
-};
-
-const isSameDayStr = (date: Date, dateStr?: string) => {
-  if (!dateStr) return false;
-  return formatDateStr(date) === dateStr;
 };
 
 const isToday = (date: Date) => {
@@ -325,7 +319,7 @@ interface TodoColumnViewProps {
   onToggleComplete: (taskId: string, e: React.MouseEvent) => void;
   onOpenModal: (task: TodoTask) => void;
   onDeleteTask: (taskId: string, colId: string, e?: React.MouseEvent) => void;
-  t: (key: string) => string;
+  t: any;
 }
 
 const TodoColumnView = React.memo(function TodoColumnView({
@@ -869,7 +863,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
       startDate: editTaskStartDate,
       dueDate: editTaskDueDate,
       dueTime: editTaskDueDate ? editTaskDueTime : undefined,
-      reminder: editTaskReminder !== "none" ? editTaskReminder : undefined,
+      reminder: editTaskReminder !== "none" ? (editTaskReminder as TodoTask["reminder"]) : undefined,
     };
 
     saveData({

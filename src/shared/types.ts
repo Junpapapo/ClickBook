@@ -80,6 +80,7 @@ export interface Folder {
   id: string;
   name: string;
   nameJa: string;
+  nameKo?: string;
   icon: string;
   color: string;
   parentId: string | null;
@@ -221,12 +222,14 @@ export type Message =
   | { type: "SAVE_PAGE_CONTENT"; bookmarkId: string; rawText: string; readableContent: string }
   | { type: "DELETE_PAGE_CONTENT"; bookmarkId: string }
   | { type: "RUN_GARBAGE_COLLECTOR" }
-  | { type: "GET_ORPHANED_STATS" };
+  | { type: "GET_ORPHANED_STATS" }
+  | { type: "COLLAPSE_ALL_FOLDERS" }
+  | { type: "CHECK_DOMAIN_SECURE"; url: string };
 
 
-export type MessageResponse =
-  | { success: true; data?: unknown; isSecure?: boolean }
-  | { success: false; error: string; isDuplicate?: boolean };
+export type MessageResponse<T = any> =
+  | { success: true; data?: T; isSecure?: boolean }
+  | { success: false; error: string; isDuplicate?: boolean; isSecure?: boolean };
 
 // =============================
 // TODO Board (Kanban) Models
@@ -250,7 +253,7 @@ export interface TodoTask {
   startDate?: string; // "YYYY-MM-DD"
   dueDate?: string;   // "YYYY-MM-DD"
   dueTime?: string;   // "HH:MM"
-  reminder?: string;  // "none" | "at_due" | "1h_before" | "1d_before"
+  reminder?: "none" | "at_due" | "15m_before" | "1h_before" | "3h_before" | "1d_before";
   createdAt: number;
 }
 

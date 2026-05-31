@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   isLoading: boolean;
@@ -10,7 +10,7 @@ export default function ProgressBar({ isLoading, color = "bg-indigo-500" }: Prop
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (isLoading) {
       setShow(true);
       setProgress(0);

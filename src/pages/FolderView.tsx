@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2, Sparkles, Shield, Layers } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import { EditModal } from "@/components/BookmarkEditPanel";
@@ -20,7 +20,6 @@ interface Props {
   onRefresh: () => void;
 }
 
-function isEmoji(s: string) { return !!s && !/^[A-Za-z0-9_]+$/.test(s); }
 
 export default function FolderView({ bookmarks, folders, folderId, memos, onBack, onSelectFolder, onRefresh }: Props) {
   const { t, lang } = useLang();
@@ -30,7 +29,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   const [nameValue, setNameValue] = useState("");
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [editingBookmark, setEditingBookmark] = useState<import("@/shared/types").Bookmark | null>(null);
+  const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [sortKey, setSortKey] = useState<"savedAt" | "title" | "visitCount">("savedAt");
   const [subFoldersCollapsed, setSubFoldersCollapsed] = useState(false);
@@ -61,12 +60,34 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
     chrome.storage.onChanged.addListener(listener);
     return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
+
   const subFolderInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
 
-  const folder = getFolderById(folders, folderId);
+  useEffect(() => {
+    if (editingName) {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    }
+  }, [editingName]);
 
-  async function handleDeleteFolder(id: string, name: string) {
+  useEffect(() => {
+    if (showSubFolderInput) {
+      subFolderInputRef.current?.focus();
+    }
+  }, [showSubFolderInput]);
+
+  useEffect(() => {
+    if (renamingFolderId) {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }
+  }, [renamingFolderId]);
+
+  const folder = getFolderById(folders, folderId);
+  if (!folder) return null;
+
+  async function handleDeleteFolder(id: string, _name: string) {
     const count = getCount(id);
     const msg = count > 0
       ? t("folderDeleteWithBookmarks", { n: count })
@@ -79,7 +100,6 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   function startRenameSubFolder(f: Folder) {
     setRenameValue(f.name);
     setRenamingFolderId(f.id);
-    setTimeout(() => renameInputRef.current?.focus(), 30);
   }
 
   async function commitRenameSubFolder(id: string, original: string) {
@@ -105,27 +125,29 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
       return a.order - b.order;
     });
 
-  const bookmarkCounts = bookmarks.reduce<Record<string, number>>((acc, b) => {
-    acc[b.folderId] = (acc[b.folderId] ?? 0) + 1;
-    return acc;
-  }, {});
-  const tree = buildFolderTree(folders, bookmarkCounts);
-
-  function getCount(id: string): number {
-    function findNode(nodes: ReturnType<typeof buildFolderTree>): number {
+  const { folderCumulativeCounts } = useMemo(() => {
+    const counts = bookmarks.reduce<Record<string, number>>((acc, b) => {
+      acc[b.folderId] = (acc[b.folderId] ?? 0) + 1;
+      return acc;
+    }, {});
+    const t = buildFolderTree(folders, counts);
+    
+    const cumulativeCounts: Record<string, number> = {};
+    function traverse(nodes: typeof t) {
       for (const n of nodes) {
-        if (n.folder.id === id) return n.bookmarkCount;
-        const found = findNode(n.children);
-        if (found >= 0) return found;
+        cumulativeCounts[n.folder.id] = n.bookmarkCount;
+        traverse(n.children);
       }
-      return -1;
     }
-    const res = findNode(tree);
-    return res >= 0 ? res : 0;
-  }
+    traverse(t);
+    
+    return { folderCumulativeCounts: cumulativeCounts };
+  }, [bookmarks, folders]);
+
+  const getCount = (id: string) => folderCumulativeCounts[id] ?? 0;
 
   // 子孫フォルダーID一覧を BFS で列挙（folderId 自身は含まない）
-  const descendantFolderIds = (() => {
+  const descendantFolderIds = useMemo(() => {
     const ids = new Set<string>();
     const queue = [folderId];
     while (queue.length) {
@@ -138,7 +160,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
       }
     }
     return ids;
-  })();
+  }, [folders, folderId]);
 
   const sortFn = (a: import("@/shared/types").Bookmark, b: import("@/shared/types").Bookmark) =>
     sortKey === "title" ? a.title.localeCompare(b.title, "ja")
@@ -165,7 +187,6 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   function startEditName() {
     setNameValue(folder.name);
     setEditingName(true);
-    setTimeout(() => nameInputRef.current?.focus(), 30);
   }
 
   async function commitEditName() {
@@ -190,6 +211,13 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
     const bookmarkId = e.dataTransfer.getData("text/plain");
     const type = e.dataTransfer.getData("application/x-clickbook-type");
     if (!bookmarkId || type !== "bookmark") return;
+    
+    // Skip if bookmark is already in that folder
+    const bookmark = bookmarks.find(b => b.id === bookmarkId);
+    if (bookmark && bookmark.folderId === targetFolderId) {
+      return;
+    }
+    
     await chrome.runtime.sendMessage({ type: "MOVE_BOOKMARK", id: bookmarkId, folderId: targetFolderId });
     onRefresh();
   }
@@ -206,31 +234,36 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   async function handleAIOrganizeOther() {
     if (!aiAvailable || isOrganizingOther || directBookmarks.length === 0) return;
     setIsOrganizingOther(true);
+    let resolved = false;
     try {
       const port = chrome.runtime.connect({ name: "ai-reorganize-other" });
       port.onMessage.addListener((msg) => {
         if (msg.type === "running") {
           // You could show a toast or something, but we use the button state
         } else if (msg.type === "done") {
+          resolved = true;
           setIsOrganizingOther(false);
           port.disconnect();
           onRefresh();
         } else if (msg.type === "error") {
+          resolved = true;
           setIsOrganizingOther(false);
           port.disconnect();
         }
       });
       // Fallback in case port disconnects silently
       port.onDisconnect.addListener(() => {
-        setIsOrganizingOther(false);
-        onRefresh();
+        if (!resolved) {
+          setIsOrganizingOther(false);
+          onRefresh();
+        }
       });
     } catch (err) {
       setIsOrganizingOther(false);
     }
   }
 
-  const isEmpty = bookmarks.length === 0 && childFolders.length === 0;
+  const isEmpty = directBookmarks.length === 0 && childFolders.length === 0;
 
   return (
     <div className="bg-white dark:bg-surface-800 rounded-2xl border border-gray-100 dark:border-surface-700 shadow-sm dark:shadow-none p-6 pb-8">
@@ -318,7 +351,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
             )}
           </div>
         )}
-        <span className="text-sm text-gray-500">{t("itemCount", { n: bookmarks.length })}</span>
+        <span className="text-sm text-gray-500">{t("itemCount", { n: directBookmarks.length })}</span>
 
         {/* 右側コントロール群 */}
         <div className="ml-auto flex items-center gap-2">
@@ -390,7 +423,6 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
           <button
             onClick={() => {
               setShowSubFolderInput(v => !v);
-              setTimeout(() => subFolderInputRef.current?.focus(), 30);
             }}
             title={t("createSubfolderTooltip")}
             className={`p-1.5 rounded-lg transition-colors ${
@@ -507,7 +539,6 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                   <button
                     onClick={() => {
                       setShowSubFolderInput(v => !v);
-                      setTimeout(() => subFolderInputRef.current?.focus(), 30);
                     }}
                     title={t("createSubfolderTooltip")}
                     className={`p-1 rounded-md transition-colors ${
@@ -548,9 +579,9 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                         onDrop={(e) => handleDropToFolder(e, f.id)}
                       >
                         {f.secure && !isRenaming && (
-                          <div className="absolute top-1.5 left-1.5">
-                            <Shield size={10} className="text-emerald-500 fill-emerald-500/20 animate-pulse" title={t("secureFolderTooltip")} />
-                          </div>
+                          <span className="absolute top-1.5 left-1.5" title={t("secureFolderTooltip")}>
+                            <Shield size={10} className="text-emerald-500 fill-emerald-500/20 animate-pulse" />
+                          </span>
                         )}
                         {!isRenaming && (
                           <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">

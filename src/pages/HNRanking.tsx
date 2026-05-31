@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { fetchHNTopStories } from "@/shared/rankingApi";
 import type { HNStory } from "@/shared/types";
-import { Newspaper, MessageSquare, ArrowBigUp, ExternalLink, Loader2, AlertCircle, BookmarkPlus, Check, Search, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
+import { Newspaper, MessageSquare, ArrowBigUp, ExternalLink, AlertCircle, BookmarkPlus, Check, Search, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import RankingSkeleton from "@/components/RankingSkeleton";
 import { formatLastUpdated } from "@/shared/utils";

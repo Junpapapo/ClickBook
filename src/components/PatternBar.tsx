@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Layers, Plus, Trash2, Check, X } from "lucide-react";
-import type { Pattern, MessageResponse } from "@/shared/types";
+import type { Pattern } from "@/shared/types";
 import { useDialog } from "@/shared/useDialog";
 import { useLang } from "@/shared/LanguageContext";
 import { sendMsg } from "@/shared/utils";

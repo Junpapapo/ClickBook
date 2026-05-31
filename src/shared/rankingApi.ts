@@ -30,6 +30,23 @@ async function setCachedData<T>(key: string, data: T): Promise<void> {
   });
 }
 
+function isSystemPage(title: string): boolean {
+  const normalized = title.replace(/_/g, " ").toLowerCase();
+  if (
+    normalized === "main page" ||
+    normalized === "메인 페이지" ||
+    normalized === "メインページ"
+  ) {
+    return true;
+  }
+  const systemPrefixes = [
+    "special:", "wikipedia:", "category:", "template:", "portal:", "help:", "file:", "talk:", "user:", "draft:", "media:", "mediawiki:",
+    "특수:", "위키백과:", "분류:", "틀:", "포털:", "도움말:", "파일:", "토론:", "사용자:",
+    "特別:", "カテゴリ:", "テンプレート:", "ヘルプ:", "ノート:", "利用者:"
+  ];
+  return systemPrefixes.some(prefix => normalized.startsWith(prefix));
+}
+
 // Wikipedia API
 export async function fetchWikiRanking(langCode: string = "ko", period: string = "day", forceRefresh: boolean = false): Promise<{ items: WikiArticle[], lastUpdated: number }> {
   const cacheKey = `wiki_ranking_${langCode}_${period}`;
@@ -77,10 +94,11 @@ export async function fetchWikiRanking(langCode: string = "ko", period: string =
     
     if (!articles) throw new Error("Wiki API error");
 
-    const result = articles.slice(0, 50).map(a => ({
+    const filtered = articles.filter(a => !isSystemPage(a.article));
+    const result = filtered.slice(0, 50).map((a, idx) => ({
       article: a.article.replace(/_/g, " "),
       views: a.views,
-      rank: a.rank,
+      rank: idx + 1,
       url: `https://${langCode}.wikipedia.org/wiki/${a.article}`
     }));
 
@@ -110,7 +128,7 @@ export async function fetchHFTrending(period: string = "week", forceRefresh: boo
     if (!res.ok) throw new Error("HF API error");
     const data = await res.json();
     
-    if (!Array.isArray(data)) return [];
+    if (!Array.isArray(data)) return { items: [], lastUpdated: Date.now() };
 
     const result = data.map((m: any) => ({
       id: m.id || "",

@@ -42,6 +42,11 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 17 | **Privacy Session Sweeper (Premium)** | Designate folders as 'Secure Folders'. Cookies, cache, storage, and history are instantly shredded when closing secure tabs. |
 | 18 | **FTS Body Search (Premium)** | Scrapes webpage text in background on bookmarking, supporting ultra-fast multi-keyword AND searches across title, URL, tags, summaries, and full body text. |
 | 19 | **Offline Reader & Zen Mode (Premium)** | Read bookmarked pages distraction-free with Light/Sepia/Dark themes, dynamic Table of Contents, scroll progress, and text export. |
+| 20 | **AI Cleaner** | AI-powered duplicate detection to find and clean up redundant bookmarks. |
+| 21 | **Visual Bookmark Map** | Interactive node-based mind-map view of your entire folder and bookmark structure. |
+| 22 | **Trend Rankings** | Built-in dashboards for GitHub trending repos, Hugging Face models, Hacker News, and Wikipedia. |
+| 23 | **Productivity Boards** | Integrated Kanban-style TODO board and Memo management system. |
+| 24 | **AI Site Recommendations** | Smart site recommendations based on keywords using Chrome Gemini Nano. |
 
 ---
 

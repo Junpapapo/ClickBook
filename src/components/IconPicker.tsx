@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FolderIcon, LUCIDE_ICONS_MAP, AVAILABLE_ICON_NAMES } from "./DynamicIcon";
+import { LUCIDE_ICONS_MAP, AVAILABLE_ICON_NAMES } from "./DynamicIcon";
 
 const FOLDER_ICONS = [
   // Office & Documents

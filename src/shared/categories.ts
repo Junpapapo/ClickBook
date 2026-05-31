@@ -9,6 +9,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "technology",
     name: "Technology",
     nameJa: "テクノロジー",
+    nameKo: "테크놀로지",
     icon: "Code2",
     color: "blue",
     parentId: null,
@@ -21,6 +22,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "design",
     name: "Design",
     nameJa: "デザイン",
+    nameKo: "디자인",
     icon: "Palette",
     color: "purple",
     parentId: null,
@@ -33,6 +35,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "business",
     name: "Business",
     nameJa: "ビジネス",
+    nameKo: "비즈니스",
     icon: "Briefcase",
     color: "amber",
     parentId: null,
@@ -45,6 +48,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "entertainment",
     name: "Entertainment",
     nameJa: "エンタメ",
+    nameKo: "엔터테인먼트",
     icon: "Tv",
     color: "rose",
     parentId: null,
@@ -57,6 +61,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "science",
     name: "Science",
     nameJa: "サイエンス",
+    nameKo: "과학",
     icon: "FlaskConical",
     color: "cyan",
     parentId: null,
@@ -69,6 +74,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "sports",
     name: "Sports",
     nameJa: "スポーツ",
+    nameKo: "스포츠",
     icon: "Trophy",
     color: "green",
     parentId: null,
@@ -81,6 +87,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "travel",
     name: "Travel",
     nameJa: "トラベル",
+    nameKo: "여행",
     icon: "Plane",
     color: "sky",
     parentId: null,
@@ -93,6 +100,7 @@ export const DEFAULT_FOLDERS: Folder[] = [
     id: "other",
     name: "Other",
     nameJa: "その他",
+    nameKo: "기타",
     icon: "Folder",
     color: "gray",
     parentId: null,
@@ -115,17 +123,7 @@ const KO_NAMES: Record<string, string> = {
 };
 
 export function getLocalizedFolderName(folder: Folder, lang: string): string {
-  if (folder.isDefault) {
-    const original = DEFAULT_FOLDERS.find(df => df.id === folder.id);
-    const isRenamed = original && folder.name !== original.name;
-    
-    if (!isRenamed) {
-      if (lang === "ko" && KO_NAMES[folder.id]) return KO_NAMES[folder.id];
-      if (lang === "ja") return folder.nameJa || folder.name;
-      return folder.name;
-    }
-  }
-  // ユーザー作成フォルダーの場合、またはリネームされたデフォルトフォルダー
+  if (lang === "ko") return folder.nameKo || KO_NAMES[folder.id] || folder.name;
   if (lang === "ja") return folder.nameJa || folder.name;
   return folder.name;
 }

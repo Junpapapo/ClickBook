@@ -14,7 +14,7 @@ import GitHubRankingPage from "@/pages/GitHubRanking";
 import WikiRankingPage from "@/pages/WikiRanking";
 import HFRankingPage from "@/pages/HFRanking";
 import HNRankingPage from "@/pages/HNRanking";
-import type { Bookmark, Folder, MemoMap, StorageData, MessageResponse, AppSettings, ClickBookBackupData, TodoBoardData, PageId } from "@/shared/types";
+import type { Bookmark, Folder, MemoMap, StorageData, AppSettings, ClickBookBackupData, TodoBoardData, PageId } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
 import { sendMsg } from "@/shared/utils";
 import { ThemeProvider } from "@/shared/ThemeContext";
@@ -50,7 +50,6 @@ function AppContent() {
   const [showHNRankingMenu, setShowHNRankingMenu] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
-  const [expandedKeywords, setExpandedKeywords] = useState<string[]>([]);
   const [pageContents, setPageContents] = useState<Record<string, string>>({});
   const [pageContentsLoaded, setPageContentsLoaded] = useState(false);
   const [readerOpen, setReaderOpen] = useState(false);
@@ -348,27 +347,6 @@ function AppContent() {
 
   const deferredQuery = useDeferredValue(searchQuery);
 
-  // AI 검색어 확장 (시맨틱 검색 보조) - 엔터 쳤을 때(aiSearchQuery)만 동작
-  useEffect(() => {
-    if (!aiSearchQuery || aiSearchQuery.length < 3) {
-      setExpandedKeywords([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setAiLoading(true);
-      try {
-        const res = await sendMsg({ type: "EXPAND_SEARCH", query: aiSearchQuery });
-        if (res.success && Array.isArray(res.data)) {
-          setExpandedKeywords(res.data);
-        }
-      } finally {
-        setAiLoading(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [aiSearchQuery]);
 
   const filtered = useMemo(
     () => {
@@ -519,7 +497,7 @@ function AppContent() {
               <FolderView
                 bookmarks={folderBookmarks}
                 folders={folders}
-                folderId={selectedFolderId}
+                folderId={selectedFolderId ?? ""}
                 memos={memos}
                 onBack={() => navigate("dashboard")}
                 onSelectFolder={(id) => navigate("folder", id)}

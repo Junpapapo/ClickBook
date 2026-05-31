@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Sparkles, Plus, Loader2 } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
-import type { MessageResponse, Bookmark } from "@/shared/types";
+import type { MessageResponse } from "@/shared/types";
 
 interface RecommendedSite {
   title: string;
