@@ -8,6 +8,7 @@ import type { MessageResponse } from "@/shared/types";
 import type { ChromePattern } from "@/shared/types";
 import { useDialog } from "@/shared/useDialog";
 import { useLang } from "@/shared/LanguageContext";
+import ProgressBar from "./ProgressBar";
 
 interface CNode { id: string; title: string; url?: string; children?: CNode[] }
 type PendingChange =
@@ -36,6 +37,7 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
   const [importText, setImportText] = useState("");
   const [textImportBusy, setTextImportBusy] = useState(false);
   const [importAllBusy, setImportAllBusy] = useState(false);
+  const [treeLoading, setTreeLoading] = useState(false);
 
   // Chrome パターン
   const [patterns, setPatterns] = useState<ChromePattern[]>([]);
@@ -50,11 +52,16 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
   const flash = (msg: string) => { setStatus(msg); setTimeout(() => setStatus(""), 2500); };
 
   const loadTree = useCallback(async () => {
-    const res = await chrome.runtime.sendMessage({ type: "GET_CHROME_BOOKMARKS" }) as MessageResponse;
-    if (res.success) {
-      const root = (res.data as CNode[])[0];
-      setRootId(root?.id ?? "0");
-      setTree(root?.children ?? []);
+    setTreeLoading(true);
+    try {
+      const res = await chrome.runtime.sendMessage({ type: "GET_CHROME_BOOKMARKS" }) as MessageResponse;
+      if (res.success) {
+        const root = (res.data as CNode[])[0];
+        setRootId(root?.id ?? "0");
+        setTree(root?.children ?? []);
+      }
+    } finally {
+      setTreeLoading(false);
     }
   }, []);
 
@@ -496,6 +503,7 @@ export default function ChromeBookmarkPanel({ onRefresh, fullHeight = false, onC
 
   return (
     <>
+      <ProgressBar isLoading={treeLoading} />
       {DialogEl}
       {textImportOpen && (
         <>
