@@ -3,7 +3,7 @@ import {
   BookmarkPlus, BookmarkCheck, ExternalLink, AlertCircle, CheckCircle2, Loader2,
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
   Settings, Globe2, Check, Sun, Moon, ShieldCheck,
-  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy, Book, BookOpen, Newspaper
+  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, Trophy, Book, BookOpen, Newspaper, Bug, MessageSquare
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import type { MessageResponse, MemoColor } from "@/shared/types";
@@ -15,6 +15,10 @@ import { isAIAvailable, setAIEnabled, verifyAISession } from "@/shared/categoriz
 
 type Status = "idle" | "loading" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
+
+const GITHUB_ISSUES_URL = "https://github.com/Junpapapo/ClickBook/issues/new/choose";
+const FEEDBACK_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd84kbl768v0lx8rJMw4jq-cnS9fwwVj45fFBHEmG5Wu5iMCg/viewform?usp=dialog";
+
 
 export default function Popup() {
   const { t, lang, setLang } = useLang();
@@ -457,7 +461,8 @@ export default function Popup() {
               <Settings size={15} />
             </button>
             {settingsOpen && (
-              <div className="absolute right-0 top-full mt-1 z-50 w-52 bg-surface-800 border border-surface-600 rounded-xl shadow-xl py-1">
+              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-surface-800 border border-surface-600 rounded-xl shadow-xl py-1">
+
               <div className="px-3 pt-2 pb-1">
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">{t("popupTheme")}</p>
                   <div className="flex gap-1">
@@ -575,7 +580,7 @@ export default function Popup() {
                     setShowHNRankingMenu(v);
                     chrome.storage.local.set({ clickbook_show_hn_ranking: v });
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors rounded-b-xl"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
                 >
                   <Newspaper size={13} />
                   {t("hnRanking")}
@@ -584,6 +589,30 @@ export default function Popup() {
                   }`}>
                     {showHNRankingMenu && <Check size={9} className="text-white" />}
                   </span>
+                </button>
+                {/* ── Feedback Links ─────────────────── */}
+                <div className="border-t border-surface-700 mx-2 my-1" />
+                <button
+                  onClick={() => {
+                    chrome.tabs.create({ url: GITHUB_ISSUES_URL });
+                    setSettingsOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
+                >
+                  <Bug size={13} />
+                  {t("feedbackBugReport")}
+                  <ExternalLink size={9} className="ml-auto text-gray-600" />
+                </button>
+                <button
+                  onClick={() => {
+                    chrome.tabs.create({ url: FEEDBACK_FORM_URL });
+                    setSettingsOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors rounded-b-xl"
+                >
+                  <MessageSquare size={13} />
+                  {t("feedbackQuick")}
+                  <ExternalLink size={9} className="ml-auto text-gray-600" />
                 </button>
               </div>
             )}
@@ -762,7 +791,6 @@ export default function Popup() {
               <X size={12} />
             </button>
           </div>
-          <p className="text-[10px] text-gray-500 truncate">{tabTitle || tabUrl}</p>
           <div className="flex items-center gap-1.5">
             {ALL_MEMO_COLORS.map((c) => (
               <button

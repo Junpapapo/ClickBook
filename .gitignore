@@ -2,6 +2,7 @@ node_modules/
 dist/
 .history/
 .DS_Store
+docs/00_Plan/
 docs/*
 !docs/assets/
 *.zip

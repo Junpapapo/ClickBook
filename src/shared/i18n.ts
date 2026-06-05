@@ -373,6 +373,10 @@ const en = {
   copyUrlDesc: "Copy URL only",
   copyMarkdownDesc: "Markdown link format",
   copyBacklogDesc: "Backlog Wiki format",
+  feedbackBugReport: "Bug / Feature Request",
+  feedbackQuick: "Quick Feedback",
+
+
 
   // ── Phase 3 ───────────────────────────────────────────────
   onboardingTitle: "Welcome to ClickBook!",
@@ -909,6 +913,9 @@ const ja: typeof en = {
   copyUrlDesc: "URLのみコピー",
   copyMarkdownDesc: "Markdown リンク形式",
   copyBacklogDesc: "Backlog Wiki 形式",
+  feedbackBugReport: "バグ報告 / 機能リクエスト",
+  feedbackQuick: "クイックフィードバック",
+
 
   // ── Phase 3 ───────────────────────────────────────────────
   onboardingTitle: "ClickBook へようこそ！",
@@ -1441,6 +1448,9 @@ const ko: typeof en = {
   copyUrlDesc: "URL만 복사",
   copyMarkdownDesc: "Markdown 링크 형식",
   copyBacklogDesc: "Backlog Wiki 형식",
+  feedbackBugReport: "버그 신고 / 기능 요청",
+  feedbackQuick: "빠른 피드백",
+
 
   // ── Phase 3 ───────────────────────────────────────────────
   onboardingTitle: "ClickBook에 오신 것을 환영합니다!",
