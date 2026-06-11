@@ -481,11 +481,7 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   useClickBookAsNewTab: false,
   gcInterval: "daily",
   enableTodoNotifications: false,
-  customSearchConfigs: [
-    { id: "cs-google", name: "Google", urlTemplate: "https://www.google.com/search?q={keyword}" },
-    { id: "cs-youtube", name: "YouTube", urlTemplate: "https://www.youtube.com/results?search_query={keyword}" },
-    { id: "preset-github", name: "GitHub", urlTemplate: "https://github.com/search?q={keyword}" },
-  ],
+  customSearchConfigs: [],
   customPresets: [],
 };
 

@@ -488,14 +488,7 @@ export default function SettingsModal({
                   onChange={(v) => set("rankingCount", v)}
                   description={t("settingsRankingCountDesc")}
                 />
-                <NumInput
-                  label={t("settingsRecommendCountLabel")}
-                  value={draft.recommendCount}
-                  min={1}
-                  max={20}
-                  onChange={(v) => set("recommendCount", v)}
-                  description={t("settingsRecommendCountDesc")}
-                />
+
               </div>
             </div>
 

@@ -3,7 +3,6 @@ import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon } from "lucide-r
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 
-import CustomSearchArea from "@/components/CustomSearchArea";
 import RecentReaderWidget from "@/components/RecentReaderWidget";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
@@ -353,16 +352,6 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
         </div>
       </section>
 
-      {/* Custom Search */}
-      {onSaveCustomSearchConfigs && (
-        <section>
-          <CustomSearchArea 
-            configs={customSearchConfigs} 
-            customPresets={customPresets}
-            onSaveConfigs={onSaveCustomSearchConfigs} 
-          />
-        </section>
-      )}
 
       {/* 최근 읽은 사이트 */}
       <RecentReaderWidget bookmarks={bookmarks} />
