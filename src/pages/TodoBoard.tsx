@@ -260,7 +260,7 @@ const TodoTaskCard = React.memo(function TodoTaskCard({
                     <div className="mt-0.5">
                       <div className="flex justify-between items-center mb-1 text-[9px] font-bold tracking-wider text-gray-400 dark:text-gray-550">
                         <span>PROGRESS</span>
-                        <span className="text-indigo-650 dark:text-indigo-400">{task.progress}%</span>
+                        <span className="text-indigo-600 dark:text-indigo-400">{task.progress}%</span>
                       </div>
                       <div className="w-full bg-gray-200/50 dark:bg-surface-800 rounded-full h-1.5 overflow-hidden border border-gray-200/20 dark:border-white/5">
                         <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${task.progress}%` }} />
@@ -272,7 +272,7 @@ const TodoTaskCard = React.memo(function TodoTaskCard({
                   {task.tags && task.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {task.tags.map((tag, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-650 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider rounded-md border border-indigo-100/30 dark:border-indigo-900/30">
+                        <span key={i} className="px-2 py-0.5 bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider rounded-md border border-indigo-100/30 dark:border-indigo-900/30">
                           {tag}
                         </span>
                       ))}
@@ -478,7 +478,13 @@ const TodoColumnView = React.memo(function TodoColumnView({
                     />
                     <div className="flex gap-2 justify-end mt-1">
                       <button onClick={() => setAddingTaskToCol(null)} className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 font-medium transition-colors">Cancel</button>
-                      <button onClick={() => addTask(column.id, newTaskContent)} className="px-4 py-1.5 text-xs bg-indigo-650 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors shadow-sm shadow-indigo-500/20 active:scale-95">Add Task</button>
+                      <button 
+                        disabled={!newTaskContent.trim()}
+                        onClick={() => addTask(column.id, newTaskContent)} 
+                        className="px-4 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-surface-800 dark:disabled:text-gray-550 disabled:cursor-not-allowed disabled:shadow-none rounded-lg font-medium transition-colors shadow-sm shadow-indigo-500/20 active:scale-95"
+                      >
+                        Add Task
+                      </button>
                     </div>
                   </div>
                 )}
@@ -507,7 +513,7 @@ const TodoColumnView = React.memo(function TodoColumnView({
 });
 
 export default function TodoBoard({ settings }: { settings?: AppSettings }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
 
   const [data, setData] = useState<TodoBoardData | null>(null);
@@ -959,9 +965,9 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
       {/* Task Details Modal */}
       {editingTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200" onMouseDown={() => setEditingTask(null)}>
-          <div className={`${TASK_BG_COLORS[editTaskColor || "default"]} transition-colors duration-300 rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] overflow-hidden`} onMouseDown={e => e.stopPropagation()}>
+          <div className={`${TASK_BG_COLORS[editTaskColor || "default"]} transition-colors duration-300 rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden`} onMouseDown={e => e.stopPropagation()}>
             {/* Modal Header */}
-            <div className="px-6 pt-6 pb-4 flex justify-between items-start gap-4 border-b border-gray-100 dark:border-white/[0.03]">
+            <div className="px-5 pt-4 pb-3 flex justify-between items-start gap-4 border-b border-gray-100 dark:border-white/[0.03]">
               <div className="flex items-start gap-3 flex-1">
                 <button
                   onClick={() => {
@@ -975,9 +981,10 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                 </button>
                 <div className="flex-1">
                   <textarea
+                    rows={1}
                     value={editTaskTitleModal}
                     onChange={(e) => setEditTaskTitleModal(e.target.value)}
-                    className={`w-full text-xl font-bold ${editTaskCompleted ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-gray-100"} bg-transparent outline-none resize-none overflow-hidden hover:bg-gray-100 dark:hover:bg-surface-800 focus:bg-white dark:focus:bg-surface-900 focus:ring-2 focus:ring-indigo-500/50 rounded-lg px-2 py-1 transition-colors min-h-[40px]`}
+                    className={`w-full text-xl font-bold ${editTaskCompleted ? "text-gray-400 dark:text-gray-555 line-through" : "text-gray-900 dark:text-gray-100"} bg-transparent outline-none resize-y overflow-y-auto hover:bg-gray-100 dark:hover:bg-surface-800 focus:bg-white dark:focus:bg-surface-900 focus:ring-2 focus:ring-indigo-500/50 rounded-lg px-2 py-1 transition-colors min-h-[36px]`}
                     placeholder="Task Title..."
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -995,11 +1002,11 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
             </div>
 
             {/* Modal Body: Premium Split-Pane Grid */}
-            <div className="p-6 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-600">
+            <div className="p-5 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-600">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* Left Panel - Main Content (2/3) */}
-                <div className="md:col-span-2 flex flex-col gap-6">
+                <div className="md:col-span-2 flex flex-col gap-5">
                   
                   {/* Description Section */}
                   <div className="flex flex-col gap-3">
@@ -1132,7 +1139,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                 </div>
 
                 {/* Right Panel - Sidebar Content (1/3) */}
-                <div className="md:col-span-1 flex flex-col gap-5 bg-gray-50/50 dark:bg-surface-800/10 p-4 rounded-2xl border border-gray-100 dark:border-white/[0.02]">
+                <div className="md:col-span-1 flex flex-col gap-5 bg-gray-50/50 dark:bg-surface-800/10 p-4 rounded-2xl border border-gray-100 dark:border-white/[0.02] relative">
                   
                   {/* Card Color Selector */}
                   <div className="flex flex-col gap-2">
@@ -1157,7 +1164,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                   </div>
 
                   {/* Dates & Reminders Section */}
-                  <div className="flex flex-col gap-1.5 pt-3 border-t border-gray-200/50 dark:border-white/[0.03] relative">
+                  <div className="flex flex-col gap-1.5 pt-3 border-t border-gray-200/50 dark:border-white/[0.03]">
                     <div className="flex items-center justify-between">
                       <h4 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Dates & Reminders</h4>
                       {(editTaskStartDate || editTaskDueDate || editTaskDueTime || editTaskReminder !== "none") && (
@@ -1169,7 +1176,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                             setEditTaskDueTime(undefined);
                             setEditTaskReminder("none");
                           }}
-                          className="text-gray-450 hover:text-indigo-650 dark:hover:text-indigo-400 transition-colors p-0.5 rounded hover:bg-gray-100 dark:hover:bg-surface-800"
+                          className="text-gray-450 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-0.5 rounded hover:bg-gray-100 dark:hover:bg-surface-800"
                           title="초기화"
                         >
                           <RotateCcw size={12} />
@@ -1189,12 +1196,12 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                           <span className="text-xs font-semibold truncate max-w-[170px]">
                             {editTaskStartDate || editTaskDueDate ? (
                               <>
-                                {editTaskStartDate ? formatDateKorean(editTaskStartDate) : ""}
+                                {editTaskStartDate ? formatDate(editTaskStartDate, lang) : ""}
                                 {editTaskStartDate && editTaskDueDate ? " ~ " : ""}
-                                {editTaskDueDate ? formatDateKorean(editTaskDueDate) : ""}
+                                {editTaskDueDate ? formatDate(editTaskDueDate, lang) : ""}
                               </>
                             ) : (
-                              "날짜 설정..."
+                              t("datepickerPlaceholder") || "날짜 설정..."
                             )}
                           </span>
                         </div>
@@ -1291,7 +1298,10 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                           className="fixed inset-0 z-[80]"
                           onClick={() => setShowDatePickerPopover(false)}
                         />
-                        <div className="absolute right-0 top-full mt-2 z-[90] w-[290px] bg-white dark:bg-[#1E1E20] border border-gray-200/80 dark:border-white/10 rounded-2xl shadow-xl p-3.5 animate-in fade-in slide-in-from-top-2 duration-200 text-gray-900 dark:text-gray-100">
+                        <div 
+                          style={{ right: 'calc(100% + 12px)', top: 0 }}
+                          className="absolute z-[90] w-[290px] bg-white dark:bg-[#1E1E20] border border-gray-200/80 dark:border-white/10 rounded-2xl shadow-xl p-3.5 animate-in fade-in slide-in-from-left-2 duration-200 text-gray-900 dark:text-gray-100"
+                        >
                           {/* Calendar View Controls */}
                           <div className="flex items-center justify-between mb-2.5 bg-gray-55 dark:bg-surface-800/30 p-1.5 rounded-xl border border-gray-100 dark:border-white/[0.02]">
                             <div className="flex gap-0.5">
@@ -1299,7 +1309,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                 type="button"
                                 onClick={() => setCalYear(calYear - 1)}
                                 className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                                title="이전 해"
+                                title={lang === "ko" ? "이전 해" : lang === "ja" ? "前年" : "Prev Year"}
                               >
                                 <ChevronsLeft size={13} />
                               </button>
@@ -1314,14 +1324,19 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                   }
                                 }}
                                 className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                                title="이전 달"
+                                title={lang === "ko" ? "이전 달" : lang === "ja" ? "前月" : "Prev Month"}
                               >
                                 <ChevronLeft size={13} />
                               </button>
                             </div>
                             
                             <span className="text-xs font-bold text-gray-800 dark:text-white">
-                              {calYear}년 {calMonth + 1}월
+                              {lang === "ko" 
+                                ? `${calYear}년 ${calMonth + 1}월` 
+                                : lang === "ja" 
+                                ? `${calYear}年 ${calMonth + 1}月` 
+                                : new Date(calYear, calMonth).toLocaleDateString("en-US", { year: "numeric", month: "long" })
+                              }
                             </span>
                             
                             <div className="flex gap-0.5">
@@ -1336,7 +1351,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                   }
                                 }}
                                 className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                                title="다음 달"
+                                title={lang === "ko" ? "다음 달" : lang === "ja" ? "翌月" : "Next Month"}
                               >
                                 <ChevronRight size={13} />
                               </button>
@@ -1344,7 +1359,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                 type="button"
                                 onClick={() => setCalYear(calYear + 1)}
                                 className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                                title="다음 해"
+                                title={lang === "ko" ? "다음 해" : lang === "ja" ? "翌年" : "Next Year"}
                               >
                                 <ChevronsRight size={13} />
                               </button>
@@ -1362,7 +1377,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                   : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
                               }`}
                             >
-                              시작일 선택
+                              {t("datepickerSelectStartDate") || "시작일 선택"}
                             </button>
                             <button
                               type="button"
@@ -1373,19 +1388,26 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                   : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
                               }`}
                             >
-                              기한 선택
+                              {t("datepickerSelectDueDate") || "기한 선택"}
                             </button>
                           </div>
 
                           {/* Calendar Weekday Names */}
                           <div className="grid grid-cols-7 text-center text-[9px] font-bold text-gray-500 dark:text-gray-450 mb-1">
-                            <span>월</span>
-                            <span>화</span>
-                            <span>수</span>
-                            <span>목</span>
-                            <span>금</span>
-                            <span className="text-blue-500">토</span>
-                            <span className="text-red-500">일</span>
+                            {(lang === "ko" 
+                              ? ["월", "화", "수", "목", "금", "토", "일"] 
+                              : lang === "ja" 
+                              ? ["月", "火", "水", "木", "金", "土", "日"] 
+                              : ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+                            ).map((day, idx) => {
+                              const isSat = idx === 5;
+                              const isSun = idx === 6;
+                              return (
+                                <span key={day} className={isSat ? "text-blue-500" : isSun ? "text-red-500" : ""}>
+                                  {day}
+                                </span>
+                              );
+                            })}
                           </div>
 
                           {/* Calendar Days Grid */}
@@ -1455,11 +1477,11 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                   }}
                                   className="w-3 h-3 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 dark:border-surface-700 dark:bg-surface-800"
                                 />
-                                <span>시작일</span>
+                                <span>{t("datepickerStartDate") || "시작일"}</span>
                               </label>
                               {editTaskStartDate && (
                                 <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-surface-800 px-1.5 py-0.5 rounded border border-gray-200/50 dark:border-surface-700/50">
-                                  {formatDateKorean(editTaskStartDate)}
+                                  {formatDate(editTaskStartDate, lang)}
                                 </span>
                               )}
                             </div>
@@ -1479,13 +1501,13 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                       setEditTaskDueTime(undefined);
                                     }
                                   }}
-                                  className="w-3 h-3 text-indigo-650 rounded border-gray-300 focus:ring-indigo-500 dark:border-surface-700 dark:bg-surface-800"
+                                  className="w-3 h-3 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 dark:border-surface-700 dark:bg-surface-800"
                                 />
-                                <span>기한</span>
+                                <span>{t("datepickerDueDate") || "기한"}</span>
                               </label>
                               {editTaskDueDate && (
                                 <span className="text-[10px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-surface-800 px-1.5 py-0.5 rounded border border-gray-200/50 dark:border-surface-700/50">
-                                  {formatDateKorean(editTaskDueDate)}
+                                  {formatDate(editTaskDueDate, lang)}
                                 </span>
                               )}
                             </div>
@@ -1503,14 +1525,14 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                               }}
                               className="px-2 py-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium transition-colors"
                             >
-                              초기화
+                              {t("datepickerReset") || "초기화"}
                             </button>
                             <button
                               type="button"
                               onClick={() => setShowDatePickerPopover(false)}
-                              className="px-3 py-1 bg-indigo-650 hover:bg-indigo-600 text-white rounded-lg font-semibold transition-all shadow-sm shadow-indigo-500/10"
+                              className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition-all shadow-sm shadow-indigo-500/10"
                             >
-                              적용
+                              {t("datepickerApply") || "적용"}
                             </button>
                           </div>
                         </div>
@@ -1581,10 +1603,10 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-3 bg-gray-50/30 dark:bg-surface-850/30">
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-3 bg-gray-50/30 dark:bg-surface-850/30">
               <button
                 onClick={saveTaskModal}
-                className="px-6 py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 hover:shadow-lg hover:shadow-indigo-500/30"
+                className="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 hover:shadow-lg hover:shadow-indigo-500/30"
               >
                 Save Changes
               </button>

@@ -8,7 +8,7 @@ import "../styles/global.css";
 // If the setting is disabled, redirect to Chrome's native new tab page immediately.
 if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
   chrome.storage.local.get("clickbook_settings", (res) => {
-    const useAsNewTab = res.clickbook_settings?.useClickBookAsNewTab !== false;
+    const useAsNewTab = res.clickbook_settings?.useClickBookAsNewTab === true;
     const isDashboardMode = window.location.search.includes("mode=dashboard");
 
     if (!useAsNewTab && !isDashboardMode) {

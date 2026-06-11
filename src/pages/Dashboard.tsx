@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
-import RecommendWidget from "@/components/RecommendWidget";
+
 import CustomSearchArea from "@/components/CustomSearchArea";
 import RecentReaderWidget from "@/components/RecentReaderWidget";
 import { EditModal } from "@/components/BookmarkEditPanel";
@@ -233,10 +233,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
         </div>
       )}
       
-      {/* AI 추천 검색 (엔터 쳐서 aiSearchQuery 있을 때만) */}
-      {aiAvailable && aiSearchQuery && (
-        <RecommendWidget keyword={aiSearchQuery} count={recommendCount} onRefresh={onRefresh} onLoadingChange={onAiLoadingChange} />
-      )}
+
 
       {/* フォルダーサマリー */}
       <section>

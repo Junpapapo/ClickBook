@@ -16,7 +16,7 @@ const en = {
   timeLocale: "en-US",
 
   // ── Search bar ───────────────────────────────────────────
-  searchPlaceholder: "Search keywords or describe...",
+  searchPlaceholder: "Search bookmarks by keyword or URL...",
   bulkImportTitle: "Bulk import URLs from text",
   bulkImportDesc:
     "Paste text containing URLs. Supports newlines, commas, and spaces. http/https URLs are auto-extracted and saved.",
@@ -146,6 +146,17 @@ const en = {
   reminder1d: "1 day before",
   todoNotificationsDisabledWarning: "Enable 'Receive Todo Notifications' in settings to get alerts.",
   todoReminderNoDueDateWarning: "A due date must be set to configure reminder alerts.",
+  datepickerCompleted: "Done",
+  datepickerOverdue: "Overdue",
+  datepickerToday: "Today",
+  datepickerTomorrow: "Tomorrow",
+  datepickerSelectStartDate: "Select Start Date",
+  datepickerSelectDueDate: "Select Due Date",
+  datepickerStartDate: "Start Date",
+  datepickerDueDate: "Due Date",
+  datepickerReset: "Reset",
+  datepickerApply: "Apply",
+  datepickerPlaceholder: "Set Date...",
 
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "Open",
@@ -335,6 +346,8 @@ const en = {
   popupManageTitle: "Manage bookmarks",
   popupSettingsTitle: "Settings",
   popupTheme: "Theme",
+  themeToggleLight: "Switch to Light Mode",
+  themeToggleDark: "Switch to Dark Mode",
   popupLight: "Light",
   popupDark: "Dark",
   popupTextImportMenu: "URL Import",
@@ -554,7 +567,7 @@ const ja: typeof en = {
   timeLocale: "ja-JP",
 
   // ── Search bar ───────────────────────────────────────────
-  searchPlaceholder: "キーワード・文章で検索...",
+  searchPlaceholder: "ブックマークをキーワードやURLで検索...",
   bulkImportTitle: "テキストから URL を一括登録",
   bulkImportDesc:
     "URL を含むテキストを貼り付けてください。改行・カンマ・スペース区切りに対応し、http/https で始まる URL を自動抽出して登録します。",
@@ -684,6 +697,17 @@ const ja: typeof en = {
   reminder1d: "1日前",
   todoNotificationsDisabledWarning: "通知を受け取るには、設定で「Todo通知を受け取る」を有効にしてください。",
   todoReminderNoDueDateWarning: "リマインド通知を設定するには、期限を設定する必要があります。",
+  datepickerCompleted: "完了",
+  datepickerOverdue: "遅延",
+  datepickerToday: "今日",
+  datepickerTomorrow: "明日",
+  datepickerSelectStartDate: "開始日選択",
+  datepickerSelectDueDate: "期限選択",
+  datepickerStartDate: "開始日",
+  datepickerDueDate: "期限",
+  datepickerReset: "初期化",
+  datepickerApply: "適用",
+  datepickerPlaceholder: "日付設定...",
 
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "開く",
@@ -875,6 +899,8 @@ const ja: typeof en = {
   popupManageTitle: "ブックマークを管理",
   popupSettingsTitle: "設定",
   popupTheme: "テーマ",
+  themeToggleLight: "ライトモードに切り替え",
+  themeToggleDark: "ダークモードに切り替え",
   popupLight: "ライト",
   popupDark: "ダーク",
   popupTextImportMenu: "URL インポート",
@@ -1093,7 +1119,7 @@ const ko: typeof en = {
   timeLocale: "ko-KR",
 
   // ── Search bar ───────────────────────────────────────────
-  searchPlaceholder: "키워드 또는 문장으로 검색...",
+  searchPlaceholder: "북마크 키워드 또는 주소로 검색...",
   bulkImportTitle: "텍스트에서 URL 일괄 등록",
   bulkImportDesc:
     "URL이 포함된 텍스트를 붙여 넣으세요. 줄바꿈·쉼표·공백 구분을 지원하며 http/https URL을 자동으로 추출하여 등록합니다.",
@@ -1223,6 +1249,17 @@ const ko: typeof en = {
   reminder1d: "1일 전",
   todoNotificationsDisabledWarning: "설정에서 'Todo 알림 받기'를 활성화해야 알림을 수신할 수 있습니다.",
   todoReminderNoDueDateWarning: "기한이 설정되어 있어야 리마인드 알림을 설정할 수 있습니다.",
+  datepickerCompleted: "완료",
+  datepickerOverdue: "지연됨",
+  datepickerToday: "오늘",
+  datepickerTomorrow: "내일",
+  datepickerSelectStartDate: "시작일 선택",
+  datepickerSelectDueDate: "기한 선택",
+  datepickerStartDate: "시작일",
+  datepickerDueDate: "기한",
+  datepickerReset: "초기화",
+  datepickerApply: "적용",
+  datepickerPlaceholder: "날짜 설정...",
 
   // ── BookmarkCard ─────────────────────────────────────────
   openTooltip: "열기",
@@ -1410,6 +1447,8 @@ const ko: typeof en = {
   popupManageTitle: "북마크 관리",
   popupSettingsTitle: "설정",
   popupTheme: "테마",
+  themeToggleLight: "라이트 모드로 전환",
+  themeToggleDark: "다크 모드로 전환",
   popupLight: "라이트",
   popupDark: "다크",
   popupTextImportMenu: "URL 가져오기",

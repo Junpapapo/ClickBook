@@ -478,7 +478,7 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   maxFolderDepth: 3,
   keepExistingFolders: false,
   openDashboardInNewTab: false,
-  useClickBookAsNewTab: true,
+  useClickBookAsNewTab: false,
   gcInterval: "daily",
   enableTodoNotifications: false,
   customSearchConfigs: [

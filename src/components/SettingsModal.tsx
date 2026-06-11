@@ -462,7 +462,7 @@ export default function SettingsModal({
                 />
                 <Toggle
                   label={t("settingsUseAsNewTabLabel")}
-                  checked={draft.useClickBookAsNewTab !== false}
+                  checked={draft.useClickBookAsNewTab === true}
                   onChange={(v) => set("useClickBookAsNewTab", v)}
                   description={t("settingsUseAsNewTabDesc")}
                 />
