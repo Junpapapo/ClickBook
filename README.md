@@ -46,7 +46,6 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 21 | **Visual Bookmark Map** | Interactive node-based mind-map view of your entire folder and bookmark structure. |
 | 22 | **Trend Rankings** | Built-in dashboards for GitHub trending repos, Hugging Face models, Hacker News, and Wikipedia. |
 | 23 | **Productivity Boards** | Integrated Kanban-style TODO board and Memo management system. |
-| 24 | **AI Site Recommendations** | Smart site recommendations based on keywords using Chrome Gemini Nano. |
 
 ---
 
