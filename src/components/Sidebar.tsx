@@ -27,6 +27,7 @@ import {
   Map as MapIcon,
   Shield,
   Layers,
+  Calendar,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -752,41 +753,71 @@ export default function Sidebar({
 
 
 
-      {/* Memo & TODO Boards (Side-by-side) */}
-      <div className="px-1.5 mb-1 flex gap-1.5">
+      {/* Memo, TODO & Calendar Boards (3-column layout) */}
+      <div className="px-1.5 mb-1.5 flex gap-1.5">
+        {/* Memo Board Button */}
         <button
           onClick={() => onNavigate("memo")}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
+          className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
             ${activePage === "memo"
-              ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-medium"
-              : "bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 dark:hover:bg-amber-500/25 font-medium"
+              ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-semibold"
+              : "bg-amber-500/10 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 dark:hover:bg-amber-500/25"
             }`}
         >
-          <StickyNote size={14} className="shrink-0" />
-          <span className="truncate">{t("memoBoard")}</span>
+          <StickyNote size={15} className="shrink-0" />
           {(memoCount ?? 0) > 0 && (
-            <span className="shrink-0 text-[9px] bg-white/20 dark:bg-surface-700 text-current rounded-full px-1.5 py-0.5">
+            <span className="absolute -top-1 -right-1 text-[8px] bg-red-500 text-white rounded-full h-4 w-4 flex items-center justify-center font-bold shadow-sm">
               {memoCount}
             </span>
           )}
+          
+          {/* Custom Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+            {t("memoBoard") || "Memos"}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+          </span>
         </button>
 
+        {/* TODO Board Button */}
         <button
           onClick={() => onNavigate("todo")}
-          className={`relative flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs rounded-lg transition-all duration-150
+          className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
             ${activePage === "todo"
-              ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 font-medium"
-              : "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25 font-medium"
+              ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 font-semibold"
+              : "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/25"
             }`}
         >
-          <ListTodo size={14} className="shrink-0" />
-          <span className="truncate">{t("todoBoardMenu") || "TODO"}</span>
+          <ListTodo size={15} className="shrink-0" />
           {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
-            <span className="absolute top-1 right-1 flex h-2 w-2">
+            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
             </span>
           )}
+
+          {/* Custom Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+            {t("todoBoardMenu") || "TODO"}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+          </span>
+        </button>
+
+        {/* Calendar Board Button */}
+        <button
+          onClick={() => onNavigate("calendar")}
+          className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+            ${activePage === "calendar"
+              ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-semibold"
+              : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/25"
+            }`}
+        >
+          <Calendar size={15} className="shrink-0" />
+
+          {/* Custom Tooltip */}
+          <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+            {t("calendarMenu") || "Calendar"}
+            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+          </span>
         </button>
       </div>
 

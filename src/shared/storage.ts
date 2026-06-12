@@ -281,11 +281,13 @@ export async function toggleFolderSecure(id: string): Promise<void> {
 // ── Export / Import ────────────────────────────────────────
 
 export async function exportData(): Promise<ClickBookBackupData> {
-  const [mainData, memos, todoBoard, settings] = await Promise.all([
+  const [mainData, memos, todoBoard, settings, patterns, chromePatterns] = await Promise.all([
     readStorage(),
     readMemos(),
     getTodoBoard(),
     getSettings(),
+    readPatterns(),
+    readChromePatterns(),
   ]);
 
   return {
@@ -296,6 +298,8 @@ export async function exportData(): Promise<ClickBookBackupData> {
     memos,
     todoBoard,
     settings,
+    patterns,
+    chromePatterns,
   };
 }
 
@@ -347,6 +351,24 @@ export async function importData(incoming: ClickBookBackupData): Promise<{ count
         : Promise.resolve(),
       incoming.settings && typeof incoming.settings === "object"
         ? saveSettings(incoming.settings)
+        : Promise.resolve(),
+      incoming.patterns && Array.isArray(incoming.patterns)
+        ? readPatterns().then(existing => {
+            const existingIds = new Set(existing.map(p => p.id));
+            const fresh = incoming.patterns!.filter(p => !existingIds.has(p.id));
+            return fresh.length > 0
+              ? chrome.storage.local.set({ [PATTERNS_KEY]: [...existing, ...fresh] })
+              : Promise.resolve();
+          })
+        : Promise.resolve(),
+      incoming.chromePatterns && Array.isArray(incoming.chromePatterns)
+        ? readChromePatterns().then(existing => {
+            const existingIds = new Set(existing.map(p => p.id));
+            const fresh = incoming.chromePatterns!.filter(p => !existingIds.has(p.id));
+            return fresh.length > 0
+              ? chrome.storage.local.set({ [CHROME_PATTERNS_KEY]: [...existing, ...fresh] })
+              : Promise.resolve();
+          })
         : Promise.resolve(),
     ]);
 

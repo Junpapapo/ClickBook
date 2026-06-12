@@ -267,6 +267,12 @@
       color: var(--text);
     }
 
+    .alert-warning {
+      background-color: #f59e0b10;
+      border: 1px solid #f59e0b30;
+      color: var(--text);
+    }
+
     footer {
       border-top: 1px solid var(--border);
       padding: 3rem 2rem;
@@ -332,6 +338,9 @@
     <main class="content">
       <section id="intro">
         <h1 class="section-title">Intro & Installation</h1>
+        <div class="alert alert-warning">
+          <strong>⚠️ Note:</strong> This help page may contain features that are currently under development. Please note that there may be functional differences and update gaps between the official Chrome Web Store version and the development version.
+        </div>
         <p>ClickBook is an innovative tool that uses Chrome's built-in AI (Gemini Nano) to intelligently categorize and manage your bookmarks. Save websites with a single click and find them easily later without the hassle of manual organization.</p>
         
         <div class="alert alert-info">
@@ -410,6 +419,10 @@
           <div class="card" style="border: 1px dashed #10b981;">
             <div class="card-title">Offline Reader & Zen Mode <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
             <div class="card-desc">Provides an immersive, clutter-free reading overlay by removing ads and bloated layouts. Features custom Light/Sepia/Dark themes, serif/sans-serif font choices, automatic Table of Contents (TOC) navigation, and scroll progress. Memos also feature an elegant Zen Reader view.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Smart Calendar Sync & Management <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Provides a smart calendar dynamically synchronized with your todo list. Supports real-time holiday synchronization and caching for multiple countries (Korea, US, Japan, etc.) using the Nager.Date API, Month/Week/Day view transitions, schedule/time adjustment via HTML5 Drag & Drop, and daily/weekly/monthly/yearly recurring events to seamlessly organize your schedule.</div>
           </div>
         </div>
       </section>

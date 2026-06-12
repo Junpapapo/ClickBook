@@ -24,6 +24,7 @@ import { useDialog } from "@/shared/useDialog";
 import TodoBoard from "@/pages/TodoBoard";
 import TagBoard from "@/pages/TagBoard";
 import TaskControlPage from "@/pages/TaskControlPage";
+import CalendarBoard from "@/pages/CalendarBoard";
 import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 import { useTaskQueue } from "@/shared/useTaskQueue";
 
@@ -449,6 +450,8 @@ function AppContent() {
                   taskQueue.addTask(task.category, task.name);
                 }}
               />
+            ) : activePage === "calendar" ? (
+              <CalendarBoard settings={settings} bookmarks={bookmarks} memos={memos} onRefresh={loadData} />
             ) : activePage === "todo" ? (
               <TodoBoard settings={settings} />
             ) : activePage === "tagboard" ? (

@@ -144,7 +144,7 @@ const getDueBadgeInfo = (task: TodoTask) => {
   const timeFormatted = task.dueTime ? ` ${task.dueTime}` : "";
   const displayLabel = `${dateFormatted}${timeFormatted}`;
 
-  let bgClass = "bg-gray-55 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border-gray-200/50 dark:border-surface-700/50";
+  let bgClass = "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border-gray-200/50 dark:border-surface-700/50";
   let statusText = "";
 
   if (isCompleted) {
@@ -200,7 +200,7 @@ const TodoTaskCard = React.memo(function TodoTaskCard({
         >
           <div className="flex items-start gap-2 relative">
             {/* Drag Handle Affordance */}
-            <div className="mt-[5px] shrink-0 text-gray-400 dark:text-gray-550 opacity-30 group-hover/task:opacity-100 transition-opacity cursor-grab">
+            <div className="mt-[5px] shrink-0 text-gray-400 dark:text-gray-500 opacity-30 group-hover/task:opacity-100 transition-opacity cursor-grab">
               <GripVertical size={14} />
             </div>
 
@@ -213,7 +213,7 @@ const TodoTaskCard = React.memo(function TodoTaskCard({
                 >
                   {task.completed ? <CheckCircle2 size={16} className="text-emerald-500 animate-in zoom-in duration-200" /> : <Circle size={16} />}
                 </button>
-                <div className={`text-[15px] font-medium break-words leading-tight ${task.completed ? "text-gray-400 dark:text-gray-555 line-through" : "text-gray-800 dark:text-gray-100"}`}>
+                <div className={`text-[15px] font-medium break-words leading-tight ${task.completed ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-800 dark:text-gray-100"}`}>
                   {task.content}
                 </div>
               </div>
@@ -258,7 +258,7 @@ const TodoTaskCard = React.memo(function TodoTaskCard({
                   {/* Progress Bar */}
                   {task.progress !== undefined && task.progress > 0 && (
                     <div className="mt-0.5">
-                      <div className="flex justify-between items-center mb-1 text-[9px] font-bold tracking-wider text-gray-400 dark:text-gray-550">
+                      <div className="flex justify-between items-center mb-1 text-[9px] font-bold tracking-wider text-gray-400 dark:text-gray-500">
                         <span>PROGRESS</span>
                         <span className="text-indigo-600 dark:text-indigo-400">{task.progress}%</span>
                       </div>
@@ -481,7 +481,7 @@ const TodoColumnView = React.memo(function TodoColumnView({
                       <button 
                         disabled={!newTaskContent.trim()}
                         onClick={() => addTask(column.id, newTaskContent)} 
-                        className="px-4 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-surface-800 dark:disabled:text-gray-550 disabled:cursor-not-allowed disabled:shadow-none rounded-lg font-medium transition-colors shadow-sm shadow-indigo-500/20 active:scale-95"
+                        className="px-4 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-gray-100 disabled:text-gray-400 dark:disabled:bg-surface-800 dark:disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none rounded-lg font-medium transition-colors shadow-sm shadow-indigo-500/20 active:scale-95"
                       >
                         Add Task
                       </button>
@@ -984,7 +984,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                     rows={1}
                     value={editTaskTitleModal}
                     onChange={(e) => setEditTaskTitleModal(e.target.value)}
-                    className={`w-full text-xl font-bold ${editTaskCompleted ? "text-gray-400 dark:text-gray-555 line-through" : "text-gray-900 dark:text-gray-100"} bg-transparent outline-none resize-y overflow-y-auto hover:bg-gray-100 dark:hover:bg-surface-800 focus:bg-white dark:focus:bg-surface-900 focus:ring-2 focus:ring-indigo-500/50 rounded-lg px-2 py-1 transition-colors min-h-[36px]`}
+                    className={`w-full text-xl font-bold ${editTaskCompleted ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-gray-100"} bg-transparent outline-none resize-y overflow-y-auto hover:bg-gray-100 dark:hover:bg-surface-800 focus:bg-white dark:focus:bg-surface-900 focus:ring-2 focus:ring-indigo-500/50 rounded-lg px-2 py-1 transition-colors min-h-[36px]`}
                     placeholder="Task Title..."
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -1223,7 +1223,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                           <button
                             type="button"
                             onClick={() => setShowTimeDropdown(!showTimeDropdown)}
-                            className="absolute right-3 text-gray-400 dark:text-gray-550 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            className="absolute right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                           >
                             <ChevronDown size={14} />
                           </button>
@@ -1260,12 +1260,12 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                       {editTaskDueDate && (
                         <div className="flex flex-col w-full relative">
                           <div className="relative flex items-center w-full">
-                            <Bell size={14} className={`absolute left-3 shrink-0 pointer-events-none ${(!activeSettings?.enableTodoNotifications) ? "text-gray-400 dark:text-gray-550" : "text-indigo-500"}`} />
+                            <Bell size={14} className={`absolute left-3 shrink-0 pointer-events-none ${(!activeSettings?.enableTodoNotifications) ? "text-gray-400 dark:text-gray-500" : "text-indigo-500"}`} />
                             <select
                               value={editTaskReminder || "none"}
                               onChange={(e) => setEditTaskReminder(e.target.value)}
                               disabled={!activeSettings?.enableTodoNotifications}
-                              className="text-xs bg-white dark:bg-surface-900 border border-gray-200/80 dark:border-surface-700 rounded-xl pl-9 pr-8 py-2 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all focus:outline-none w-full shadow-sm disabled:bg-gray-100/50 dark:disabled:bg-surface-800/50 disabled:text-gray-400 dark:disabled:text-gray-550 disabled:cursor-not-allowed disabled:border-gray-100 dark:disabled:border-surface-800 appearance-none font-semibold"
+                              className="text-xs bg-white dark:bg-surface-900 border border-gray-200/80 dark:border-surface-700 rounded-xl pl-9 pr-8 py-2 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all focus:outline-none w-full shadow-sm disabled:bg-gray-100/50 dark:disabled:bg-surface-800/50 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed disabled:border-gray-100 dark:disabled:border-surface-800 appearance-none font-semibold"
                             >
                               {REMINDER_OPTIONS.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
@@ -1278,7 +1278,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                                 </option>
                               ))}
                             </select>
-                            <div className="absolute right-3 pointer-events-none text-gray-400 dark:text-gray-555">
+                            <div className="absolute right-3 pointer-events-none text-gray-400 dark:text-gray-500">
                               <ChevronDown size={14} />
                             </div>
                           </div>
@@ -1303,7 +1303,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                           className="absolute z-[90] w-[290px] bg-white dark:bg-[#1E1E20] border border-gray-200/80 dark:border-white/10 rounded-2xl shadow-xl p-3.5 animate-in fade-in slide-in-from-left-2 duration-200 text-gray-900 dark:text-gray-100"
                         >
                           {/* Calendar View Controls */}
-                          <div className="flex items-center justify-between mb-2.5 bg-gray-55 dark:bg-surface-800/30 p-1.5 rounded-xl border border-gray-100 dark:border-white/[0.02]">
+                          <div className="flex items-center justify-between mb-2.5 bg-gray-100 dark:bg-surface-800/30 p-1.5 rounded-xl border border-gray-100 dark:border-white/[0.02]">
                             <div className="flex gap-0.5">
                               <button 
                                 type="button"
@@ -1423,7 +1423,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                               let cellRound = "rounded-lg";
 
                               if (!day.isCurrentMonth) {
-                                cellBg = "text-gray-400 dark:text-gray-550 hover:bg-gray-100/50 dark:hover:bg-surface-800/50";
+                                cellBg = "text-gray-400 dark:text-gray-500 hover:bg-gray-100/50 dark:hover:bg-surface-800/50";
                               }
 
                               if (isSelStart && isSelDue) {
@@ -1603,7 +1603,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-3 bg-gray-50/30 dark:bg-surface-850/30">
+            <div className="px-5 py-3 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-3 bg-gray-50/30 dark:bg-surface-800/30">
               <button
                 onClick={saveTaskModal}
                 className="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 hover:shadow-lg hover:shadow-indigo-500/30"

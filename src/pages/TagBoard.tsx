@@ -607,7 +607,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                 </span>
               </div>
             ) : (
-              <div className="text-sm font-medium text-gray-400 dark:text-gray-550 italic">
+              <div className="text-sm font-medium text-gray-400 dark:text-gray-500 italic">
                 None
               </div>
             )}
@@ -641,7 +641,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                   <input
                     value={tagSearch}
                     onChange={(e) => setTagSearch(e.target.value)}
-                    className="w-full bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 pl-8 pr-3 py-2 rounded-xl outline-none border border-gray-200 dark:border-surface-800 focus:border-indigo-500 dark:focus:border-indigo-500 placeholder-gray-450 dark:placeholder-gray-500 transition-colors"
+                    className="w-full bg-gray-100 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 pl-8 pr-3 py-2 rounded-xl outline-none border border-gray-200 dark:border-surface-800 focus:border-indigo-500 dark:focus:border-indigo-500 placeholder-gray-450 dark:placeholder-gray-500 transition-colors"
                     placeholder={t("tagSearchPlaceholder") || "Filter tags..."}
                   />
                   {tagSearch && (
@@ -658,13 +658,13 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                 <div className="flex gap-1">
                   <button
                     onClick={handleSelectAllTags}
-                    className="px-2.5 py-2 bg-gray-55 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
+                    className="px-2.5 py-2 bg-gray-100 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
                   >
                     {t("tagSelectAll") || "All"}
                   </button>
                   <button
                     onClick={handleDeselectAllTags}
-                    className="px-2.5 py-2 bg-gray-55 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
+                    className="px-2.5 py-2 bg-gray-100 dark:bg-surface-900 hover:bg-gray-100 dark:hover:bg-surface-800 text-[11px] font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-800 rounded-xl transition-colors shrink-0"
                   >
                     {t("tagDeselectAll") || "Clear"}
                   </button>
@@ -747,7 +747,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
               ) : (
                 <>
                   Showing all{" "}
-                  <span className="text-gray-800 dark:text-gray-100 font-extrabold bg-gray-55 dark:bg-white/5 px-2 py-0.5 rounded-lg">
+                  <span className="text-gray-800 dark:text-gray-100 font-extrabold bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-lg">
                     {filteredBookmarks.length}
                   </span>{" "}
                   tagged bookmarks
@@ -757,12 +757,12 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
           </div>
 
           {selectedTags.length > 1 && (
-            <div className="flex items-center bg-gray-55 dark:bg-surface-900 border border-gray-200 dark:border-surface-800 p-0.5 rounded-xl self-start sm:self-auto shrink-0 shadow-inner">
+            <div className="flex items-center bg-gray-100 dark:bg-surface-900 border border-gray-200 dark:border-surface-800 p-0.5 rounded-xl self-start sm:self-auto shrink-0 shadow-inner">
               <button
                 onClick={() => setFilterMode("OR")}
                 className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
                   filterMode === "OR"
-                    ? "bg-white dark:bg-surface-850 text-indigo-650 dark:text-indigo-400 shadow-md border-gray-100 dark:border-white/[0.04]"
+                    ? "bg-white dark:bg-surface-800 text-indigo-650 dark:text-indigo-400 shadow-md border-gray-100 dark:border-white/[0.04]"
                     : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 }`}
               >
@@ -772,7 +772,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                 onClick={() => setFilterMode("AND")}
                 className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
                   filterMode === "AND"
-                    ? "bg-white dark:bg-surface-850 text-indigo-650 dark:text-indigo-400 shadow-md border-gray-100 dark:border-white/[0.04]"
+                    ? "bg-white dark:bg-surface-800 text-indigo-650 dark:text-indigo-400 shadow-md border-gray-100 dark:border-white/[0.04]"
                     : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 }`}
               >
@@ -823,10 +823,10 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => !isMerging && setShowMergeModal(false)}
             />
-            <div className="bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-850 rounded-3xl w-full max-w-lg shadow-2xl z-50 animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden max-h-[90vh]">
+            <div className="bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-800 rounded-3xl w-full max-w-lg shadow-2xl z-50 animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden max-h-[90vh]">
 
               {/* Header */}
-              <div className="px-6 pt-5 pb-0 border-b border-gray-100 dark:border-surface-850 shrink-0">
+              <div className="px-6 pt-5 pb-0 border-b border-gray-100 dark:border-surface-800 shrink-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-[15px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 tracking-tight">
                     <MergeIcon size={16} className="text-indigo-500" />
@@ -835,7 +835,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                   <button
                     disabled={isMerging}
                     onClick={() => setShowMergeModal(false)}
-                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-55 dark:hover:bg-surface-800 transition-colors"
+                    className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors"
                   >
                     <XIcon size={16} />
                   </button>
@@ -1046,7 +1046,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                             setMergeSource(e.target.value);
                             if (e.target.value === mergeTarget) setMergeTarget("");
                           }}
-                          className="w-full bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 appearance-none shadow-sm cursor-pointer"
+                          className="w-full bg-gray-100 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 appearance-none shadow-sm cursor-pointer"
                         >
                           <option value="">-- Choose tag to delete --</option>
                           {allTagsWithCount.map(tagObj => (
@@ -1094,7 +1094,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                                   if (e.key === "," || e.key === "#") e.preventDefault();
                                 }}
                                 placeholder={t("tagMergeTargetPlaceholder") || "Enter master tag name (e.g. path-of-exile)"}
-                                className={`w-full bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 pl-7 pr-3.5 py-2.5 rounded-xl border outline-none focus:border-indigo-500 dark:focus:border-indigo-500 shadow-sm transition-colors ${
+                                className={`w-full bg-gray-100 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 pl-7 pr-3.5 py-2.5 rounded-xl border outline-none focus:border-indigo-500 dark:focus:border-indigo-500 shadow-sm transition-colors ${
                                   mergeTargetRaw.trim() && mergeTargetRaw.trim().toLowerCase().replace(/\s+/g, "-") === mergeSource.trim().toLowerCase()
                                     ? "border-rose-400 dark:border-rose-500"
                                     : mergeTargetRaw.trim()
@@ -1140,7 +1140,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                               disabled={isMerging}
                               value={mergeTarget}
                               onChange={(e) => setMergeTarget(e.target.value)}
-                              className="w-full bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 appearance-none shadow-sm cursor-pointer"
+                              className="w-full bg-gray-100 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 appearance-none shadow-sm cursor-pointer"
                             >
                               <option value="">{lang === "ko" ? "-- 유지할 태그 선택 --" : lang === "ja" ? "-- 残すタグを選択 --" : "-- Choose tag to maintain --"}</option>
                               {allTagsWithCount
@@ -1162,7 +1162,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
 
               {/* Footer — Manual 탭에서만 Merge 버튼 표시 */}
               {mergeTab === "manual" && (
-                <div className="px-6 py-4 bg-gray-55 dark:bg-surface-850/50 border-t border-gray-100 dark:border-surface-850 flex justify-end gap-2 shrink-0">
+                <div className="px-6 py-4 bg-gray-100 dark:bg-surface-800/50 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-2 shrink-0">
                   <button
                     disabled={isMerging}
                     onClick={() => { setShowMergeModal(false); setIsCustomTarget(false); setMergeTargetRaw(""); }}
@@ -1193,15 +1193,15 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setEditingBookmark(null)}
             />
-            <div className="bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-850 rounded-3xl w-full max-w-md shadow-2xl z-50 animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden">
-              <div className="px-6 pt-5 pb-3 border-b border-gray-100 dark:border-surface-850 flex items-center justify-between">
+            <div className="bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-800 rounded-3xl w-full max-w-md shadow-2xl z-50 animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden">
+              <div className="px-6 pt-5 pb-3 border-b border-gray-100 dark:border-surface-800 flex items-center justify-between">
                 <h3 className="text-[14px] font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5 tracking-tight">
                   <EditIcon size={15} className="text-indigo-500" />
                   {t("tagEditModalTitle") || "Edit Bookmark Tags"}
                 </h3>
                 <button
                   onClick={() => setEditingBookmark(null)}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-55 dark:hover:bg-surface-800 transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors"
                 >
                   <XIcon size={15} />
                 </button>
@@ -1209,7 +1209,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
 
               <div className="p-6 space-y-4 overflow-y-auto max-h-[60vh] scrollbar-thin">
                 {/* Bookmark details for context */}
-                <div className="p-3 bg-gray-55 dark:bg-surface-900/80 border border-gray-250/20 dark:border-surface-800/40 rounded-xl">
+                <div className="p-3 bg-gray-100 dark:bg-surface-900/80 border border-gray-250/20 dark:border-surface-800/40 rounded-xl">
                   <h4 className="text-[12px] font-bold text-gray-700 dark:text-gray-200 truncate">
                     {editingBookmark.title}
                   </h4>
@@ -1228,7 +1228,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                       autoFocus
                       value={newTagInput}
                       onChange={(e) => setNewTagInput(e.target.value)}
-                      className="flex-1 bg-gray-55 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 placeholder-gray-450 dark:placeholder-gray-500 transition-colors"
+                      className="flex-1 bg-gray-100 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 placeholder-gray-450 dark:placeholder-gray-500 transition-colors"
                       placeholder={t("tagEditModalPlaceholder") || "Enter tag and press Enter..."}
                     />
                     <button
@@ -1245,7 +1245,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                   <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
                     Assigned Tags ({editingTags.length})
                   </label>
-                  <div className="flex flex-wrap gap-1.5 p-3.5 bg-gray-55 dark:bg-surface-900/60 rounded-xl border border-gray-200/50 dark:border-surface-850 border-dashed min-h-[70px] align-top items-start">
+                  <div className="flex flex-wrap gap-1.5 p-3.5 bg-gray-100 dark:bg-surface-900/60 rounded-xl border border-gray-200/50 dark:border-surface-800 border-dashed min-h-[70px] align-top items-start">
                     {editingTags.length === 0 ? (
                       <span className="text-[10.5px] italic text-gray-400 dark:text-gray-500 self-center mx-auto">
                         No tags assigned to this bookmark.
@@ -1279,7 +1279,7 @@ export default function TagBoard({ bookmarks, folders, onRefresh, onAutoTag, isA
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-gray-55 dark:bg-surface-850/50 border-t border-gray-100 dark:border-surface-850 flex justify-end gap-2 shrink-0">
+              <div className="px-6 py-4 bg-gray-100 dark:bg-surface-800/50 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-2 shrink-0">
                 <button
                   onClick={() => setEditingBookmark(null)}
                   className="px-4 py-2 bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-800 text-xs font-semibold text-gray-500 dark:text-gray-400 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors"

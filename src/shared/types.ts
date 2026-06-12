@@ -105,6 +105,8 @@ export interface ClickBookBackupData {
   memos?: Record<string, BookmarkMemo>;
   todoBoard?: TodoBoardData;
   settings?: AppSettings;
+  patterns?: Pattern[];
+  chromePatterns?: ChromePattern[];
 }
 
 export interface Pattern {
@@ -135,6 +137,7 @@ export interface AppSettings {
   enableTodoNotifications?: boolean; // TODO 알림 수신 여부
   customSearchConfigs?: CustomSearchConfig[]; // 커스텀 검색 설정
   customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
+  holidayCountry?: "auto" | "KR" | "JP" | "US" | "off"; // 공휴일 표시 국가 설정
 }
 
 
@@ -254,6 +257,10 @@ export interface TodoTask {
   dueDate?: string;   // "YYYY-MM-DD"
   dueTime?: string;   // "HH:MM"
   reminder?: "none" | "at_due" | "15m_before" | "1h_before" | "3h_before" | "1d_before";
+  recurrence?: "none" | "daily" | "weekly" | "monthly"; // 반복 일정 설정
+  isHoliday?: boolean; // 사용자가 수동 설정한 휴일 여부
+  type?: "todo" | "event" | "holiday"; // 일정 종류 (할 일, 이벤트, 휴일)
+  location?: string; // 장소 (이벤트 타입용)
   createdAt: number;
 }
 
@@ -309,4 +316,5 @@ export type PageId =
   | "wiki"
   | "hf"
   | "hn"
-  | "taskcontrol";
+  | "taskcontrol"
+  | "calendar";

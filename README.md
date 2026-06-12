@@ -46,6 +46,7 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 21 | **Visual Bookmark Map** | Interactive node-based mind-map view of your entire folder and bookmark structure. |
 | 22 | **Trend Rankings** | Built-in dashboards for GitHub trending repos, Hugging Face models, Hacker News, and Wikipedia. |
 | 23 | **Productivity Boards** | Integrated Kanban-style TODO board and Memo management system. |
+| 24 | **Smart Calendar Integration (Premium)** | A smart calendar seamlessly integrated with Todo lists and Memo functions. Supports real-time holiday synchronization (Nager.Date API) for multiple countries (Korea, US, Japan, etc.), Month/Week/Day view transitions, schedule/time adjustment via HTML5 Drag & Drop, and various recurring event options (daily, weekly, monthly, etc.). |
 
 ---
 

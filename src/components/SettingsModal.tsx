@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar } from "lucide-react";
 import type { AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -218,7 +218,8 @@ export default function SettingsModal({
     draft.openDashboardInNewTab !== settings.openDashboardInNewTab ||
     draft.useClickBookAsNewTab !== settings.useClickBookAsNewTab ||
     draft.enableTodoNotifications !== settings.enableTodoNotifications ||
-    draft.gcInterval !== settings.gcInterval;
+    draft.gcInterval !== settings.gcInterval ||
+    draft.holidayCountry !== settings.holidayCountry;
 
 
   return (
@@ -283,6 +284,29 @@ export default function SettingsModal({
                       {opt.native}
                     </button>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 공휴일 표시 국가 설정 */}
+            <div className="mt-4">
+              <SectionHeader icon={<Calendar size={13} />} title="Calendar" />
+              <div className="bg-gray-50 dark:bg-surface-800 rounded-xl px-3">
+                <div className="flex items-center justify-between gap-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700 dark:text-gray-200">{t("holidayCountryLabel")}</p>
+                  </div>
+                  <select
+                    value={draft.holidayCountry ?? "auto"}
+                    onChange={(e) => set("holidayCountry", e.target.value as any)}
+                    className="text-xs bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2.5 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:border-indigo-500 transition-all cursor-pointer shrink-0"
+                  >
+                    <option value="auto">{t("holidayCountryAuto")}</option>
+                    <option value="KR">{t("holidayCountryKR")}</option>
+                    <option value="JP">{t("holidayCountryJP")}</option>
+                    <option value="US">{t("holidayCountryUS")}</option>
+                    <option value="off">{t("holidayCountryOff")}</option>
+                  </select>
                 </div>
               </div>
             </div>

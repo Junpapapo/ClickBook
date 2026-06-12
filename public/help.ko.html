@@ -267,6 +267,12 @@
       color: var(--text);
     }
 
+    .alert-warning {
+      background-color: #f59e0b10;
+      border: 1px solid #f59e0b30;
+      color: var(--text);
+    }
+
     footer {
       border-top: 1px solid var(--border);
       padding: 3rem 2rem;
@@ -332,6 +338,9 @@
     <main class="content">
       <section id="intro">
         <h1 class="section-title">소개 및 설치</h1>
+        <div class="alert alert-warning">
+          <strong>⚠️ 안내:</strong> 본 도움말에는 현재 개발 중인 기능에 대한 설명이 포함되어 있을 수 있습니다. 이에 따라 실제 크롬 웹 스토어 배포 버전과 개발 버전 간에 기능적 차이 및 업데이트 갭이 존재할 수 있음을 알려드립니다.
+        </div>
         <p>ClickBook은 Chrome 내장 AI(Gemini Nano)를 활용하여 북마크를 스마트하게 자동 분류하고 관리해 주는 혁신적인 도구입니다. 복잡한 정리 과정 없이 클릭 한 번으로 웹사이트를 저장하고 나중에 쉽게 찾아보세요.</p>
         
         <div class="alert alert-info">
@@ -410,6 +419,10 @@
           <div class="card" style="border: 1px dashed #10b981;">
             <div class="card-title">오프라인 리더 & 젠 리더 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
             <div class="card-desc">불필요한 광고나 복잡한 레이아웃을 깨끗하게 소거한 프리미엄 몰입형 독서 화면을 제공합니다. 라이트/세피아/다크 테마, 글꼴 변경, 본문 headings 구조 기반 실시간 목차(TOC)를 내장하고 있으며, 메모용 '젠 리더(Zen Reader)' 모드도 동일하게 지원합니다.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">스마트 캘린더 연동 & 관리 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">할 일(Todo) 목록과 유기적으로 동기화되는 스마트 캘린더를 제공합니다. Nager.Date API를 활용한 국가별(한국/미국/일본 등) 공휴일 실시간 자동 동기화 및 캐싱을 지원하며, 월간/주간/일간 뷰 전환, HTML5 드래그 앤 드롭을 통한 마우스 드래그 일정 및 시간 변경, 매일/매주/매월/매년 반복 일정 등록을 지원하여 일정을 완벽히 체계화합니다.</div>
           </div>
         </div>
       </section>
