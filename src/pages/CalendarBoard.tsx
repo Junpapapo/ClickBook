@@ -428,6 +428,45 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
     setIsDescEditing(false);
   };
 
+  // Open New TODO task editor
+  const openNewTaskEditor = (date?: Date) => {
+    const targetDateStr = date ? formatDateStr(date) : formatDateStr(new Date());
+    const newTempTask: TodoTask = {
+      id: `task-${Date.now()}`,
+      content: "",
+      description: "",
+      tags: [],
+      checklist: [],
+      progress: 0,
+      completed: false,
+      color: "default",
+      startDate: targetDateStr,
+      dueDate: targetDateStr,
+      dueTime: "12:00",
+      reminder: "none",
+      recurrence: "none",
+      type: "todo",
+      createdAt: Date.now()
+    };
+    
+    setEditingTask(newTempTask);
+    setEditTaskTitle("");
+    setEditTaskDesc("");
+    setEditTaskTags([]);
+    setEditTaskChecklist([]);
+    setEditTaskProgress(0);
+    setEditTaskCompleted(false);
+    setEditTaskColor("default");
+    setEditTaskStartDate(targetDateStr);
+    setEditTaskDueDate(targetDateStr);
+    setEditTaskDueTime("12:00");
+    setEditTaskReminder("none");
+    setEditTaskRecurrence("none");
+    setEditTaskType("todo");
+    setEditTaskLocation("");
+    setIsDescEditing(true);
+  };
+
   // Save TODO task changes
   const saveTaskChanges = async () => {
     if (!todoBoard || !editingTask) return;
@@ -465,9 +504,23 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
       [editingTask.id]: updatedTask,
     };
 
+    const nextColumns = { ...todoBoard.columns };
+    // If it is a new task, append it to the first column
+    if (!todoBoard.tasks[editingTask.id]) {
+      const firstColId = todoBoard.columnOrder[0] || "col-1";
+      const column = todoBoard.columns[firstColId] || { id: firstColId, title: "To Do", taskIds: [] };
+      if (!column.taskIds.includes(editingTask.id)) {
+        nextColumns[firstColId] = {
+          ...column,
+          taskIds: [...column.taskIds, editingTask.id],
+        };
+      }
+    }
+
     const nextBoard: TodoBoardData = {
       ...todoBoard,
       tasks: updatedTasks,
+      columns: nextColumns,
     };
 
     setTodoBoard(nextBoard);
@@ -1324,6 +1377,13 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   </div>
                 )}
               </h2>
+              <button
+                onClick={() => openNewTaskEditor(selectedDate || new Date())}
+                className="p-1.5 text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-xl hover:bg-gray-150 dark:hover:bg-surface-800/50 transition-colors"
+                title={t("addNewTask") || "새 일정 추가"}
+              >
+                <Plus size={16} />
+              </button>
             </div>
 
             {/* Events Scroller */}

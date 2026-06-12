@@ -575,4 +575,5 @@ export const ko = {
   locationPlaceholder: "장소를 입력하세요...",
   holidayNameLabel: "휴일명",
   holidayColorLabel: "휴일 색상",
+  addNewTask: "새 일정 추가",
 };

@@ -576,4 +576,5 @@ export const ja = {
   locationPlaceholder: "場所を入力...",
   holidayNameLabel: "祝日名",
   holidayColorLabel: "祝日の色",
+  addNewTask: "新規予定の追加",
 };

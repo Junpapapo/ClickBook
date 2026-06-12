@@ -578,4 +578,5 @@ export const en = {
   locationPlaceholder: "Enter location...",
   holidayNameLabel: "Holiday Name",
   holidayColorLabel: "Holiday Color",
+  addNewTask: "Add New Task",
 };
