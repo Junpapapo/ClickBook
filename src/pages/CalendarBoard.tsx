@@ -997,7 +997,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
               </div>
 
               {/* Day Items List */}
-              <div className="flex-1 overflow-y-auto space-y-1.5 max-h-[380px] scrollbar-thin pr-0.5">
+              <div className="flex-1 overflow-y-auto space-y-1.5 max-h-[380px] xl:max-h-none scrollbar-thin pr-0.5">
                 {dayTasks.map((task) => (
                   <div
                     key={task.id}
@@ -1116,7 +1116,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
         </div>
 
         {/* Hourly Agenda */}
-        <div className="flex-1 overflow-y-auto max-h-[360px] divide-y divide-gray-100 dark:divide-surface-800/60 border border-gray-200/50 dark:border-surface-800/60 rounded-2xl bg-white/30 dark:bg-surface-900/10 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto max-h-[360px] xl:max-h-none divide-y divide-gray-100 dark:divide-surface-800/60 border border-gray-200/50 dark:border-surface-800/60 rounded-2xl bg-white/30 dark:bg-surface-900/10 scrollbar-thin">
           {hours.map((hour) => {
             const hourPrefix = hour.split(":")[0];
             const hourlyTasks = dayTasks.filter((t) => t.dueTime && t.dueTime.startsWith(hourPrefix));
@@ -1213,7 +1213,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
 
       <div className="grid grid-cols-12 gap-6">
         {/* Left Side: Calendar Grid */}
-        <div className="col-span-12 xl:col-span-8 flex flex-col bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-4 rounded-3xl shadow-sm overflow-hidden">
+        <div className="col-span-12 xl:col-span-8 flex flex-col bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-4 rounded-3xl shadow-sm overflow-hidden xl:h-[calc(100vh-250px)] xl:min-h-[500px]">
           {viewMode === "month" ? (
             <>
               {/* Weekday Titles */}
@@ -1373,8 +1373,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
         </div>
 
         {/* Right Side: Day Details & Event Lists */}
-        <div className="col-span-12 xl:col-span-4 flex flex-col gap-6">
-          <div className="bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-5 rounded-3xl shadow-sm flex flex-col min-h-[460px]">
+        <div className="col-span-12 xl:col-span-4 flex flex-col gap-6 xl:h-[calc(100vh-250px)] xl:min-h-[500px]">
+          <div className="bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-5 rounded-3xl shadow-sm flex flex-col flex-1 min-h-[460px]">
             <div className="pb-3 border-b border-gray-200/50 dark:border-surface-800/80 flex items-center justify-between">
               <h2 className="font-bold text-gray-900 dark:text-gray-100 text-sm flex items-center flex-wrap gap-2">
                 <Calendar size={15} className="text-indigo-500 shrink-0" />
@@ -1412,7 +1412,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
             </div>
 
             {/* Events Scroller */}
-            <div className="flex-1 overflow-y-auto mt-4 space-y-4 pr-1 scrollbar-thin max-h-[300px]">
+            <div className="flex-1 overflow-y-auto mt-4 space-y-4 pr-1 scrollbar-thin max-h-[500px] xl:max-h-none">
               {selectedDateTasks.length === 0 && selectedDateMemos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400 dark:text-gray-500 select-none">
                   <AlertCircle size={28} className="opacity-40 mb-2" />
@@ -1448,11 +1448,18 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                     <Circle size={15} className="text-gray-400 shrink-0" />
                                   )}
                                 </span>
-                                <div className="flex-1 min-w-0">
-                                  <p className={`text-sm font-semibold truncate flex items-center gap-1.5 ${(!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"}`}>
-                                    {task.icon && <FolderIcon iconName={task.icon} size={14} className="shrink-0" />}
-                                    <span className="truncate">{task.content}</span>
-                                  </p>
+                                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                                  <div className={`flex items-start gap-1.5 ${(!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"}`}>
+                                    {task.icon && <FolderIcon iconName={task.icon} size={14} className="shrink-0 mt-[9px]" />}
+                                    <textarea
+                                      readOnly
+                                      value={task.content}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className={`w-full text-xs font-semibold bg-gray-100/50 dark:bg-surface-900/50 p-2 rounded-lg border border-gray-200/10 resize-y min-h-[42px] max-h-[150px] focus:outline-none ${
+                                        (!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"
+                                      }`}
+                                    />
+                                  </div>
                                   <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                                     {task.dueDate && (
                                       <span className="inline-flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 font-medium">
@@ -1513,9 +1520,12 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed bg-gray-100/50 dark:bg-surface-900/50 p-2 rounded-lg border border-gray-200/10">
-                                {item.memo.content}
-                              </p>
+                              <textarea
+                                readOnly
+                                value={item.memo.content}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full text-xs text-gray-500 dark:text-gray-400 leading-relaxed bg-gray-100/50 dark:bg-surface-900/50 p-2 rounded-lg border border-gray-200/10 resize-y min-h-[80px] max-h-[300px] focus:outline-none"
+                              />
                             </div>
                           </div>
                         ))}

@@ -3,21 +3,30 @@ import {
   BookmarkPlus, BookmarkCheck, ExternalLink, AlertCircle, CheckCircle2, Loader2,
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
   Settings, Globe2, Check, Sun, Moon, ShieldCheck,
-  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, BookOpen, Bug, MessageSquare
+  Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, BookOpen, Bug, MessageSquare,
+  Calendar, ChevronLeft, ChevronRight, Target
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
-import type { MessageResponse, MemoColor } from "@/shared/types";
+import type { MessageResponse, MemoColor, TodoBoardData, TodoTask, TodoColumn } from "@/shared/types";
 import type { ClassifyMethod } from "@/shared/categorizer";
 import { extractUrls } from "@/shared/utils";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
-import { isAIAvailable, setAIEnabled, verifyAISession } from "@/shared/categorizer";
+import { isAIAvailable, setAIEnabled, verifyAISession, generateMemoDraft } from "@/shared/categorizer";
 
 type Status = "idle" | "loading" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
 
 const GITHUB_ISSUES_URL = "https://github.com/Junpapapo/ClickBook/issues/new/choose";
 const FEEDBACK_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd84kbl768v0lx8rJMw4jq-cnS9fwwVj45fFBHEmG5Wu5iMCg/viewform?usp=dialog";
+
+function getTodayString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 
 export default function Popup() {
@@ -47,10 +56,294 @@ export default function Popup() {
   const [memoOpen, setMemoOpen] = useState(false);
   const [memoText, setMemoText] = useState("");
   const [memoColor, setMemoColor] = useState<MemoColor>("yellow");
-  const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [memoStatus, setMemoStatus] = useState<"idle" | "loading" | "done" | "used">("idle");
   const [tabGroups, setTabGroups] = useState<chrome.tabGroups.TabGroup[]>([]);
   const [isCurrentTabSecure, setIsCurrentTabSecure] = useState(false);
   const [isReaderLoading, setIsReaderLoading] = useState(false);
+
+  // AI Draft States
+  const [tabSummary, setTabSummary] = useState<string | undefined>(undefined);
+  const [tabTags, setTabTags] = useState<string[] | undefined>(undefined);
+  const [draftState, setDraftState] = useState<"idle" | "loading" | "done" | "used">("idle");
+  const [draft, setDraft] = useState("");
+  const [draftAiUsed, setDraftAiUsed] = useState(false);
+
+  async function handleGeneratePopupDraft() {
+    if (!tabUrl) return;
+    setDraftState("loading");
+    setDraft("");
+    try {
+      const result = await generateMemoDraft(
+        tabUrl,
+        tabTitle,
+        tabSummary,
+        tabTags,
+        lang as "en" | "ja" | "ko"
+      );
+      setDraft(result.draft);
+      setDraftAiUsed(result.aiUsed);
+      setDraftState("done");
+    } catch (err) {
+      console.warn("Popup AI Draft error:", err);
+      setDraftState("idle");
+    }
+  }
+
+  function handleUsePopupDraft() {
+    setMemoText(prev => prev ? prev + "\n" + draft : draft);
+    setDraftState("used");
+  }
+
+  // ── TODO & Calendar States & Handlers ──
+  const [todoOpen, setTodoOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [todoText, setTodoText] = useState("");
+  const [selectedDate, setSelectedDate] = useState(() => getTodayString());
+  const [todoBoard, setTodoBoard] = useState<TodoBoardData | null>(null);
+  const [todoStatus, setTodoStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [currentMonth, setCurrentMonth] = useState(() => new Date());
+  const [holidayMap, setHolidayMap] = useState<Record<string, string>>({});
+
+  async function loadHolidays(year: number) {
+    try {
+      const storage = await chrome.storage.local.get(["clickbook_settings"]);
+      const settings = storage.clickbook_settings as AppSettings | undefined;
+      const holidayCountry = settings?.holidayCountry || "auto";
+
+      if (holidayCountry === "off") {
+        setHolidayMap({});
+        return;
+      }
+
+      let countryCode = "KR";
+      if (holidayCountry === "auto") {
+        if (lang === "ko") countryCode = "KR";
+        else if (lang === "ja") countryCode = "JP";
+        else countryCode = "US";
+      } else {
+        countryCode = holidayCountry;
+      }
+
+      const cacheKey = `cached_holidays_${year}_${countryCode}`;
+      const stored = await chrome.storage.local.get(cacheKey);
+      if (stored[cacheKey]) {
+        setHolidayMap(stored[cacheKey]);
+      } else {
+        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`);
+        if (res.ok) {
+          const data = (await res.json()) as any[];
+          const map: Record<string, string> = {};
+          data.forEach((h) => {
+            map[h.date] = h.localName || h.name;
+          });
+          await chrome.storage.local.set({ [cacheKey]: map });
+          setHolidayMap(map);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load holidays in popup:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (todoOpen) {
+      loadHolidays(currentMonth.getFullYear());
+    }
+  }, [todoOpen, currentMonth]);
+
+  function handleSetToday() {
+    const today = new Date();
+    setCurrentMonth(today);
+    setSelectedDate(getTodayString());
+  }
+
+  async function loadTodoBoard() {
+    try {
+      const res = (await chrome.runtime.sendMessage({ type: "GET_TODO_BOARD" })) as MessageResponse;
+      if (res.success && res.data) {
+        setTodoBoard(res.data as TodoBoardData);
+      }
+    } catch (err) {
+      console.warn("Failed to load TODO board:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (todoOpen) {
+      loadTodoBoard();
+    }
+  }, [todoOpen]);
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevMonthTotalDays = new Date(year, month, 0).getDate();
+    const days: Array<{ date: string; isPadding: boolean; dayNum: number; isSunday: boolean; isSaturday: boolean }> = [];
+
+    // Prev month padding
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const d = prevMonthTotalDays - i;
+      const m = month === 0 ? 11 : month - 1;
+      const y = month === 0 ? year - 1 : year;
+      const dateStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dayOfWeek = new Date(y, m, d).getDay();
+      days.push({
+        date: dateStr,
+        isPadding: true,
+        dayNum: d,
+        isSunday: dayOfWeek === 0,
+        isSaturday: dayOfWeek === 6
+      });
+    }
+
+    // Current month days
+    for (let d = 1; d <= totalDays; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dayOfWeek = new Date(year, month, d).getDay();
+      days.push({
+        date: dateStr,
+        isPadding: false,
+        dayNum: d,
+        isSunday: dayOfWeek === 0,
+        isSaturday: dayOfWeek === 6
+      });
+    }
+
+    // Next month padding
+    const remainingCells = (7 - (days.length % 7)) % 7;
+    for (let d = 1; d <= remainingCells; d++) {
+      const m = month === 11 ? 0 : month + 1;
+      const y = month === 11 ? year + 1 : year;
+      const dateStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dayOfWeek = new Date(y, m, d).getDay();
+      days.push({
+        date: dateStr,
+        isPadding: true,
+        dayNum: d,
+        isSunday: dayOfWeek === 0,
+        isSaturday: dayOfWeek === 6
+      });
+    }
+
+    while (days.length < 42) {
+      const lastItem = days[days.length - 1];
+      const lastDate = new Date(lastItem.date);
+      lastDate.setDate(lastDate.getDate() + 1);
+      const y = lastDate.getFullYear();
+      const m = lastDate.getMonth();
+      const d = lastDate.getDate();
+      const dateStr = `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const dayOfWeek = lastDate.getDay();
+      days.push({
+        date: dateStr,
+        isPadding: true,
+        dayNum: d,
+        isSunday: dayOfWeek === 0,
+        isSaturday: dayOfWeek === 6
+      });
+    }
+
+    return days;
+  };
+
+  async function handleAddTodo() {
+    if (!todoText.trim() || !todoBoard) return;
+    setTodoStatus("loading");
+
+    const newTaskId = crypto.randomUUID();
+    const newTask: TodoTask = {
+      id: newTaskId,
+      content: todoText.trim(),
+      completed: false,
+      dueDate: selectedDate,
+      type: "todo",
+      reminder: "none",
+      createdAt: Date.now(),
+    };
+
+    const updatedBoard = { ...todoBoard };
+    if (!updatedBoard.tasks) updatedBoard.tasks = {};
+    if (!updatedBoard.columns) updatedBoard.columns = {};
+    if (!updatedBoard.columnOrder) updatedBoard.columnOrder = [];
+
+    updatedBoard.tasks[newTaskId] = newTask;
+
+    let targetColumnId = updatedBoard.columnOrder[0];
+    if (!targetColumnId) {
+      targetColumnId = "inbox";
+      updatedBoard.columns[targetColumnId] = {
+        id: targetColumnId,
+        title: "Inbox",
+        taskIds: [],
+      };
+      updatedBoard.columnOrder.push(targetColumnId);
+    }
+
+    if (!updatedBoard.columns[targetColumnId].taskIds) {
+      updatedBoard.columns[targetColumnId].taskIds = [];
+    }
+    updatedBoard.columns[targetColumnId].taskIds.push(newTaskId);
+
+    try {
+      const saveRes = (await chrome.runtime.sendMessage({
+        type: "SAVE_TODO_BOARD",
+        data: updatedBoard,
+      })) as MessageResponse;
+
+      if (saveRes.success) {
+        setTodoBoard(updatedBoard);
+        setTodoText("");
+        setTodoStatus("done");
+        setTimeout(() => setTodoStatus("idle"), 1500);
+      } else {
+        setTodoStatus("idle");
+      }
+    } catch (err) {
+      console.warn("Failed to save TODO task:", err);
+      setTodoStatus("idle");
+    }
+  }
+
+  async function handleToggleTodo(taskId: string) {
+    if (!todoBoard) return;
+    const updatedBoard = { ...todoBoard };
+    if (updatedBoard.tasks[taskId]) {
+      updatedBoard.tasks[taskId].completed = !updatedBoard.tasks[taskId].completed;
+      try {
+        await chrome.runtime.sendMessage({
+          type: "SAVE_TODO_BOARD",
+          data: updatedBoard,
+        });
+        setTodoBoard(updatedBoard);
+      } catch (err) {
+        console.warn("Failed to update todo status:", err);
+      }
+    }
+  }
+
+  async function handleDeleteTodo(taskId: string) {
+    if (!todoBoard) return;
+    const updatedBoard = { ...todoBoard };
+    delete updatedBoard.tasks[taskId];
+    Object.keys(updatedBoard.columns).forEach((colId) => {
+      const col = updatedBoard.columns[colId];
+      if (col && col.taskIds) {
+        col.taskIds = col.taskIds.filter((id) => id !== taskId);
+      }
+    });
+
+    try {
+      await chrome.runtime.sendMessage({
+        type: "SAVE_TODO_BOARD",
+        data: updatedBoard,
+      });
+      setTodoBoard(updatedBoard);
+    } catch (err) {
+      console.warn("Failed to delete todo task:", err);
+    }
+  }
 
   const [popupTheme, setPopupThemeState] = useState<"light" | "dark">(() => {
     const s = localStorage.getItem("clickbook_theme");
@@ -109,10 +402,12 @@ export default function Popup() {
 
         const res = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
         if (res.success && res.data) {
-          const data = res.data as { bookmarks: Array<{ id: string; url: string }> };
+          const data = res.data as { bookmarks: Array<{ id: string; url: string; summary?: string; tags?: string[] }> };
           const bm = data.bookmarks.find((b) => b.url === tab.url);
           if (bm) {
             setExistingBookmarkId(bm.id);
+            setTabSummary(bm.summary);
+            setTabTags(bm.tags);
             const memosRes = await chrome.runtime.sendMessage({ type: "GET_MEMOS" }) as MessageResponse;
             if (memosRes.success && memosRes.data) {
               const memos = memosRes.data as Record<string, { content: string; color: string }>;
@@ -272,36 +567,25 @@ export default function Popup() {
 
     let bookmarkId = existingBookmarkId;
 
-    // ブックマーク未登録の場合は先に保存する
+    // 북마크 미등록 시에는 단독(standalone) 메모 형태로 저장
     if (!bookmarkId) {
-      try {
-        const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
-        if (res.success) {
-          const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
-          if (d?.bookmark?.id) {
-            bookmarkId = d.bookmark.id;
-            setExistingBookmarkId(d.bookmark.id);
-            if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
-          }
-        } else if (res.isDuplicate) {
-          const dataRes = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
-          if (dataRes.success && dataRes.data) {
-            const data = dataRes.data as { bookmarks: Array<{ id: string; url: string }> };
-            const bm = data.bookmarks.find((b) => b.url === tabUrl);
-            if (bm) { bookmarkId = bm.id; setExistingBookmarkId(bm.id); }
-          }
-        }
-      } catch (err) {
-        console.warn("Operation failed:", err);
-        setMemoStatus("idle");
-        return;
-      }
+      bookmarkId = `standalone_${crypto.randomUUID()}`;
+      setExistingBookmarkId(bookmarkId);
     }
 
-    if (!bookmarkId) { setMemoStatus("idle"); return; }
-    await chrome.runtime.sendMessage({ type: "SAVE_MEMO", bookmarkId, content: memoText.trim(), color: memoColor });
-    setMemoStatus("done");
-    setTimeout(() => setMemoStatus("idle"), 1500);
+    try {
+      await chrome.runtime.sendMessage({
+        type: "SAVE_MEMO",
+        bookmarkId,
+        content: memoText.trim(),
+        color: memoColor
+      });
+      setMemoStatus("done");
+      setTimeout(() => setMemoStatus("idle"), 1500);
+    } catch (err) {
+      console.warn("Failed to save memo:", err);
+      setMemoStatus("idle");
+    }
   }
 
   async function handleSaveTabGroup(groupId: number, name: string) {
@@ -610,36 +894,45 @@ export default function Popup() {
 
       {/* 保存ボタン行 */}
       <div className="flex flex-col gap-2">
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <button
             onClick={handleSave}
             disabled={status === "loading" || status === "success"}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-xs cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1 py-2 rounded bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-[11px] cursor-pointer text-white"
           >
-            {status === "loading" ? <Loader2 size={14} className="animate-spin" /> : <BookmarkPlus size={14} />}
+            {status === "loading" ? <Loader2 size={11} className="animate-spin" /> : <BookmarkPlus size={11} />}
             {t("popupSave")}
           </button>
           <button
             onClick={handleOpenPopupReader}
             disabled={isReaderLoading}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 via-indigo-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-xs text-white shadow-[0_0_12px_rgba(139,92,246,0.25)] hover:shadow-[0_0_18px_rgba(139,92,246,0.45)] border border-purple-500/20 cursor-pointer"
+            title={t("popupReaderTooltip")}
+            className="flex-1 flex items-center justify-center gap-1 py-2 rounded bg-gradient-to-r from-purple-600 via-indigo-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-[11px] text-white shadow-[0_0_12px_rgba(139,92,246,0.25)] border border-purple-500/20 cursor-pointer"
           >
-            {isReaderLoading ? <Loader2 size={14} className="animate-spin" /> : <BookOpen size={14} />}
+            {isReaderLoading ? <Loader2 size={11} className="animate-spin" /> : <BookOpen size={11} />}
             {t("offlineReaderBtn")}
           </button>
-        </div>
-        <div className="flex gap-2">
           <button
             onClick={handleBulkSave}
             disabled={bulkStatus === "loading"}
             title={t("popupBulkSaveTitle")}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-[11px] cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-1 py-2 rounded bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-[11px] cursor-pointer"
           >
-            {bulkStatus === "loading" ? <Loader2 size={12} className="animate-spin" /> : <BookmarkCheck size={12} />}
+            {bulkStatus === "loading" ? <Loader2 size={11} className="animate-spin" /> : <BookmarkCheck size={11} />}
             {t("popupBulkSave")}
           </button>
+        </div>
+        <div className="flex gap-1.5">
           <button
-            onClick={() => { setTextImportOpen(o => !o); setTimeout(() => textareaRef.current?.focus(), 50); }}
+            onClick={() => {
+              const next = !textImportOpen;
+              setTextImportOpen(next);
+              if (next) {
+                setMemoOpen(false);
+                setTodoOpen(false);
+                setTimeout(() => textareaRef.current?.focus(), 50);
+              }
+            }}
             title={t("popupTextImportTitle")}
             className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
               textImportOpen
@@ -647,11 +940,18 @@ export default function Popup() {
                 : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
             }`}
           >
-            <ClipboardList size={12} />
+            <ClipboardList size={11} />
             {t("popupTextImportMenu")}
           </button>
           <button
-            onClick={() => setMemoOpen(o => !o)}
+            onClick={() => {
+              const next = !memoOpen;
+              setMemoOpen(next);
+              if (next) {
+                setTextImportOpen(false);
+                setTodoOpen(false);
+              }
+            }}
             title={t("popupMemoTitle")}
             className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
               memoOpen
@@ -659,9 +959,50 @@ export default function Popup() {
                 : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
             }`}
           >
-            <StickyNote size={12} />
+            <StickyNote size={11} />
             {t("memo")}
           </button>
+          <div className="flex-1 flex gap-1">
+            <button
+              onClick={() => {
+                const next = !todoOpen;
+                setTodoOpen(next);
+                if (next) {
+                  setTextImportOpen(false);
+                  setMemoOpen(false);
+                }
+              }}
+              title={t("popupTodoTitle")}
+              className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
+                todoOpen
+                  ? "bg-indigo-600 text-white"
+                  : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+              }`}
+            >
+              <ClipboardList size={11} />
+              {t("popupTodoTitle")}
+            </button>
+            <button
+              onClick={() => {
+                if (!todoOpen) {
+                  setTodoOpen(true);
+                  setTextImportOpen(false);
+                  setMemoOpen(false);
+                  setCalendarOpen(true);
+                } else {
+                  setCalendarOpen(prev => !prev);
+                }
+              }}
+              title={t("popupCalendarTitle")}
+              className={`px-2.5 rounded active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+                todoOpen && calendarOpen
+                  ? "bg-indigo-600 text-white"
+                  : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+              }`}
+            >
+              <Calendar size={12} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -713,26 +1054,49 @@ export default function Popup() {
       {memoOpen && (
         <div className="flex flex-col gap-2 bg-surface-800 rounded-xl p-3">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-medium text-yellow-400 flex items-center gap-1.5">
-              <StickyNote size={12} />
-              {t("popupMemoPanel")}
-            </p>
-            <button onClick={() => setMemoOpen(false)} className="text-gray-600 hover:text-gray-400">
-              <X size={12} />
-            </button>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {ALL_MEMO_COLORS.map((c) => (
+            <div className="flex items-center gap-2.5">
+              <p className="text-[11px] font-medium text-yellow-400 flex items-center gap-1.5 shrink-0">
+                <StickyNote size={12} />
+                {t("popupMemoPanel")}
+              </p>
+              <div className="flex items-center gap-1">
+                {ALL_MEMO_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setMemoColor(c)}
+                    className={`w-3.5 h-3.5 rounded-full ${MEMO_DOT[c]} transition-all ${
+                      memoColor === c
+                        ? "ring-2 ring-offset-1 ring-gray-400 ring-offset-surface-800"
+                        : "opacity-50 hover:opacity-100"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
               <button
-                key={c}
-                onClick={() => setMemoColor(c)}
-                className={`w-4 h-4 rounded-full ${MEMO_DOT[c]} transition-all ${
-                  memoColor === c
-                    ? "ring-2 ring-offset-1 ring-gray-400 ring-offset-surface-800"
-                    : "opacity-50 hover:opacity-100"
+                onClick={handleGeneratePopupDraft}
+                disabled={draftState === "loading"}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition-all ${
+                  draftState === "loading"
+                    ? "bg-violet-900/30 text-violet-400 cursor-not-allowed"
+                    : draftState === "done" || draftState === "used"
+                    ? "bg-violet-900/30 text-violet-400"
+                    : "bg-surface-700 text-gray-400 hover:bg-violet-900/30 hover:text-violet-400"
                 }`}
-              />
-            ))}
+                title="AI 메모 초안 생성"
+              >
+                {draftState === "loading" ? (
+                  <Loader2 size={8} className="animate-spin" />
+                ) : (
+                  <Sparkles size={8} />
+                )}
+                AI 초안
+              </button>
+              <button onClick={() => setMemoOpen(false)} className="text-gray-600 hover:text-gray-400">
+                <X size={12} />
+              </button>
+            </div>
           </div>
           <textarea
             value={memoText}
@@ -741,11 +1105,67 @@ export default function Popup() {
             placeholder={t("popupMemoPlaceholder")}
             rows={3}
             onKeyDown={(e) => { if (e.key === "Escape") setMemoOpen(false); }}
-            className="w-full text-xs bg-surface-900 border border-surface-700 rounded-lg px-2.5 py-2 text-gray-200 outline-none focus:border-yellow-500/50 transition-colors placeholder-gray-700 resize-none leading-relaxed"
+            className="w-full text-xs bg-surface-900 border border-surface-700 rounded-lg px-2.5 py-2 text-gray-200 outline-none focus:border-yellow-500/50 transition-colors placeholder-gray-700 resize-y min-h-[60px] max-h-[200px] leading-relaxed"
           />
-          {!existingBookmarkId && memoText.trim() && (
-            <p className="text-[10px] text-gray-500">{t("popupMemoAutoBookmark")}</p>
+          {/* AI Draft Panel */}
+          {draftState === "loading" && (
+            <div className="mt-1 p-2 rounded-lg border border-violet-700/40 bg-violet-900/20 flex items-center gap-2">
+              <Loader2 size={12} className="text-violet-500 animate-spin shrink-0" />
+              <span className="text-[10px] text-violet-400 animate-pulse">
+                {lang === "ko" ? "AI가 메모 초안을 작성 중..." : lang === "ja" ? "AI が下書きを生成中..." : "AI is drafting..."}
+              </span>
+            </div>
           )}
+
+          {(draftState === "done" || draftState === "used") && (
+            <div className={`mt-1 rounded-lg border overflow-hidden transition-all ${
+              draftState === "used"
+                ? "border-emerald-700/40 bg-emerald-900/20"
+                : "border-violet-700/40 bg-violet-900/15"
+            }`}>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 border-b ${
+                draftState === "used"
+                  ? "border-emerald-700/40"
+                  : "border-violet-700/40"
+              }`}>
+                {draftState === "used" ? (
+                  <Check size={9} className="text-emerald-500" />
+                ) : (
+                  <Sparkles size={9} className="text-violet-500" />
+                )}
+                <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                  draftState === "used" ? "text-emerald-400" : "text-violet-400"
+                }`}>
+                  {draftState === "used"
+                    ? (lang === "ko" ? "초안 적용됨" : lang === "ja" ? "下書き適用済" : "Draft applied")
+                    : (lang === "ko" ? `AI 초안 ${draftAiUsed ? "(Gemini Nano)" : "(요약 기반)"}` : lang === "ja" ? `AI 下書き ${draftAiUsed ? "(Gemini Nano)" : "(要約ベース)"}` : `AI Draft ${draftAiUsed ? "(Gemini Nano)" : "(summary-based)"}`)}
+                </span>
+              </div>
+              <div className="px-2.5 py-1.5">
+                <pre className={`text-[10px] leading-relaxed whitespace-pre-wrap font-sans ${
+                  draftState === "used" ? "text-emerald-300" : "text-violet-300"
+                }`}>{draft}</pre>
+              </div>
+              {draftState === "done" && (
+                <div className="flex items-center justify-end gap-1.5 px-2.5 pb-1.5">
+                  <button
+                    onClick={() => setDraftState("idle")}
+                    className="text-[9px] text-gray-500 hover:text-gray-300 px-1.5 py-0.5 rounded transition-colors"
+                  >
+                    {lang === "ko" ? "닫기" : lang === "ja" ? "閉じる" : "Dismiss"}
+                  </button>
+                  <button
+                    onClick={handleUsePopupDraft}
+                    className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
+                  >
+                    <Check size={8} />
+                    {lang === "ko" ? "이 내용 사용" : lang === "ja" ? "使用する" : "Use this"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-end">
             <button
               onClick={handleSaveMemo}
@@ -755,6 +1175,208 @@ export default function Popup() {
               {memoStatus === "loading" ? <Loader2 size={11} className="animate-spin" /> : memoStatus === "done" ? <CheckCircle2 size={11} /> : <StickyNote size={11} />}
               {memoStatus === "done" ? t("popupMemoSaved") : t("popupMemoSave")}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* TODO 패널 */}
+      {todoOpen && (
+        <div className="flex flex-col gap-2 bg-surface-800 rounded-xl p-3 border border-surface-700/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <ClipboardList size={13} className="text-indigo-400" />
+              <p className="text-[11px] font-semibold text-indigo-300">
+                {t("popupTodoTitle")} ({selectedDate === getTodayString() ? t("datepickerToday") : selectedDate})
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* 캘린더 토글 아이콘 */}
+              <button
+                onClick={() => setCalendarOpen(o => !o)}
+                title={t("popupCalendarTitle")}
+                className={`p-1 rounded transition-colors ${
+                  calendarOpen
+                    ? "text-indigo-400 bg-indigo-500/15"
+                    : "text-gray-400 hover:text-indigo-300 hover:bg-surface-700"
+                }`}
+              >
+                <Calendar size={13} />
+              </button>
+              <button onClick={() => setTodoOpen(false)} className="text-gray-500 hover:text-gray-400">
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+
+          {/* 미니 캘린더 토글 영역 */}
+          {calendarOpen && (
+            <div className="flex flex-col gap-1.5 bg-surface-900/50 p-2 rounded-lg border border-surface-700/50">
+              {/* 캘린더 헤더 (연월 이동) */}
+              <div className="flex items-center justify-between py-1.5 px-2 bg-surface-800/80 border-b border-surface-700/50 rounded-t-md -mx-2 -mt-2 mb-1">
+                <button
+                  onClick={() => {
+                    const prev = new Date(currentMonth);
+                    prev.setMonth(prev.getMonth() - 1);
+                    setCurrentMonth(prev);
+                  }}
+                  className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
+                  title="이전 달"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-gray-200 tracking-wider">
+                    {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
+                  </span>
+                  <button
+                    onClick={handleSetToday}
+                    className="p-0.5 rounded text-indigo-400 hover:text-indigo-300 hover:bg-surface-700/50 transition-all active:scale-90 cursor-pointer"
+                    title="오늘로 이동"
+                  >
+                    <Target size={11} />
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = new Date(currentMonth);
+                    next.setMonth(next.getMonth() + 1);
+                    setCurrentMonth(next);
+                  }}
+                  className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
+                  title="다음 달"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+
+              {/* 요일 헤더 */}
+              <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-500 py-0.5">
+                <span className="text-red-500/80">일</span>
+                <span>월</span>
+                <span>화</span>
+                <span>수</span>
+                <span>목</span>
+                <span>금</span>
+                <span className="text-blue-400/80">토</span>
+              </div>
+
+              {/* 날짜 그리드 */}
+              <div className="grid grid-cols-7 gap-0.5">
+                {getDaysInMonth(currentMonth).map((day, idx) => {
+                  const isSelected = selectedDate === day.date;
+                  const isToday = getTodayString() === day.date;
+                  
+                  // 미완료 할 일 개수 집계
+                  const uncompletedCount = todoBoard && todoBoard.tasks
+                    ? Object.values(todoBoard.tasks).filter(
+                        (t) => t.dueDate === day.date && !t.completed
+                      ).length
+                    : 0;
+
+                  // 공공 공휴일 가져오기
+                  const holidayName = holidayMap[day.date];
+
+                  // 휴일 타입 일정이 수동 등록되어 있는지 검사
+                  const hasHolidayEvent = (todoBoard && todoBoard.tasks
+                    ? Object.values(todoBoard.tasks).some(
+                        (t) => t.dueDate === day.date && (t.type === "holiday" || t.isHoliday)
+                      )
+                    : false) || !!holidayName;
+
+                  const isRedDay = day.isSunday || hasHolidayEvent;
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedDate(day.date)}
+                      title={holidayName || undefined}
+                      className={`relative aspect-square rounded flex flex-col items-center justify-center text-[11px] font-semibold transition-all ${
+                        day.isPadding ? "text-gray-700" : isRedDay ? "text-red-500" : day.isSaturday ? "text-blue-400" : "text-gray-300"
+                      } ${
+                        isSelected
+                          ? "bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30"
+                          : isToday
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                          : "hover:bg-surface-700"
+                      }`}
+                    >
+                      <span>{day.dayNum}</span>
+                      
+                      {/* 미완료 태스크 개수 플로팅 배지 */}
+                      {uncompletedCount > 0 && (
+                        <span className={`absolute -top-1 -right-1 min-w-[12px] h-[12px] text-[8px] font-bold rounded-full flex items-center justify-center px-0.5 shadow-sm ${
+                          isSelected ? "bg-white text-indigo-600" : "bg-indigo-500 text-white"
+                        }`}>
+                          {uncompletedCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 태스크 입력 */}
+          <div className="flex gap-1.5">
+            <input
+              type="text"
+              value={todoText}
+              onChange={e => setTodoText(e.target.value)}
+              placeholder={t("popupTodoPlaceholder")}
+              onKeyDown={e => {
+                if (e.key === "Enter") handleAddTodo();
+                if (e.key === "Escape") setTodoOpen(false);
+              }}
+              className="flex-1 text-xs bg-surface-900 border border-surface-700 rounded-lg px-2.5 py-1 text-gray-200 outline-none focus:border-indigo-500/50 transition-colors placeholder-gray-600"
+            />
+            <button
+              onClick={handleAddTodo}
+              disabled={todoStatus === "loading" || !todoText.trim()}
+              className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              {todoStatus === "loading" ? <Loader2 size={11} className="animate-spin" /> : t("popupTodoSave")}
+            </button>
+          </div>
+
+          {/* 태스크 리스트 (선택된 날짜 기준) */}
+          <div className="flex flex-col gap-1 max-h-36 overflow-y-auto pr-1">
+            {todoBoard && todoBoard.tasks &&
+            Object.values(todoBoard.tasks).filter(t => t.dueDate === selectedDate).length > 0 ? (
+              Object.values(todoBoard.tasks)
+                .filter(t => t.dueDate === selectedDate)
+                .map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between bg-surface-900/40 border border-surface-700/40 rounded-lg px-2 py-1 transition-all hover:bg-surface-900/60"
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={task.completed || false}
+                        onChange={() => handleToggleTodo(task.id)}
+                        className="w-3.5 h-3.5 rounded border-surface-600 text-indigo-600 bg-surface-900 focus:ring-indigo-500 focus:ring-offset-surface-900 cursor-pointer"
+                      />
+                      <span className={`text-xs truncate ${
+                        task.completed ? "line-through text-gray-500" : "text-gray-300"
+                      }`}>
+                        {task.content}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteTodo(task.id)}
+                      className="text-gray-500 hover:text-red-400 p-0.5 transition-colors cursor-pointer"
+                      title={t("deleteTooltip")}
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))
+            ) : (
+              <p className="text-[10px] text-gray-500 text-center py-0.5">
+                {t("calendarNoEvents")}
+              </p>
+            )}
           </div>
         </div>
       )}

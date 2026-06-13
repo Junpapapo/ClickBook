@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable, DropResult, DroppableProvided, DraggableProvided } from "@hello-pangea/dnd";
-import { Plus, Check, Trash2, GripVertical, Loader2, X, AlignLeft, CheckSquare, Tag, CheckCircle2, Circle, Palette, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, ChevronDown, RotateCcw, Bell } from "lucide-react";
+import { Plus, Check, Trash2, GripVertical, Loader2, X, AlignLeft, CheckSquare, Tag, CheckCircle2, Circle, Palette, Calendar, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Clock, ChevronDown, RotateCcw, Bell, Sparkles } from "lucide-react";
 import type { TodoBoardData, TodoColumn, TodoTask, MessageResponse, AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
+import { refineMemoDraft, isAIAvailable } from "@/shared/categorizer";
 
 import ReactMarkdown from "react-markdown";
 import { FolderIcon } from "@/components/DynamicIcon";
@@ -567,6 +568,29 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   const [editTaskDueTime, setEditTaskDueTime] = useState<string | undefined>(undefined);
   const [editTaskReminder, setEditTaskReminder] = useState<string | undefined>(undefined);
   const [showDatePickerPopover, setShowDatePickerPopover] = useState(false);
+
+  // AI Refine states & handlers
+  const [aiAvailable, setAiAvailable] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
+
+  useEffect(() => {
+    isAIAvailable().then(setAiAvailable);
+  }, []);
+
+  const handleRefineDescription = useCallback(async () => {
+    if (!editTaskDescModal.trim()) return;
+    setIsRefining(true);
+    try {
+      const result = await refineMemoDraft(editTaskDescModal, lang as "en" | "ja" | "ko");
+      if (result.aiUsed && result.draft) {
+        setEditTaskDescModal(result.draft);
+      }
+    } catch (err) {
+      console.warn("AI Refine description failed:", err);
+    } finally {
+      setIsRefining(false);
+    }
+  }, [editTaskDescModal, lang]);
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<"start" | "due">("due");
   const [calYear, setCalYear] = useState<number>(new Date().getFullYear());
@@ -1085,7 +1109,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                           className="w-full min-h-[160px] p-3.5 bg-gray-50/50 dark:bg-surface-900 border-2 border-indigo-500 rounded-xl text-gray-900 dark:text-gray-100 text-[14px] leading-relaxed resize-y focus:outline-none shadow-inner"
                           placeholder="Add a more detailed description (Markdown supported)..."
                         />
-                        <div className="flex gap-2 justify-start">
+                        <div className="flex gap-2 justify-start items-center">
                           <button 
                             onClick={() => setIsDescriptionEditing(false)} 
                             className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-sm transition-colors"
@@ -1098,6 +1122,22 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                           >
                             Cancel
                           </button>
+                          {aiAvailable && (
+                            <button
+                              type="button"
+                              onClick={handleRefineDescription}
+                              disabled={isRefining || !editTaskDescModal.trim()}
+                              className="ml-auto flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm shadow-violet-500/20 active:scale-95"
+                              title="AI가 본문 내용의 오탈자를 수정하고 보기 좋게 다듬어 줍니다."
+                            >
+                              {isRefining ? (
+                                <Loader2 size={12} className="animate-spin" />
+                              ) : (
+                                <Sparkles size={12} className="text-yellow-300 fill-yellow-300" />
+                              )}
+                              {isRefining ? "Refining..." : (lang === "ko" ? "AI 다듬기" : lang === "ja" ? "AI 整頓" : "AI Refine")}
+                            </button>
+                          )}
                         </div>
                       </div>
                     ) : (

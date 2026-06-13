@@ -457,7 +457,8 @@ ${context}
 Memo draft:`;
 
     const session = await (lm.create as any)({
-      systemPrompt: systemPrompt
+      systemPrompt: systemPrompt,
+      expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }]
     });
 
     const response = await Promise.race([
@@ -552,7 +553,8 @@ Enhanced Memo:`;
     }
 
     const session = await (lm.create as any)({
-      systemPrompt: systemPrompt
+      systemPrompt: systemPrompt,
+      expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }]
     });
 
     const response = await Promise.race([
