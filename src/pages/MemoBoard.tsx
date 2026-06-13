@@ -85,12 +85,12 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
           onChange={(e) => setContent(e.target.value)}
           autoFocus
           placeholder={t("memoPlaceholder")}
-          rows={4}
+          rows={8}
           onKeyDown={(e) => {
             if (e.key === "Escape") onCancel();
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSave();
           }}
-          className={`w-full text-xs rounded-lg px-2.5 py-2 resize-none outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
+          className={`w-full text-xs rounded-lg px-2.5 py-2 resize-y min-h-[100px] outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
         />
 
         {/* アクション */}
@@ -278,9 +278,9 @@ function MemoCard({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               autoFocus
-              rows={4}
+              rows={Math.min(20, Math.max(8, Math.floor((memo.content || "").length / 50)))}
               onKeyDown={(e) => { if (e.key === "Escape") { setDraft(memo.content); setEditing(false); } }}
-              className={`w-full text-xs rounded-lg px-2.5 py-1.5 resize-none outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200`}
+              className={`w-full text-xs rounded-lg px-2.5 py-1.5 resize-y min-h-[100px] outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200`}
             />
             <div className="flex gap-1 justify-between items-center mt-1">
               <div className="flex items-center gap-1">

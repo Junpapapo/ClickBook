@@ -1,6 +1,6 @@
 export const en = {
   // ── Time formats ──────────────────────────────────────────
-  pageTitle: "ClickBook — Bookmark Manager",
+  pageTitle: "ClickBook AI — Bookmark & Task Manager",
   timeJustNow: "just now",
   timeMinAgo: "{n} min ago",
   timeHourAgo: "{n}h ago",
@@ -21,9 +21,9 @@ export const en = {
 
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "Dashboard",
-  bookmarkMap: "Bookmark Map",
+  bookmarkMap: "Book Map",
   memoBoard: "Memos",
-  aiOrganize: "AI Organize",
+  aiOrganize: "Book Organize",
   aiNotAvailable: "Chrome AI (Gemini Nano) is not available",
   aiOrganizeTooltip:
     "AI classifies all sites and organizes them into folders\nCurrent state is auto-backed up before running",
@@ -420,9 +420,9 @@ export const en = {
   settingsShortcutSave: "Save Current Tab (Alt+S)",
 
   // ── AI Bookmark Cleaner ───────────────────────────────────
-  aiCleanerBtn: "AI Bookmark Cleaner",
+  aiCleanerBtn: "Book Cleaner",
   aiCleanerTooltip: "Find semantically similar bookmarks and clean them up",
-  aiCleanerTitle: "AI Bookmark Cleaner",
+  aiCleanerTitle: "Book Cleaner",
   aiCleanerDesc: "AI groups similar bookmarks. Review each group and delete duplicates.",
   aiCleanerAnalyzing: "Analyzing...",
   aiCleanerNoGroups: "No similar bookmarks found. Your bookmarks look clean!",

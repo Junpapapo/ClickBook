@@ -41,3 +41,9 @@
     @apply bg-surface-300 rounded-full;
   }
 }
+
+/* Enforce w-full for vertical-resizable textareas to prevent inline style width overriding */
+textarea.resize-y {
+  width: 100% !important;
+}
+

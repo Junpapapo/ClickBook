@@ -383,7 +383,13 @@ export default function Popup() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src="/icons/icon128.png" alt="ClickBook" className="w-5 h-5 rounded-sm" />
-          <h1 className="text-base font-semibold tracking-tight">ClickBook</h1>
+          <h1 className="text-base font-semibold tracking-tight relative flex items-center gap-1">
+            <span>ClickBook</span>
+            <span className="flex items-center gap-0.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-extrabold select-none leading-none mt-[-6px] shadow-sm shadow-indigo-500/20">
+              <Sparkles size={9} className="text-yellow-300 fill-yellow-300 shrink-0" />
+              AI
+            </span>
+          </h1>
         </div>
         <div className="flex items-center gap-1.5">
           {aiAvailable !== null && (

@@ -1,6 +1,6 @@
 export const ko = {
   // ── Time formats ──────────────────────────────────────────
-  pageTitle: "ClickBook — 북마크 관리",
+  pageTitle: "ClickBook AI — 북마크 & 태스크 관리자",
   timeJustNow: "방금 전",
   timeMinAgo: "{n}분 전",
   timeHourAgo: "{n}시간 전",
@@ -21,9 +21,9 @@ export const ko = {
 
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "대시보드",
-  bookmarkMap: "Bookmark Map",
+  bookmarkMap: "북맵",
   memoBoard: "메모",
-  aiOrganize: "AI 정리",
+  aiOrganize: "북정리",
   aiNotAvailable: "Chrome AI (Gemini Nano)를 사용할 수 없습니다",
   aiOrganizeTooltip:
     "AI가 모든 사이트를 자동 분류하여 폴더에 배치합니다\n실행 전 현재 상태를 자동으로 백업합니다",
@@ -417,9 +417,9 @@ export const ko = {
   settingsShortcutSave: "현재 탭 저장 (Alt+S)",
 
   // ── AI Bookmark Cleaner ───────────────────────────────────
-  aiCleanerBtn: "AI 북마크 클리너",
+  aiCleanerBtn: "북크리너",
   aiCleanerTooltip: "유사한 의미의 중복 북마크를 탐색하여 정리합니다",
-  aiCleanerTitle: "AI 북마크 클리너",
+  aiCleanerTitle: "북크리너",
   aiCleanerDesc: "AI가 서로 유사한 북마크를 그룹화합니다. 확인 후 필요 없는 중복을 삭제하세요.",
   aiCleanerAnalyzing: "분석 중...",
   aiCleanerNoGroups: "중복되거나 유사한 북마크가 발견되지 않았습니다.",

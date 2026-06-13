@@ -247,6 +247,7 @@ export interface TodoChecklistItem {
 export interface TodoTask {
   id: string;
   content: string; // Title
+  icon?: string;   // Icon or emoji name
   description?: string; // Detailed description
   tags?: string[];
   checklist?: TodoChecklistItem[];

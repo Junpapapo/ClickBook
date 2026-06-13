@@ -279,7 +279,7 @@ export default function TaskControlPage({
       : "bg-emerald-500";
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="w-full">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

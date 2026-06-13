@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "ClickBook - AI Bookmark & Task Manager",
+    "message": "ClickBook AI - AI Bookmark & Task Manager",
     "description": "The name of the extension"
   },
   "appDesc": {
-    "message": "Save tabs with one click. Features Gemini Nano AI categorization, integrated Todo boards, calendar planning, and bookmarks management.",
+    "message": "One-click to save tabs, organize bookmarks with on-device Gemini Nano AI, and manage integrated TODO lists & calendar tasks.",
     "description": "The description of the extension"
   },
   "saveCurrentTab": {

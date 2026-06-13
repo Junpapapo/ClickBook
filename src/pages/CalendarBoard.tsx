@@ -23,6 +23,8 @@ import type { TodoBoardData, TodoTask, Bookmark, BookmarkMemo, MemoColor, Messag
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import ReactMarkdown from "react-markdown";
+import { FolderIcon } from "@/components/DynamicIcon";
+import { IconPicker } from "@/components/IconPicker";
 
 interface Props {
   settings?: AppSettings;
@@ -214,6 +216,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
   // Modals management
   const [editingTask, setEditingTask] = useState<TodoTask | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [editTaskIcon, setEditTaskIcon] = useState<string | undefined>(undefined);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [editTaskDesc, setEditTaskDesc] = useState("");
   const [editTaskTags, setEditTaskTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -236,6 +240,28 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
   const [editingMemo, setEditingMemo] = useState<{ bookmark: Bookmark | null; memo: BookmarkMemo } | null>(null);
   const [editMemoContent, setEditMemoContent] = useState("");
   const [editMemoColor, setEditMemoColor] = useState<MemoColor>("yellow");
+  const [memoModalWidth, setMemoModalWidth] = useState<number>(450);
+  const [isResizingMemo, setIsResizingMemo] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingMemo) return;
+      setMemoModalWidth((w) => Math.max(380, Math.min(950, w + e.movementX * 2)));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingMemo(false);
+    };
+
+    if (isResizingMemo) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizingMemo]);
 
   // Load TODO board
   const loadTodoBoard = useCallback(async () => {
@@ -411,6 +437,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
   const openTaskEditor = (task: TodoTask) => {
     setEditingTask(task);
     setEditTaskTitle(task.content);
+    setEditTaskIcon(task.icon);
+    setShowIconPicker(false);
     setEditTaskDesc(task.description || "");
     setEditTaskTags(task.tags || []);
     setEditTaskChecklist(task.checklist || []);
@@ -451,6 +479,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
     
     setEditingTask(newTempTask);
     setEditTaskTitle("");
+    setEditTaskIcon(undefined);
+    setShowIconPicker(false);
     setEditTaskDesc("");
     setEditTaskTags([]);
     setEditTaskChecklist([]);
@@ -483,6 +513,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
     const updatedTask: TodoTask = {
       ...editingTask,
       content: title,
+      icon: editTaskIcon || undefined,
       description: editTaskDesc.trim() || undefined,
       tags: editTaskTags.length > 0 ? editTaskTags : undefined,
       checklist: editTaskChecklist,
@@ -606,6 +637,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
     setEditingMemo(item);
     setEditMemoContent(item.memo.content);
     setEditMemoColor(item.memo.color);
+    const initialWidth = Math.min(750, Math.max(450, 450 + Math.floor((item.memo.content || "").length / 5)));
+    setMemoModalWidth(initialWidth);
   };
 
   // Save Bookmark Memo changes
@@ -981,7 +1014,10 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                       }
                     `}
                   >
-                    <span className="truncate" title={task.content}>{task.content}</span>
+                    <span className="truncate flex items-center gap-1" title={task.content}>
+                      {task.icon && <FolderIcon iconName={task.icon} size={10} className="shrink-0" />}
+                      <span className="truncate">{task.content}</span>
+                    </span>
                     {task.dueTime && <span className="text-[7px] font-medium opacity-75">{task.dueTime}</span>}
                   </div>
                 ))}
@@ -1049,14 +1085,15 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   draggable
                   onDragStart={(e) => e.dataTransfer.setData("text/plain", task.id)}
                   onClick={(e) => openTaskEditor(task)}
-                  className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-2.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-102
+                  className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-2.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1
                     ${(!isEvent && task.completed)
                       ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 
                       : TASK_BG_COLORS[task.color || "default"]
                     }
                   `}
                 >
-                  {task.content}
+                  {task.icon && <FolderIcon iconName={task.icon} size={10} className="shrink-0" />}
+                  <span className="truncate">{task.content}</span>
                 </div>
               );
             })}
@@ -1108,6 +1145,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                           }
                         `}
                       >
+                        {task.icon && <FolderIcon iconName={task.icon} size={10} className="shrink-0" />}
                         <span className="truncate max-w-[150px]">{task.content}</span>
                         <span className="text-[8px] font-normal opacity-75">{task.dueTime}</span>
                       </div>
@@ -1123,25 +1161,11 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="flex flex-col gap-6 w-full pb-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {DialogEl}
 
       {/* Header Panel */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-4 sm:p-5 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl">
-            <Calendar size={22} />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-              {t("calendarBoardTitle") || "Calendar"}
-            </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              할 일 일정과 북마크에 작성한 메모를 캘린더에서 직관적으로 파악하고 관리합니다.
-            </p>
-          </div>
-        </div>
-
         {/* Month/Week/Day Navigation */}
         <div className="flex items-center gap-2">
           <button
@@ -1167,23 +1191,23 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
           >
             Today
           </button>
+        </div>
 
-          {/* View Mode Switcher Tabs */}
-          <div className="flex bg-gray-100/60 dark:bg-surface-800/60 p-0.5 rounded-xl border border-gray-200/20 dark:border-white/5 ml-2">
-            {(["month", "week", "day"] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  viewMode === mode
-                    ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10"
-                    : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-                }`}
-              >
-                {mode === "month" ? t("viewMonth") : mode === "week" ? t("viewWeek") : t("viewDay")}
-              </button>
-            ))}
-          </div>
+        {/* View Mode Switcher Tabs */}
+        <div className="flex bg-gray-100/60 dark:bg-surface-800/60 p-0.5 rounded-xl border border-gray-200/20 dark:border-white/5">
+          {(["month", "week", "day"] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                viewMode === mode
+                  ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10"
+                  : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+              }`}
+            >
+              {mode === "month" ? t("viewMonth") : mode === "week" ? t("viewWeek") : t("viewDay")}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -1299,7 +1323,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                               e.stopPropagation();
                               openTaskEditor(task);
                             }}
-                            className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-1.5 py-0.5 rounded border truncate shadow-sm transition-all hover:scale-102
+                            className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-1.5 py-0.5 rounded border truncate shadow-sm transition-all hover:scale-102 flex items-center gap-1
                               ${task.completed 
                                 ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 
                                 : TASK_BG_COLORS[task.color || "default"]
@@ -1307,7 +1331,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                             `}
                             title={task.content}
                           >
-                            {task.content}
+                            {task.icon && <FolderIcon iconName={task.icon} size={10} className="shrink-0" />}
+                            <span className="truncate">{task.content}</span>
                           </div>
                         ))}
 
@@ -1424,8 +1449,9 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                   )}
                                 </span>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-sm font-semibold truncate ${(!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"}`}>
-                                    {task.content}
+                                  <p className={`text-sm font-semibold truncate flex items-center gap-1.5 ${(!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"}`}>
+                                    {task.icon && <FolderIcon iconName={task.icon} size={14} className="shrink-0" />}
+                                    <span className="truncate">{task.content}</span>
                                   </p>
                                   <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                                     {task.dueDate && (
@@ -1611,14 +1637,40 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-5 flex-1 select-none scrollbar-thin">
               {/* Task Title */}
-              <div className="space-y-1">
-                <input
-                  type="text"
-                  value={editTaskTitle}
-                  onChange={(e) => setEditTaskTitle(e.target.value)}
-                  className="w-full text-lg font-bold bg-transparent outline-none border-b-2 border-transparent focus:border-indigo-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 py-1"
-                  placeholder={editTaskType === "holiday" ? (t("holidayNameLabel") || "휴일명 입력...") : (t("taskContentPlaceholder") || "Enter task...")}
-                />
+              <div className="flex items-center gap-3 relative">
+                <div className="relative shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowIconPicker(!showIconPicker)}
+                    className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-surface-800 border border-gray-200 dark:border-surface-700/60 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-surface-700 transition-all shadow-sm"
+                    title="일정 아이콘 설정"
+                  >
+                    {editTaskIcon ? (
+                      <FolderIcon iconName={editTaskIcon} size={20} className="text-indigo-500 dark:text-indigo-400" />
+                    ) : (
+                      <Plus size={16} className="text-gray-400 dark:text-gray-500" />
+                    )}
+                  </button>
+                  {showIconPicker && (
+                    <IconPicker
+                      onSelect={(icon) => {
+                        setEditTaskIcon(icon);
+                        setShowIconPicker(false);
+                      }}
+                      onClose={() => setShowIconPicker(false)}
+                      className="left-0 mt-1.5 w-[220px]"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <input
+                    type="text"
+                    value={editTaskTitle}
+                    onChange={(e) => setEditTaskTitle(e.target.value)}
+                    className="w-full text-lg font-bold bg-transparent outline-none border-b-2 border-transparent focus:border-indigo-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 py-1"
+                    placeholder={editTaskType === "holiday" ? (t("holidayNameLabel") || "휴일명 입력...") : (t("taskContentPlaceholder") || "Enter task...")}
+                  />
+                </div>
               </div>
 
               {/* Task Type Selector */}
@@ -2064,7 +2116,21 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
       {/* ============================================================ */}
       {editingMemo && (
         <div className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[999] animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-700/60 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+          <div
+            style={{ width: `${memoModalWidth}px`, maxWidth: "90vw" }}
+            className="bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-700/60 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col relative"
+          >
+            {/* Resize Handle */}
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsResizingMemo(true);
+              }}
+              className="absolute top-0 right-0 bottom-0 w-2.5 cursor-col-resize hover:bg-indigo-500/20 active:bg-indigo-500/40 transition-colors z-50 flex items-center justify-center group"
+              title="가로폭 조절"
+            >
+              <div className="w-0.5 h-8 bg-gray-350 dark:bg-surface-600 rounded opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
             {/* Header */}
             <div className="px-4.5 py-3.5 border-b border-gray-200/60 dark:border-surface-800/80 flex items-center justify-between shrink-0">
               <span className="text-xs font-bold text-amber-550 uppercase tracking-widest bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
@@ -2153,9 +2219,9 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                 <textarea
                   value={editMemoContent}
                   onChange={(e) => setEditMemoContent(e.target.value)}
-                  rows={8}
+                  rows={14}
                   placeholder={t("memoPlaceholder") || "Enter memo..."}
-                  className="w-full bg-gray-100 dark:bg-surface-800 text-xs border border-gray-200/60 dark:border-surface-700/65 rounded-xl px-3 py-2 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 resize-none font-sans"
+                  className="w-full bg-gray-100 dark:bg-surface-800 text-xs border border-gray-200/60 dark:border-surface-700/65 rounded-xl px-3 py-2 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 resize-y min-h-[320px] font-sans"
                 />
               </div>
             </div>

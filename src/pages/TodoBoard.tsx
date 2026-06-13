@@ -6,6 +6,8 @@ import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 
 import ReactMarkdown from "react-markdown";
+import { FolderIcon } from "@/components/DynamicIcon";
+import { IconPicker } from "@/components/IconPicker";
 
 // --- Types ---
 
@@ -70,6 +72,23 @@ const formatDateStr = (date: Date) => {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+};
+
+const formatDate = (dateStr: string, lang: string) => {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+
+  if (lang === "ko") {
+    return `${m}월 ${d}일`;
+  } else if (lang === "ja") {
+    return `${m}月 ${d}日`;
+  } else {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[m - 1]} ${d}`;
+  }
 };
 
 const isToday = (date: Date) => {
@@ -213,8 +232,9 @@ const TodoTaskCard = React.memo(function TodoTaskCard({
                 >
                   {task.completed ? <CheckCircle2 size={16} className="text-emerald-500 animate-in zoom-in duration-200" /> : <Circle size={16} />}
                 </button>
-                <div className={`text-[15px] font-medium break-words leading-tight ${task.completed ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-800 dark:text-gray-100"}`}>
-                  {task.content}
+                <div className={`text-[15px] font-medium break-words leading-tight flex items-center gap-1.5 ${task.completed ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-800 dark:text-gray-100"}`}>
+                  {task.icon && <FolderIcon iconName={task.icon} size={14} className="shrink-0" />}
+                  <span>{task.content}</span>
                 </div>
               </div>
 
@@ -531,6 +551,8 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   // Task Modal management
   const [editingTask, setEditingTask] = useState<TodoTask | null>(null);
   const [editTaskTitleModal, setEditTaskTitleModal] = useState("");
+  const [editTaskIcon, setEditTaskIcon] = useState<string | undefined>(undefined);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [editTaskDescModal, setEditTaskDescModal] = useState("");
   const [editTaskTags, setEditTaskTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -796,6 +818,8 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   const openTaskModal = useCallback((task: TodoTask) => {
     setEditingTask(task);
     setEditTaskTitleModal(task.content);
+    setEditTaskIcon(task.icon);
+    setShowIconPicker(false);
     setEditTaskDescModal(task.description || "");
     setEditTaskTags(task.tags || []);
     setTagInput("");
@@ -860,6 +884,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
     const newTask = {
       ...editingTask,
       content,
+      icon: editTaskIcon || undefined,
       description: editTaskDescModal.trim() || undefined,
       tags: editTaskTags.length > 0 ? editTaskTags : undefined,
       checklist: editTaskChecklist.length > 0 ? editTaskChecklist : undefined,
@@ -880,7 +905,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
       }
     });
     setEditingTask(null);
-  }, [data, editingTask, editTaskTitleModal, editTaskDescModal, editTaskTags, editTaskChecklist, editTaskProgress, editTaskCompleted, editTaskColor, editTaskStartDate, editTaskDueDate, editTaskDueTime, editTaskReminder, saveData]);
+  }, [data, editingTask, editTaskTitleModal, editTaskIcon, editTaskDescModal, editTaskTags, editTaskChecklist, editTaskProgress, editTaskCompleted, editTaskColor, editTaskStartDate, editTaskDueDate, editTaskDueTime, editTaskReminder, saveData]);
 
 
   if (loading || !data) {
@@ -979,21 +1004,47 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                 >
                   {editTaskCompleted ? <CheckCircle2 size={24} className="text-emerald-500 animate-in zoom-in duration-200" /> : <Circle size={24} />}
                 </button>
-                <div className="flex-1">
-                  <textarea
-                    rows={1}
-                    value={editTaskTitleModal}
-                    onChange={(e) => setEditTaskTitleModal(e.target.value)}
-                    className={`w-full text-xl font-bold ${editTaskCompleted ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-gray-100"} bg-transparent outline-none resize-y overflow-y-auto hover:bg-gray-100 dark:hover:bg-surface-800 focus:bg-white dark:focus:bg-surface-900 focus:ring-2 focus:ring-indigo-500/50 rounded-lg px-2 py-1 transition-colors min-h-[36px]`}
-                    placeholder="Task Title..."
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        e.currentTarget.blur();
-                      }
-                    }}
-                  />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 px-2 mt-1">in list <span className="underline decoration-gray-300">{data.columns[Object.keys(data.columns).find(colId => data.columns[colId].taskIds.includes(editingTask.id)) || ""]?.title}</span></p>
+                <div className="flex-1 flex items-start gap-2.5 relative">
+                  <div className="relative shrink-0 mt-[3px]">
+                    <button
+                      type="button"
+                      onClick={() => setShowIconPicker(!showIconPicker)}
+                      className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-surface-800 border border-gray-250 dark:border-surface-700/60 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-surface-700 transition-all shadow-sm shrink-0"
+                      title="일정 아이콘 설정"
+                    >
+                      {editTaskIcon ? (
+                        <FolderIcon iconName={editTaskIcon} size={16} className="text-indigo-500 dark:text-indigo-400" />
+                      ) : (
+                        <Plus size={14} className="text-gray-400 dark:text-gray-500" />
+                      )}
+                    </button>
+                    {showIconPicker && (
+                      <IconPicker
+                        onSelect={(icon) => {
+                          setEditTaskIcon(icon);
+                          setShowIconPicker(false);
+                        }}
+                        onClose={() => setShowIconPicker(false)}
+                        className="left-0 mt-1.5 w-[220px]"
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <textarea
+                      rows={1}
+                      value={editTaskTitleModal}
+                      onChange={(e) => setEditTaskTitleModal(e.target.value)}
+                      className={`w-full text-xl font-bold ${editTaskCompleted ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-gray-100"} bg-transparent outline-none resize-y overflow-y-auto hover:bg-gray-100 dark:hover:bg-surface-800 focus:bg-white dark:focus:bg-surface-900 focus:ring-2 focus:ring-indigo-500/50 rounded-lg px-2 py-1 transition-colors min-h-[36px]`}
+                      placeholder="Task Title..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          e.currentTarget.blur();
+                        }
+                      }}
+                    />
+                    <p className="text-sm text-gray-500 dark:text-gray-400 px-2 mt-1">in list <span className="underline decoration-gray-300">{data.columns[Object.keys(data.columns).find(colId => data.columns[colId].taskIds.includes(editingTask.id)) || ""]?.title}</span></p>
+                  </div>
                 </div>
               </div>
               <button onClick={() => setEditingTask(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors shrink-0">

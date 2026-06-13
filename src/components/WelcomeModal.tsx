@@ -46,7 +46,16 @@ export default function WelcomeModal({ onClose }: Props) {
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div className="w-full max-w-sm bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-600 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-surface-700">
-            <span className="font-bold text-gray-800 dark:text-gray-100">{t("onboardingTitle")}</span>
+            <div className="flex items-center gap-2">
+              <img src="/icons/icon128.png" alt="ClickBook" className="w-5 h-5 rounded-sm" />
+              <span className="font-bold text-gray-800 dark:text-gray-100 relative flex items-center gap-1 text-base tracking-tight">
+                <span>ClickBook</span>
+                <span className="flex items-center gap-0.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white border border-indigo-500/30 px-1.5 py-0.5 rounded text-[9px] font-extrabold select-none leading-none mt-[-6px] shadow-sm shadow-indigo-500/20">
+                  <Sparkles size={9} className="text-yellow-300 fill-yellow-300 shrink-0" />
+                  AI
+                </span>
+              </span>
+            </div>
             <button
               onClick={onClose}
               className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-surface-700"

@@ -1,6 +1,6 @@
 export const ja = {
   // ── Time formats ──────────────────────────────────────────
-  pageTitle: "ClickBook — ブックマーク管理",
+  pageTitle: "ClickBook AI — ブックマーク＆タスク管理",
   timeJustNow: "たった今",
   timeMinAgo: "{n}分前",
   timeHourAgo: "{n}時間前",
@@ -21,9 +21,9 @@ export const ja = {
 
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "ダッシュボード",
-  bookmarkMap: "Bookmark Map",
+  bookmarkMap: "ブックマップ",
   memoBoard: "メモ",
-  aiOrganize: "AI 整理",
+  aiOrganize: "ブック整理",
   aiNotAvailable: "Chrome AI (Gemini Nano) が利用できません",
   aiOrganizeTooltip:
     "AIが全サイトを自動分類してフォルダーに振り分けます\n実行前に現在の状態を自動バックアップします",
@@ -418,9 +418,9 @@ export const ja = {
   settingsShortcutSave: "現在のタブを保存 (Alt+S)",
 
   // ── AI Bookmark Cleaner ───────────────────────────────────
-  aiCleanerBtn: "AI Bookmark Cleaner",
+  aiCleanerBtn: "ブッククリーナー",
   aiCleanerTooltip: "意味的に類似したブックマークを検出して整理します",
-  aiCleanerTitle: "AI ブックマーク クリーナー",
+  aiCleanerTitle: "ブッククリーナー",
   aiCleanerDesc: "AIが類似ブックマークをグループ化します。各グループを確認して重複を削除してください。",
   aiCleanerAnalyzing: "分析中...",
   aiCleanerNoGroups: "類似ブックマークは見つかりませんでした。ブックマークはきれいです！",
