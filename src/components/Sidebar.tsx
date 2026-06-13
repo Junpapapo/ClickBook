@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronDown,
   ChevronsUp,
+  ChevronsDown,
   Plus,
   Trash2,
   Pencil,
@@ -181,6 +182,22 @@ export default function Sidebar({
   } | null>(null);
   const { showConfirm, DialogEl } = useDialog();
   const { t, lang } = useLang();
+
+  // ── 모든 영역(Bookmarks, Tasks, Memory Saver, Trending) 일괄 접기/펼치기 ──────
+  const isAllCollapsed = isBookmarkCollapsed && isTaskCollapsed && isMemorySaverCollapsed && isTrendingCollapsed;
+
+  const handleToggleAllSections = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextState = !isAllCollapsed;
+    setIsBookmarkCollapsed(nextState);
+    setIsTaskCollapsed(nextState);
+    setIsMemorySaverCollapsed(nextState);
+    setIsTrendingCollapsed(nextState);
+    localStorage.setItem("clickbook_sidebar_bookmark_collapsed", String(nextState));
+    localStorage.setItem("clickbook_sidebar_task_collapsed", String(nextState));
+    localStorage.setItem("clickbook_sidebar_memorysaver_collapsed", String(nextState));
+    localStorage.setItem("clickbook_sidebar_trending_collapsed", String(nextState));
+  };
 
   // ── Memory Saver (Tab Suspender) States & Handlers ──────
   const [suspendedCount, setSuspendedCount] = useState(0);
@@ -668,14 +685,11 @@ export default function Sidebar({
               <span className="truncate leading-none font-medium">{t("dashboard")}</span>
             </button>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleCollapse();
-              }}
-              title={t("collapse")}
+              onClick={handleToggleAllSections}
+              title={isAllCollapsed ? t("expandAll") : t("collapseAll")}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-surface-700/80 transition-all cursor-pointer"
             >
-              <ChevronLeft size={12} />
+              {isAllCollapsed ? <ChevronsDown size={13} /> : <ChevronsUp size={13} />}
             </button>
           </div>
         )}

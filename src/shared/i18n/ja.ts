@@ -206,6 +206,7 @@ export const ja = {
   hfRankingMenuDesc: "サイドバーメニューとポップアップにHugging Face AIランキングメニューを表示します。",
   hnRankingMenuDesc: "サイドバーメニューとポップアップにHacker Newsメニューを表示します。",
   collapseAll: "すべて折りたたむ",
+  expandAll: "すべて展開",
   infoTooltip: "サイト情報",
 
   settingsChromePanelLabel: "Chrome パネル（サイドバー）",

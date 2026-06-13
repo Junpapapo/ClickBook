@@ -207,6 +207,7 @@ export const ko = {
   hfRankingMenuDesc: "사이드바 메뉴와 팝업에 Hugging Face AI 랭킹 메뉴를 표시합니다.",
   hnRankingMenuDesc: "사이드바 메뉴와 팝업에 Hacker News 메뉴를 표시합니다.",
   collapseAll: "모두 접기",
+  expandAll: "모두 펼치기",
   infoTooltip: "사이트 정보",
 
   settingsChromePanelLabel: "Chrome 패널 (사이드바)",

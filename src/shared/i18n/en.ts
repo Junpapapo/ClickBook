@@ -207,6 +207,7 @@ export const en = {
   hfRankingMenuDesc: "Show Hugging Face AI ranking menu in sidebar and popup.",
   hnRankingMenuDesc: "Show Hacker News menu in sidebar and popup.",
   collapseAll: "Collapse All",
+  expandAll: "Expand All",
   infoTooltip: "Site Info",
 
   settingsChromePanelLabel: "Chrome Panel (Sidebar)",
