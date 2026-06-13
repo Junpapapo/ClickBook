@@ -654,18 +654,30 @@ export default function Sidebar({
             <Home size={16} />
           </button>
         ) : (
-          <button
-            onClick={() => onNavigate("dashboard")}
-            className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm rounded-lg transition-all duration-150 border
-              ${activePage === "dashboard"
-                ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border-indigo-500/20 dark:border-indigo-500/30"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800 border-transparent"
-              }
-            `}
-          >
-            <Home size={15} className="shrink-0" />
-            <span className="truncate leading-none font-medium">{t("dashboard")}</span>
-          </button>
+          <div className="relative w-full group/dash">
+            <button
+              onClick={() => onNavigate("dashboard")}
+              className={`w-full flex items-center justify-center gap-2 pl-3 pr-10 py-2.5 text-sm rounded-lg transition-all duration-150 border
+                ${activePage === "dashboard"
+                  ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border-indigo-500/20 dark:border-indigo-500/30"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800 border-transparent"
+                }
+              `}
+            >
+              <Home size={15} className="shrink-0" />
+              <span className="truncate leading-none font-medium">{t("dashboard")}</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleCollapse();
+              }}
+              title={t("collapse")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-surface-700/80 transition-all cursor-pointer"
+            >
+              <ChevronLeft size={12} />
+            </button>
+          </div>
         )}
       </div>
 
