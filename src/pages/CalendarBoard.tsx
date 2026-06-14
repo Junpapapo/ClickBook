@@ -17,7 +17,8 @@ import {
   CheckSquare, 
   AlignLeft, 
   AlertCircle,
-  Edit
+  Edit,
+  Printer
 } from "lucide-react";
 import type { TodoBoardData, TodoTask, Bookmark, BookmarkMemo, MemoColor, MessageResponse, AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
@@ -431,6 +432,11 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
     setCurrentYear(today.getFullYear());
     setCurrentMonth(today.getMonth());
     setSelectedDate(today);
+  };
+
+  const handlePrint = () => {
+    const startStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+    window.open(`index.html?mode=print&start=${startStr}&end=${startStr}`, "_blank");
   };
 
   // Open TODO task editor
@@ -1193,21 +1199,32 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
           </button>
         </div>
 
-        {/* View Mode Switcher Tabs */}
-        <div className="flex bg-gray-100/60 dark:bg-surface-800/60 p-0.5 rounded-xl border border-gray-200/20 dark:border-white/5">
-          {(["month", "week", "day"] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                viewMode === mode
-                  ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10"
-                  : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
-              }`}
-            >
-              {mode === "month" ? t("viewMonth") : mode === "week" ? t("viewWeek") : t("viewDay")}
-            </button>
-          ))}
+        {/* View Mode Switcher & Print Control */}
+        <div className="flex items-center gap-2">
+          <div className="flex bg-gray-100/60 dark:bg-surface-800/60 p-0.5 rounded-xl border border-gray-200/20 dark:border-white/5">
+            {(["month", "week", "day"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  viewMode === mode
+                    ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10"
+                    : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                }`}
+              >
+                {mode === "month" ? t("viewMonth") : mode === "week" ? t("viewWeek") : t("viewDay")}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 rounded-xl transition-all shadow-sm active:scale-95"
+            title={t("printCalendar") || "인쇄"}
+          >
+            <Printer size={14} className="text-gray-500 dark:text-gray-400" />
+            <span className="hidden sm:inline">{t("printCalendar") || "인쇄"}</span>
+          </button>
         </div>
       </div>
 

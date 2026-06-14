@@ -114,6 +114,21 @@ export async function isDuplicateUrl(url: string, excludeId?: string): Promise<b
   return data.bookmarks.some((b) => b.url === url && b.id !== excludeId);
 }
 
+export async function saveBookmarkTransaction(
+  bookmark: Bookmark
+): Promise<{ folder: Folder; isDuplicate: boolean }> {
+  return await withStorageLock(async (data) => {
+    const isDuplicate = data.bookmarks.some((b) => b.url === bookmark.url);
+    if (isDuplicate) {
+      const folder = data.folders.find((f) => f.id === bookmark.folderId) || data.folders[0];
+      return { folder, isDuplicate: true };
+    }
+    data.bookmarks = [bookmark, ...data.bookmarks];
+    const folder = data.folders.find((f) => f.id === bookmark.folderId) || data.folders[0];
+    return { folder, isDuplicate: false };
+  });
+}
+
 export async function incrementVisitCount(id: string): Promise<void> {
   await withStorageLock(async (data) => {
     data.bookmarks = data.bookmarks.map((b) =>

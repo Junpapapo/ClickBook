@@ -863,17 +863,15 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
       return { success: true };
     }
     case "ADD_BOOKMARK": {
-      const { isDuplicateUrl, addBookmark } = await import("@/shared/storage");
-      const dup = await isDuplicateUrl(message.url);
-      if (dup) return { success: false, error: "This URL is already registered", isDuplicate: true };
       if (!message.url.startsWith("http://") && !message.url.startsWith("https://")) {
         return { success: false, error: "Please enter an http/https URL" };
       }
       const parsedUrl = new URL(message.url);
       const domain = parsedUrl.hostname;
+      const bookmarkId = crypto.randomUUID();
       
       const bookmark: Bookmark = {
-        id: crypto.randomUUID(),
+        id: bookmarkId,
         url: message.url,
         title: message.title || message.url,
         favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
@@ -882,7 +880,12 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
         visitCount: 0,
         savedAt: Date.now(),
       };
-      await addBookmark(bookmark);
+
+      const { saveBookmarkTransaction } = await import("@/shared/storage");
+      const { isDuplicate } = await saveBookmarkTransaction(bookmark);
+      if (isDuplicate) {
+        return { success: false, error: "This URL is already registered", isDuplicate: true };
+      }
 
       try {
         const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -898,7 +901,7 @@ async function handleMessage(message: Message): Promise<MessageResponse> {
           const aiData = await generateSummaryAndTags(message.url, message.title || message.url, "");
           if (aiData && (aiData.summary || aiData.tags)) {
             const { updateBookmark } = await import("@/shared/storage");
-            await updateBookmark(bookmark.id, {
+            await updateBookmark(bookmarkId, {
               summary: aiData.summary,
               tags: aiData.tags,
             });
@@ -1440,38 +1443,17 @@ async function saveActiveTab(): Promise<MessageResponse> {
     return { success: false, error: "Only http/https URLs can be saved" };
   }
 
-  const existing = await getBookmarks();
-  const isDuplicate = existing.some((b) => b.url === tab.url);
-  if (isDuplicate) {
-    return { success: false, error: "URL already saved", isDuplicate: true };
-  }
-
   const url = new URL(tab.url);
   const domain = url.hostname;
-  const { folderId, method } = await categorize(tab.url, tab.title ?? "", domain);
+
+  // 1차 빠른 카테고리 지정 (규칙 기반)
+  const { categorizeQuick } = await import("@/shared/categorizer");
+  const folderId = categorizeQuick(domain);
   const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-
-  let description = "";
-  let rawText = "";
-  let readableContent = "";
-
-  try {
-    const [injectionResult] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id! },
-      func: scrapePageContent
-    });
-    if (injectionResult?.result) {
-      const res = injectionResult.result as { description: string; rawText: string; readableContent: string };
-      description = res.description;
-      rawText = res.rawText;
-      readableContent = res.readableContent;
-    }
-  } catch (err) {
-    console.warn("Scraping failed inside saveActiveTab:", err);
-  }
+  const bookmarkId = crypto.randomUUID();
 
   const bookmark: Bookmark = {
-    id: crypto.randomUUID(),
+    id: bookmarkId,
     url: tab.url,
     title: tab.title ?? tab.url ?? "Untitled",
     favicon,
@@ -1482,7 +1464,13 @@ async function saveActiveTab(): Promise<MessageResponse> {
     savedAt: Date.now(),
   };
 
-  await addBookmark(bookmark);
+  // 단일 트랜잭션으로 저장 및 중복 검사, 폴더 획득 수행
+  const { saveBookmarkTransaction } = await import("@/shared/storage");
+  const { folder, isDuplicate } = await saveBookmarkTransaction(bookmark);
+
+  if (isDuplicate) {
+    return { success: false, error: "URL already saved", isDuplicate: true };
+  }
 
   try {
     if (tab.id && tab.url) {
@@ -1490,34 +1478,73 @@ async function saveActiveTab(): Promise<MessageResponse> {
     }
   } catch(e) {}
 
-  // Run AI summary, tags generation, and page content saving asynchronously in the background
+  // 백그라운드 비동기 처리 체인 (UI 차단 없음)
   (async () => {
     try {
-      // 1. Save page content if available
-      if (rawText || readableContent) {
-        const { savePageContent } = await import("@/shared/storage");
-        await savePageContent(bookmark.id, rawText, readableContent);
+      let description = "";
+      let rawText = "";
+      let readableContent = "";
+
+      // 1. 활성 탭 스크래핑
+      try {
+        const [injectionResult] = await chrome.scripting.executeScript({
+          target: { tabId: tab.id! },
+          func: scrapePageContent
+        });
+        if (injectionResult?.result) {
+          const res = injectionResult.result as { description: string; rawText: string; readableContent: string };
+          description = res.description;
+          rawText = res.rawText;
+          readableContent = res.readableContent;
+        }
+      } catch (err) {
+        console.warn("Background scraping failed:", err);
       }
 
-      // 2. Generate summary & tags
+      // 2. 스크래핑 데이터 저장
+      if (rawText || readableContent) {
+        const { savePageContent } = await import("@/shared/storage");
+        await savePageContent(bookmarkId, rawText, readableContent);
+      }
+
+      // 3. AI 카테고리 재분류 검사
+      const { categorize } = await import("@/shared/categorizer");
+      const classifyResult = await categorize(tab.url!, tab.title ?? "", domain);
+      
+      let finalFolderId = folderId;
+      let folderChanged = false;
+      if (classifyResult && classifyResult.folderId !== folderId) {
+        finalFolderId = classifyResult.folderId;
+        folderChanged = true;
+      }
+
+      // 4. AI 요약 & 태그 생성
       const { generateSummaryAndTags } = await import("@/shared/categorizer");
-      const aiData = await generateSummaryAndTags(tab.url!, tab.title ?? "", description || readableContent.slice(0, 300));
+      const aiData = await generateSummaryAndTags(
+        tab.url!,
+        tab.title ?? "",
+        description || readableContent.slice(0, 300)
+      );
+
+      const updates: { folderId?: string; summary?: string; tags?: string[] } = {};
+      if (folderChanged) {
+        updates.folderId = finalFolderId;
+      }
       if (aiData && (aiData.summary || aiData.tags)) {
+        if (aiData.summary) updates.summary = aiData.summary;
+        if (aiData.tags) updates.tags = aiData.tags;
+      }
+
+      if (Object.keys(updates).length > 0) {
         const { updateBookmark } = await import("@/shared/storage");
-        await updateBookmark(bookmark.id, {
-          summary: aiData.summary,
-          tags: aiData.tags,
-        });
+        await updateBookmark(bookmarkId, updates);
       }
     } catch (err) {
       console.warn("Background processes failed for saveActiveTab:", err);
     }
   })();
 
-  const { getFolders } = await import("@/shared/storage");
-  const folders = await getFolders();
-  const folder = getFolderById(folders, folderId);
-  return { success: true, data: { bookmark, folderName: folder.name, method } };
+  return { success: true, data: { bookmark, folderName: folder.name, method: "rules" } };
 }
 
 // ── Chrome Sync Helpers ───────────────────────────────────

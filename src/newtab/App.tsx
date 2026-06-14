@@ -25,6 +25,7 @@ import TodoBoard from "@/pages/TodoBoard";
 import TagBoard from "@/pages/TagBoard";
 import TaskControlPage from "@/pages/TaskControlPage";
 import CalendarBoard from "@/pages/CalendarBoard";
+import PrintCalendar from "@/pages/PrintCalendar";
 import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 import { useTaskQueue } from "@/shared/useTaskQueue";
 
@@ -399,6 +400,20 @@ function AppContent() {
     () => (selectedFolderId ? getBookmarksForFolder(selectedFolderId) : []),
     [selectedFolderId, getBookmarksForFolder]
   );
+
+  const params = new URLSearchParams(window.location.search);
+  const isPrintMode = params.get("mode") === "print";
+
+  if (isPrintMode) {
+    return (
+      <PrintCalendar
+        settings={settings}
+        bookmarks={bookmarks}
+        memos={memos}
+        onRefresh={loadData}
+      />
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-50 dark:bg-surface-950 text-gray-800 dark:text-gray-100 transition-colors duration-200">

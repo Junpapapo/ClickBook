@@ -42,6 +42,10 @@ function classifyByDomain(domain: string): string {
   return DEFAULT_FOLDER_ID;
 }
 
+export function categorizeQuick(domain: string): string {
+  return classifyByDomain(domain);
+}
+
 // ── AI 환경 설정 ─────────────────────────────────────────
 // 최초 실행 시 실제 세션을 열어 자동 체크 → 결과 저장
 // 이후에는 팝업에서 수동으로 ON/OFF 전환 가능
