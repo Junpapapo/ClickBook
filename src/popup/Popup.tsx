@@ -458,6 +458,22 @@ export default function Popup() {
     return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
+  useEffect(() => {
+    const messageListener = (msg: any) => {
+      if (msg.type === "BOOKMARK_AI_UPDATED") {
+        // 이미 저장된 북마크 ID와 매칭되거나, 새로 저장 중인 북마크 ID인 경우 갱신
+        if (existingBookmarkId === msg.bookmarkId || (!existingBookmarkId && msg.bookmarkId)) {
+          setSaveResult({ folderName: msg.folderName, method: msg.method });
+          if (msg.summary) setTabSummary(msg.summary);
+          if (msg.tags) setTabTags(msg.tags);
+          if (!existingBookmarkId) setExistingBookmarkId(msg.bookmarkId);
+        }
+      }
+    };
+    chrome.runtime.onMessage.addListener(messageListener);
+    return () => chrome.runtime.onMessage.removeListener(messageListener);
+  }, [existingBookmarkId]);
+
   async function handleSave() {
     setStatus("loading");
     setSaveResult(null);

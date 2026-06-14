@@ -1538,6 +1538,22 @@ async function saveActiveTab(): Promise<MessageResponse> {
       if (Object.keys(updates).length > 0) {
         const { updateBookmark } = await import("@/shared/storage");
         await updateBookmark(bookmarkId, updates);
+
+        try {
+          const { getFolderById, getLocalizedFolderName } = await import("@/shared/categories");
+          const updatedFolder = await getFolderById(finalFolderId);
+          const lang = await getEffectiveLanguage();
+          chrome.runtime.sendMessage({
+            type: "BOOKMARK_AI_UPDATED",
+            bookmarkId,
+            folderName: updatedFolder ? getLocalizedFolderName(updatedFolder, lang) : finalFolderId,
+            method: classifyResult ? classifyResult.method : "fallback",
+            summary: aiData?.summary,
+            tags: aiData?.tags
+          });
+        } catch (e) {
+          // 팝업창이 이미 닫힌 경우 등 에러 무시
+        }
       }
     } catch (err) {
       console.warn("Background processes failed for saveActiveTab:", err);
