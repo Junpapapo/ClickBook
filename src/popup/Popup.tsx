@@ -14,7 +14,7 @@ import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
 import { isAIAvailable, setAIEnabled, verifyAISession, generateMemoDraft } from "@/shared/categorizer";
 
-type Status = "idle" | "loading" | "success" | "duplicate" | "error";
+type Status = "idle" | "loading" | "analyzing" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
 
 const GITHUB_ISSUES_URL = "https://github.com/Junpapapo/ClickBook/issues/new/choose";
@@ -480,11 +480,24 @@ export default function Popup() {
     try {
       const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
       if (res.success) {
-        setStatus("success");
-        setMessage(t("popupSaved"));
+        setStatus("analyzing");
+        setMessage("");
+        
         const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
-        if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
         if (d?.bookmark?.id) setExistingBookmarkId(d.bookmark.id);
+
+        // AI 지연을 시각적으로 알리기 위해 1.5초(1500ms) 동안 대기 상태 표시
+        setTimeout(() => {
+          setStatus("success");
+          setMessage(t("popupSaved"));
+          setSaveResult(prev => {
+            // 이미 백그라운드 AI 완료 이벤트를 통해 갱신된 내역이 있을 시 기존 갱신값 유지
+            if (prev && prev.method === "ai") return prev;
+            if (d?.folderName && d?.method) return { folderName: d.folderName, method: d.method };
+            return prev;
+          });
+        }, 1500);
+
       } else if (res.isDuplicate) {
         setStatus("duplicate");
         setMessage(t("popupDuplicate"));
@@ -495,57 +508,57 @@ export default function Popup() {
     } catch (err) { console.warn("Operation failed:", err); setStatus("error"); setMessage(t("popupError")); }
   }
 
-  async function handleOpenPopupReader() {
+  async function handleRegisterReader() {
     setIsReaderLoading(true);
-    let targetBookmarkId = existingBookmarkId;
+    setSaveResult(null);
+    try {
+      const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
+      if (res.success) {
+        setStatus("analyzing");
+        setMessage("");
+        
+        const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
+        if (d?.bookmark?.id) setExistingBookmarkId(d.bookmark.id);
 
-    if (!targetBookmarkId) {
-      // Not bookmarked yet. Save first.
-      try {
-        const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
-        if (res.success) {
-          const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
-          if (d?.bookmark?.id) {
-            targetBookmarkId = d.bookmark.id;
-            setExistingBookmarkId(d.bookmark.id);
-            if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
-          }
-        } else if (res.isDuplicate) {
-          const dataRes = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
-          if (dataRes.success && dataRes.data) {
-            const data = dataRes.data as { bookmarks: Array<{ id: string; url: string }> };
-            const bm = data.bookmarks.find((b) => b.url === tabUrl);
-            if (bm) {
-              targetBookmarkId = bm.id;
-              setExistingBookmarkId(bm.id);
-            }
+        setTimeout(() => {
+          setStatus("success");
+          setMessage(t("popupReaderRegistered"));
+          setSaveResult(prev => {
+            if (prev && prev.method === "ai") return prev;
+            if (d?.folderName && d?.method) return { folderName: d.folderName, method: d.method };
+            return prev;
+          });
+        }, 1500);
+
+      } else if (res.isDuplicate) {
+        const dataRes = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
+        if (dataRes.success && dataRes.data) {
+          const data = dataRes.data as { bookmarks: Array<{ id: string; url: string }> };
+          const bm = data.bookmarks.find((b) => b.url === tabUrl);
+          if (bm) {
+            setExistingBookmarkId(bm.id);
           }
         }
-      } catch (err) {
-        console.warn("Auto-save failed inside offline reader:", err);
+        
+        setStatus("analyzing");
+        setMessage("");
+        
+        setTimeout(() => {
+          setStatus("success");
+          setMessage(t("popupReaderRegistered"));
+        }, 1500);
+
+      } else {
+        setStatus("error");
+        setMessage(res.error ?? t("popupReaderRegisterFailed"));
       }
-    }
-
-    if (!targetBookmarkId) {
+    } catch (err) {
+      console.warn("Offline reader registration failed:", err);
       setStatus("error");
-      setMessage(t("popupSaveFailed"));
+      setMessage(t("popupError"));
+    } finally {
       setIsReaderLoading(false);
-      return;
     }
-
-    // Redirect to dashboard with reader parameter
-    const url = chrome.runtime.getURL(`src/newtab/index.html?mode=dashboard&reader=${targetBookmarkId}`);
-    if (openDashboardInNewTab) {
-      chrome.tabs.create({ url });
-    } else {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0]?.id !== undefined) {
-          chrome.tabs.update(tabs[0].id, { url });
-          window.close();
-        }
-      });
-    }
-    setIsReaderLoading(false);
   }
 
   async function handleBulkSave() {
@@ -558,9 +571,13 @@ export default function Popup() {
     if (validTabs.length === 0) { setBulkStatus("idle"); return; }
     const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items: validTabs }) as MessageResponse;
     const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
-    setBulkStatus("done");
-    setBulkResult({ saved, skipped: validTabs.length - saved });
-    setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
+    
+    // AI 대량 처리 및 일괄 분류를 시각화하기 위해 1.5초 딜레이
+    setTimeout(() => {
+      setBulkStatus("done");
+      setBulkResult({ saved, skipped: validTabs.length - saved });
+      setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
+    }, 1500);
   }
 
   async function handleTextImport() {
@@ -571,10 +588,13 @@ export default function Popup() {
     const items = urls.map(u => ({ url: u, title: u }));
     const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items }) as MessageResponse;
     const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
-    setTextImportStatus("done");
-    setTextImportResult({ saved, skipped: urls.length - saved });
-    if (saved > 0) setTextInput("");
-    setTimeout(() => { setTextImportStatus("idle"); setTextImportResult(null); }, 4000);
+    
+    setTimeout(() => {
+      setTextImportStatus("done");
+      setTextImportResult({ saved, skipped: urls.length - saved });
+      if (saved > 0) setTextInput("");
+      setTimeout(() => { setTextImportStatus("idle"); setTextImportResult(null); }, 4000);
+    }, 1500);
   }
 
   async function handleSaveMemo() {
@@ -920,8 +940,8 @@ export default function Popup() {
             {t("popupSave")}
           </button>
           <button
-            onClick={handleOpenPopupReader}
-            disabled={isReaderLoading}
+            onClick={handleRegisterReader}
+            disabled={isReaderLoading || status === "success"}
             title={t("popupReaderTooltip")}
             className="flex-1 flex items-center justify-center gap-1 py-2 rounded bg-gradient-to-r from-purple-600 via-indigo-600 to-indigo-700 hover:from-purple-500 hover:to-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium text-[11px] text-white shadow-[0_0_12px_rgba(139,92,246,0.25)] border border-purple-500/20 cursor-pointer"
           >
@@ -1398,6 +1418,14 @@ export default function Popup() {
       )}
 
       {/* ステータス */}
+      {status === "analyzing" && (
+        <div className="flex items-center gap-2 text-violet-400 text-sm animate-pulse bg-violet-950/20 border border-violet-800/30 rounded-lg px-3 py-2.5">
+          <Loader2 size={15} className="animate-spin text-violet-500" />
+          <span>
+            {lang === "ko" ? "AI가 본문을 분석하고 분류 중입니다..." : lang === "ja" ? "AI が本文を解析し分類中..." : "AI is analyzing content and categorizing..."}
+          </span>
+        </div>
+      )}
       {status === "success" && (
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2 text-emerald-400 text-sm">

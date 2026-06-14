@@ -358,6 +358,8 @@ export const ja = {
   popupAiAvailableTitle: "クリックでAI分類を無効にする",
   popupAiUnavailableTitle: "クリックでAI分類を有効にする (Chrome Gemini Nano)",
   popupSaved: "保存しました！",
+  popupReaderRegistered: "オフラインリーダーに登録しました！",
+  popupReaderRegisterFailed: "オフラインリーダーの登録に失敗しました。",
   popupDuplicate: "このURLはすでに保存済みです。",
   popupSaveFailed: "保存に失敗しました。",
   popupError: "エラーが発生しました。",

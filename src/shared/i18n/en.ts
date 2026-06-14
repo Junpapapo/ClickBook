@@ -359,6 +359,8 @@ export const en = {
   popupAiAvailableTitle: "Click to disable AI classification",
   popupAiUnavailableTitle: "Click to enable AI classification (Chrome Gemini Nano)",
   popupSaved: "Saved!",
+  popupReaderRegistered: "Registered for offline reader!",
+  popupReaderRegisterFailed: "Failed to register for offline reader.",
   popupDuplicate: "This URL is already saved.",
   popupSaveFailed: "Save failed.",
   popupError: "An error occurred.",
