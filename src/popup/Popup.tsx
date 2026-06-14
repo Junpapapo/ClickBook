@@ -480,23 +480,12 @@ export default function Popup() {
     try {
       const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
       if (res.success) {
-        setStatus("analyzing");
-        setMessage("");
+        setStatus("success");
+        setMessage(t("popupSaved"));
         
         const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
         if (d?.bookmark?.id) setExistingBookmarkId(d.bookmark.id);
-
-        // AI 지연을 시각적으로 알리기 위해 1.5초(1500ms) 동안 대기 상태 표시
-        setTimeout(() => {
-          setStatus("success");
-          setMessage(t("popupSaved"));
-          setSaveResult(prev => {
-            // 이미 백그라운드 AI 완료 이벤트를 통해 갱신된 내역이 있을 시 기존 갱신값 유지
-            if (prev && prev.method === "ai") return prev;
-            if (d?.folderName && d?.method) return { folderName: d.folderName, method: d.method };
-            return prev;
-          });
-        }, 1500);
+        if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
 
       } else if (res.isDuplicate) {
         setStatus("duplicate");
@@ -514,21 +503,12 @@ export default function Popup() {
     try {
       const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
       if (res.success) {
-        setStatus("analyzing");
-        setMessage("");
+        setStatus("success");
+        setMessage(t("popupReaderRegistered"));
         
         const d = res.data as { folderName?: string; method?: ClassifyMethod; bookmark?: { id: string } } | undefined;
         if (d?.bookmark?.id) setExistingBookmarkId(d.bookmark.id);
-
-        setTimeout(() => {
-          setStatus("success");
-          setMessage(t("popupReaderRegistered"));
-          setSaveResult(prev => {
-            if (prev && prev.method === "ai") return prev;
-            if (d?.folderName && d?.method) return { folderName: d.folderName, method: d.method };
-            return prev;
-          });
-        }, 1500);
+        if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
 
       } else if (res.isDuplicate) {
         const dataRes = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
@@ -540,13 +520,8 @@ export default function Popup() {
           }
         }
         
-        setStatus("analyzing");
-        setMessage("");
-        
-        setTimeout(() => {
-          setStatus("success");
-          setMessage(t("popupReaderRegistered"));
-        }, 1500);
+        setStatus("success");
+        setMessage(t("popupReaderRegistered"));
 
       } else {
         setStatus("error");
@@ -572,12 +547,9 @@ export default function Popup() {
     const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items: validTabs }) as MessageResponse;
     const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
     
-    // AI 대량 처리 및 일괄 분류를 시각화하기 위해 1.5초 딜레이
-    setTimeout(() => {
-      setBulkStatus("done");
-      setBulkResult({ saved, skipped: validTabs.length - saved });
-      setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
-    }, 1500);
+    setBulkStatus("done");
+    setBulkResult({ saved, skipped: validTabs.length - saved });
+    setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
   }
 
   async function handleTextImport() {
@@ -589,12 +561,10 @@ export default function Popup() {
     const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items }) as MessageResponse;
     const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
     
-    setTimeout(() => {
-      setTextImportStatus("done");
-      setTextImportResult({ saved, skipped: urls.length - saved });
-      if (saved > 0) setTextInput("");
-      setTimeout(() => { setTextImportStatus("idle"); setTextImportResult(null); }, 4000);
-    }, 1500);
+    setTextImportStatus("done");
+    setTextImportResult({ saved, skipped: urls.length - saved });
+    if (saved > 0) setTextInput("");
+    setTimeout(() => { setTextImportStatus("idle"); setTextImportResult(null); }, 4000);
   }
 
   async function handleSaveMemo() {
