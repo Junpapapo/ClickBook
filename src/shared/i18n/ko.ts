@@ -357,8 +357,8 @@ export const ko = {
 
   popupAiAvailableTitle: "클릭하면 AI 분류를 끔니다",
   popupAiUnavailableTitle: "클릭하면 AI 분류를 켭니다 (Chrome Gemini Nano)",
-  popupSaved: "저장했습니다!",
-  popupReaderRegistered: "오프라인 리더에 등록했습니다!",
+  popupSaved: "AI에 의해 비동기로 등록됩니다.",
+  popupReaderRegistered: "AI에 의해 비동기로 오프라인 리더에 등록됩니다.",
   popupReaderRegisterFailed: "오프라인 리더 등록에 실패했습니다.",
   popupDuplicate: "이 URL은 이미 저장되어 있습니다.",
   popupSaveFailed: "저장에 실패했습니다.",

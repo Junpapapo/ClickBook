@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useDeferredValue } from "react";
+import { useState, useEffect, useCallback, useMemo, useDeferredValue, useRef } from "react";
 import Sidebar from "@/components/Sidebar";
 import SearchBar from "@/components/SearchBar";
 import PatternBar from "@/components/PatternBar";
@@ -28,12 +28,14 @@ import CalendarBoard from "@/pages/CalendarBoard";
 import PrintCalendar from "@/pages/PrintCalendar";
 import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 import { useTaskQueue } from "@/shared/useTaskQueue";
+import { Sparkles, X } from "lucide-react";
 
 // ── メインアプリケーションコンポーネント ───────────────────
 
 function AppContent() {
   const { t, lang } = useLang();
   const { DialogEl } = useDialog();
+  const [aiError, setAiError] = useState<string | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [memos, setMemos] = useState<MemoMap>({});
@@ -89,30 +91,117 @@ function AppContent() {
   const handleAutoTag = useCallback(() => {
     if (taskQueue.tasks.some(t => t.category === "ai-tag" && (t.status === "running" || t.status === "queued"))) return;
 
-    const taskId = taskQueue.addTask("ai-tag", "Auto Tag");
-    const port = chrome.runtime.connect({ name: "auto-tag" });
-
-    port.onMessage.addListener((msg: any) => {
-      if (msg.type === "progress") {
-        taskQueue.updateProgress(taskId, msg.progress ?? 0, msg.detail ?? "");
-      } else if (msg.type === "done") {
-        const tagged = msg.tagged ?? 0;
-        const total = msg.total ?? 0;
-        const failed = msg.failed ?? 0;
-        let summary = `${tagged}/${total} bookmarks tagged`;
-        if (failed > 0) summary += ` (${failed} failed)`;
-        taskQueue.completeTask(taskId, summary);
-        loadData();
-      } else if (msg.type === "error") {
-        taskQueue.failTask(taskId, msg.error ?? "Auto tagging failed");
+    let taskId = "";
+    try {
+      taskId = taskQueue.addTask("ai-tag", "Auto Tag");
+      
+      if (typeof chrome === "undefined" || !chrome.runtime || !chrome.runtime.connect) {
+        throw new Error("chrome.runtime.connect is not available in this environment.");
       }
-    });
 
-    port.onDisconnect.addListener(() => {
-      if (chrome.runtime.lastError) {
-        taskQueue.failTask(taskId, chrome.runtime.lastError.message ?? "Connection lost");
+      const port = chrome.runtime.connect({ name: "auto-tag" });
+
+      port.onMessage.addListener((msg: any) => {
+        if (msg.type === "progress") {
+          taskQueue.updateProgress(taskId, msg.progress ?? 0, msg.detail ?? "");
+        } else if (msg.type === "done") {
+          const tagged = msg.tagged ?? 0;
+          const total = msg.total ?? 0;
+          const failed = msg.failed ?? 0;
+          let summary = `${tagged}/${total} bookmarks tagged`;
+          if (failed > 0) summary += ` (${failed} failed)`;
+          taskQueue.completeTask(taskId, summary);
+          loadData();
+        } else if (msg.type === "error") {
+          taskQueue.failTask(taskId, msg.error ?? "Auto tagging failed");
+        }
+      });
+
+      port.onDisconnect.addListener(() => {
+        if (chrome.runtime.lastError) {
+          taskQueue.failTask(taskId, chrome.runtime.lastError.message ?? "Connection lost");
+        }
+      });
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      console.error("[ClickBook] Auto Tag connection failed:", err);
+      if (taskId) {
+        taskQueue.failTask(taskId, errMsg);
       }
-    });
+      try {
+        chrome.storage.local.set({ clickbook_ai_error: `Auto Tag failed: ${errMsg}` });
+      } catch (_) {}
+    }
+  }, [taskQueue, loadData]);
+
+  const [organizeResult, setOrganizeResult] = useState<{
+    movedCount: number;
+    total: number;
+    backupName: string;
+    aiSuccessCount?: number;
+    aiTotalBatches?: number;
+    aiSupported?: boolean;
+  } | null>(null);
+
+  const portsRef = useRef<Record<string, chrome.runtime.Port>>({});
+
+  const handleAiOrganize = useCallback(() => {
+    if (taskQueue.tasks.some(t => t.category === "ai-organize" && (t.status === "running" || t.status === "queued"))) return;
+
+    let taskId = "";
+    try {
+      taskId = taskQueue.addTask("ai-organize", "AI Organize");
+
+      if (typeof chrome === "undefined" || !chrome.runtime || !chrome.runtime.connect) {
+        throw new Error("chrome.runtime.connect is not available in this environment.");
+      }
+
+      const port = chrome.runtime.connect({ name: "ai-reorganize" });
+      portsRef.current[taskId] = port;
+
+      port.onMessage.addListener((msg: any) => {
+        if (msg.type === "progress") {
+          taskQueue.updateProgress(taskId, msg.progress ?? 0, msg.detail ?? "");
+        } else if (msg.type === "done") {
+          const movedCount = msg.movedCount ?? 0;
+          const total = msg.total ?? 0;
+          const backupName = msg.backupName ?? "";
+          
+          taskQueue.completeTask(taskId, `Organized ${movedCount}/${total} bookmarks`);
+          
+          setOrganizeResult({
+            movedCount,
+            total,
+            backupName,
+            aiSuccessCount: msg.aiSuccessCount,
+            aiTotalBatches: msg.aiTotalBatches,
+            aiSupported: msg.aiSupported,
+          });
+
+          loadData();
+          delete portsRef.current[taskId];
+        } else if (msg.type === "error") {
+          taskQueue.failTask(taskId, msg.error ?? "AI Reorganize failed");
+          delete portsRef.current[taskId];
+        }
+      });
+
+      port.onDisconnect.addListener(() => {
+        if (chrome.runtime.lastError) {
+          taskQueue.failTask(taskId, chrome.runtime.lastError.message ?? "Connection lost");
+        }
+        delete portsRef.current[taskId];
+      });
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      console.error("[ClickBook] AI Organize connection failed:", err);
+      if (taskId) {
+        taskQueue.failTask(taskId, errMsg);
+      }
+      try {
+        chrome.storage.local.set({ clickbook_ai_error: `AI Organize failed: ${errMsg}` });
+      } catch (_) {}
+    }
   }, [taskQueue, loadData]);
 
   // Sync todo board from other pages or background via storage changes
@@ -186,6 +275,25 @@ function AppContent() {
       if (r.clickbook_show_hn_ranking !== undefined) setShowHNRankingMenu(r.clickbook_show_hn_ranking);
       if (!r.clickbook_onboarded) setShowWelcome(true);
     });
+  }, []);
+
+  useEffect(() => {
+    if (typeof chrome === "undefined" || !chrome.storage || !chrome.storage.local) return;
+    chrome.storage.local.get("clickbook_ai_error", (res) => {
+      if (res.clickbook_ai_error) {
+        setAiError(res.clickbook_ai_error);
+      }
+    });
+
+    const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+      if (changes.clickbook_ai_error) {
+        setAiError(changes.clickbook_ai_error.newValue || null);
+      }
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   function toggleSidebarChrome() {
@@ -437,6 +545,9 @@ function AppContent() {
         showWikiRankingMenu={showWikiRankingMenu}
         showHFRankingMenu={showHFRankingMenu}
         showHNRankingMenu={showHNRankingMenu}
+        tasks={taskQueue.tasks}
+        onAiOrganize={handleAiOrganize}
+        organizeResult={organizeResult}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -457,7 +568,18 @@ function AppContent() {
                 tasks={taskQueue.tasks}
                 aiRunningCount={taskQueue.aiRunningCount}
                 aiQueuedCount={taskQueue.aiQueuedCount}
-                onCancel={(taskId) => taskQueue.cancelTask(taskId)}
+                onCancel={(taskId) => {
+                  const port = portsRef.current[taskId];
+                  if (port) {
+                    try {
+                      port.disconnect();
+                    } catch (e) {
+                      console.warn("Failed to disconnect port on cancel:", e);
+                    }
+                    delete portsRef.current[taskId];
+                  }
+                  taskQueue.cancelTask(taskId);
+                }}
                 onDismiss={(taskId) => taskQueue.dismissTask(taskId)}
                 onRetry={(task) => {
                   taskQueue.dismissTask(task.id);
@@ -510,6 +632,8 @@ function AppContent() {
                 onSaveCustomSearchConfigs={(configs, presets) => {
                   handleSaveSettings({ ...settings, customSearchConfigs: configs, customPresets: presets || settings.customPresets });
                 }}
+                organizeResult={organizeResult}
+                onClearOrganizeResult={() => setOrganizeResult(null)}
               />
             ) : (
               <FolderView
@@ -600,6 +724,31 @@ function AppContent() {
             loadData(); // Load any memo updates if applicable
           }}
         />
+      )}
+
+      {/* AI Error Floating Panel */}
+      {aiError && (
+        <div className="fixed top-4 right-4 bg-red-600 dark:bg-red-850 text-white p-4 rounded-xl shadow-2xl z-[9999] flex flex-col gap-2 border border-red-500 max-w-md w-96 animate-in fade-in slide-in-from-top-4 duration-200">
+          <div className="flex items-start justify-between gap-3">
+            <span className="font-bold text-sm tracking-tight flex items-center gap-1.5 text-red-100 shrink-0">
+              <Sparkles size={14} className="text-red-200 shrink-0" />
+              AI Error Message
+            </span>
+            <button 
+              onClick={() => {
+                chrome.storage.local.remove("clickbook_ai_error");
+                setAiError(null);
+              }}
+              className="text-red-200 hover:text-white hover:bg-white/10 p-1 rounded-md transition shrink-0 cursor-pointer"
+              title="Dismiss"
+            >
+              <X size={15} />
+            </button>
+          </div>
+          <div className="text-xs bg-red-950/40 border border-red-500/20 p-2.5 rounded-lg max-h-40 overflow-y-auto font-mono whitespace-pre-wrap break-all text-red-100 select-text leading-relaxed">
+            {aiError}
+          </div>
+        </div>
       )}
     </div>
   );

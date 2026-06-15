@@ -7,3 +7,6 @@ docs/*
 !docs/assets/
 *.zip
 !docs/assets/**/*.zip
+.gemini/
+vite.config.ts.timestamp-*.mjs
+

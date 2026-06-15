@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon } from "lucide-react";
+import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon, Sparkles } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
 
@@ -30,6 +30,15 @@ interface Props {
   todoStats?: { overdueCount: number; dueTodayCount: number };
   urgentTasks?: import("@/shared/types").TodoTask[];
   onSelectTodoBoard?: () => void;
+  organizeResult?: {
+    movedCount: number;
+    total: number;
+    backupName: string;
+    aiSuccessCount?: number;
+    aiTotalBatches?: number;
+    aiSupported?: boolean;
+  } | null;
+  onClearOrganizeResult?: () => void;
 }
 
 const EMOJI_MAP: Record<string, string> = {
@@ -43,7 +52,7 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard, organizeResult = null, onClearOrganizeResult }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
@@ -190,6 +199,51 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
     <div className="flex flex-col gap-8">
       {DialogEl}
       
+      {/* AI Organize 브리핑 배너 */}
+      {organizeResult && (
+        <div className="relative overflow-hidden bg-indigo-500/10 dark:bg-indigo-500/25 border border-indigo-500/20 dark:border-indigo-500/30 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/30 animate-pulse shrink-0">
+              <Sparkles size={24} className="text-white fill-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-base">
+                {lang === "ko" ? "AI 북정리 완료 브리핑" : "AI Organize Briefing"}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {lang === "ko" 
+                  ? `총 ${organizeResult.total}개의 북마크 중 ${organizeResult.movedCount}개의 위치를 정리했습니다.`
+                  : `Organized ${organizeResult.movedCount} out of ${organizeResult.total} bookmarks.`}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2 items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                {organizeResult.aiSupported === false ? (
+                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                    💡 {lang === "ko" ? "로컬 규칙 적용" : "Local Rules"}
+                  </span>
+                ) : organizeResult.aiSuccessCount !== undefined && organizeResult.aiTotalBatches !== undefined && organizeResult.aiTotalBatches > 0 ? (
+                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                    💡 {lang === "ko" 
+                      ? `AI 분석 성공률: ${organizeResult.aiSuccessCount}/${organizeResult.aiTotalBatches} 배치` 
+                      : `AI Success: ${organizeResult.aiSuccessCount}/${organizeResult.aiTotalBatches}`}
+                  </span>
+                ) : null}
+                <span className="truncate max-w-[400px] text-gray-550 dark:text-gray-400 text-[11px]">
+                  📦 {lang === "ko" ? "백업본:" : "Backup:"} {organizeResult.backupName}
+                </span>
+              </div>
+            </div>
+          </div>
+          {onClearOrganizeResult && (
+            <button
+              onClick={onClearOrganizeResult}
+              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              {lang === "ko" ? "확인" : "OK"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Urgent TODO Banner */}
       {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
         <div className="relative overflow-hidden bg-rose-500/10 dark:bg-rose-500/25 border border-rose-500/20 dark:border-rose-500/30 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">

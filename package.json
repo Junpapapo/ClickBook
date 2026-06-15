@@ -1,6 +1,6 @@
 {
   "name": "clickbook",
-  "version": "1.4.3",
+  "version": "1.4.5",
   "type": "module",
   "private": true,
   "scripts": {
