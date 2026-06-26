@@ -2,11 +2,7 @@ node_modules/
 dist/
 .history/
 .DS_Store
-docs/00_Plan/
-docs/*
-!docs/assets/
+docs/
 *.zip
-!docs/assets/**/*.zip
 .gemini/
 vite.config.ts.timestamp-*.mjs
-
