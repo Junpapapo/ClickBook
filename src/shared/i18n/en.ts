@@ -614,5 +614,26 @@ export const en = {
   printFontMono: "Monospace",
   printTemplateYearly: "Yearly (12 Months)",
   printTopPadding: "Top Margin",
+
+  // ── TaskEditModal ─────────────────────────────────────────
+  holidayDateLabel: "Holiday Date",
+  duetimeLabel: "Due Time",
+  cardColorLabel: "Card Color",
+  descriptionLabel: "Description (Markdown)",
+  descriptionPlaceholder: "Enter details (Markdown supported)...",
+  descriptionEmpty: "No description added.",
+  checklistLabel: "Checklist",
+  checklistPlaceholder: "Add item...",
+  tagInputPlaceholder: "New tag (Enter to add)...",
+  completionLabel: "Completion",
+  completionDesc: "Mark this task as fully completed.",
+
+  // ── CalendarBoard QuickAdd ────────────────────────────────
+  quickAddMemoTab: "Memo",
+  quickAddRegister: "Add",
+  quickAddTodoPlaceholder: "Quick add todo for {date}...",
+  quickAddEventPlaceholder: "Quick add event for {date}...",
+  quickAddHolidayPlaceholder: "Quick add holiday for {date}...",
+  quickAddMemoPlaceholder: "Quick add memo for {date}...",
 };
 

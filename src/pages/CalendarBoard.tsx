@@ -950,7 +950,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   `}
                 >
                   <CheckSquare size={11} className="text-emerald-500 shrink-0" />
-                  할 일
+                  {t("taskTypeTodo")}
                 </button>
                 <button
                   type="button"
@@ -963,7 +963,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   `}
                 >
                   <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0 flex items-center justify-center text-[7px] text-white font-bold">E</span>
-                  이벤트
+                  {t("taskTypeEvent")}
                 </button>
                 <button
                   type="button"
@@ -976,7 +976,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   `}
                 >
                   <Calendar size={11} className="text-rose-500 shrink-0" />
-                  휴일
+                  {t("taskTypeHoliday")}
                 </button>
                 <button
                   type="button"
@@ -989,7 +989,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   `}
                 >
                   <StickyNote size={11} className="text-amber-500 shrink-0" />
-                  메모
+                  {t("quickAddMemoTab")}
                 </button>
               </div>
 
@@ -1001,12 +1001,12 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   onChange={(e) => setQuickAddInput(e.target.value)}
                   placeholder={
                     quickAddType === "todo"
-                      ? `${selectedDate ? selectedDate.getDate() : ""}일에 빠른 할 일 추가...`
+                      ? t("quickAddTodoPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                       : quickAddType === "event"
-                      ? `${selectedDate ? selectedDate.getDate() : ""}일에 빠른 이벤트 일정 추가...`
+                      ? t("quickAddEventPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                       : quickAddType === "holiday"
-                      ? `${selectedDate ? selectedDate.getDate() : ""}일에 빠른 휴일 추가...`
-                      : `${selectedDate ? selectedDate.getDate() : ""}일에 일반 메모 남기기...`
+                      ? t("quickAddHolidayPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
+                      : t("quickAddMemoPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                   }
                   className="flex-1 bg-white dark:bg-surface-800 text-xs border border-gray-200/60 dark:border-surface-700/65 rounded-xl px-3 py-2.5 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 shadow-sm placeholder-gray-400"
                 />
@@ -1015,7 +1015,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   disabled={!quickAddInput.trim()}
                   className="px-4 py-2.5 bg-indigo-550 hover:bg-indigo-600 disabled:bg-gray-150 disabled:text-gray-400 dark:disabled:bg-surface-800 text-white rounded-xl font-bold text-xs transition-all shadow hover:shadow-indigo-500/10 disabled:cursor-not-allowed disabled:shadow-none active:scale-95 shrink-0"
                 >
-                  등록
+                  {t("quickAddRegister")}
                 </button>
               </form>
             </div>

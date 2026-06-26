@@ -612,5 +612,26 @@ export const ko = {
   printFontMono: "고정폭 (Mono)",
   printTemplateYearly: "년간형 (12개월)",
   printTopPadding: "상단 여백",
+
+  // ── TaskEditModal ─────────────────────────────────────────
+  holidayDateLabel: "휴일 날짜",
+  duetimeLabel: "마감 시간",
+  cardColorLabel: "카드 색상",
+  descriptionLabel: "설명 (Markdown)",
+  descriptionPlaceholder: "상세 정보를 기입하세요 (마크다운 포맷 지원)...",
+  descriptionEmpty: "설명이 비어 있습니다.",
+  checklistLabel: "체크리스트",
+  checklistPlaceholder: "체크 아이템 추가...",
+  tagInputPlaceholder: "새 태그 (Enter로 추가)...",
+  completionLabel: "완료 상태",
+  completionDesc: "이 작업이 모두 완료되었는지 지정합니다.",
+
+  // ── CalendarBoard QuickAdd ────────────────────────────────
+  quickAddMemoTab: "메모",
+  quickAddRegister: "등록",
+  quickAddTodoPlaceholder: "{date}일에 빠른 할 일 추가...",
+  quickAddEventPlaceholder: "{date}일에 빠른 이벤트 추가...",
+  quickAddHolidayPlaceholder: "{date}일에 빠른 휴일 추가...",
+  quickAddMemoPlaceholder: "{date}일에 메모 남기기...",
 };
 

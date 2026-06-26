@@ -612,5 +612,26 @@ export const ja = {
   printFontMono: "等幅 (Mono)",
   printTemplateYearly: "年間型 (12ヶ月)",
   printTopPadding: "上部余白",
+
+  // ── TaskEditModal ─────────────────────────────────────────
+  holidayDateLabel: "祝日の日付",
+  duetimeLabel: "期限時刻",
+  cardColorLabel: "カードの色",
+  descriptionLabel: "説明 (Markdown)",
+  descriptionPlaceholder: "詳細を入力してください (マークダウン対応)...",
+  descriptionEmpty: "説明がありません。",
+  checklistLabel: "チェックリスト",
+  checklistPlaceholder: "アイテムを追加...",
+  tagInputPlaceholder: "新タグ (Enterで追加)...",
+  completionLabel: "完了状態",
+  completionDesc: "このタスクがすべて完了したかどうかを設定します。",
+
+  // ── CalendarBoard QuickAdd ────────────────────────────────
+  quickAddMemoTab: "メモ",
+  quickAddRegister: "登録",
+  quickAddTodoPlaceholder: "{date}日のTODOをクイック追加...",
+  quickAddEventPlaceholder: "{date}日のイベントをクイック追加...",
+  quickAddHolidayPlaceholder: "{date}日の祝日をクイック追加...",
+  quickAddMemoPlaceholder: "{date}日にメモを追加...",
 };
 

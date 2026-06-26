@@ -289,7 +289,7 @@ export default function TaskEditModal({
             <div className="grid grid-cols-2 gap-4 items-center">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
-                  휴일 날짜
+                  {t("holidayDateLabel")}
                 </label>
                 <input
                   type="date"
@@ -357,7 +357,7 @@ export default function TaskEditModal({
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1">
                   <Clock size={12} />
-                  마감 시간
+                  {t("duetimeLabel")}
                 </label>
                 <select
                   value={dueTime || "12:00"}
@@ -384,7 +384,12 @@ export default function TaskEditModal({
                 >
                   {REMINDER_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
-                      {opt.label}
+                      {opt.value === "none" ? t("reminderNone")
+                        : opt.value === "at_due" ? t("reminderAtDue")
+                        : opt.value === "15m_before" ? t("reminder15m")
+                        : opt.value === "1h_before" ? t("reminder1h")
+                        : opt.value === "3h_before" ? t("reminder3h")
+                        : t("reminder1d")}
                     </option>
                   ))}
                 </select>
@@ -433,7 +438,7 @@ export default function TaskEditModal({
           {type !== "holiday" && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
-                카드 색상
+                {t("cardColorLabel")}
               </label>
               <div className="flex gap-2.5">
                 {Object.keys(TASK_BG_COLORS).map((colorKey) => {
@@ -460,7 +465,7 @@ export default function TaskEditModal({
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1">
                 <AlignLeft size={13} />
-                설명 (Markdown 지원)
+                {t("descriptionLabel")}
               </label>
               <button
                 type="button"
@@ -476,7 +481,7 @@ export default function TaskEditModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                placeholder="상세 정보를 기입하세요 (마크다운 포맷 지원)"
+                placeholder={t("descriptionPlaceholder")}
                 className="w-full bg-gray-50 dark:bg-surface-800 text-xs border border-gray-200/60 dark:border-surface-700/65 rounded-xl px-3 py-2 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 resize-y min-h-[60px] max-h-[200px] font-sans"
               />
             ) : (
@@ -486,7 +491,7 @@ export default function TaskEditModal({
                     {description}
                   </ReactMarkdown>
                 ) : (
-                  <span className="text-gray-400 dark:text-gray-500 italic text-[11px]">설명이 비어 있습니다.</span>
+                  <span className="text-gray-400 dark:text-gray-500 italic text-[11px]">{t("descriptionEmpty")}</span>
                 )}
               </div>
             )}
@@ -497,7 +502,7 @@ export default function TaskEditModal({
             <div className="space-y-3">
               <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
                 <CheckSquare size={13} />
-                체크리스트
+                {t("checklistLabel")}
               </label>
 
               {/* Progress indicator */}
@@ -559,7 +564,7 @@ export default function TaskEditModal({
                       addChecklistItem();
                     }
                   }}
-                  placeholder="체크 아이템 추가..."
+                  placeholder={t("checklistPlaceholder")}
                   className="flex-1 bg-gray-100 dark:bg-surface-800 text-sm border border-gray-200 dark:border-surface-700/65 rounded-xl px-3 py-2 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500"
                 />
                 <button
@@ -577,7 +582,7 @@ export default function TaskEditModal({
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1">
               <Tag size={12} />
-              태그
+              {t("tagsLabel")}
             </label>
 
             <div className="flex flex-wrap gap-1.5">
@@ -609,7 +614,7 @@ export default function TaskEditModal({
                     addTag();
                   }
                 }}
-                placeholder="새 태그 (Enter로 추가)..."
+                placeholder={t("tagInputPlaceholder")}
                 className="flex-1 bg-gray-100 dark:bg-surface-800 text-sm border border-gray-200 dark:border-surface-700/65 rounded-xl px-3 py-2 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500"
               />
               <button
@@ -626,8 +631,8 @@ export default function TaskEditModal({
           {type === "todo" && (
             <div className="flex items-center justify-between bg-gray-100/70 dark:bg-surface-800 p-4 rounded-2xl border border-gray-200/10">
               <div>
-                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200">완료 상태</h4>
-                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">이 작업이 모두 완료되었는지 지정합니다.</p>
+                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200">{t("completionLabel")}</h4>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{t("completionDesc")}</p>
               </div>
               <button
                 type="button"

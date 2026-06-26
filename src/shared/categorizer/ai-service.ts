@@ -50,7 +50,8 @@ export async function preloadAIModel(): Promise<void> {
       preloadedSession = await (lm.create as (opts: unknown) => Promise<any>)({
         systemPrompt: "You are a bookmark categorizer. Given a numbered list of bookmarks, respond with a JSON array of category IDs in the SAME ORDER. Each must be one of: technology, design, business, entertainment, science, sports, travel, other. Respond ONLY with the JSON array. Example: [\"technology\",\"other\"]",
         expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-        temperature: 0.1
+        temperature: 0.1,
+        topK: 3
       });
       console.log("[AI Warmup] Preload complete.");
     }
@@ -133,7 +134,8 @@ export async function classifyWithNano(
     session = await Promise.race([
       (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
         expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-        temperature: 0.1
+        temperature: 0.1,
+        topK: 3
       }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
     ]);
@@ -237,7 +239,8 @@ export async function expandSearchQuery(query: string): Promise<string[]> {
     session = await Promise.race([
       (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
         expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-        temperature: 0.1
+        temperature: 0.1,
+        topK: 3
       }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
     ]);
@@ -288,7 +291,8 @@ export async function recommendSites(keyword: string, count = 6): Promise<Array<
     session = await Promise.race([
       (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
         expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-        temperature: 0.1
+        temperature: 0.1,
+        topK: 3
       }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
     ]);
@@ -358,7 +362,8 @@ export async function generateSummaryAndTags(
       session = await Promise.race([
         (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
           expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-          temperature: 0.1
+          temperature: 0.1,
+          topK: 3
         }),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
       ]);
@@ -652,7 +657,8 @@ Output:`;
           session = await Promise.race([
             (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
               expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-              temperature: 0.1
+              temperature: 0.1,
+              topK: 3
             }),
             new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
           ]);
@@ -798,7 +804,8 @@ export async function reorganizeWithAI(
           (lm.create as (opts: unknown) => Promise<any>)({
             systemPrompt: `You are a bookmark categorizer. Given a numbered list of bookmarks, respond with a JSON array of category IDs in the SAME ORDER. Each must be one of: technology, design, business, entertainment, science, sports, travel, other.${folderHint} Respond ONLY with the JSON array. Example: ["technology","other"]`,
             expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
-            temperature: 0.1
+            temperature: 0.1,
+            topK: 3
           }),
           25000
         );
