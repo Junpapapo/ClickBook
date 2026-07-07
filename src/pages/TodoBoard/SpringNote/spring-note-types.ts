@@ -55,7 +55,14 @@ export interface SpringNoteCanvasProps {
 
 export interface BookmarkSelectorProps {
   onSelectBookmark: (bookmark: { title: string; url: string; id: string; favicon: string }) => void;
-  onSelectMemo: (memo: { id: string; content: string; color: string }) => void;
+  onSelectMemo: (memo: {
+    id: string;
+    content: string;
+    color: string;
+    bookmarkTitle?: string;
+    bookmarkUrl?: string;
+    favicon?: string;
+  }) => void;
   t: any;
   lang: string;
   onClose: () => void;

@@ -672,38 +672,151 @@ export default function SpringNoteCanvas({
                     </table>
                   );
                 })()
+              ) : obj.type === "bookmark-memo" ? (
+                /* Post-it Style Memo Card */
+                (() => {
+                  const mColor = obj.metadata?.memoColor || "yellow";
+                  // 테마별 색상 매핑
+                  const memoBgClasses: Record<string, string> = {
+                    pink: "bg-rose-50/95 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-900/30 text-rose-900 dark:text-rose-200",
+                    blue: "bg-blue-50/95 dark:bg-blue-950/30 border-blue-200/60 dark:border-blue-900/30 text-blue-900 dark:text-blue-200",
+                    green: "bg-emerald-50/95 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-900/30 text-emerald-900 dark:text-emerald-200",
+                    purple: "bg-purple-50/95 dark:bg-purple-950/30 border-purple-200/60 dark:border-purple-900/30 text-purple-900 dark:text-purple-200",
+                    yellow: "bg-amber-50/95 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-900/30 text-amber-900 dark:text-amber-200",
+                  };
+                  const colorClass = memoBgClasses[mColor] || memoBgClasses.yellow;
+
+                  return (
+                    <div 
+                      className={`w-full h-full flex flex-col justify-between p-2.5 pt-2 text-left select-text overflow-hidden rounded-lg border shadow-sm relative ${colorClass}`}
+                    >
+                      {/* 포스트잇 데코레이션 (상단 테이프 느낌 연출) */}
+                      <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-white/20 dark:bg-black/10 backdrop-blur-[1px] rotate-1 select-none pointer-events-none rounded-[1px] shadow-sm"></div>
+
+                      <div className="flex-1 flex flex-col gap-1 min-w-0 mt-1 overflow-hidden select-text">
+                        {/* 메모 본문 내용 (line-clamp 혹은 스크롤 요약) */}
+                        <p 
+                          style={{ fontSize: `${oFontSize - 1.5}px` }}
+                          className={`font-semibold leading-normal whitespace-pre-wrap select-text break-all overflow-y-auto scrollbar-thin ${fontClass}`}
+                        >
+                          {obj.content || "No content"}
+                        </p>
+                      </div>
+
+                      {/* 하단 출처 및 메타데이터 */}
+                      <div className="pt-1.5 mt-1 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2 shrink-0 select-none">
+                        {obj.metadata?.bookmarkTitle ? (
+                          <a
+                            href={obj.metadata.bookmarkUrl || "#"}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 min-w-0 hover:underline opacity-80 hover:opacity-100"
+                          >
+                            {obj.metadata.favicon && (
+                              <img
+                                src={obj.metadata.favicon}
+                                alt=""
+                                className="w-2.5 h-2.5 shrink-0 rounded-sm object-contain"
+                              />
+                            )}
+                            <span 
+                              style={{ fontSize: `${Math.max(8, oFontSize - 4.5)}px` }}
+                              className="font-bold truncate"
+                            >
+                              {obj.metadata.bookmarkTitle}
+                            </span>
+                          </a>
+                        ) : (
+                          <span 
+                            style={{ fontSize: `${Math.max(8, oFontSize - 4.5)}px` }}
+                            className="font-bold opacity-65"
+                          >
+                            📝 Memo
+                          </span>
+                        )}
+
+                        <span 
+                          style={{ fontSize: `${Math.max(7.5, oFontSize - 5)}px` }}
+                          className="opacity-50 font-mono text-right select-none shrink-0"
+                        >
+                          {/* 현재 오브젝트가 생성된 간략 날짜 표시 */}
+                          {(() => {
+                            const timestampStr = obj.id.replace("obj-", "");
+                            const timestamp = parseInt(timestampStr, 10);
+                            if (isNaN(timestamp)) return "";
+                            const date = new Date(timestamp);
+                            return `${date.getFullYear() % 100}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()
               ) : (
-                /* Bookmark / Memo Card (paddings 축소, title 크기 축소, line-clamp-1 압축) */
+                /* Bookmark Ribbon/Tag Card (Bookmark style) */
                 <a
                   href={obj.metadata?.url || "#"}
                   target={obj.metadata?.url ? "_blank" : "_self"}
                   rel="noopener noreferrer"
-                  className="w-full h-full flex flex-col justify-start p-1.5 pt-0 text-left no-underline select-text overflow-hidden gap-0.5"
+                  className="w-full h-full flex flex-col justify-between p-2.5 pt-2.5 text-left no-underline select-text overflow-hidden relative bg-amber-50/20 dark:bg-surface-800/20 hover:bg-amber-50/40 dark:hover:bg-surface-800/40 border border-amber-200/50 dark:border-surface-700/50 rounded-lg shadow-sm group/bookmark transition-colors"
                   onClick={(e) => {
                     if (!obj.metadata?.url) e.preventDefault();
                   }}
                 >
-                  <div className="flex items-center gap-1 min-w-0">
-                    {obj.metadata?.favicon && (
-                      <img
-                        src={obj.metadata.favicon}
-                        alt="Favicon"
-                        className="w-3 h-3 shrink-0"
-                      />
-                    )}
-                    <span 
-                      style={{ fontSize: `${oFontSize - 1}px` }}
-                      className={`font-extrabold text-gray-800 dark:text-gray-200 truncate flex-1 leading-tight ${fontClass}`}
-                    >
-                      {obj.metadata?.title || "Bookmark"}
-                    </span>
+                  {/* 책갈피 리본 끈 데코레이션 */}
+                  <div className="absolute -top-3.5 left-5 flex flex-col items-center pointer-events-none select-none">
+                    {/* 리본 끈 */}
+                    <div className="w-1.5 h-5 bg-indigo-500/80 dark:bg-indigo-400/80 rounded-t shadow-sm"></div>
+                    {/* 리본 구멍 아일렛 */}
+                    <div className="w-3 h-3 rounded-full bg-white dark:bg-surface-900 border border-gray-300 dark:border-surface-700 flex items-center justify-center -mt-1 shadow-inner">
+                      <div className="w-1 h-1 rounded-full bg-gray-400 dark:bg-surface-650"></div>
+                    </div>
                   </div>
-                  <p 
-                    style={{ fontSize: `${Math.max(8.5, oFontSize - 3.5)}px` }}
-                    className={`text-gray-500 dark:text-gray-400 line-clamp-1 leading-tight overflow-hidden select-text ${fontClass}`}
-                  >
-                    {obj.content}
-                  </p>
+
+                  <div className="flex-1 flex flex-col gap-1.5 min-w-0 mt-1 select-text">
+                    <div className="flex items-center gap-1.5 min-w-0 mt-1">
+                      {obj.metadata?.favicon && (
+                        <img
+                          src={obj.metadata.favicon}
+                          alt=""
+                          className="w-3.5 h-3.5 shrink-0 rounded-sm object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                      )}
+                      <span 
+                        style={{ fontSize: `${oFontSize - 1}px` }}
+                        className={`font-extrabold text-gray-800 dark:text-gray-100 line-clamp-2 leading-snug flex-1 select-text ${fontClass}`}
+                        title={obj.metadata?.title}
+                      >
+                        {obj.metadata?.title || "Bookmark"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 하단 깔끔한 도메인 뱃지 */}
+                  <div className="pt-2 border-t border-dashed border-amber-250/30 dark:border-surface-700/50 flex items-center gap-1 shrink-0 select-none">
+                    {(() => {
+                      try {
+                        if (!obj.metadata?.url) return null;
+                        const urlObj = new URL(obj.metadata.url);
+                        // www. 제거 처리
+                        const host = urlObj.hostname.replace("www.", "");
+                        return (
+                          <div 
+                            style={{ fontSize: `${Math.max(7.5, oFontSize - 5.5)}px` }}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100/40 dark:bg-surface-900/60 text-amber-800/80 dark:text-gray-400 font-mono"
+                          >
+                            <span>🔗</span>
+                            <span className="truncate max-w-[140px]">{host}</span>
+                          </div>
+                        );
+                      } catch (err) {
+                        return null;
+                      }
+                    })()}
+                  </div>
                 </a>
               )}
             </div>

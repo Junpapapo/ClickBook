@@ -143,7 +143,14 @@ export default function BookmarkSelector({
                 type="button"
                 key={m.bookmarkId}
                 onClick={() =>
-                  onSelectMemo({ id: m.bookmarkId, content: m.content, color: m.color })
+                  onSelectMemo({
+                    id: m.bookmarkId,
+                    content: m.content,
+                    color: m.color,
+                    bookmarkTitle: bm?.title,
+                    bookmarkUrl: bm?.url,
+                    favicon: bm?.favicon,
+                  })
                 }
                 className="w-full text-left p-2.5 bg-gray-50/50 dark:bg-surface-800/10 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/20 border border-gray-150 dark:border-white/5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 group"
               >

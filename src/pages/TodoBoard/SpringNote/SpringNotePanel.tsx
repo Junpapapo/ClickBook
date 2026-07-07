@@ -735,19 +735,30 @@ export default function SpringNotePanel({
   };
 
   // 메모 라이브러리 드로어에서 선택 시
-  const handleSelectMemo = (memo: { id: string; content: string; color: string }) => {
+  const handleSelectMemo = (memo: {
+    id: string;
+    content: string;
+    color: string;
+    bookmarkTitle?: string;
+    bookmarkUrl?: string;
+    favicon?: string;
+  }) => {
     const newObj: NoteObject = {
       id: `obj-${Date.now()}`,
       type: "bookmark-memo",
-      content: "",
+      content: memo.content,
       x: 30,
       y: 100 + Math.random() * 50,
       width: 190,
-      height: 95,
+      height: 145, // 내용을 넉넉하게 담기 위해 높이를 살짝 확장
       rotation: 0,
       metadata: {
         title: "Saved Memo",
         memoColor: memo.color,
+        bookmarkId: memo.id,
+        bookmarkTitle: memo.bookmarkTitle,
+        bookmarkUrl: memo.bookmarkUrl,
+        favicon: memo.favicon,
       },
     };
     handleUpdateObjects([...currentPage.objects, newObj]);
