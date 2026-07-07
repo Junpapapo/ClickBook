@@ -672,7 +672,7 @@ export default function SpringNoteCanvas({
                     </table>
                   );
                 })()
-              ) : obj.type === "bookmark-memo" ? (
+              ) : (obj.type === "bookmark-memo" && !obj.metadata?.url) ? (
                 /* Post-it Style Memo Card */
                 (() => {
                   const mColor = obj.metadata?.memoColor || "yellow";
