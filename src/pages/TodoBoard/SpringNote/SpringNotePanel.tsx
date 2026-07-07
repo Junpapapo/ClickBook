@@ -714,16 +714,46 @@ export default function SpringNotePanel({
     setPages(updatedPages);
   };
 
+  // 겹치지 않게 순차적으로 비껴가며 계단식 위치(x, y)를 연산하는 함수
+  const getNextObjectPosition = (width: number, height: number) => {
+    const existing = currentPage.objects;
+    if (existing.length === 0) {
+      return { x: 30, y: 80 };
+    }
+    
+    const lastObj = existing[existing.length - 1];
+    const count = existing.length;
+    const stepX = 25;
+    const stepY = 30;
+    
+    let newX = lastObj.x + stepX;
+    let newY = lastObj.y + stepY;
+    
+    // 화면 바깥으로 너무 나가지 않도록 내측 순환
+    if (newX > 320) {
+      newX = 30 + (count % 3) * 15;
+    }
+    if (newY > 380) {
+      newY = 80 + (count % 4) * 20;
+    }
+    
+    return { x: newX, y: newY };
+  };
+
   // 북마크 라이브러리 드로어에서 선택 시
   const handleSelectBookmark = (bm: { title: string; url: string; id: string; favicon: string }) => {
+    const defaultWidth = 320;
+    const defaultHeight = 80;
+    const { x, y } = getNextObjectPosition(defaultWidth, defaultHeight);
+
     const newObj: NoteObject = {
       id: `obj-${Date.now()}`,
       type: "bookmark-memo",
       content: bm.url,
-      x: 30,
-      y: 100 + Math.random() * 50,
-      width: 190,
-      height: 95,
+      x,
+      y,
+      width: defaultWidth, // 가로 너비 확장 (와이드)
+      height: defaultHeight, // 세로 높이 최적화
       rotation: 0,
       metadata: {
         title: bm.title,
@@ -743,14 +773,18 @@ export default function SpringNotePanel({
     bookmarkUrl?: string;
     favicon?: string;
   }) => {
+    const defaultWidth = 190;
+    const defaultHeight = 145;
+    const { x, y } = getNextObjectPosition(defaultWidth, defaultHeight);
+
     const newObj: NoteObject = {
       id: `obj-${Date.now()}`,
       type: "bookmark-memo",
       content: memo.content,
-      x: 30,
-      y: 100 + Math.random() * 50,
-      width: 190,
-      height: 145, // 내용을 넉넉하게 담기 위해 높이를 살짝 확장
+      x,
+      y,
+      width: defaultWidth,
+      height: defaultHeight,
       rotation: 0,
       metadata: {
         title: "Saved Memo",
