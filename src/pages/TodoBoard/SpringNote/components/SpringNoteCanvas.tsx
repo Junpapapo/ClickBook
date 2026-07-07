@@ -605,10 +605,10 @@ export default function SpringNoteCanvas({
 
             {/* 드래그용 상단 영역 (테이블 및 북마크 카드는 공간을 절약하고 미려하게 가리기 위해 평소 투명화 처리) */}
             <div 
-              className={`flex items-center justify-between p-0.5 rounded cursor-move shrink-0 select-none ${
+              className={`flex items-center justify-between p-0.5 px-1.5 rounded-t cursor-move shrink-0 select-none transition-all duration-150 ${
                 isTable || obj.type === "bookmark-memo"
-                  ? "bg-transparent border-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 h-4"
-                  : "bg-gray-50 dark:bg-surface-900 border-b border-gray-150 dark:border-surface-700/60"
+                  ? "bg-transparent border-b border-transparent opacity-0 group-hover:opacity-100 group-hover:bg-black/[0.04] dark:group-hover:bg-white/[0.04] group-hover:border-black/[0.05] dark:group-hover:border-white/[0.05] h-4.5"
+                  : "bg-gray-50 dark:bg-surface-900 border-b border-gray-150 dark:border-surface-700/60 h-5"
               }`}
               onMouseDown={(e) => handleDragStart(e, obj)}
             >
@@ -694,10 +694,20 @@ export default function SpringNoteCanvas({
                       <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-2.5 bg-white/20 dark:bg-black/10 backdrop-blur-[1px] rotate-1 select-none pointer-events-none rounded-[1px] shadow-sm"></div>
 
                       <div className="flex-1 flex flex-col gap-1 min-w-0 mt-1 overflow-hidden select-text">
-                        {/* 메모 본문 내용 (line-clamp 혹은 스크롤 요약) */}
+                        {/* 메모 본문 내용 (더블클릭/클릭으로 인라인 편집 가능) */}
                         <p 
+                          contentEditable
+                          suppressContentEditableWarning
+                          onBlur={(e) => {
+                            const newContent = e.currentTarget.innerText;
+                            if (newContent !== obj.content) {
+                              onUpdateObjects(
+                                objects.map((o) => o.id === obj.id ? { ...o, content: newContent } : o)
+                              );
+                            }
+                          }}
                           style={{ fontSize: `${oFontSize - 1.5}px` }}
-                          className={`font-semibold leading-normal whitespace-pre-wrap select-text break-all overflow-y-auto scrollbar-thin ${fontClass}`}
+                          className={`font-semibold leading-normal whitespace-pre-wrap select-text break-all overflow-y-auto scrollbar-thin outline-none focus:bg-black/5 dark:focus:bg-white/5 p-1 rounded transition-colors ${fontClass}`}
                         >
                           {obj.content || "No content"}
                         </p>
@@ -753,28 +763,18 @@ export default function SpringNoteCanvas({
                   );
                 })()
               ) : (
-                /* Bookmark Ribbon/Tag Card (Bookmark style) */
+                /* Bookmark Tag Card (Clean style) */
                 <a
                   href={obj.metadata?.url || "#"}
                   target={obj.metadata?.url ? "_blank" : "_self"}
                   rel="noopener noreferrer"
-                  className="w-full h-full flex flex-col justify-between p-2.5 pt-2.5 text-left no-underline select-text overflow-hidden relative bg-amber-50/20 dark:bg-surface-800/20 hover:bg-amber-50/40 dark:hover:bg-surface-800/40 border border-amber-200/50 dark:border-surface-700/50 rounded-lg shadow-sm group/bookmark transition-colors"
+                  className="w-full h-full flex flex-col justify-between p-2 text-left no-underline select-text overflow-hidden bg-amber-50/15 dark:bg-surface-800/15 hover:bg-amber-50/30 dark:hover:bg-surface-800/30 border border-amber-200/40 dark:border-surface-700/40 rounded-lg shadow-sm group/bookmark transition-colors"
                   onClick={(e) => {
                     if (!obj.metadata?.url) e.preventDefault();
                   }}
                 >
-                  {/* 책갈피 리본 끈 데코레이션 */}
-                  <div className="absolute -top-3.5 left-5 flex flex-col items-center pointer-events-none select-none">
-                    {/* 리본 끈 */}
-                    <div className="w-1.5 h-5 bg-indigo-500/80 dark:bg-indigo-400/80 rounded-t shadow-sm"></div>
-                    {/* 리본 구멍 아일렛 */}
-                    <div className="w-3 h-3 rounded-full bg-white dark:bg-surface-900 border border-gray-300 dark:border-surface-700 flex items-center justify-center -mt-1 shadow-inner">
-                      <div className="w-1 h-1 rounded-full bg-gray-400 dark:bg-surface-650"></div>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 flex flex-col gap-1.5 min-w-0 mt-1 select-text">
-                    <div className="flex items-center gap-1.5 min-w-0 mt-1">
+                  <div className="flex-1 flex flex-col gap-1 min-w-0 select-text justify-center">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       {obj.metadata?.favicon && (
                         <img
                           src={obj.metadata.favicon}
@@ -787,7 +787,7 @@ export default function SpringNoteCanvas({
                       )}
                       <span 
                         style={{ fontSize: `${oFontSize - 1}px` }}
-                        className={`font-extrabold text-gray-800 dark:text-gray-100 line-clamp-2 leading-snug flex-1 select-text ${fontClass}`}
+                        className={`font-extrabold text-gray-800 dark:text-gray-100 line-clamp-1 leading-snug flex-1 select-text ${fontClass}`}
                         title={obj.metadata?.title}
                       >
                         {obj.metadata?.title || "Bookmark"}
@@ -796,20 +796,19 @@ export default function SpringNoteCanvas({
                   </div>
 
                   {/* 하단 깔끔한 도메인 뱃지 */}
-                  <div className="pt-2 border-t border-dashed border-amber-250/30 dark:border-surface-700/50 flex items-center gap-1 shrink-0 select-none">
+                  <div className="pt-1.5 border-t border-dashed border-amber-200/25 dark:border-surface-700/40 flex items-center gap-1 shrink-0 select-none">
                     {(() => {
                       try {
                         if (!obj.metadata?.url) return null;
                         const urlObj = new URL(obj.metadata.url);
-                        // www. 제거 처리
                         const host = urlObj.hostname.replace("www.", "");
                         return (
                           <div 
                             style={{ fontSize: `${Math.max(7.5, oFontSize - 5.5)}px` }}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100/40 dark:bg-surface-900/60 text-amber-800/80 dark:text-gray-400 font-mono"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100/40 dark:bg-surface-900/50 text-amber-800/80 dark:text-gray-400 font-mono"
                           >
                             <span>🔗</span>
-                            <span className="truncate max-w-[140px]">{host}</span>
+                            <span className="truncate max-w-[200px]">{host}</span>
                           </div>
                         );
                       } catch (err) {
