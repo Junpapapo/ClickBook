@@ -51,6 +51,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     setSelectedNodeId,
     onNodesChange,
     onEdgesChange,
+    onNodeDragStop, // 모델에서 추가된 수동 드래그 정지 핸들러 연동
     isAiExpanding,
     aiError,
     setAiError,
@@ -79,9 +80,11 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     deleteMapFile,
     renameMapFile,
     saveMapData,
+    updateNodeIcon,
     selectedNodeLabel,
     selectedNodeShape,
     selectedNodeTheme,
+    selectedNodeIcon,
     memoContent,
     memoColor,
     updateMemo
@@ -233,13 +236,10 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     }
   }, [activeFileName, isSavingImage]);
 
-  // 노드 드래그가 멈추었을 때 변경된 위치 좌표를 실시간으로 저장
-  const onNodeDragStop = useCallback(() => {
-    saveMapData(nodes, edges);
-  }, [nodes, edges, saveMapData]);
+
 
   return (
-    <MindMapActionsContext.Provider value={{ addChild, deleteNodeTree, updateNodeLabel, updateNodeLockState, toggleNodeExpanded, registerAsTodoTask, handleAiAction, layoutDirection }}>
+    <MindMapActionsContext.Provider value={{ addChild, deleteNodeTree, updateNodeLabel, updateNodeLockState, updateNodeIcon, toggleNodeExpanded, registerAsTodoTask, handleAiAction, layoutDirection }}>
       <div
         ref={reactFlowRef}
         onDragOver={onDragOver}
@@ -487,9 +487,11 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
             selectedNodeLabel={selectedNodeLabel}
             selectedNodeShape={selectedNodeShape}
             selectedNodeTheme={selectedNodeTheme}
+            selectedNodeIcon={selectedNodeIcon}
             onUpdateShape={updateNodeShape}
             onUpdateTheme={updateNodeTheme}
             onUpdateLabel={updateNodeLabel}
+            onUpdateIcon={updateNodeIcon}
           />
         </div>
       )}

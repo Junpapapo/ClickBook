@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-import { SlidersHorizontal, Pencil } from "lucide-react";
+import { SlidersHorizontal, Pencil, Smile } from "lucide-react";
 import type { NodeShape, ColorTheme } from "../mindmap-types";
+import { IconPicker } from "@/components/IconPicker";
+import { LUCIDE_ICONS_MAP } from "@/components/DynamicIcon";
 
 interface Props {
   selectedNodeId: string | null;
   selectedNodeLabel: string;
   selectedNodeShape: NodeShape;
   selectedNodeTheme: ColorTheme;
+  selectedNodeIcon?: string;
   onUpdateShape: (shape: NodeShape) => void;
   onUpdateTheme: (theme: ColorTheme) => void;
   onUpdateLabel?: (nodeId: string, newLabel: string) => void;
+  onUpdateIcon?: (nodeId: string, icon: string | null) => void;
 }
 
 const THEME_LABELS: Record<ColorTheme, { label: string; dot: string }> = {
@@ -26,17 +30,24 @@ export default function NodeToolbar({
   selectedNodeLabel,
   selectedNodeShape,
   selectedNodeTheme,
+  selectedNodeIcon,
   onUpdateShape,
   onUpdateTheme,
   onUpdateLabel,
+  onUpdateIcon,
 }: Props) {
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editVal, setEditVal] = useState(selectedNodeLabel);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 선택된 노드가 바뀌면 편집 상태 초기화
+  // 이모지 피커 상태 및 Ref
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const iconPickerRef = useRef<HTMLDivElement>(null);
+
+  // 선택된 노드가 바뀌면 편집 및 피커 상태 초기화
   useEffect(() => {
     setIsEditingLabel(false);
+    setShowIconPicker(false);
     setEditVal(selectedNodeLabel);
   }, [selectedNodeId, selectedNodeLabel]);
 
@@ -47,6 +58,20 @@ export default function NodeToolbar({
       inputRef.current?.select();
     }
   }, [isEditingLabel]);
+
+  // 피커 외부 클릭 닫기 처리
+  useEffect(() => {
+    if (!showIconPicker) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (iconPickerRef.current && !iconPickerRef.current.contains(event.target as Node)) {
+        setShowIconPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showIconPicker]);
 
   const handleLabelSave = () => {
     setIsEditingLabel(false);
@@ -83,14 +108,51 @@ export default function NodeToolbar({
           className="flex-1 min-w-0 text-xs font-bold text-gray-800 dark:text-gray-100 bg-white dark:bg-surface-800 border border-indigo-400 dark:border-indigo-500 px-2.5 py-1 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400/30 transition-all"
         />
       ) : (
-        <div
-          onClick={() => setIsEditingLabel(true)}
-          className="flex-1 min-w-0 flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-200 truncate bg-gray-100 dark:bg-surface-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300 px-2.5 py-1 rounded-lg cursor-text transition-colors group"
-          title="Click to rename node"
-        >
-          <span className="shrink-0">📌</span>
-          <span className="truncate">{selectedNodeLabel}</span>
-          <Pencil size={10} className="shrink-0 opacity-0 group-hover:opacity-60 transition-opacity ml-auto" />
+        <div className="flex-1 min-w-0 flex items-center gap-1.5 relative">
+          {/* Emoji / Icon Selector Button Area */}
+          <div ref={iconPickerRef} className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowIconPicker((v) => !v);
+              }}
+              className="p-1 hover:bg-gray-200 dark:hover:bg-surface-700 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              title="이모지/아이콘 변경"
+            >
+              {selectedNodeIcon ? (
+                (() => {
+                  const IconComp = LUCIDE_ICONS_MAP[selectedNodeIcon];
+                  if (IconComp) return <IconComp size={13} className="text-gray-700 dark:text-gray-200" />;
+                  return <span className="text-sm leading-none">{selectedNodeIcon}</span>;
+                })()
+              ) : (
+                <span className="text-sm leading-none">📌</span>
+              )}
+            </button>
+
+            {showIconPicker && (
+              <IconPicker
+                onSelect={(selectedIcon) => {
+                  if (selectedNodeId) {
+                    onUpdateIcon?.(selectedNodeId, selectedIcon);
+                  }
+                  setShowIconPicker(false);
+                }}
+                onClose={() => setShowIconPicker(false)}
+                className="!bottom-full !top-auto mb-2 mt-0 left-0"
+              />
+            )}
+          </div>
+
+          {/* Node Text - click to edit */}
+          <div
+            onClick={() => setIsEditingLabel(true)}
+            className="flex-1 min-w-0 flex items-center gap-1 text-xs font-bold text-gray-700 dark:text-gray-200 truncate bg-gray-100 dark:bg-surface-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300 px-2 py-1 rounded-lg cursor-text transition-colors group"
+            title="Click to rename node"
+          >
+            <span className="truncate">{selectedNodeLabel}</span>
+            <Pencil size={10} className="shrink-0 opacity-0 group-hover:opacity-60 transition-opacity ml-auto" />
+          </div>
         </div>
       )}
 

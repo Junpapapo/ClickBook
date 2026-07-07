@@ -75,6 +75,14 @@ export function IconPicker({ onSelect, onClose, className = "" }: Props) {
         >
           Icon
         </button>
+        <button
+          type="button"
+          onClick={() => onSelect("")}
+          className="px-2 py-1 text-xs font-medium rounded text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+          title="Remove emoji/icon"
+        >
+          ❌
+        </button>
       </div>
 
       <div className="grid grid-cols-6 gap-1 max-h-48 overflow-y-auto pr-1 custom-scrollbar">

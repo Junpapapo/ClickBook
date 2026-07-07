@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Handle, Position, NodeToolbar, useEdges } from "@xyflow/react";
-import { Plus, Pencil, Trash2, ExternalLink, Sparkles, ChevronDown, RotateCcw, Search, Languages, X, Loader2, ClipboardCheck, Lock, Unlock } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Sparkles, ChevronDown, RotateCcw, Search, Languages, X, Loader2, ClipboardCheck, Lock, Unlock, Smile } from "lucide-react";
 import { useMindMapActions } from "../mindmap-model";
+import { IconPicker } from "@/components/IconPicker";
+import { LUCIDE_ICONS_MAP } from "@/components/DynamicIcon";
 
 const THEME_CLASSES: Record<string, { border: string; bg: string; text: string; handle: string; rootBg: string }> = {
   indigo: {
@@ -89,6 +91,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
     shape = "rounded-rect",
     colorTheme = "indigo",
     bookmarkUrl,
+    icon,
     isRoot,
     isLocked = false,
     passwordHash = "",
@@ -99,6 +102,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
     deleteNodeTree: onDeleteNode,
     updateNodeLabel: onLabelChange,
     updateNodeLockState: onUpdateLock,
+    updateNodeIcon: onUpdateIcon,
     toggleNodeExpanded: onToggleExpand,
     registerAsTodoTask: onRegisterTodo,
     handleAiAction: onAiAction,
@@ -145,6 +149,10 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
   const [summaryPopup, setSummaryPopup] = useState<string | null>(null);
   const aiMenuRef = useRef<HTMLDivElement>(null);
 
+  // 이모지 피커 관련 상태 및 Ref 추가
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const iconPickerRef = useRef<HTMLDivElement>(null);
+
   // 자물쇠 모달 state
   const [showLockModal, setShowLockModal] = useState(false);
   const [lockModalMode, setLockModalMode] = useState<"set" | "unlock">("set");
@@ -190,6 +198,17 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [showAiMenu]);
+
+  useEffect(() => {
+    if (!showIconPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (iconPickerRef.current && !iconPickerRef.current.contains(e.target as Node)) {
+        setShowIconPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showIconPicker]);
 
   const handleSave = () => {
     setIsEditing(false);
@@ -399,6 +418,40 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
           )}
 
           <span className="w-px h-3 bg-gray-200 dark:bg-surface-700" />
+          <div className="relative" ref={iconPickerRef}>
+            <button
+              onClick={() => setShowIconPicker((v) => !v)}
+              className={`p-1 rounded-md transition-all active:scale-90 cursor-pointer ${
+                icon
+                  ? "text-indigo-500 hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20"
+                  : "text-gray-400 hover:text-indigo-500 dark:text-gray-500 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-800"
+              }`}
+              title="이모지/아이콘 설정"
+            >
+              {icon ? (
+                (() => {
+                  const IconComp = LUCIDE_ICONS_MAP[icon];
+                  if (IconComp) return <IconComp size={13} />;
+                  return <span className="text-xs leading-none">{icon}</span>;
+                })()
+              ) : (
+                <Smile size={13} />
+              )}
+            </button>
+
+            {showIconPicker && (
+              <IconPicker
+                onSelect={(selectedIcon) => {
+                  onUpdateIcon?.(id, selectedIcon);
+                  setShowIconPicker(false);
+                }}
+                onClose={() => setShowIconPicker(false)}
+                className="mt-2 left-1/2 -translate-x-1/2"
+              />
+            )}
+          </div>
+
+          <span className="w-px h-3 bg-gray-200 dark:bg-surface-700" />
           <button
             onClick={handleLockClick}
             className={`p-1 rounded-md transition-all active:scale-90 cursor-pointer ${
@@ -575,6 +628,13 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
           </div>
         ) : (
           <div className="flex items-center gap-1.5 justify-center w-full">
+            {icon && (
+              (() => {
+                const IconComp = LUCIDE_ICONS_MAP[icon];
+                if (IconComp) return <IconComp size={13} className="shrink-0" />;
+                return <span className="shrink-0 select-none text-[13px] leading-none">{icon}</span>;
+              })()
+            )}
             {bookmarkUrl && (
               <a
                 href={bookmarkUrl}

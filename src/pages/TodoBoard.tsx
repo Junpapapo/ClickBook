@@ -1,16 +1,76 @@
-import React from "react";
+import React, { useState } from "react";
 import { DragDropContext, Droppable, DroppableProvided } from "@hello-pangea/dnd";
 import { Plus, Check, Loader2 } from "lucide-react";
-import type { AppSettings } from "@/shared/types";
+import type { AppSettings, SpringNote } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import TodoColumn from "./TodoBoard/TodoColumn";
 import TaskDetailsModal from "./TodoBoard/TaskDetailsModal";
 import { useTodoState } from "./TodoBoard/hooks/useTodoState";
+import { getSpringNote, saveSpringNote } from "@/utils/springNoteDb";
 
 export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
+  // TODO 카드에서 노트 클릭 시, 해당 태스크명으로 연동 노트를 자동생성/선택하고 스프링 노트 전용 화면으로 탭 이동
+  const handleOpenSpringNoteAndRedirect = async (taskId: string) => {
+    try {
+      const clickedTask = data.tasks[taskId];
+      const taskTitle = clickedTask ? clickedTask.content : "Task Note";
+
+      // 1. IndexedDB 상에 태스크 연동 노트가 생성되어 있는지 조회
+      let note = await getSpringNote(taskId);
+      if (note) {
+        // 이미 연동노트가 존재하면, 최신 TODO 카드 제목으로 항상 자동 동기화 업데이트!
+        if (note.title !== taskTitle) {
+          note.title = taskTitle;
+          await saveSpringNote(note);
+        }
+      } else {
+        // 존재하지 않으면 태스크 제목 및 타임스탬프를 기입해 새 노트 자동 생성
+        const initDate = new Date();
+        const options: Intl.DateTimeFormatOptions = {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true
+        };
+        const formattedInit = initDate.toLocaleDateString(lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : "en-US", options);
+
+        note = {
+          id: taskId,
+          title: taskTitle,
+          pages: [
+            {
+              id: `page-${Date.now()}`,
+              pageNumber: 1,
+              text: "",
+              objects: [],
+            },
+          ],
+          theme: "sepia",
+          font: "sans",
+          fontSize: 16,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          customDate: formattedInit,
+          associatedTaskId: taskId,
+        };
+        await saveSpringNote(note);
+      }
+
+      // 2. localStorage에 활성화할 타겟 노트 ID 적재
+      localStorage.setItem("clickbook_active_spring_note_id", taskId);
+
+      // 3. 전용 화면으로 탭 네비게이션 트리거
+      window.dispatchEvent(new CustomEvent("OPEN_SPRING_NOTE"));
+    } catch (err) {
+      console.error("Failed to redirect to Associated SpringNote:", err);
+    }
+  };
 
   const {
     data,
@@ -58,8 +118,10 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   return (
     <>
       {DialogEl}
-      <div className="h-full flex flex-col font-sans">
-        <div className="mb-6 shrink-0 flex items-center justify-between">
+      <div className="h-full flex font-sans overflow-hidden">
+        {/* Left Area - Kanban Board */}
+        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+          <div className="mb-6 shrink-0 flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
             <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
               <Check size={16} strokeWidth={3} />
@@ -114,6 +176,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                         onToggleComplete={toggleTaskCompletion}
                         onOpenModal={openTaskModal}
                         onDeleteTask={(tid, cid, e) => deleteTask(tid, cid, showConfirm, e)}
+                        onOpenSpringNote={handleOpenSpringNoteAndRedirect}
                         t={t}
                       />
                     );
@@ -125,8 +188,9 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
           </DragDropContext>
         </div>
       </div>
+    </div>
 
-      {/* Task Details Modal Component */}
+    {/* Task Details Modal Component */}
       {editingTask && (
         <TaskDetailsModal
           task={editingTask}

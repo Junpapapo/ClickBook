@@ -87,7 +87,7 @@ export default function QuickLoadSelector({
       <span className="w-px h-5 bg-gray-200 dark:bg-surface-800 hidden sm:block shrink-0"></span>
 
       {/* 3. Quick Load Selector dropdown */}
-      <div className="flex items-center gap-1 min-w-[150px] max-w-[200px] shrink-0">
+      <div className="flex items-center gap-1 min-w-[300px] max-w-[400px] shrink-0">
         <select
           value={activeFileName}
           onChange={(e) => onSelectFile(e.target.value)}

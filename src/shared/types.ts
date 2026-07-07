@@ -244,6 +244,37 @@ export interface TodoChecklistItem {
   completed: boolean;
 }
 
+export interface NoteObject {
+  id: string;
+  type: "image" | "bookmark-memo" | "table";
+  x: number;          // 캔버스 가로 비율 (%)
+  y: number;          // 캔버스 세로 px
+  width: number;
+  height: number;
+  rotation?: number;  // 회전각 (-180 ~ 180deg)
+  content: string;    // imageId 또는 bookmarkId
+  metadata?: {
+    title?: string;
+    url?: string;
+    favicon?: string;
+    memoColor?: string;
+    fontSize?: number;
+    fontFamily?: "serif" | "sans" | "mono";
+    tableData?: string[][];
+    tableRows?: number;
+    tableCols?: number;
+    borderColor?: string;   // 외곽선 색상 (예: "indigo", "rose" 등 또는 CSS 값)
+    borderWidth?: number;   // 외곽선 두께 (px)
+  };
+}
+
+export interface NotePage {
+  id: string;
+  pageNumber: number;
+  text: string;
+  objects: NoteObject[];
+}
+
 export interface TodoTask {
   id: string;
   content: string; // Title
@@ -263,6 +294,19 @@ export interface TodoTask {
   type?: "todo" | "event" | "holiday"; // 일정 종류 (할 일, 이벤트, 휴일)
   location?: string; // 장소 (이벤트 타입용)
   createdAt: number;
+}
+
+export interface SpringNote {
+  id: string;
+  title: string;
+  pages: NotePage[];
+  theme: "light" | "sepia" | "dark" | "grid";
+  font: "serif" | "sans" | "mono" | "pretendard";
+  fontSize: number;
+  createdAt: number;
+  updatedAt: number;
+  associatedTaskId?: string;
+  customDate?: string; // 사용자가 편집 가능한 날짜 필드
 }
 
 export interface TodoColumn {
@@ -319,4 +363,5 @@ export type PageId =
   | "hn"
   | "taskcontrol"
   | "calendar"
-  | "mindmap";
+  | "mindmap"
+  | "springnote";

@@ -43,6 +43,7 @@ interface TodoColumnViewProps {
   onToggleComplete: (taskId: string, e: React.MouseEvent) => void;
   onOpenModal: (task: TodoTask) => void;
   onDeleteTask: (taskId: string, colId: string, e?: React.MouseEvent) => void;
+  onOpenSpringNote: (taskId: string, e: React.MouseEvent) => void;
   t: any;
 }
 
@@ -69,6 +70,7 @@ export default React.memo(function TodoColumn({
   onToggleComplete,
   onOpenModal,
   onDeleteTask,
+  onOpenSpringNote,
   t,
 }: TodoColumnViewProps) {
 
@@ -187,6 +189,7 @@ export default React.memo(function TodoColumn({
                     onToggleComplete={onToggleComplete}
                     onOpenModal={onOpenModal}
                     onDeleteTask={onDeleteTask}
+                    onOpenSpringNote={onOpenSpringNote}
                   />
                 ))}
                 {provided.placeholder}

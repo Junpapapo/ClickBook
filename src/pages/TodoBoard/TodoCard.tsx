@@ -1,8 +1,9 @@
 import React from "react";
 import { Draggable, DraggableProvided } from "@hello-pangea/dnd";
-import { GripVertical, CheckCircle2, Circle, Calendar, AlignLeft, CheckSquare, Trash2 } from "lucide-react";
+import { GripVertical, CheckCircle2, Circle, Calendar, AlignLeft, CheckSquare, Trash2, BookOpen } from "lucide-react";
 import type { TodoTask } from "@/shared/types";
 import { FolderIcon } from "@/components/DynamicIcon";
+import { checkSpringNoteExists } from "@/utils/springNoteDb";
 
 
 
@@ -80,6 +81,7 @@ interface TodoTaskCardProps {
   onToggleComplete: (taskId: string, e: React.MouseEvent) => void;
   onOpenModal: (task: TodoTask) => void;
   onDeleteTask: (taskId: string, colId: string, e?: React.MouseEvent) => void;
+  onOpenSpringNote: (taskId: string, e: React.MouseEvent) => void;
 }
 
 
@@ -91,7 +93,13 @@ export default React.memo(function TodoCard({
   onToggleComplete,
   onOpenModal,
   onDeleteTask,
+  onOpenSpringNote,
 }: TodoTaskCardProps) {
+  const [hasNote, setHasNote] = React.useState(false);
+
+  React.useEffect(() => {
+    checkSpringNoteExists(task.id).then(setHasNote);
+  }, [task.id]);
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
       {(provided: DraggableProvided, snapshot) => (
@@ -156,6 +164,13 @@ export default React.memo(function TodoCard({
                           <span>{task.checklist.filter(c => c.completed).length}/{task.checklist.length}</span>
                         </div>
                       )}
+
+                      {hasNote && (
+                        <div className="flex items-center gap-1 text-[11px] font-bold bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-100/30 dark:border-indigo-900/30" title="스프링 노트 작성됨">
+                          <BookOpen size={12} />
+                          <span>Note</span>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -186,6 +201,17 @@ export default React.memo(function TodoCard({
           </div>
           
           <div className="absolute top-2.5 right-2.5 opacity-0 group-hover/task:opacity-100 transition-opacity flex gap-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenSpringNote(task.id, e);
+              }}
+              className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-indigo-500 hover:text-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-colors"
+              title="스프링 노트"
+            >
+              <BookOpen size={13} />
+            </button>
             <button
               onClick={(e) => onDeleteTask(task.id, columnId, e)}
               className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-gray-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 transition-colors"

@@ -43,10 +43,11 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 18 | **FTS Body Search (Premium)** | Scrapes webpage text in background on bookmarking, supporting ultra-fast multi-keyword AND searches across title, URL, tags, summaries, and full body text. |
 | 19 | **Offline Reader & Zen Mode (Premium)** | Read bookmarked pages distraction-free with Light/Sepia/Dark themes, dynamic Table of Contents, scroll progress, and text export. |
 | 20 | **AI Cleaner** | AI-powered duplicate detection to find and clean up redundant bookmarks. |
-| 21 | **Visual Bookmark Map** | Interactive node-based mind-map view of your entire folder and bookmark structure. |
+| 21 | **Visual Mind Map (Premium)** | Interactive node-based mind-map view. Supports dragging and dropping nodes for custom positioning that saves permanently, on-device AI helpers to auto-expand branches or translate/rewrite node content, and an integrated Emoji & Icon Picker selectable via floating toolbar or settings panel. |
 | 22 | **Trend Rankings** | Built-in dashboards for GitHub trending repos, Hugging Face models, Hacker News, and Wikipedia. |
 | 23 | **Productivity Boards** | Integrated Kanban-style TODO board and Memo management system. |
 | 24 | **Smart Calendar Integration (Premium)** | A smart calendar seamlessly integrated with Todo lists and Memo functions. Supports real-time holiday synchronization (Nager.Date API) for multiple countries (Korea, US, Japan, etc.), Month/Week/Day view transitions, schedule/time adjustment via HTML5 Drag & Drop, and various recurring event options (daily, weekly, monthly, etc.). |
+| 25 | **Analogue Spring Note (Premium)** | An analogue-inspired rich-text notepad workspace (Tiptap-based). Offers custom visual themes (Light, Grid, Sepia, Dark). Outer panel background, leather book spine shadows, and editor separators automatically synchronize to match your selected theme. |
 
 ---
 

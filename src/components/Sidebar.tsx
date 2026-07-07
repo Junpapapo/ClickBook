@@ -17,6 +17,7 @@ import {
   Map as MapIcon,
   Calendar,
   GitBranch,
+  BookOpen,
 } from "lucide-react";
 import type { Bookmark, Folder, PageId, TaskItem } from "@/shared/types";
 
@@ -762,6 +763,20 @@ export default function Sidebar({
             >
               <GitBranch size={15} />
             </button>
+
+            {/* SpringNote Board Button */}
+            <button
+              onClick={() => onNavigate("springnote")}
+              title={t("springNoteBoardMenu") || "Sprint Note"}
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+                ${
+                  activePage === "springnote"
+                    ? "bg-indigo-500 text-white shadow-sm font-semibold"
+                    : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20"
+                }`}
+            >
+              <BookOpen size={15} />
+            </button>
           </div>
         ) : (
           !isTaskCollapsed && (
@@ -845,6 +860,24 @@ export default function Sidebar({
 
                 <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
                   {t("mindMapBoardMenu") || "Mind Map"}
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+                </span>
+              </button>
+
+              {/* SpringNote Board Button */}
+              <button
+                onClick={() => onNavigate("springnote")}
+                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                  ${
+                    activePage === "springnote"
+                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-semibold"
+                      : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/25"
+                  }`}
+              >
+                <BookOpen size={15} className="shrink-0" />
+
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+                  {t("springNoteBoardMenu") || "Sprint Note"}
                   <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
                 </span>
               </button>

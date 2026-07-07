@@ -133,7 +133,7 @@ export async function classifyWithNano(
 
     session = await Promise.race([
       (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-        expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
         temperature: 0.1,
         topK: 3
       }),
@@ -238,7 +238,7 @@ export async function expandSearchQuery(query: string): Promise<string[]> {
 
     session = await Promise.race([
       (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-        expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
         temperature: 0.1,
         topK: 3
       }),
@@ -290,7 +290,7 @@ export async function recommendSites(keyword: string, count = 6): Promise<Array<
 
     session = await Promise.race([
       (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-        expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
         temperature: 0.1,
         topK: 3
       }),
@@ -361,7 +361,7 @@ export async function generateSummaryAndTags(
     try {
       session = await Promise.race([
         (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-          expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+          expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
           temperature: 0.1,
           topK: 3
         }),
@@ -466,7 +466,7 @@ Memo draft:`;
 
     const session = await (lm.create as any)({
       systemPrompt: systemPrompt,
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }]
+      expectedOutputs: [{ type: "text", languages: ["en", "ja"] }]
     });
 
     const response = await Promise.race([
@@ -566,7 +566,7 @@ Enhanced Memo:`;
 
     const session = await (lm.create as any)({
       systemPrompt: systemPrompt,
-      expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }]
+      expectedOutputs: [{ type: "text", languages: ["en", "ja"] }]
     });
 
     const response = await Promise.race([
@@ -656,7 +656,7 @@ Output:`;
         try {
           session = await Promise.race([
             (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-              expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+              expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
               temperature: 0.1,
               topK: 3
             }),
@@ -803,7 +803,7 @@ export async function reorganizeWithAI(
         return await withTimeout(
           (lm.create as (opts: unknown) => Promise<any>)({
             systemPrompt: `You are a bookmark categorizer. Given a numbered list of bookmarks, respond with a JSON array of category IDs in the SAME ORDER. Each must be one of: technology, design, business, entertainment, science, sports, travel, other.${folderHint} Respond ONLY with the JSON array. Example: ["technology","other"]`,
-            expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+            expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
             temperature: 0.1,
             topK: 3
           }),

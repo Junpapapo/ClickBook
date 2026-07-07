@@ -31,6 +31,7 @@ export interface MindMapNodeData extends Record<string, unknown> {
   shape: NodeShape;
   colorTheme: ColorTheme;
   bookmarkUrl?: string;
+  icon?: string;
   isRoot?: boolean;
   isExpanded?: boolean;
   parentId?: string;
@@ -51,6 +52,7 @@ export interface MindMapData {
   edges: Edge[];
   direction?: "LR" | "TB" | "balanced";
   memo?: MindMapMemo;
+  isManualLayout?: boolean;
 }
 
 export interface MindMapMeta {

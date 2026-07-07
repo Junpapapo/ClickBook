@@ -24,6 +24,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   const [fileList, setFileList] = useState<MindMapMeta[]>([]);
   const [activeFileName, setActiveFileName] = useState<string>("");
   const [layoutDirection, setLayoutDirection] = useState<"LR" | "TB" | "balanced">("balanced");
+  const [isManualLayout, setIsManualLayout] = useState<boolean>(false);
   const [isAiExpanding, setIsAiExpanding] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   // AI 요약 결과 — 브랜치 요약 시 노드 위에 표시하기 위해
@@ -44,6 +45,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   const edgesRef = useRef(edges);
   const selectedNodeIdRef = useRef(selectedNodeId);
   const layoutDirectionRef = useRef(layoutDirection);
+  const isManualLayoutRef = useRef(isManualLayout);
   const memoContentRef = useRef(memoContent);
   const memoColorRef = useRef(memoColor);
 
@@ -52,9 +54,10 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     edgesRef.current = edges;
     selectedNodeIdRef.current = selectedNodeId;
     layoutDirectionRef.current = layoutDirection;
+    isManualLayoutRef.current = isManualLayout;
     memoContentRef.current = memoContent;
     memoColorRef.current = memoColor;
-  }, [nodes, edges, selectedNodeId, layoutDirection, memoContent, memoColor]);
+  }, [nodes, edges, selectedNodeId, layoutDirection, isManualLayout, memoContent, memoColor]);
 
 
 
@@ -92,7 +95,8 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     currentEdges: Edge[],
     customDir?: "LR" | "TB" | "balanced",
     customMemoContent?: string,
-    customMemoColor?: ColorTheme
+    customMemoColor?: ColorTheme,
+    customManualLayout?: boolean
   ) => {
     if (!activeFileName) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -100,6 +104,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const dirToSave = customDir || layoutDirection;
     const memoContentToSave = customMemoContent !== undefined ? customMemoContent : memoContentRef.current;
     const memoColorToSave = customMemoColor !== undefined ? customMemoColor : memoColorRef.current;
+    const manualLayoutToSave = customManualLayout !== undefined ? customManualLayout : isManualLayoutRef.current;
 
     saveTimeoutRef.current = setTimeout(async () => {
       const cleanNodes = currentNodes.map(({ data, ...node }) => {
@@ -116,7 +121,8 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         memo: {
           content: memoContentToSave,
           color: memoColorToSave
-        }
+        },
+        isManualLayout: manualLayoutToSave
       };
 
       try {
@@ -133,11 +139,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   // 정렬 방향 실시간 변경 및 저장
   const changeLayoutDirection = useCallback((newDir: "LR" | "TB" | "balanced") => {
     setLayoutDirection(newDir);
+    setIsManualLayout(false); // 수동 정렬 버튼 클릭 시 수동 레이아웃 모드 리셋
     const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(nodes, edges, newDir);
     const reboundN = layoutedN.map(bindNodeActions);
     setNodes(reboundN);
     setEdges([...layoutedE]);
-    saveMapData(reboundN, layoutedE, newDir);
+    saveMapData(reboundN, layoutedE, newDir, undefined, undefined, false);
   }, [nodes, edges, saveMapData, setNodes, setEdges]);
 
   // 노드 이름 변경
@@ -169,6 +176,31 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
               isLocked, 
               passwordHash 
             } 
+          };
+        }
+        return n;
+      }).map(bindNodeActions);
+      setTimeout(() => {
+        setEdges((eds) => {
+          saveMapData(next, eds);
+          return eds;
+        });
+      }, 0);
+      return next;
+    });
+  }, [saveMapData, setEdges, setNodes]);
+
+  // 노드 이모지/아이콘 변경
+  const updateNodeIcon = useCallback((nodeId: string, icon: string | null) => {
+    setNodes((nds) => {
+      const next = nds.map((n) => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              icon: icon || undefined
+            }
           };
         }
         return n;
@@ -240,13 +272,20 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     );
 
     const mappedNodes = nextNodes.map(bindNodeActions);
-    // TB/LR/balanced 현재 방향을 그대로 유지하여 확장
-    const effectiveDir = layoutDirectionRef.current;
-    const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, nextEdges, effectiveDir);
     
-    setNodes(layoutedN);
-    setEdges(layoutedE);
-    saveMapData(layoutedN, layoutedE);
+    if (isManualLayoutRef.current) {
+      setNodes(mappedNodes);
+      setEdges(nextEdges);
+      saveMapData(mappedNodes, nextEdges);
+    } else {
+      // TB/LR/balanced 현재 방향을 그대로 유지하여 확장
+      const effectiveDir = layoutDirectionRef.current;
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, nextEdges, effectiveDir);
+      
+      setNodes(layoutedN);
+      setEdges(layoutedE);
+      saveMapData(layoutedN, layoutedE);
+    }
   }, [saveMapData, setNodes, setEdges]);
 
   // 노드 및 서브트리 일괄 삭제
@@ -282,11 +321,17 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const nextEdges = currentEdges.filter((e) => !childIds.has(e.source) && !childIds.has(e.target));
 
     const mappedNodes = nextNodes.map(bindNodeActions);
-    const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, nextEdges, layoutDirectionRef.current);
     
-    setNodes(layoutedN);
-    setEdges(layoutedE);
-    saveMapData(layoutedN, layoutedE);
+    if (isManualLayoutRef.current) {
+      setNodes(mappedNodes);
+      setEdges(nextEdges);
+      saveMapData(mappedNodes, nextEdges);
+    } else {
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, nextEdges, layoutDirectionRef.current);
+      setNodes(layoutedN);
+      setEdges(layoutedE);
+      saveMapData(layoutedN, layoutedE);
+    }
 
     if (activeId === selectedNodeIdRef.current && !isStatic) {
       setSelectedNodeId(null);
@@ -312,11 +357,16 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       // 접힌 상태를 바탕으로 즉시 레이아웃을 다시 계산하여 화면 갱신
       setTimeout(() => {
         setEdges((eds) => {
-          const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(next, eds, layoutDirectionRef.current);
-          setNodes(layoutedN);
-          setEdges(layoutedE);
-          saveMapData(layoutedN, layoutedE);
-          return layoutedE;
+          if (isManualLayoutRef.current) {
+            saveMapData(next, eds);
+            return eds;
+          } else {
+            const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(next, eds, layoutDirectionRef.current);
+            setNodes(layoutedN);
+            setEdges(layoutedE);
+            saveMapData(layoutedN, layoutedE);
+            return layoutedE;
+          }
         });
       }, 0);
 
@@ -454,10 +504,16 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const nextNodes = [...currentNodes, newNode].map(bindNodeActions);
     const nextEdges = [...currentEdges, newEdge];
 
-    const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(nextNodes, nextEdges, layoutDirectionRef.current);
-    setNodes(layoutedN);
-    setEdges(layoutedE);
-    saveMapData(layoutedN, layoutedE);
+    if (isManualLayoutRef.current) {
+      setNodes(nextNodes);
+      setEdges(nextEdges);
+      saveMapData(nextNodes, nextEdges);
+    } else {
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(nextNodes, nextEdges, layoutDirectionRef.current);
+      setNodes(layoutedN);
+      setEdges(layoutedE);
+      saveMapData(layoutedN, layoutedE);
+    }
   }, [saveMapData, setNodes, setEdges]);
 
   // AI 통합 액션 핸들러 (6가지 AI 기능 처리)
@@ -489,9 +545,16 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         const { newNodes, newEdges } = await aiExpand(activeId, currentNodes, currentEdges, expandMode);
         const next = [...currentNodes, ...newNodes].map(bindNodeActions);
         const nextE = [...currentEdges, ...newEdges];
-        const { nodes: lN, edges: lE } = getLayoutedElements(next, nextE, layoutDirectionRef.current);
-        setNodes(lN); setEdges(lE);
-        saveMapData(lN, lE);
+        
+        if (isManualLayoutRef.current) {
+          setNodes(next);
+          setEdges(nextE);
+          saveMapData(next, nextE);
+        } else {
+          const { nodes: lN, edges: lE } = getLayoutedElements(next, nextE, layoutDirectionRef.current);
+          setNodes(lN); setEdges(lE);
+          saveMapData(lN, lE);
+        }
 
       } else if (action === "summarize") {
         // 2. Summarize: 브랜치 전체 요약 → 팝업으로 표시 및 메모 자동 연동
@@ -519,9 +582,16 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         const { newNodes, newEdges } = await aiGenerateFromText(extraPayload, activeId, currentNodes);
         const next = [...currentNodes, ...newNodes].map(bindNodeActions);
         const nextE = [...currentEdges, ...newEdges];
-        const { nodes: lN, edges: lE } = getLayoutedElements(next, nextE, layoutDirectionRef.current);
-        setNodes(lN); setEdges(lE);
-        saveMapData(lN, lE);
+        
+        if (isManualLayoutRef.current) {
+          setNodes(next);
+          setEdges(nextE);
+          saveMapData(next, nextE);
+        } else {
+          const { nodes: lN, edges: lE } = getLayoutedElements(next, nextE, layoutDirectionRef.current);
+          setNodes(lN); setEdges(lE);
+          saveMapData(lN, lE);
+        }
 
       } else if (action === "rewrite") {
         // 4. Rewrite: 노드 텍스트 재작성
@@ -682,10 +752,20 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       if (data && Array.isArray(data.nodes)) {
         const initialDir = data.direction || "balanced";
         const processedNodes = data.nodes.map((n) => bindNodeActions(n, initialDir));
-        // 겹침 방지를 위해 불러온 즉시 강제로 전체 레이아웃 정렬을 재계산하여 깔끔하게 배치
-        const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(processedNodes, data.edges || [], initialDir);
-        setNodes(layoutedN);
-        setEdges(layoutedE);
+        
+        // 수동 레이아웃 모드인 경우 자동 배치를 건너뛰고 저장된 캔버스 개별 좌표를 고수
+        if (data.isManualLayout) {
+          setNodes(processedNodes);
+          setEdges(data.edges || []);
+          setIsManualLayout(true);
+        } else {
+          // 겹침 방지를 위해 불러온 즉시 강제로 전체 레이아웃 정렬을 재계산하여 깔끔하게 배치
+          const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(processedNodes, data.edges || [], initialDir);
+          setNodes(layoutedN);
+          setEdges(layoutedE);
+          setIsManualLayout(false);
+        }
+        
         setLayoutDirection(initialDir);
         setActiveFileName(fileName);
         setSelectedNodeId(null);
@@ -726,6 +806,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       await chrome.storage.local.set({
         [key]: finalData,
       });
+      setIsManualLayout(false); // 새 마인드맵 생성 시 수동 정렬 모드 초기화
       await refreshFileList();
       await loadMapContent(fileName);
     } catch (e) {
@@ -738,6 +819,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     setMemoContent(content);
     setMemoColor(color);
     saveMapData(nodesRef.current, edgesRef.current, layoutDirectionRef.current, content, color);
+  }, [saveMapData]);
+
+  // 노드 드래그가 끝났을 때 수동 정렬 모드를 활성화하고 데이터를 저장하는 콜백
+  const onNodeDragStop = useCallback(() => {
+    setIsManualLayout(true);
+    saveMapData(nodesRef.current, edgesRef.current, undefined, undefined, undefined, true);
   }, [saveMapData]);
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
@@ -754,6 +841,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     updateMemo,
     onNodesChange,
     onEdgesChange,
+    onNodeDragStop, // 뷰와 연동을 위해 추가
     isAiExpanding,
     aiError,
     setAiError,
@@ -786,9 +874,11 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     deleteMapFile,
     renameMapFile,
     saveMapData,
+    updateNodeIcon,
     selectedNodeLabel: selectedNode?.data.label || "",
     selectedNodeShape: selectedNode?.data.shape || "rounded-rect",
     selectedNodeTheme: selectedNode?.data.colorTheme || "indigo",
+    selectedNodeIcon: selectedNode?.data.icon || "",
   };
 }
 
@@ -800,6 +890,7 @@ export interface MindMapActions {
   deleteNodeTree: (targetId?: string) => void;
   updateNodeLabel: (nodeId: string, newLabel: string) => void;
   updateNodeLockState: (nodeId: string, isLocked: boolean, passwordHash?: string) => void;
+  updateNodeIcon: (nodeId: string, icon: string | null) => void;
   toggleNodeExpanded: (nodeId: string) => void;
   registerAsTodoTask: (nodeLabelText: string) => Promise<void>;
   handleAiAction: (action: string, targetId?: string, extraPayload?: string) => Promise<any>;

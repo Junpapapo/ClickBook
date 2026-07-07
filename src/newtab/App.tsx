@@ -27,6 +27,7 @@ import TaskControlPage from "@/pages/TaskControlPage";
 import CalendarBoard from "@/pages/CalendarBoard";
 import PrintCalendar from "@/pages/PrintCalendar";
 import MindMapBoard from "@/pages/MindMapBoard";
+import SpringNoteBoard from "@/pages/SpringNoteBoard";
 
 import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 import { useTaskQueue } from "@/shared/useTaskQueue";
@@ -447,9 +448,21 @@ function AppContent() {
     };
     window.addEventListener("OPEN_READER_MODE", handleOpenReader as EventListener);
 
+    const handleOpenSpringNote = () => {
+      setActivePage("springnote");
+    };
+    window.addEventListener("OPEN_SPRING_NOTE", handleOpenSpringNote);
+
+    const handleOpenTodoBoard = () => {
+      setActivePage("todo");
+    };
+    window.addEventListener("OPEN_TODO_BOARD", handleOpenTodoBoard);
+
     return () => {
       window.removeEventListener("OPEN_BOOKMARK_INFO", handleOpenInfo as EventListener);
       window.removeEventListener("OPEN_READER_MODE", handleOpenReader as EventListener);
+      window.removeEventListener("OPEN_SPRING_NOTE", handleOpenSpringNote);
+      window.removeEventListener("OPEN_TODO_BOARD", handleOpenTodoBoard);
     };
   }, []);
 
@@ -564,7 +577,9 @@ function AppContent() {
         <PatternBar onPatternLoad={loadData} />
 
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className={`flex-1 overflow-y-auto ${
+            activePage === "springnote" || activePage === "todo" || activePage === "mindmap" ? "p-0" : "p-6"
+          }`}>
             {activePage === "taskcontrol" ? (
               <TaskControlPage
                 tasks={taskQueue.tasks}
@@ -613,6 +628,8 @@ function AppContent() {
               <BookmarkMap bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
             ) : activePage === "mindmap" ? (
               <MindMapBoard bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
+            ) : activePage === "springnote" ? (
+              <SpringNoteBoard t={t} lang={lang} />
             ) : activePage === "memo" ? (
               <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
             ) : activePage === "dashboard" ? (
