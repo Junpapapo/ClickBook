@@ -22,6 +22,7 @@ export const ko = {
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "대시보드",
   bookmarkMap: "북맵",
+  mindMapBoardMenu: "마인드맵",
   memoBoard: "메모",
   aiOrganize: "북정리",
   aiNotAvailable: "Chrome AI (Gemini Nano)를 사용할 수 없습니다",
@@ -633,5 +634,19 @@ export const ko = {
   quickAddEventPlaceholder: "{date}일에 빠른 이벤트 추가...",
   quickAddHolidayPlaceholder: "{date}일에 빠른 휴일 추가...",
   quickAddMemoPlaceholder: "{date}일에 메모 남기기...",
+
+  // ── MindMapPanel ──────────────────────────────────────────
+  mindmapSelectOrCreate: "마인드맵 목록에서 파일을 선택하거나 새 마인드맵을 생성하세요.",
+  mindmapCreateNew: "새 마인드맵 작성",
+  mindmapImportJson: "JSON 가져오기",
+  mindmapNameInput: "마인드맵 이름",
+  mindmapNamePlaceholder: "예: 프로젝트 계획 (미입력 시 템플릿명이 기본 설정됨)",
+  mindmapSelectTemplateDesc: "새로 시작할 마인드맵의 템플릿과 고유 이름을 설정하세요.",
+  mindmapNotesTitle: "마인드맵 메모장",
+  mindmapNotesPlaceholder: "마인드맵 메모를 여기에 작성하세요... (Markdown 지원, Ctrl+Enter로 미리보기)",
+  mindmapNoNotes: "작성된 메모가 없습니다. 클릭하여 노트를 남겨보세요.",
+  mindmapAiSummaryTitle: "AI 브랜치 요약",
+  mindmapAiAnalyzing: "Gemini Nano 분석 중...",
+  mindmapAiAnalyzingDesc: "아이디어를 확장하여 새로운 하위 브랜치를 자동 생성하고 있습니다.",
 };
 

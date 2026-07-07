@@ -46,6 +46,8 @@ interface TodoColumnViewProps {
   t: any;
 }
 
+
+
 export default React.memo(function TodoColumn({
   column,
   index,
@@ -69,6 +71,8 @@ export default React.memo(function TodoColumn({
   onDeleteTask,
   t,
 }: TodoColumnViewProps) {
+
+
   const colorVariants = [
     "border-t-emerald-400",
     "border-t-blue-400",

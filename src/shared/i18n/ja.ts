@@ -22,6 +22,7 @@ export const ja = {
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "ダッシュボード",
   bookmarkMap: "ブックマップ",
+  mindMapBoardMenu: "マインドマップ",
   memoBoard: "メモ",
   aiOrganize: "ブック整理",
   aiNotAvailable: "Chrome AI (Gemini Nano) が利用できません",
@@ -633,5 +634,19 @@ export const ja = {
   quickAddEventPlaceholder: "{date}日のイベントをクイック追加...",
   quickAddHolidayPlaceholder: "{date}日の祝日をクイック追加...",
   quickAddMemoPlaceholder: "{date}日にメモを追加...",
+
+  // ── MindMapPanel ──────────────────────────────────────────
+  mindmapSelectOrCreate: "マインドマップ一覧からファイルを選択するか、新しいマップを作成してください。",
+  mindmapCreateNew: "新規マップ作成",
+  mindmapImportJson: "JSONインポート",
+  mindmapNameInput: "マインドマップ名",
+  mindmapNamePlaceholder: "例：プロジェクト計画（未入力時はテンプレート名が基本設定されます）",
+  mindmapSelectTemplateDesc: "新規マインドマップのテンプレートと名前を設定してください。",
+  mindmapNotesTitle: "マインドマップメモ",
+  mindmapNotesPlaceholder: "メモをここに記入してください... (Markdown対応、Ctrl+Enterでプレビュー)",
+  mindmapNoNotes: "作成されたメモがありません。クリックしてノートを残してください。",
+  mindmapAiSummaryTitle: "AIブランチ要約",
+  mindmapAiAnalyzing: "Gemini Nano分析中...",
+  mindmapAiAnalyzingDesc: "アイデアを拡張し、新しい子ブランチを自動生成しています。",
 };
 

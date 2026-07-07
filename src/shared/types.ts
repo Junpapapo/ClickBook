@@ -318,4 +318,5 @@ export type PageId =
   | "hf"
   | "hn"
   | "taskcontrol"
-  | "calendar";
+  | "calendar"
+  | "mindmap";

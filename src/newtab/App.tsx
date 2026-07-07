@@ -26,6 +26,8 @@ import TagBoard from "@/pages/TagBoard";
 import TaskControlPage from "@/pages/TaskControlPage";
 import CalendarBoard from "@/pages/CalendarBoard";
 import PrintCalendar from "@/pages/PrintCalendar";
+import MindMapBoard from "@/pages/MindMapBoard";
+
 import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 import { useTaskQueue } from "@/shared/useTaskQueue";
 import { Sparkles, X } from "lucide-react";
@@ -609,6 +611,8 @@ function AppContent() {
               <HNRankingPage />
             ) : activePage === "map" ? (
               <BookmarkMap bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
+            ) : activePage === "mindmap" ? (
+              <MindMapBoard bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
             ) : activePage === "memo" ? (
               <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
             ) : activePage === "dashboard" ? (

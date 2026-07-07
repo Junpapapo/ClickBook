@@ -16,8 +16,10 @@ import {
   Tags,
   Map as MapIcon,
   Calendar,
+  GitBranch,
 } from "lucide-react";
-import type { Bookmark, Folder, PageId } from "@/shared/types";
+import type { Bookmark, Folder, PageId, TaskItem } from "@/shared/types";
+
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import { isAIAvailable } from "@/shared/categorizer";
 import { useDialog } from "@/shared/useDialog";
@@ -740,11 +742,25 @@ export default function Sidebar({
               className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
                 ${
                   activePage === "calendar"
-                    ? "bg-indigo-505 text-white shadow-sm font-semibold"
+                    ? "bg-indigo-500 text-white shadow-sm font-semibold"
                     : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20"
                 }`}
             >
               <Calendar size={15} />
+            </button>
+
+            {/* MindMap Board Button */}
+            <button
+              onClick={() => onNavigate("mindmap")}
+              title={t("mindMapBoardMenu") || "Mind Map"}
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+                ${
+                  activePage === "mindmap"
+                    ? "bg-purple-500 text-white shadow-sm font-semibold"
+                    : "bg-purple-500/10 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400 hover:bg-purple-500/20"
+                }`}
+            >
+              <GitBranch size={15} />
             </button>
           </div>
         ) : (
@@ -811,6 +827,24 @@ export default function Sidebar({
 
                 <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
                   {t("calendarMenu") || "Calendar"}
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
+                </span>
+              </button>
+
+              {/* MindMap Board Button */}
+              <button
+                onClick={() => onNavigate("mindmap")}
+                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                  ${
+                    activePage === "mindmap"
+                      ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20 font-semibold"
+                      : "bg-purple-500/10 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400 hover:bg-purple-500/20 dark:hover:bg-purple-500/25"
+                  }`}
+              >
+                <GitBranch size={15} className="shrink-0" />
+
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
+                  {t("mindMapBoardMenu") || "Mind Map"}
                   <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
                 </span>
               </button>

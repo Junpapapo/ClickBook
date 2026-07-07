@@ -609,7 +609,7 @@ export default function Popup() {
   ];
 
   return (
-    <div className="w-96 bg-surface-900 text-gray-100 p-4 flex flex-col gap-3">
+    <div className="w-96 bg-white dark:bg-surface-900 text-gray-800 dark:text-gray-100 p-4 flex flex-col gap-3 border border-gray-200 dark:border-surface-800/80 transition-colors">
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -645,7 +645,7 @@ export default function Popup() {
               className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer transition-all duration-200 ${
                 aiAvailable
                   ? "bg-purple-900/60 text-purple-300 border border-purple-700/50 hover:bg-purple-800/60"
-                  : "bg-surface-800 text-gray-600 border border-surface-700 hover:bg-surface-700 hover:text-gray-400"
+                  : "bg-white dark:bg-surface-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-750 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
               {isTogglingAi ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
@@ -668,7 +668,7 @@ export default function Popup() {
               }
             }}
             title={t("popupManageTitle")}
-            className="p-1.5 rounded-lg text-gray-400 bg-surface-700 hover:bg-surface-600 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 hover:text-gray-700 dark:hover:text-white transition-colors"
           >
             <ExternalLink size={14} />
           </button>
@@ -677,16 +677,16 @@ export default function Popup() {
             <button
               onClick={() => setSettingsOpen(o => !o)}
               title={t("popupSettingsTitle")}
-              className={`p-1.5 rounded-lg transition-colors ${
+              className={`p-1.5 rounded-lg transition-colors border ${
                 settingsOpen
-                  ? "text-white bg-indigo-600"
-                  : "text-gray-300 bg-surface-700 hover:bg-surface-600 hover:text-white"
+                  ? "text-white bg-indigo-600 border-indigo-600"
+                  : "text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 hover:text-gray-700 dark:hover:text-white border-gray-200 dark:border-surface-600"
               }`}
             >
               <Settings size={15} />
             </button>
             {settingsOpen && (
-              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-surface-800 border border-surface-600 rounded-xl shadow-xl py-1">
+              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700/80 rounded-2xl shadow-xl py-1.5 text-gray-700 dark:text-gray-200 font-sans">
 
               <div className="px-3 pt-2 pb-1">
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">{t("popupTheme")}</p>
@@ -694,7 +694,7 @@ export default function Popup() {
                     <button
                       onClick={() => applyTheme("light")}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs transition-colors ${
-                        popupTheme === "light" ? "bg-indigo-600 text-white" : "text-gray-400 hover:bg-surface-700"
+                        popupTheme === "light" ? "bg-indigo-600 text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"
                       }`}
                     >
                       <Sun size={11} /> {t("popupLight")}
@@ -702,14 +702,14 @@ export default function Popup() {
                     <button
                       onClick={() => applyTheme("dark")}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs transition-colors ${
-                        popupTheme === "dark" ? "bg-indigo-600 text-white" : "text-gray-400 hover:bg-surface-700"
+                        popupTheme === "dark" ? "bg-indigo-600 text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"
                       }`}
                     >
                       <Moon size={11} /> {t("popupDark")}
                     </button>
                   </div>
                 </div>
-                <div className="border-t border-surface-700 mx-2 my-1" />
+                <div className="border-t border-gray-200 dark:border-surface-700 mx-2 my-1" />
                 <div className="px-3 pb-2">
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">{t("settingsLanguage")}</p>
                   <div className="flex gap-1">
@@ -729,36 +729,36 @@ export default function Popup() {
                 <div className="border-t border-surface-700 mx-2 my-1" />
                 <button
                   onClick={() => { setTextImportOpen(o => !o); setSettingsOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
                 >
                   <ClipboardList size={13} />
                   {t("popupTextImportMenu")}
                 </button>
-                <div className="border-t border-surface-700 mx-2 my-1" />
+                <div className="border-t border-gray-200 dark:border-surface-700 mx-2 my-1" />
                 <button
                   onClick={() => {
                     const v = !chromePanel;
                     setChromePanel(v);
                     chrome.storage.local.set({ clickbook_popup_chrome: v });
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
                 >
                   <Globe2 size={13} />
                   {t("popupChromePanelMenu")}
                   <span className={`ml-auto w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
-                    chromePanel ? "bg-indigo-500 border-indigo-500" : "border-surface-500"
+                    chromePanel ? "bg-indigo-500 border-indigo-500" : "border-gray-300 dark:border-surface-500"
                   }`}>
                     {chromePanel && <Check size={9} className="text-white" />}
                   </span>
                 </button>
                 {/* ── Feedback Links ─────────────────── */}
-                <div className="border-t border-surface-700 mx-2 my-1" />
+                <div className="border-t border-gray-200 dark:border-surface-700 mx-2 my-1" />
                 <button
                   onClick={() => {
                     chrome.tabs.create({ url: GITHUB_ISSUES_URL });
                     setSettingsOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
                 >
                   <Bug size={13} />
                   {t("feedbackBugReport")}
@@ -769,7 +769,7 @@ export default function Popup() {
                     chrome.tabs.create({ url: FEEDBACK_FORM_URL });
                     setSettingsOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-surface-700 text-gray-300 text-xs transition-colors rounded-b-xl"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors rounded-b-xl"
                 >
                   <MessageSquare size={13} />
                   {t("feedbackQuick")}
@@ -837,7 +837,7 @@ export default function Popup() {
       )}
 
       {/* ブックマック管理 */}
-      <p className="text-[10px] text-orange-400 uppercase tracking-wider font-medium -mb-1">{t("popupBookmarkSection")}</p>
+      <p className="text-[10px] text-violet-500 dark:text-orange-400 uppercase tracking-wider font-semibold -mb-1">{t("popupBookmarkSection")}</p>
 
       {/* 保存ボタン行 */}
       <div className="flex flex-col gap-2">
@@ -883,7 +883,7 @@ export default function Popup() {
             className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
               textImportOpen
                 ? "bg-indigo-600 text-white"
-                : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+                : "bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300"
             }`}
           >
             <ClipboardList size={11} />
@@ -902,7 +902,7 @@ export default function Popup() {
             className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
               memoOpen
                 ? "bg-indigo-600 text-white"
-                : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+                : "bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300"
             }`}
           >
             <StickyNote size={11} />
@@ -922,7 +922,7 @@ export default function Popup() {
               className={`flex-1 flex items-center justify-center gap-1 py-2 rounded active:scale-95 transition-all text-[11px] font-medium cursor-pointer ${
                 todoOpen
                   ? "bg-indigo-600 text-white"
-                  : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+                  : "bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300"
               }`}
             >
               <ClipboardList size={11} />
@@ -943,7 +943,7 @@ export default function Popup() {
               className={`px-2.5 rounded active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
                 todoOpen && calendarOpen
                   ? "bg-indigo-600 text-white"
-                  : "bg-surface-700 hover:bg-surface-600 text-gray-300 hover:text-indigo-300"
+                  : "bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300"
               }`}
             >
               <Calendar size={12} />
@@ -974,7 +974,7 @@ export default function Popup() {
 
       {/* TODO 패널 */}
       {todoOpen && (
-        <div className="flex flex-col gap-2 bg-surface-800 rounded-xl p-3 border border-surface-700/50">
+        <div className="flex flex-col gap-2 bg-gray-50 dark:bg-surface-800 rounded-xl p-3 border border-gray-200 dark:border-surface-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <ClipboardList size={13} className="text-indigo-400" />
@@ -1003,22 +1003,22 @@ export default function Popup() {
 
           {/* 미니 캘린더 토글 영역 */}
           {calendarOpen && (
-            <div className="flex flex-col gap-1.5 bg-surface-900/50 p-2 rounded-lg border border-surface-700/50">
+            <div className="flex flex-col gap-1.5 bg-gray-100/80 dark:bg-surface-900/50 p-2 rounded-lg border border-gray-200 dark:border-surface-700/50">
               {/* 캘린더 헤더 (연월 이동) */}
-              <div className="flex items-center justify-between py-1.5 px-2 bg-surface-800/80 border-b border-surface-700/50 rounded-t-md -mx-2 -mt-2 mb-1">
+              <div className="flex items-center justify-between py-1.5 px-2 bg-white dark:bg-surface-800/80 border-b border-gray-200 dark:border-surface-700/50 rounded-t-md -mx-2 -mt-2 mb-1">
                 <button
                   onClick={() => {
                     const prev = new Date(currentMonth);
                     prev.setMonth(prev.getMonth() - 1);
                     setCurrentMonth(prev);
                   }}
-                  className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
+                  className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
                   title="이전 달"
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold text-gray-200 tracking-wider">
+                  <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 tracking-wider">
                     {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
                   </span>
                   <button
@@ -1035,7 +1035,7 @@ export default function Popup() {
                     next.setMonth(next.getMonth() + 1);
                     setCurrentMonth(next);
                   }}
-                  className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
+                  className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
                   title="다음 달"
                 >
                   <ChevronRight size={14} />
@@ -1084,13 +1084,13 @@ export default function Popup() {
                       onClick={() => setSelectedDate(day.date)}
                       title={holidayName || undefined}
                       className={`relative aspect-square rounded flex flex-col items-center justify-center text-[11px] font-semibold transition-all ${
-                        day.isPadding ? "text-gray-700" : isRedDay ? "text-red-500" : day.isSaturday ? "text-blue-400" : "text-gray-300"
+                        day.isPadding ? "text-gray-400 dark:text-gray-700" : isRedDay ? "text-red-500" : day.isSaturday ? "text-blue-500 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"
                       } ${
                         isSelected
                           ? "bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30"
                           : isToday
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                          : "hover:bg-surface-700"
+                          : "hover:bg-gray-100 dark:hover:bg-surface-700"
                       }`}
                     >
                       <span>{day.dayNum}</span>
@@ -1121,7 +1121,7 @@ export default function Popup() {
                 if (e.key === "Enter") handleAddTodo();
                 if (e.key === "Escape") setTodoOpen(false);
               }}
-              className="flex-1 text-xs bg-surface-900 border border-surface-700 rounded-lg px-2.5 py-1 text-gray-200 outline-none focus:border-indigo-500/50 transition-colors placeholder-gray-600"
+              className="flex-1 text-xs bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-700 rounded-lg px-2.5 py-1 text-gray-800 dark:text-gray-200 outline-none focus:border-indigo-500/50 transition-colors placeholder-gray-400 dark:placeholder-gray-600"
             />
             <button
               onClick={handleAddTodo}
@@ -1141,7 +1141,7 @@ export default function Popup() {
                 .map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between bg-surface-900/40 border border-surface-700/40 rounded-lg px-2 py-1 transition-all hover:bg-surface-900/60"
+                    className="flex items-center justify-between bg-white dark:bg-surface-900/40 border border-gray-200 dark:border-surface-700/40 rounded-lg px-2 py-1 transition-all hover:bg-gray-50 dark:hover:bg-surface-900/60"
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <input
@@ -1151,7 +1151,7 @@ export default function Popup() {
                         className="w-3.5 h-3.5 rounded border-surface-600 text-indigo-600 bg-surface-900 focus:ring-indigo-500 focus:ring-offset-surface-900 cursor-pointer"
                       />
                       <span className={`text-xs truncate ${
-                        task.completed ? "line-through text-gray-500" : "text-gray-300"
+                        task.completed ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-300"
                       }`}>
                         {task.content}
                       </span>
@@ -1189,11 +1189,11 @@ export default function Popup() {
             <CheckCircle2 size={15} />{message}
           </div>
           {saveResult && (
-            <div className="flex items-center justify-between bg-surface-800 rounded-lg px-3 py-2">
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-surface-800 rounded-lg px-3 py-2">
               <span className="text-xs text-gray-400">
-                📂 <span className="text-gray-200 font-medium">{saveResult.folderName}</span>
+                📂 <span className="text-gray-800 dark:text-gray-200 font-medium">{saveResult.folderName}</span>
               </span>
-              <span className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${saveResult.method === "ai" ? "bg-purple-900/60 text-purple-300" : "bg-surface-700 text-gray-500"}`}>
+              <span className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${saveResult.method === "ai" ? "bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300" : "bg-gray-100 dark:bg-surface-700 text-gray-500 dark:text-gray-400"}`}>
                 {saveResult.method === "ai" ? <><Sparkles size={9} /> AI</> : <><Cpu size={9} /> {t("popupRuleBased")}</>}
               </span>
             </div>
@@ -1216,8 +1216,8 @@ export default function Popup() {
       {/* URL コピーツールバー */}
       {tabUrl && (
         <div className="flex flex-col gap-1.5">
-          <p className="text-[10px] text-orange-400 uppercase tracking-wider font-medium">{t("popupUrlCopySection")}</p>
-          <div className="flex items-center justify-between bg-surface-700 rounded-lg px-1 py-1.5">
+          <p className="text-[10px] text-violet-500 dark:text-orange-400 uppercase tracking-wider font-semibold">{t("popupUrlCopySection")}</p>
+          <div className="flex items-center justify-between bg-gray-100 dark:bg-surface-700 rounded-lg px-1 py-1.5">
             {COPY_ACTIONS.map((action, idx) => {
               const tipPos =
                 idx === 0 ? "left-0"
@@ -1229,14 +1229,14 @@ export default function Popup() {
                   onClick={() => copyFormat(idx, action.format())}
                   className={`flex items-center justify-center p-2 rounded-md transition-all active:scale-95 ${
                     copiedIdx === idx
-                      ? "text-emerald-400 bg-emerald-400/10"
-                      : "text-gray-300 hover:text-indigo-300 hover:bg-surface-600"
+                      ? "text-emerald-500 bg-emerald-500/10 dark:text-emerald-400"
+                      : "text-gray-500 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-gray-200 dark:hover:bg-surface-600"
                   }`}
                 >
                   {copiedIdx === idx ? <Check size={16} /> : <action.Icon size={16} />}
                 </button>
                 {/* ツールチップ */}
-                <div className={`absolute bottom-full mb-3 ${tipPos} w-36 bg-surface-700 border border-surface-600 text-[10px] rounded-lg px-2.5 py-2 text-center shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed`}>
+                <div className={`absolute bottom-full mb-3 ${tipPos} w-36 bg-gray-800 dark:bg-surface-700 border border-gray-700 dark:border-surface-600 text-[10px] rounded-lg px-2.5 py-2 text-center shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 leading-relaxed`}>
                   <p className="font-semibold text-gray-100 mb-0.5">{action.label}</p>
                   <p className="text-gray-400 mb-1">{action.desc}</p>
                   <p className="text-indigo-300 font-mono text-[9px] bg-surface-900 rounded px-1 py-0.5">{action.example}</p>
@@ -1251,8 +1251,8 @@ export default function Popup() {
 
       {/* ブラウザデータ削除 */}
       <div className="flex flex-col gap-2">
-        <p className="text-[10px] text-orange-400 uppercase tracking-wider font-medium">{t("popupBrowserDataSection")}</p>
-        <div className="flex items-center justify-between bg-surface-800 rounded-lg px-2 py-1.5">
+        <p className="text-[10px] text-violet-500 dark:text-orange-400 uppercase tracking-wider font-semibold">{t("popupBrowserDataSection")}</p>
+        <div className="flex items-center justify-between bg-gray-100 dark:bg-surface-800 rounded-lg px-2 py-1.5">
           {CLEAR_ITEMS.map(({ key, label, Icon }, idx) => {
             const selected = clearSelections[key];
             const tipPos = idx === 0 ? "left-0" : idx === CLEAR_ITEMS.length - 1 ? "right-0" : "left-1/2 -translate-x-1/2";
@@ -1262,13 +1262,13 @@ export default function Popup() {
                   onClick={() => setClearSelections(prev => ({ ...prev, [key]: !prev[key] }))}
                   className={`p-2 rounded-md transition-colors ${
                     selected
-                      ? "text-red-400 bg-red-500/15"
-                      : "text-gray-600 hover:text-gray-400 hover:bg-surface-700"
+                      ? "text-red-500 dark:text-red-400 bg-red-500/15"
+                      : "text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-400 hover:bg-gray-200 dark:hover:bg-surface-700"
                   }`}
                 >
                   <Icon size={14} />
                 </button>
-                <div className={`absolute bottom-full mb-2 ${tipPos} bg-surface-700 border border-surface-600 text-[10px] rounded-lg px-2.5 py-1.5 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap`}>
+                <div className={`absolute bottom-full mb-2 ${tipPos} bg-gray-800 dark:bg-surface-700 border border-gray-700 dark:border-surface-600 text-[10px] rounded-lg px-2.5 py-1.5 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap`}>
                   <p className={`font-medium ${selected ? "text-red-300" : "text-gray-300"}`}>{label}</p>
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-surface-600" />
                 </div>
@@ -1294,7 +1294,7 @@ export default function Popup() {
           <button
             onClick={handleHardReload}
             title={t("popupHardReloadTitle")}
-            className="shrink-0 flex items-center justify-center px-3.5 py-2 rounded-lg bg-surface-700 hover:bg-indigo-600 text-gray-400 hover:text-white active:scale-95 transition-all"
+            className="shrink-0 flex items-center justify-center px-3.5 py-2 rounded-lg bg-gray-100 dark:bg-surface-700 hover:bg-indigo-100 dark:hover:bg-indigo-600 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-white active:scale-95 transition-all"
           >
             <RefreshCw size={14} />
           </button>

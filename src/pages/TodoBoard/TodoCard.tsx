@@ -4,6 +4,8 @@ import { GripVertical, CheckCircle2, Circle, Calendar, AlignLeft, CheckSquare, T
 import type { TodoTask } from "@/shared/types";
 import { FolderIcon } from "@/components/DynamicIcon";
 
+
+
 const TASK_BG_COLORS: Record<string, string> = {
   default: "bg-white dark:bg-[#2C2C2E]",
   blue: "bg-blue-50 dark:bg-[#1C2331]",
@@ -79,6 +81,8 @@ interface TodoTaskCardProps {
   onOpenModal: (task: TodoTask) => void;
   onDeleteTask: (taskId: string, colId: string, e?: React.MouseEvent) => void;
 }
+
+
 
 export default React.memo(function TodoCard({
   task,
@@ -185,6 +189,7 @@ export default React.memo(function TodoCard({
             <button
               onClick={(e) => onDeleteTask(task.id, columnId, e)}
               className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-gray-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 transition-colors"
+              title="삭제"
             >
               <Trash2 size={13} />
             </button>

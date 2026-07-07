@@ -49,7 +49,7 @@ export async function preloadAIModel(): Promise<void> {
       console.log("[AI Warmup] Preloading language model in background...");
       preloadedSession = await (lm.create as (opts: unknown) => Promise<any>)({
         systemPrompt: "You are a bookmark categorizer. Given a numbered list of bookmarks, respond with a JSON array of category IDs in the SAME ORDER. Each must be one of: technology, design, business, entertainment, science, sports, travel, other. Respond ONLY with the JSON array. Example: [\"technology\",\"other\"]",
-        expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }],
+        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
         temperature: 0.1,
         topK: 3
       });
@@ -69,7 +69,7 @@ export async function verifyAISession(): Promise<boolean> {
     const session = await Promise.race([
       (lm.create as (opts: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
         systemPrompt: "Reply with OK only.",
-        expectedOutputs: [{ type: "text", languages: ["en", "ja", "ko"] }]
+        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }]
       }),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000)),
     ]);

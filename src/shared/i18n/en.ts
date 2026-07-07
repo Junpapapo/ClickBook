@@ -22,6 +22,7 @@ export const en = {
   // ── Sidebar ──────────────────────────────────────────────
   dashboard: "Dashboard",
   bookmarkMap: "Book Map",
+  mindMapBoardMenu: "Mind Map",
   memoBoard: "Memos",
   aiOrganize: "Book Organize",
   aiNotAvailable: "Chrome AI (Gemini Nano) is not available",
@@ -635,5 +636,19 @@ export const en = {
   quickAddEventPlaceholder: "Quick add event for {date}...",
   quickAddHolidayPlaceholder: "Quick add holiday for {date}...",
   quickAddMemoPlaceholder: "Quick add memo for {date}...",
+
+  // ── MindMapPanel ──────────────────────────────────────────
+  mindmapSelectOrCreate: "Select a file from the list or create a new mind map.",
+  mindmapCreateNew: "Create New Map",
+  mindmapImportJson: "Import JSON",
+  mindmapNameInput: "Mind Map Name",
+  mindmapNamePlaceholder: "e.g., Project Plan (Default template name if empty)",
+  mindmapSelectTemplateDesc: "Set a template and name for your new mind map.",
+  mindmapNotesTitle: "Mind Map Notes",
+  mindmapNotesPlaceholder: "Write your notes here... (Markdown supported, Ctrl+Enter to preview)",
+  mindmapNoNotes: "No notes written. Click to leave a note.",
+  mindmapAiSummaryTitle: "AI Branch Summary",
+  mindmapAiAnalyzing: "Gemini Nano analyzing...",
+  mindmapAiAnalyzingDesc: "Expanding ideas and generating new sub-branches.",
 };
 
