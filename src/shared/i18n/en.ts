@@ -395,6 +395,7 @@ export const en = {
   copyBacklogDesc: "Backlog Wiki format",
   feedbackBugReport: "Bug / Feature Request",
   feedbackQuick: "Quick Feedback",
+  feedbackRate: "Rate Us on Chrome Web Store",
 
 
 

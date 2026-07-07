@@ -394,6 +394,7 @@ export const ja = {
   copyBacklogDesc: "Backlog Wiki 形式",
   feedbackBugReport: "バグ報告 / 機能リクエスト",
   feedbackQuick: "クイックフィードバック",
+  feedbackRate: "Chrome ウェブストアで評価",
 
 
   // ── Phase 3 ───────────────────────────────────────────────

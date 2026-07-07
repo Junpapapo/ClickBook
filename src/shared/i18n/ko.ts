@@ -394,6 +394,7 @@ export const ko = {
   copyBacklogDesc: "Backlog Wiki 형식",
   feedbackBugReport: "버그 신고 / 기능 요청",
   feedbackQuick: "빠른 피드백",
+  feedbackRate: "Chrome 웹스토어 평점 남기기",
 
 
   // ── Phase 3 ───────────────────────────────────────────────

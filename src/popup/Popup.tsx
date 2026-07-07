@@ -4,7 +4,7 @@ import {
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
   Settings, Globe2, Check, Sun, Moon, ShieldCheck,
   Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, BookOpen, Bug, MessageSquare,
-  Calendar, ChevronLeft, ChevronRight, Target
+  Calendar, ChevronLeft, ChevronRight, Target, Star
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import type { MessageResponse, MemoColor, TodoBoardData, TodoTask, TodoColumn } from "@/shared/types";
@@ -19,6 +19,7 @@ type SaveResult = { folderName: string; method: ClassifyMethod };
 
 const GITHUB_ISSUES_URL = "https://github.com/Junpapapo/ClickBook/issues/new/choose";
 const FEEDBACK_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd84kbl768v0lx8rJMw4jq-cnS9fwwVj45fFBHEmG5Wu5iMCg/viewform?usp=dialog";
+const CHROME_STORE_URL = "https://chromewebstore.google.com/detail/ikdaaibmockcojalohiopmbcpcnkkmga?utm_source=item-share-cb";
 
 function getTodayString() {
   const d = new Date();
@@ -769,10 +770,21 @@ export default function Popup() {
                     chrome.tabs.create({ url: FEEDBACK_FORM_URL });
                     setSettingsOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors rounded-b-xl"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
                 >
                   <MessageSquare size={13} />
                   {t("feedbackQuick")}
+                  <ExternalLink size={9} className="ml-auto text-gray-600" />
+                </button>
+                <button
+                  onClick={() => {
+                    chrome.tabs.create({ url: CHROME_STORE_URL });
+                    setSettingsOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors rounded-b-xl"
+                >
+                  <Star size={13} className="text-amber-400 fill-amber-400" />
+                  {t("feedbackRate")}
                   <ExternalLink size={9} className="ml-auto text-gray-600" />
                 </button>
               </div>
