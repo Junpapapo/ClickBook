@@ -265,6 +265,8 @@ export interface NoteObject {
     tableCols?: number;
     borderColor?: string;   // 외곽선 색상 (예: "indigo", "rose" 등 또는 CSS 값)
     borderWidth?: number;   // 외곽선 두께 (px)
+    flipH?: boolean;        // 좌우 반전
+    flipV?: boolean;        // 상하 반전
   };
 }
 

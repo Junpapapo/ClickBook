@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Maximize2, Move, Trash2, Plus, Type, RotateCcw, RotateCw, Undo2 } from "lucide-react";
+import { X, Maximize2, Move, Trash2, Plus, Type, RotateCcw, RotateCw, Undo2, FlipHorizontal, FlipVertical } from "lucide-react";
 import type { NoteObject, SpringNoteCanvasProps } from "../spring-note-types";
 import { getSpringNoteImage } from "@/utils/springNoteDb";
 
@@ -25,6 +25,12 @@ export default function SpringNoteCanvas({
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [rotatingId, setRotatingId] = useState<string | null>(null);
+  const [activeColorPickerId, setActiveColorPickerId] = useState<string | null>(null);
+
+  // 선택된 객체가 바뀌면 테두리 색상 팝오버를 닫음
+  useEffect(() => {
+    setActiveColorPickerId(null);
+  }, [selectedObjId]);
 
   
   // dragStart 레퍼런스는 드래그/리사이즈/자유회전에 멀티로 활용
@@ -136,7 +142,9 @@ export default function SpringNoteCanvas({
       const dy = e.clientY - dragStart.current.y;
       const dxPercent = (dx / canvasRect.width) * 100;
       
-      const newX = Math.max(0, Math.min(100 - (dragStart.current.objW / canvasRect.width) * 100, dragStart.current.objX + dxPercent));
+      // 가로 한계선을 150%로 확장하여 우측 너머로 드래그할 수 있게 지원
+      const maxLimit = 150 - (dragStart.current.objW / canvasRect.width) * 100;
+      const newX = Math.max(0, Math.min(maxLimit, dragStart.current.objX + dxPercent));
       const newY = Math.max(0, dragStart.current.objY + dy);
 
       onUpdateObjects(
@@ -152,17 +160,19 @@ export default function SpringNoteCanvas({
         objects.map((obj) => (obj.id === resizingId ? { ...obj, width: newWidth, height: newHeight } : obj))
       );
     } else if (rotatingId) {
-      // 마우스 상대 회전 변화량(Delta) 계산
+      // 마우스 절대 회전 각도 계산
       const cX = dragStart.current.objX;
       const cY = dragStart.current.objY;
       const dx = e.clientX - cX;
       const dy = e.clientY - cY;
 
-      // 현재 마우스 각도
+      // 현재 마우스 각도 (도 단위)
       const currentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
       
-      // 직전 마우스 각도와의 편차 연산 (직전 각도는 dragStart.current.x 에 보관되어 있음)
-      let angleDiff = currentAngle - dragStart.current.x;
+      // 최초 클릭 시점 각도 대비 절대 각도 편차 연산
+      const startAngle = dragStart.current.x;
+      const startRotation = dragStart.current.objW;
+      let angleDiff = currentAngle - startAngle;
 
       // 360도 경계선 튐 방지
       if (angleDiff > 180) {
@@ -171,16 +181,15 @@ export default function SpringNoteCanvas({
         angleDiff += 360;
       }
 
-      // 대상 오브젝트의 현재 회전 각도 획득
-      const targetObj = objects.find((o) => o.id === rotatingId);
-      const currentRotation = targetObj ? targetObj.rotation || 0 : 0;
+      // 새로운 회전각 산출
+      let nextRotation = startRotation + angleDiff;
 
-      // 새로운 회전각 산출 및 각도 정제
-      let newRotation = Math.round(currentRotation + angleDiff);
-      newRotation = (newRotation + 360) % 360;
+      // Shift 키를 누르고 있는 경우 15도 단위로 스냅 정렬
+      if (e.shiftKey) {
+        nextRotation = Math.round(nextRotation / 15) * 15;
+      }
 
-      // 다음 무브 계산을 위해 직전 각도 좌표를 현재 각도로 실시간 갱신
-      dragStart.current.x = currentAngle;
+      const newRotation = (Math.round(nextRotation) + 360) % 360;
 
       onUpdateObjects(
         objects.map((obj) => (obj.id === rotatingId ? { ...obj, rotation: newRotation } : obj))
@@ -320,10 +329,49 @@ export default function SpringNoteCanvas({
     );
   };
 
-  // 8. 이미지 회전 각도 제어 (초기화 전용으로 단순화)
+  // 8. 이미지 회전 각도 제어 (정량 회전/반전/초기화)
   const handleRotateReset = (obj: NoteObject) => {
     onUpdateObjects(
-      objects.map((o) => (o.id === obj.id ? { ...o, rotation: 0 } : o))
+      objects.map((o) =>
+        o.id === obj.id
+          ? {
+              ...o,
+              rotation: 0,
+              metadata: {
+                ...o.metadata,
+                flipH: undefined,
+                flipV: undefined,
+              },
+            }
+          : o
+      )
+    );
+  };
+
+  const handleRotate90 = (obj: NoteObject, direction: "cw" | "ccw") => {
+    const currentRotation = obj.rotation || 0;
+    const delta = direction === "cw" ? 90 : -90;
+    const nextRotation = (currentRotation + delta + 360) % 360;
+    onUpdateObjects(
+      objects.map((o) => (o.id === obj.id ? { ...o, rotation: nextRotation } : o))
+    );
+  };
+
+  const handleFlip = (obj: NoteObject, axis: "h" | "v") => {
+    const currentMetadata = obj.metadata || {};
+    const flipField = axis === "h" ? "flipH" : "flipV";
+    onUpdateObjects(
+      objects.map((o) =>
+        o.id === obj.id
+          ? {
+              ...o,
+              metadata: {
+                ...o.metadata,
+                [flipField]: !currentMetadata[flipField],
+              },
+            }
+          : o
+      )
     );
   };
 
@@ -363,14 +411,23 @@ export default function SpringNoteCanvas({
     );
   };
 
+  // 가장 우측에 배치된 오브젝트의 X 좌표 구하기
+  const maxObjX = objects.reduce((max, o) => Math.max(max, o.x), 0);
+  // 객체가 화면 오른쪽 80% 영역을 넘어서 배치되면 그만큼 캔버스 가로 너비를 100% 이상으로 확장 (최대 160%)
+  const canvasWidthPercent = maxObjX > 80 ? Math.min(160, 100 + (maxObjX - 80)) : 100;
+
   return (
     <div
       ref={canvasRef}
       style={{
         height: `${Math.max(500, scrollHeight)}px`,
+        width: `${canvasWidthPercent}%`,
       }}
-      className="absolute inset-x-0 top-0 z-20 pointer-events-none"
-      onClick={() => setSelectedObjId(null)}
+      className="absolute inset-y-0 left-0 z-20 pointer-events-none"
+      onClick={() => {
+        setSelectedObjId(null);
+        setActiveColorPickerId(null);
+      }}
     >
       {objects.map((obj) => {
         const isSelected = selectedObjId === obj.id;
@@ -378,6 +435,12 @@ export default function SpringNoteCanvas({
         
         // 테이블은 글자 기입을 위해 회전 0도 강제
         const rotationStyle = isTable ? "rotate(0deg)" : (obj.rotation ? `rotate(${obj.rotation}deg)` : "rotate(0deg)");
+        
+        // 이미지 좌우/상하 반전 스타일 계산
+        const flipH = obj.metadata?.flipH ? -1 : 1;
+        const flipV = obj.metadata?.flipV ? -1 : 1;
+        const scaleStyle = `scale(${flipH}, ${flipV})`;
+        const transformStyle = isTable ? rotationStyle : `${rotationStyle} ${scaleStyle}`;
         
         const oFontSize = obj.metadata?.fontSize || 12;
         const oFontFamily = obj.metadata?.fontFamily || "sans";
@@ -417,6 +480,10 @@ export default function SpringNoteCanvas({
             ? "font-mono"
             : "font-sans";
 
+        // 특정 객체가 드래그, 리사이즈, 또는 회전 중인지 여부 판별
+        const isManipulating = draggingId === obj.id || resizingId === obj.id || rotatingId === obj.id;
+        const transitionClass = isManipulating ? "transition-none" : "transition-all duration-200";
+
         return (
           <div
             key={obj.id}
@@ -431,10 +498,10 @@ export default function SpringNoteCanvas({
               top: `${obj.y}px`,
               width: `${obj.width}px`,
               height: `${obj.height}px`,
-              transform: rotationStyle,
+              transform: transformStyle,
               ...borderCustomStyle,
             }}
-            className={`pointer-events-auto border rounded-lg flex flex-col p-1 animate-in zoom-in-95 duration-200 transition-all group ${containerBg} ${borderClass}`}
+            className={`pointer-events-auto border rounded-lg flex flex-col p-1 animate-in zoom-in-95 group ${containerBg} ${borderClass} ${transitionClass}`}
           >
             {/* 포토샵/PPT 스타일 이미지 자유 회전 핸들 조절 점 (선택된 이미지 하단에 표시하여 상단 툴바와 겹치지 않게 조율) */}
             {isSelected && obj.type === "image" && (
@@ -498,14 +565,51 @@ export default function SpringNoteCanvas({
                   </>
                 )}
 
-                {/* 이미지 오브젝트일 경우에만 회전 초기화 리셋 버튼 노출 */}
+                {/* 이미지 오브젝트일 경우에만 회전 및 대칭 조작 노출 */}
                 {obj.type === "image" && (
                   <>
+                    {/* 90도 좌회전 */}
+                    <button
+                      type="button"
+                      onClick={() => handleRotate90(obj, "ccw")}
+                      className="p-1 hover:bg-white/20 rounded text-gray-300 hover:text-white"
+                      title="Rotate 90° Left"
+                    >
+                      <RotateCcw size={11} />
+                    </button>
+                    {/* 90도 우회전 */}
+                    <button
+                      type="button"
+                      onClick={() => handleRotate90(obj, "cw")}
+                      className="p-1 hover:bg-white/20 rounded text-gray-300 hover:text-white"
+                      title="Rotate 90° Right"
+                    >
+                      <RotateCw size={11} />
+                    </button>
+                    {/* 좌우 반전 */}
+                    <button
+                      type="button"
+                      onClick={() => handleFlip(obj, "h")}
+                      className={`p-1 hover:bg-white/20 rounded text-gray-300 hover:text-white ${obj.metadata?.flipH ? "bg-indigo-600/45 text-indigo-200" : ""}`}
+                      title="Flip Horizontal"
+                    >
+                      <FlipHorizontal size={11} />
+                    </button>
+                    {/* 상하 반전 */}
+                    <button
+                      type="button"
+                      onClick={() => handleFlip(obj, "v")}
+                      className={`p-1 hover:bg-white/20 rounded text-gray-300 hover:text-white ${obj.metadata?.flipV ? "bg-indigo-600/45 text-indigo-200" : ""}`}
+                      title="Flip Vertical"
+                    >
+                      <FlipVertical size={11} />
+                    </button>
+                    {/* 회전/대칭 초기화 */}
                     <button
                       type="button"
                       onClick={() => handleRotateReset(obj)}
                       className="px-2 py-0.5 hover:bg-white/20 rounded text-gray-300 hover:text-white flex items-center gap-1 font-semibold"
-                      title="Reset Rotation (0°)"
+                      title="Reset Rotation & Flip"
                     >
                       <Undo2 size={11} />
                       <span>Reset</span>
@@ -539,31 +643,60 @@ export default function SpringNoteCanvas({
 
                     <div className="w-px h-3 bg-white/20" />
 
-                    {/* 테두리 색상 서브 토큰 리스트 */}
-                    <div className="flex items-center gap-1.5">
-                      {(["default", "gray", "indigo", "emerald", "amber", "rose"] as const).map((colorKey) => {
-                        const bgMap: Record<string, string> = {
-                          default: "bg-transparent border border-white/40",
-                          gray: "bg-gray-500",
-                          indigo: "bg-indigo-500",
-                          emerald: "bg-emerald-500",
-                          amber: "bg-amber-500",
-                          rose: "bg-rose-500",
-                        };
-                        const isActive = (oBorderColor || "default") === colorKey;
+                    {/* 테두리 색상 단일 버튼 & 팝오버 선택기 */}
+                    <div className="relative flex items-center">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveColorPickerId(activeColorPickerId === obj.id ? null : obj.id);
+                        }}
+                        className="w-4 h-4 rounded-full border border-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95 bg-white/5"
+                        title="Choose Border Color"
+                      >
+                        {/* 현재 선택된 테두리 색상 표시 */}
+                        <div className={`w-2.5 h-2.5 rounded-full ${
+                          oBorderColor === "indigo" ? "bg-indigo-500" :
+                          oBorderColor === "rose" ? "bg-rose-500" :
+                          oBorderColor === "amber" ? "bg-amber-500" :
+                          oBorderColor === "emerald" ? "bg-emerald-500" :
+                          oBorderColor === "gray" ? "bg-gray-500" :
+                          "bg-transparent border border-white/60"
+                        }`} />
+                      </button>
 
-                        return (
-                          <button
-                            key={colorKey}
-                            type="button"
-                            onClick={() => handleBorderColorChange(obj, colorKey)}
-                            className={`w-3 h-3 rounded-full ${bgMap[colorKey]} transition-all ${
-                              isActive ? "ring-2 ring-white scale-110 font-bold" : "hover:scale-110"
-                            }`}
-                            title={`Border Color: ${colorKey}`}
-                          />
-                        );
-                      })}
+                      {/* 팝오버 색상 선택 레이어 */}
+                      {activeColorPickerId === obj.id && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900/95 dark:bg-surface-950/95 text-white flex items-center gap-1.5 p-1.5 rounded-lg shadow-2xl border border-white/10 z-50 animate-in fade-in slide-in-from-bottom-1 duration-150">
+                          {(["default", "gray", "indigo", "emerald", "amber", "rose"] as const).map((colorKey) => {
+                            const bgMap: Record<string, string> = {
+                              default: "bg-transparent border border-white/40",
+                              gray: "bg-gray-500",
+                              indigo: "bg-indigo-500",
+                              emerald: "bg-emerald-500",
+                              amber: "bg-amber-500",
+                              rose: "bg-rose-500",
+                            };
+                            const isActive = (oBorderColor || "default") === colorKey;
+
+                            return (
+                              <button
+                                key={colorKey}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleBorderColorChange(obj, colorKey);
+                                  setActiveColorPickerId(null);
+                                }}
+                                className={`w-3.5 h-3.5 rounded-full ${bgMap[colorKey]} transition-all ${
+                                  isActive ? "ring-2 ring-white scale-110" : "hover:scale-110 active:scale-95"
+                                }`}
+                                title={`Border Color: ${colorKey}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     <div className="w-px h-3 bg-white/20" />
@@ -719,7 +852,7 @@ export default function SpringNoteCanvas({
 
                       {/* 하단 출처 및 메타데이터 */}
                       <div className="pt-1.5 mt-1 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2 shrink-0 select-none">
-                        {obj.metadata?.bookmarkTitle ? (
+                        {obj.metadata?.bookmarkUrl ? (
                           <a
                             href={obj.metadata.bookmarkUrl || "#"}
                             target="_blank"
@@ -741,12 +874,98 @@ export default function SpringNoteCanvas({
                             </span>
                           </a>
                         ) : (
-                          <span 
-                            style={{ fontSize: `${Math.max(8, oFontSize - 4.5)}px` }}
-                            className="font-bold opacity-65"
-                          >
-                            📝 Memo
-                          </span>
+                          <div className="flex items-center gap-1 min-w-0 flex-grow relative">
+                            {/* 색상 선택 인디케이터 버튼 */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveColorPickerId(activeColorPickerId === obj.id ? null : obj.id);
+                              }}
+                              className="w-3.5 h-3.5 rounded-full border border-black/10 dark:border-white/10 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform shrink-0"
+                              title="Change Memo Color"
+                            >
+                              <div className={`w-2 h-2 rounded-full ${
+                                mColor === "pink" ? "bg-rose-400" :
+                                mColor === "blue" ? "bg-blue-400" :
+                                mColor === "green" ? "bg-emerald-400" :
+                                mColor === "purple" ? "bg-purple-400" :
+                                "bg-amber-400"
+                              }`} />
+                            </button>
+
+                            {/* 메모지 색상 변경 팝오버 */}
+                            {activeColorPickerId === obj.id && (
+                              <div className="absolute bottom-full left-0 mb-1.5 p-1 bg-white dark:bg-surface-850 rounded-lg shadow-2xl border border-gray-150 dark:border-surface-700 flex items-center gap-1 z-50 animate-in fade-in slide-in-from-bottom-1 duration-150">
+                                {([ "yellow", "pink", "blue", "green", "purple" ] as const).map((colorKey) => {
+                                  const bgMap: Record<string, string> = {
+                                    pink: "bg-rose-400 border-rose-300",
+                                    blue: "bg-blue-400 border-blue-300",
+                                    green: "bg-emerald-400 border-emerald-300",
+                                    purple: "bg-purple-400 border-purple-300",
+                                    yellow: "bg-amber-400 border-amber-300",
+                                  };
+                                  const isActive = mColor === colorKey;
+
+                                  return (
+                                    <button
+                                      key={colorKey}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUpdateObjects(
+                                          objects.map((o) =>
+                                            o.id === obj.id
+                                              ? {
+                                                  ...o,
+                                                  metadata: {
+                                                    ...o.metadata,
+                                                    memoColor: colorKey,
+                                                  },
+                                                }
+                                              : o
+                                          )
+                                        );
+                                        setActiveColorPickerId(null);
+                                      }}
+                                      className={`w-3.5 h-3.5 rounded-full border ${bgMap[colorKey]} transition-transform hover:scale-110 ${
+                                        isActive ? "ring-2 ring-indigo-500/40 scale-110" : ""
+                                      }`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* 인라인 제목 편집기 */}
+                            <span 
+                              contentEditable
+                              suppressContentEditableWarning
+                              onBlur={(e) => {
+                                const newTitle = e.currentTarget.innerText;
+                                if (newTitle !== (obj.metadata?.bookmarkTitle || "메모")) {
+                                  onUpdateObjects(
+                                    objects.map((o) =>
+                                      o.id === obj.id
+                                        ? {
+                                            ...o,
+                                            metadata: {
+                                              ...o.metadata,
+                                              bookmarkTitle: newTitle,
+                                            },
+                                          }
+                                        : o
+                                    )
+                                  );
+                                }
+                              }}
+                              style={{ fontSize: `${Math.max(8, oFontSize - 4.5)}px` }}
+                              className="font-bold truncate outline-none select-text focus:bg-black/5 dark:focus:bg-white/5 px-1 rounded flex-1 min-w-[30px] opacity-80"
+                              title="Edit Title"
+                            >
+                              {obj.metadata?.bookmarkTitle || "메모"}
+                            </span>
+                          </div>
                         )}
 
                         <span 

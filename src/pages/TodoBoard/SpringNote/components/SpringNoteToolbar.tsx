@@ -36,7 +36,8 @@ import {
   ImagePlus,
   Link as LinkIcon,
   Check,
-  ExternalLink
+  ExternalLink,
+  StickyNote
 } from "lucide-react";
 import type { SpringNoteToolbarProps } from "../spring-note-types";
 
@@ -54,6 +55,7 @@ export default function SpringNoteToolbar({
   isDrawerOpen,
   onClose,
   onInsertTable,
+  onInsertMemo,
   isMiniMode,
   onMaximize,
   onApplyTextColor,
@@ -941,7 +943,7 @@ export default function SpringNoteToolbar({
 
           <div className={dividerClass} />
 
-          {/* 그룹 7: 인라인 표 */}
+          {/* 그룹 7: 인라인 표 및 메모 */}
           <div className="flex items-center gap-0.5 shrink-0">
             {/* 표 삽입 */}
             <button
@@ -951,6 +953,16 @@ export default function SpringNoteToolbar({
               title="Insert Inline Table (3x3)"
             >
               <TableIcon size={13} />
+            </button>
+
+            {/* 메모 글상자 삽입 */}
+            <button
+              type="button"
+              onClick={onInsertMemo}
+              className={`p-1 rounded transition-all ${btnClass}`}
+              title="Insert Note Sticky Memo"
+            >
+              <StickyNote size={13} />
             </button>
 
             {/* 표가 현재 선택되어 활성화된 상태일 때만 드러나는 동적 행/열 편집 도구 */}

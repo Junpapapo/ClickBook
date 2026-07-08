@@ -834,6 +834,31 @@ export default function SpringNotePanel({
     handleUpdateObjects([...currentPage.objects, newObj]);
   };
 
+  // 상단 바 또는 툴바에서 직접 빈 메모 카드를 추가할 때
+  const handleInsertMemo = () => {
+    const defaultWidth = 190;
+    const defaultHeight = 145;
+    const { x, y } = getNextObjectPosition(defaultWidth, defaultHeight);
+
+    const newObj: NoteObject = {
+      id: `obj-${Date.now()}`,
+      type: "bookmark-memo",
+      content: "메모 내용을 입력하세요.",
+      x,
+      y,
+      width: defaultWidth,
+      height: defaultHeight,
+      rotation: 0,
+      metadata: {
+        title: "Saved Memo",
+        memoColor: "yellow", // 기본 배경색: 노란색
+        bookmarkTitle: "메모", // 디폴트 제목
+        favicon: "📝",
+      },
+    };
+    handleUpdateObjects([...currentPage.objects, newObj]);
+  };
+
   // 이미지 포커스 기준 플로팅 위젯 토글 및 상대좌표 계산
   const handleToggleImagePopover = () => {
     if (showImagePopover) {
@@ -1069,6 +1094,7 @@ export default function SpringNotePanel({
         isDrawerOpen={isDrawerOpen}
         onClose={onClose}
         onInsertTable={handleInsertTable}
+        onInsertMemo={handleInsertMemo}
         onApplyFormatting={handleApplyFormatting}
         onApplyTextColor={handleApplyTextColor}
         onApplyHighlightColor={handleApplyHighlightColor}

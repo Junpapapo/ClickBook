@@ -80,7 +80,7 @@ export default function SpringNoteBook({
           fontSize: `${fontSize}px`,
           ...getGridStyle(),
         }}
-        className={`flex-1 flex flex-col pl-8.5 pr-1.5 py-4 overflow-y-auto scrollbar-thin transition-colors duration-300 ${THEME_CLASSES[theme]} ${FONT_CLASSES[font]}`}
+        className={`flex-1 flex flex-col pl-8.5 pr-1.5 py-4 overflow-auto scrollbar-thin transition-colors duration-300 ${THEME_CLASSES[theme]} ${FONT_CLASSES[font]}`}
       >
         {children}
       </div>

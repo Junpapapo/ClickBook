@@ -24,6 +24,7 @@ export interface SpringNoteToolbarProps {
   onClose: () => void;
   // --- V6 Rich Text and Table insertion ---
   onInsertTable?: () => void;
+  onInsertMemo?: () => void;
   onApplyFormatting?: (format: "bold" | "italic" | "underline" | "strikethrough" | "code" | "quote" | "bullet" | "number" | "indent" | "outdent") => void;
   isMiniMode?: boolean;
   onMaximize?: () => void;
