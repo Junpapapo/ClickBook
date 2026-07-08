@@ -649,6 +649,9 @@ export const ja = {
   mindmapAiSummaryTitle: "AIブランチ要約",
   mindmapAiAnalyzing: "Gemini Nano分析中...",
   mindmapAiAnalyzingDesc: "アイデアを拡張し、新しい子ブランチを自動生成しています。",
+  mindmapAiDraftProposed: "AIが {count}個のアイデアを提案しました。",
+  mindmapAiDraftAccept: "✓ すべて承認",
+  mindmapAiDraftReject: "✓ すべて却下",
 
   // ── SpringNote ─────────────────────────────────────────────
   springNoteBoardMenu: "Sprint Note",

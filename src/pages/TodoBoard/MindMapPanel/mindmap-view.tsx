@@ -28,6 +28,8 @@ import TemplateSelector from "./components/TemplateSelector";
 import ImportModal from "./components/ImportModal";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import RenameModal from "./components/RenameModal";
+import ShortcutGuide from "./components/ShortcutGuide";
+import NodeMemoSidePanel from "./components/NodeMemoSidePanel";
 
 const nodeTypes = {
   mindmapNode: MindMapNode
@@ -38,6 +40,63 @@ interface Props {
   taskTitle: string;
   onClose: () => void;
 }
+
+// 2D 기하 기반 가장 가까운 방향의 노드를 찾는 헬퍼 함수
+const findNearestNode = (
+  currentNodeId: string,
+  nodes: Node[],
+  direction: "up" | "down" | "left" | "right"
+): string | null => {
+  const current = nodes.find((n) => n.id === currentNodeId);
+  if (!current) return null;
+
+  // React Flow 노드 디폴트 너비 200, 높이 50 기준 중심점 계산
+  const currentX = current.position.x + 100;
+  const currentY = current.position.y + 25;
+
+  let candidates = nodes.filter((n) => n.id !== currentNodeId && !n.hidden);
+
+  // 방향 필터링
+  candidates = candidates.filter((n) => {
+    const candX = n.position.x + 100;
+    const candY = n.position.y + 25;
+
+    if (direction === "up") return candY < currentY - 5;
+    if (direction === "down") return candY > currentY + 5;
+    if (direction === "left") return candX < currentX - 5;
+    if (direction === "right") return candX > currentX + 5;
+    return true;
+  });
+
+  if (candidates.length === 0) return null;
+
+  let bestNode: Node | null = null;
+  let minCost = Infinity;
+
+  // Cost = (주방향 거리) + (부방향 거리 * 가중치)
+  // 편차가 적은 직선상의 노드에 더 높은 우선순위 부여
+  candidates.forEach((n) => {
+    const candX = n.position.x + 100;
+    const candY = n.position.y + 25;
+
+    const dx = candX - currentX;
+    const dy = candY - currentY;
+
+    let cost = 0;
+    if (direction === "up" || direction === "down") {
+      cost = Math.abs(dy) + Math.abs(dx) * 2;
+    } else {
+      cost = Math.abs(dx) + Math.abs(dy) * 2;
+    }
+
+    if (cost < minCost) {
+      minCost = cost;
+      bestNode = n;
+    }
+  });
+
+  return bestNode ? (bestNode as Node).id : null;
+};
 
 function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
   const { t } = useLang();
@@ -66,9 +125,11 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     refreshFileList,
     updateNodeShape,
     updateNodeTheme,
+    updateNodeEdgeTheme,
     updateNodeLabel,
     updateNodeLockState,
     addChild,
+    addSiblingNode,
     deleteNodeTree,
     toggleNodeExpanded,
     registerAsTodoTask,
@@ -79,21 +140,33 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     exportMapToJson,
     deleteMapFile,
     renameMapFile,
-    saveMapData,
     updateNodeIcon,
     selectedNodeLabel,
     selectedNodeShape,
     selectedNodeTheme,
+    selectedNodeEdgeTheme,
     selectedNodeIcon,
     memoContent,
     memoColor,
-    updateMemo
+    updateMemo,
+    editingNodeId,
+    setEditingNodeId,
+    updateNodeMemo,
+    memoOpenNodeId,
+    setMemoOpenNodeId,
+    draftNodeIds,
+    acceptAiDraft,
+    rejectAiDraft,
+    edgeType,
+    changeEdgeType,
+    updateHandleDir,
   } = useMindMapState(taskId, onClose);
 
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isShortcutGuideOpen, setIsShortcutGuideOpen] = useState(false);
 
   const hasAutoLoadedRef = useRef(false);
 
@@ -116,7 +189,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     }
   }, [activeFileName, fitView, nodes.length]);
 
-  // 단축키 제어 (Tab: 자식 노드 생성, Delete/Backspace: 삭제)
+  // 단축키 제어 (Tab: 자식 노드 생성, Enter: 형제 노드 생성, Delete/Backspace: 삭제, F2/Space: 편집)
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
@@ -128,13 +201,34 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     if (e.key === "Tab") {
       e.preventDefault();
       addChild();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      addSiblingNode();
     } else if (e.key === "Delete" || e.key === "Backspace") {
       if (selectedNodeId !== "root") {
         e.preventDefault();
         deleteNodeTree();
       }
+    } else if (e.key === "F2" || e.key === " ") {
+      e.preventDefault();
+      setEditingNodeId(selectedNodeId);
+    } else if (e.key.startsWith("Arrow")) {
+      const dirMap: Record<string, "up" | "down" | "left" | "right"> = {
+        ArrowUp: "up",
+        ArrowDown: "down",
+        ArrowLeft: "left",
+        ArrowRight: "right",
+      };
+      const dir = dirMap[e.key];
+      if (dir) {
+        e.preventDefault();
+        const nextId = findNearestNode(selectedNodeId, nodes as any, dir);
+        if (nextId) {
+          setSelectedNodeId(nextId);
+        }
+      }
     }
-  }, [selectedNodeId, addChild, deleteNodeTree]);
+  }, [selectedNodeId, addChild, addSiblingNode, deleteNodeTree, setEditingNodeId, setSelectedNodeId, nodes]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -239,7 +333,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
 
 
   return (
-    <MindMapActionsContext.Provider value={{ addChild, deleteNodeTree, updateNodeLabel, updateNodeLockState, updateNodeIcon, toggleNodeExpanded, registerAsTodoTask, handleAiAction, layoutDirection }}>
+    <MindMapActionsContext.Provider value={{ addChild, addSiblingNode, deleteNodeTree, updateNodeLabel, updateNodeLockState, updateNodeIcon, toggleNodeExpanded, registerAsTodoTask, handleAiAction, layoutDirection, editingNodeId, setEditingNodeId, edgeType, changeEdgeType, memoOpenNodeId, setMemoOpenNodeId, updateNodeMemo, draftNodeIds, acceptAiDraft, rejectAiDraft, updateHandleDir }}>
       <div
         ref={reactFlowRef}
         onDragOver={onDragOver}
@@ -275,7 +369,31 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
           </button>
         </div>
       )}
-
+      {/* AI Draft Acceptance Review Floating Banner */}
+      {draftNodeIds.length > 0 && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-slate-800 text-white text-xs px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-6 z-[100] animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-sm">🤖</span>
+            <span className="font-bold text-gray-200">
+              {t("mindmapAiDraftProposed").replace("{count}", draftNodeIds.length.toString())}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={acceptAiDraft}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black cursor-pointer transition-colors active:scale-95 shadow-sm"
+            >
+              {t("mindmapAiDraftAccept")}
+            </button>
+            <button
+              onClick={rejectAiDraft}
+              className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-black cursor-pointer transition-colors active:scale-95 shadow-sm"
+            >
+              {t("mindmapAiDraftReject")}
+            </button>
+          </div>
+        </div>
+      )}
       {/* AI Expansion Loader Card Overlay */}
       {isAiExpanding && (
         <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] flex items-center justify-center z-[90] pointer-events-none">
@@ -325,158 +443,316 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
         </div>
       </div>
 
-      {/* Main Flow Canvas */}
-      <div className="flex-1 relative min-h-0 bg-slate-50 dark:bg-surface-950">
-        {activeFileName ? (() => {
-          const visibleNodes = (() => {
-            const lockedIds = new Set<string>();
-            nodes.forEach((n) => {
-              if (n.data?.isLocked) {
-                lockedIds.add(n.id);
-              }
-            });
-
-            if (lockedIds.size === 0) return nodes;
-
-            // 전체 edges 기준으로 하위 노드 ID 집합 계산
-            const nodesToHide = new Set<string>();
-            const findDescendants = (pid: string) => {
-              edges.forEach((e) => {
-                if (e.source === pid && !nodesToHide.has(e.target)) {
-                  nodesToHide.add(e.target);
-                  findDescendants(e.target);
+      {/* Main Flow Canvas & Side Memo Panel */}
+      <div className="flex-1 flex min-h-0 bg-slate-50 dark:bg-surface-950 relative">
+        <div className="flex-1 relative min-h-0 h-full">
+          {activeFileName ? (() => {
+            const visibleNodes = (() => {
+              const lockedIds = new Set<string>();
+              nodes.forEach((n) => {
+                if (n.data?.isLocked) {
+                  lockedIds.add(n.id);
                 }
               });
-            };
 
-            // 잠긴 노드별로 하위 카운트를 계산해 data에 주입
-            const lockedCountMap = new Map<string, number>();
-            lockedIds.forEach((lid) => {
-              const before = nodesToHide.size;
-              findDescendants(lid);
-              lockedCountMap.set(lid, nodesToHide.size - before);
-            });
+              if (lockedIds.size === 0) return nodes;
 
-            return nodes
-              .filter((n) => !nodesToHide.has(n.id))
-              .map((n) => {
-                if (lockedCountMap.has(n.id)) {
-                  return { ...n, data: { ...n.data, lockedSubtreeCount: lockedCountMap.get(n.id) } };
-                }
-                return n;
-              });
-          })();
-
-          const visibleEdges = (() => {
-            const nodeIds = new Set(visibleNodes.map((n) => n.id));
-            return edges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
-          })();
-
-          return (
-            <ReactFlow
-              nodes={visibleNodes}
-              edges={visibleEdges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onNodeClick={onNodeClick}
-              onPaneClick={onPaneClick}
-              onNodeDragStop={onNodeDragStop}
-              nodeTypes={nodeTypes}
-              deleteKeyCode={null}
-              selectionKeyCode={null}
-              fitView
-              fitViewOptions={{ padding: 0.2 }}
-              minZoom={0.2}
-              maxZoom={1.5}
-              className="[&_.react-flow__controls]:dark:bg-surface-800"
-            >
-              <MiniMap 
-              pannable
-              zoomable
-              nodeColor={(n) => {
-                if (n.data?.isRoot) return "#6366f1";
-                const colorMap: Record<string, string> = {
-                  indigo: "#818cf8",
-                  emerald: "#34d399",
-                  amber: "#fbbf24",
-                  rose: "#fb7185",
-                  violet: "#a78bfa",
-                  slate: "#94a3b8",
-                };
-                return colorMap[n.data?.colorTheme as string] || "#f8fafc";
-              }}
-              maskColor="rgba(0,0,0, 0.05)"
-              className="dark:bg-surface-800 !border-gray-200 dark:!border-surface-700 rounded-lg shadow-sm"
-            />
-            <Background color="#cbd5e1" gap={16} size={1} />
-            
-            {/* Rich Floating Toolbar */}
-            <Panel position="bottom-center" className="mb-4">
-              <div className="bg-slate-900/95 dark:bg-surface-950/95 backdrop-blur-md border border-white/10 dark:border-surface-800/80 px-4 py-2.5 rounded-full shadow-lg shadow-black/30 flex items-center gap-3 text-white text-xs font-semibold">
-                <button 
-                  onClick={() => zoomOut({ duration: 300 })}
-                  className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
-                >
-                  Zoom Out
-                </button>
-                <span className="w-px h-3.5 bg-white/20" />
-                <button 
-                  onClick={() => zoomIn({ duration: 300 })}
-                  className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
-                >
-                  Zoom In
-                </button>
-                <span className="w-px h-3.5 bg-white/20" />
-                <button 
-                  onClick={triggerAutoFit}
-                  className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
-                >
-                  Fit View
-                </button>
-                <span className="w-px h-3.5 bg-white/20" />
-                <button 
-                  onClick={() => {
-                    const nextDir = 
-                      layoutDirection === "balanced" 
-                        ? "LR" 
-                        : layoutDirection === "LR" 
-                          ? "TB" 
-                          : "balanced";
-                    changeLayoutDirection(nextDir);
-                  }}
-                  className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
-                >
-                  {layoutDirection === "balanced" 
-                    ? "🌀 Balanced" 
-                    : layoutDirection === "LR" 
-                      ? "➡️ Horizontal" 
-                      : "⬇️ Vertical"
+              // 전체 edges 기준으로 하위 노드 ID 집합 계산
+              const nodesToHide = new Set<string>();
+              const findDescendants = (pid: string) => {
+                edges.forEach((e) => {
+                  if (e.source === pid && !nodesToHide.has(e.target)) {
+                    nodesToHide.add(e.target);
+                    findDescendants(e.target);
                   }
+                });
+              };
+
+              // 잠긴 노드별로 하위 카운트를 계산해 data에 주입
+              const lockedCountMap = new Map<string, number>();
+              lockedIds.forEach((lid) => {
+                const before = nodesToHide.size;
+                findDescendants(lid);
+                lockedCountMap.set(lid, nodesToHide.size - before);
+              });
+
+              return nodes
+                .filter((n) => !nodesToHide.has(n.id))
+                .map((n) => {
+                  if (lockedCountMap.has(n.id)) {
+                    return { ...n, data: { ...n.data, lockedSubtreeCount: lockedCountMap.get(n.id) } };
+                  }
+                  return n;
+                });
+            })();
+
+            const visibleEdges = (() => {
+              const nodeIds = new Set(visibleNodes.map((n) => n.id));
+              return edges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+            })();
+
+            return (
+              <ReactFlow
+                nodes={visibleNodes}
+                edges={visibleEdges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onNodeClick={onNodeClick}
+                onPaneClick={onPaneClick}
+                onNodeDragStop={onNodeDragStop}
+                nodeTypes={nodeTypes}
+                deleteKeyCode={null}
+                selectionKeyCode={null}
+                fitView
+                fitViewOptions={{ padding: 0.2 }}
+                minZoom={0.2}
+                maxZoom={1.5}
+                className="[&_.react-flow__controls]:dark:bg-surface-800"
+              >
+                <MiniMap 
+                pannable
+                zoomable
+                nodeColor={(n) => {
+                  if (n.data?.isRoot) return "#6366f1";
+                  const colorMap: Record<string, string> = {
+                    indigo: "#818cf8",
+                    emerald: "#34d399",
+                    amber: "#fbbf24",
+                    rose: "#fb7185",
+                    violet: "#a78bfa",
+                    slate: "#94a3b8",
+                  };
+                  return colorMap[n.data?.colorTheme as string] || "#f8fafc";
+                }}
+                maskColor="rgba(0,0,0, 0.05)"
+                className="dark:bg-surface-800 !border-gray-200 dark:!border-surface-700 rounded-lg shadow-sm"
+              />
+              <Background color="#cbd5e1" gap={16} size={1} />
+              
+              {/* Rich Floating Toolbar */}
+              <Panel position="bottom-center" className="mb-4">
+                {(() => {
+                  const selNode = nodes.find(n => n.id === selectedNodeId);
+                  const hasActiveNode = selNode && !selNode.data.isRoot;
+                  const curDir = selNode?.data.handleDir ?? null;
+
+                  return (
+                    <div className={`bg-slate-900/95 dark:bg-surface-950/95 backdrop-blur-md border border-white/10 dark:border-surface-800/80 px-4 py-2.5 shadow-lg shadow-black/30 flex items-center gap-4 text-white text-xs font-semibold transition-all duration-300 ${
+                      hasActiveNode ? "rounded-[24px]" : "rounded-full"
+                    }`}>
+                      {/* 왼쪽 컬럼: 기본 툴바(1행) + 컬러 팔레트(2행, 노드가 선택된 경우만) */}
+                      <div className="flex flex-col gap-2">
+                        {/* 1행: 기본 툴바 버튼들 */}
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => zoomOut({ duration: 300 })}
+                            className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                          >
+                            Zoom Out
+                          </button>
+                          <span className="w-px h-3.5 bg-white/20" />
+                          <button 
+                            onClick={() => zoomIn({ duration: 300 })}
+                            className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                          >
+                            Zoom In
+                          </button>
+                          <span className="w-px h-3.5 bg-white/20" />
+                          <button 
+                            onClick={triggerAutoFit}
+                            className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                          >
+                            Fit View
+                          </button>
+                          <span className="w-px h-3.5 bg-white/20" />
+                          <button 
+                            onClick={() => {
+                              const nextDir = 
+                                layoutDirection === "balanced" 
+                                  ? "LR" 
+                                  : layoutDirection === "LR" 
+                                    ? "TB" 
+                                    : "balanced";
+                              changeLayoutDirection(nextDir);
+                            }}
+                            className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                          >
+                            {layoutDirection === "balanced" 
+                              ? "🌀 Balanced" 
+                              : layoutDirection === "LR" 
+                                ? "➡️ Horizontal" 
+                                : "⬇️ Vertical"
+                            }
+                          </button>
+                          <span className="w-px h-3.5 bg-white/20" />
+                          <button 
+                            onClick={() => {
+                              const nextType = 
+                                edgeType === "smoothstep" 
+                                  ? "bezier" 
+                                  : edgeType === "bezier" 
+                                    ? "straight" 
+                                    : "smoothstep";
+                              changeEdgeType(nextType);
+                            }}
+                            className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer text-amber-300 font-bold"
+                            title="연결선 스타일 변경"
+                          >
+                            {edgeType === "smoothstep" 
+                              ? "🧱 Step" 
+                              : edgeType === "bezier" 
+                                ? "🌀 Curve" 
+                                : "📉 Straight"
+                            }
+                          </button>
+                          <span className="w-px h-3.5 bg-white/20" />
+                          <button 
+                            onClick={() => setIsShortcutGuideOpen(true)}
+                            className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer text-indigo-300 font-bold"
+                            title="단축키 가이드 보기"
+                          >
+                            ⌨️ Guide
+                          </button>
+                        </div>
+
+                        {/* 2행: 연결선 컬러 테마 변경 (노드 선택되었을 때만 렌더링) */}
+                        {hasActiveNode && (
+                          <div className="flex items-center gap-2 border-t border-white/10 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Line Color</span>
+                            <div className="flex items-center gap-1.5 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">
+                              {(["indigo", "emerald", "amber", "rose", "violet", "slate"] as ColorTheme[]).map((theme) => {
+                                const themeDots: Record<ColorTheme, string> = {
+                                  indigo: "bg-indigo-500",
+                                  emerald: "bg-emerald-500",
+                                  amber: "bg-amber-500",
+                                  rose: "bg-rose-500",
+                                  violet: "bg-violet-500",
+                                  slate: "bg-slate-500"
+                                };
+                                const themeLabels: Record<ColorTheme, string> = {
+                                  indigo: "Indigo",
+                                  emerald: "Emerald",
+                                  amber: "Amber",
+                                  rose: "Rose",
+                                  violet: "Violet",
+                                  slate: "Slate"
+                                };
+                                const isCurrent = selectedNodeEdgeTheme === theme;
+                                return (
+                                  <button
+                                    key={theme}
+                                    onClick={() => updateNodeEdgeTheme(theme)}
+                                    className={`w-3 h-3 rounded-full transition-all cursor-pointer ${themeDots[theme]} ${
+                                      isCurrent 
+                                        ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900 scale-110 shadow-sm" 
+                                        : "opacity-80 hover:opacity-100 hover:scale-105"
+                                    }`}
+                                    title={themeLabels[theme]}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 오른쪽 컬럼: 방향 제어 (노드 선택되었을 때만 렌더링) */}
+                      {hasActiveNode && (
+                        <>
+                          <span className="w-px self-stretch bg-white/20 my-1" />
+                          {(() => {
+                            const btnBase = "w-6 h-6 flex items-center justify-center rounded text-[11px] font-bold transition-all duration-150 active:scale-90 cursor-pointer border";
+                            const active = "bg-indigo-500 border-indigo-300 text-white shadow-md shadow-indigo-500/50";
+                            const inactive = "bg-white/5 border-white/20 hover:bg-white/12 hover:border-white/35 text-gray-300";
+                            const autoActive = "w-4 h-4 flex items-center justify-center rounded text-[8px] font-extrabold transition-all duration-150 active:scale-90 cursor-pointer border bg-white/15 border-white/30 text-white";
+                            const autoInactive = "w-4 h-4 flex items-center justify-center rounded text-[8px] font-extrabold transition-all duration-150 active:scale-90 cursor-pointer border bg-transparent border-white/15 text-gray-500 hover:bg-white/8 hover:border-white/25";
+                            const handleClick = (dir: "top"|"bottom"|"left"|"right") => {
+                              updateHandleDir(selNode.id, curDir === dir ? null : dir);
+                            };
+                            return (
+                              <div className="flex flex-col items-center gap-[3px]" title="연결 진입 방향 수동 선택">
+                                {/* 위쪽 행: ↑ */}
+                                <div className="flex justify-center">
+                                  <button
+                                    className={`${btnBase} ${curDir === "top" ? active : inactive}`}
+                                    onClick={() => handleClick("top")}
+                                    title="위쪽에서 연결"
+                                  >↑</button>
+                                </div>
+                                {/* 가운데 행: ← [A] → */}
+                                <div className="flex gap-[3px] items-center">
+                                  <button
+                                    className={`${btnBase} ${curDir === "left" ? active : inactive}`}
+                                    onClick={() => handleClick("left")}
+                                    title="왼쪽에서 연결"
+                                  >←</button>
+                                  <button
+                                    className={curDir === null ? autoActive : autoInactive}
+                                    onClick={() => updateHandleDir(selNode.id, null)}
+                                    title="자동 (초기화)"
+                                  >A</button>
+                                  <button
+                                    className={`${btnBase} ${curDir === "right" ? active : inactive}`}
+                                    onClick={() => handleClick("right")}
+                                    title="오른쪽에서 연결"
+                                  >→</button>
+                                </div>
+                                {/* 아래쪽 행: ↓ */}
+                                <div className="flex justify-center">
+                                  <button
+                                    className={`${btnBase} ${curDir === "bottom" ? active : inactive}`}
+                                    onClick={() => handleClick("bottom")}
+                                    title="아래쪽에서 연결"
+                                  >↓</button>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
+              </Panel>
+              </ReactFlow>
+            );
+          })() : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-gray-500">
+              <span className="text-3xl">📂</span>
+              <p className="text-sm font-semibold">{t("mindmapSelectOrCreate")}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsTemplateSelectorOpen(true)}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors cursor-pointer"
+                >
+                  Create New Map
+                </button>
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium shadow-sm transition-colors cursor-pointer"
+                >
+                  Import JSON
                 </button>
               </div>
-            </Panel>
-            </ReactFlow>
-          );
-        })() : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-gray-400 dark:text-gray-500">
-            <span className="text-3xl">📂</span>
-            <p className="text-sm font-semibold">{t("mindmapSelectOrCreate")}</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsTemplateSelectorOpen(true)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium shadow-sm transition-colors cursor-pointer"
-              >
-                Create New Map
-              </button>
-              <button
-                onClick={() => setIsImportModalOpen(true)}
-                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium shadow-sm transition-colors cursor-pointer"
-              >
-                Import JSON
-              </button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Node Detail Memo Panel */}
+        {memoOpenNodeId && (() => {
+          const memoNode = nodes.find((n) => n.id === memoOpenNodeId);
+          if (!memoNode) return null;
+          return (
+            <NodeMemoSidePanel
+              nodeId={memoOpenNodeId}
+              nodeLabel={memoNode.data.label}
+              initialContent={memoNode.data.memoContent || ""}
+              initialColor={memoNode.data.memoColor || "indigo"}
+              onUpdate={(content, color) => updateNodeMemo(memoOpenNodeId, content, color)}
+              onClose={() => setMemoOpenNodeId(null)}
+            />
+          );
+        })()}
       </div>
 
       {/* Editor Tool / Operations panel */}
@@ -534,6 +810,11 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
           onConfirm={(newName) => renameMapFile(activeFileName, newName)}
           onClose={() => setIsRenameModalOpen(false)}
         />
+      )}
+
+      {/* Shortcut Guide Modal */}
+      {isShortcutGuideOpen && (
+        <ShortcutGuide onClose={() => setIsShortcutGuideOpen(false)} />
       )}
 
       {/* MindMap 전용 메모 위젯 */}

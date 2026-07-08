@@ -649,6 +649,9 @@ export const ko = {
   mindmapAiSummaryTitle: "AI 브랜치 요약",
   mindmapAiAnalyzing: "Gemini Nano 분석 중...",
   mindmapAiAnalyzingDesc: "아이디어를 확장하여 새로운 하위 브랜치를 자동 생성하고 있습니다.",
+  mindmapAiDraftProposed: "AI가 {count}개의 아이디어를 제안했습니다.",
+  mindmapAiDraftAccept: "✓ 모두 승인",
+  mindmapAiDraftReject: "✗ 모두 반려",
 
   // ── SpringNote ─────────────────────────────────────────────
   springNoteBoardMenu: "Sprint Note",

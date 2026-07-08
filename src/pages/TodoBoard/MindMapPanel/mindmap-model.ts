@@ -38,6 +38,18 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   const [memoContent, setMemoContent] = useState("");
   const [memoColor, setMemoColor] = useState<ColorTheme>("indigo");
 
+  // 전역 노드 편집 상태
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+
+  // 개별 노드 메모 열기 상태 (null이면 닫힘, nodeId면 해당 노드 메모 열림)
+  const [memoOpenNodeId, setMemoOpenNodeId] = useState<string | null>(null);
+
+  // AI 생성 드래프트 노드 ID 관리 상태
+  const [draftNodeIds, setDraftNodeIds] = useState<string[]>([]);
+
+  // 전역 연결선(Edge) 스타일 상태 ("smoothstep" | "bezier" | "straight")
+  const [edgeType, setEdgeType] = useState<string>("smoothstep");
+
   const saveTimeoutRef = useRef<any>(null);
 
   // Stale Closure 방지를 위해 항상 최신 상태를 담아둘 Refs
@@ -48,6 +60,10 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   const isManualLayoutRef = useRef(isManualLayout);
   const memoContentRef = useRef(memoContent);
   const memoColorRef = useRef(memoColor);
+  const editingNodeIdRef = useRef(editingNodeId);
+  const memoOpenNodeIdRef = useRef(memoOpenNodeId);
+  const draftNodeIdsRef = useRef(draftNodeIds);
+  const edgeTypeRef = useRef(edgeType);
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -57,10 +73,52 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     isManualLayoutRef.current = isManualLayout;
     memoContentRef.current = memoContent;
     memoColorRef.current = memoColor;
-  }, [nodes, edges, selectedNodeId, layoutDirection, isManualLayout, memoContent, memoColor]);
+    editingNodeIdRef.current = editingNodeId;
+    memoOpenNodeIdRef.current = memoOpenNodeId;
+    draftNodeIdsRef.current = draftNodeIds;
+    edgeTypeRef.current = edgeType;
+  }, [nodes, edges, selectedNodeId, layoutDirection, isManualLayout, memoContent, memoColor, editingNodeId, memoOpenNodeId, draftNodeIds, edgeType]);
 
 
 
+
+  // ──────────────────────────────────────────────────
+  // BFS로 트리 순회해 depth를 재계산하여 주입
+  // ──────────────────────────────────────────────────
+  const computeNodeDepths = useCallback(
+    (nodes: Node<MindMapNodeData>[], edges: Edge[]): Node<MindMapNodeData>[] => {
+      // 부모 → 자식 맵 구성
+      const childrenMap = new Map<string, string[]>();
+      edges.forEach((e) => {
+        if (!childrenMap.has(e.source)) childrenMap.set(e.source, []);
+        childrenMap.get(e.source)!.push(e.target);
+      });
+
+      // 루트 노드 탐색 (모든 target 세트에 없는 노드)
+      const allTargets = new Set(edges.map((e) => e.target));
+      const roots = nodes.filter((n) => !allTargets.has(n.id));
+
+      const depthMap = new Map<string, number>();
+      const queue: { id: string; depth: number }[] = roots.map((r) => ({ id: r.id, depth: 0 }));
+
+      while (queue.length > 0) {
+        const item = queue.shift()!;
+        depthMap.set(item.id, item.depth);
+        (childrenMap.get(item.id) || []).forEach((childId) => {
+          queue.push({ id: childId, depth: item.depth + 1 });
+        });
+      }
+
+      return nodes.map((n) => ({
+        ...n,
+        data: {
+          ...n.data,
+          depth: depthMap.has(n.id) ? depthMap.get(n.id)! : (n.data.isRoot ? 0 : 2),
+        },
+      }));
+    },
+    []
+  );
 
   const bindNodeActions = useCallback((node: any, _unused?: any) => {
     return node;
@@ -107,7 +165,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const manualLayoutToSave = customManualLayout !== undefined ? customManualLayout : isManualLayoutRef.current;
 
     saveTimeoutRef.current = setTimeout(async () => {
-      const cleanNodes = currentNodes.map(({ data, ...node }) => {
+      // AI 드래프트 상태인 노드들은 영구 저장에서 배제
+      const savedNodes = currentNodes.filter(n => !n.data.isDraft);
+      const savedNodeIds = new Set(savedNodes.map(n => n.id));
+      const savedEdges = currentEdges.filter(e => savedNodeIds.has(e.source) && savedNodeIds.has(e.target));
+
+      const cleanNodes = savedNodes.map(({ data, ...node }) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { onLabelChange, onAddChild, onDeleteNode, onAiExpand, onAiAction, ...restData } = data as any;
         return { ...node, data: restData };
@@ -116,7 +179,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       const rawData: MindMapData = {
         taskId,
         nodes: cleanNodes as any,
-        edges: currentEdges,
+        edges: savedEdges,
         direction: dirToSave,
         memo: {
           content: memoContentToSave,
@@ -233,7 +296,29 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     if (!selectedNodeId) return;
     setNodes((nds) => {
       const next = nds.map((n) => {
-        if (n.id === selectedNodeId) return { ...n, data: { ...n.data, colorTheme: theme } };
+        if (n.id === selectedNodeId) return { ...n, data: { ...n.data, colorTheme: theme, edgeColorTheme: undefined } };
+        return n;
+      }).map(bindNodeActions);
+      setEdges((eds) => {
+        const nextEds = eds.map((e) => {
+          if (e.source === selectedNodeId) {
+            return { ...e, style: { ...e.style, stroke: getHexColorByTheme(theme) } };
+          }
+          return e;
+        });
+        saveMapData(next, nextEds);
+        return nextEds;
+      });
+      return next;
+    });
+  };
+
+  // 연결선 테마 변경
+  const updateNodeEdgeTheme = (theme: ColorTheme) => {
+    if (!selectedNodeId) return;
+    setNodes((nds) => {
+      const next = nds.map((n) => {
+        if (n.id === selectedNodeId) return { ...n, data: { ...n.data, edgeColorTheme: theme } };
         return n;
       }).map(bindNodeActions);
       setEdges((eds) => {
@@ -268,25 +353,179 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       currentNodes,
       currentEdges,
       parentShape,
-      parentTheme
+      parentTheme,
+      layoutDirectionRef.current
     );
 
     const mappedNodes = nextNodes.map(bindNodeActions);
+
+    // 신규 추가된 노드를 식별하여 포커스 및 편집 상태 지정
+    const newNode = mappedNodes.find(n => !currentNodes.some(cn => cn.id === n.id));
+    if (newNode) {
+      setSelectedNodeId(newNode.id);
+      setEditingNodeId(newNode.id);
+    }
     
+    // 현재 전역 연결선 스타일 적용
+    const currentEdgeType = edgeTypeRef.current;
+    const formattedEdges = nextEdges.map((e) => ({
+      ...e,
+      type: currentEdgeType === "bezier" ? "default" : currentEdgeType,
+    }));
+
     if (isManualLayoutRef.current) {
       setNodes(mappedNodes);
-      setEdges(nextEdges);
-      saveMapData(mappedNodes, nextEdges);
+      setEdges(formattedEdges);
+      saveMapData(mappedNodes, formattedEdges);
     } else {
       // TB/LR/balanced 현재 방향을 그대로 유지하여 확장
       const effectiveDir = layoutDirectionRef.current;
-      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, nextEdges, effectiveDir);
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, formattedEdges, effectiveDir);
       
       setNodes(layoutedN);
       setEdges(layoutedE);
       saveMapData(layoutedN, layoutedE);
     }
-  }, [saveMapData, setNodes, setEdges]);
+  }, [saveMapData, setNodes, setEdges, setSelectedNodeId, setEditingNodeId]);
+
+  // 형제 노드 추가
+  const addSiblingNode = useCallback((targetId?: string) => {
+    const activeId = targetId || selectedNodeIdRef.current;
+    if (!activeId || activeId === "root") return; // 루트는 형제가 없음
+
+    const currentNodes = nodesRef.current;
+    const currentEdges = edgesRef.current;
+
+    const activeNode = currentNodes.find((n) => n.id === activeId);
+    const parentId = activeNode?.data.parentId || "root";
+
+    const parentNode = currentNodes.find((n) => n.id === parentId);
+    const parentShape = parentNode?.data.shape || "rounded-rect";
+    const parentTheme = parentNode?.data.colorTheme || "indigo";
+
+    const { nodes: nextNodes, edges: nextEdges } = createChildNode(
+      parentId,
+      "새 아이디어",
+      currentNodes,
+      currentEdges,
+      parentShape,
+      parentTheme,
+      layoutDirectionRef.current
+    );
+
+    const mappedNodes = nextNodes.map(bindNodeActions);
+
+    // 신규 추가된 노드를 식별하여 포커스 및 편집 상태 지정
+    const newNode = mappedNodes.find(n => !currentNodes.some(cn => cn.id === n.id));
+    if (newNode) {
+      setSelectedNodeId(newNode.id);
+      setEditingNodeId(newNode.id);
+    }
+
+    // 현재 전역 연결선 스타일 적용
+    const currentEdgeType = edgeTypeRef.current;
+    const formattedEdges = nextEdges.map((e) => ({
+      ...e,
+      type: currentEdgeType === "bezier" ? "default" : currentEdgeType,
+    }));
+
+    if (isManualLayoutRef.current) {
+      setNodes(mappedNodes);
+      setEdges(formattedEdges);
+      saveMapData(mappedNodes, formattedEdges);
+    } else {
+      const effectiveDir = layoutDirectionRef.current;
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, formattedEdges, effectiveDir);
+      
+      setNodes(layoutedN);
+      setEdges(layoutedE);
+      saveMapData(layoutedN, layoutedE);
+    }
+  }, [saveMapData, setNodes, setEdges, setSelectedNodeId, setEditingNodeId]);
+
+  // 개별 노드 메모 업데이트
+  const updateNodeMemo = useCallback((nodeId: string, content: string, color?: ColorTheme) => {
+    setNodes((nds) => {
+      const next = nds.map((n) => {
+        if (n.id === nodeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              memoContent: content,
+              memoColor: color || n.data.memoColor || "indigo",
+            },
+          };
+        }
+        return n;
+      }).map(bindNodeActions);
+      setTimeout(() => {
+        setEdges((eds) => {
+          saveMapData(next, eds);
+          return eds;
+        });
+      }, 0);
+      return next;
+    });
+  }, [saveMapData, setEdges, setNodes]);
+
+  // AI 생성 드래프트 노드 일괄 승인
+  const acceptAiDraft = useCallback(() => {
+    const ids = draftNodeIdsRef.current;
+    if (ids.length === 0) return;
+
+    setNodes((nds) => {
+      const next = nds.map((n) => {
+        if (ids.includes(n.id)) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              isDraft: false,
+            },
+          };
+        }
+        return n;
+      }).map(bindNodeActions);
+      setTimeout(() => {
+        setEdges((eds) => {
+          saveMapData(next, eds);
+          return eds;
+        });
+      }, 0);
+      return next;
+    });
+
+    setDraftNodeIds([]);
+  }, [saveMapData, setEdges, setNodes]);
+
+  // AI 생성 드래프트 노드 일괄 반려 (삭제)
+  const rejectAiDraft = useCallback(() => {
+    const ids = draftNodeIdsRef.current;
+    if (ids.length === 0) return;
+
+    const currentNodes = nodesRef.current;
+    const currentEdges = edgesRef.current;
+
+    const nextNodes = currentNodes.filter((n) => !ids.includes(n.id));
+    const nextEdges = currentEdges.filter((e) => !ids.includes(e.source) && !ids.includes(e.target));
+
+    const mappedNodes = nextNodes.map(bindNodeActions);
+
+    if (isManualLayoutRef.current) {
+      setNodes(mappedNodes);
+      setEdges(nextEdges);
+      saveMapData(mappedNodes, nextEdges);
+    } else {
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(mappedNodes, nextEdges, layoutDirectionRef.current);
+      setNodes(layoutedN);
+      setEdges(layoutedE);
+      saveMapData(layoutedN, layoutedE);
+    }
+
+    setDraftNodeIds([]);
+    setSelectedNodeId(null);
+  }, [saveMapData, setNodes, setEdges, setSelectedNodeId]);
 
   // 노드 및 서브트리 일괄 삭제
   const deleteNodeTree = useCallback((targetId?: string) => {
@@ -493,11 +732,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       position,
     };
 
+    const currentEdgeType = edgeTypeRef.current;
     const newEdge: Edge = {
       id: `edge-${parentId}->${newId}`,
       source: parentId,
       target: newId,
-      type: "smoothstep",
+      type: currentEdgeType === "bezier" ? "default" : currentEdgeType,
       style: { stroke: getHexColorByTheme(parentColor), strokeWidth: 2 },
     };
 
@@ -543,8 +783,23 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         // 1. Expand: 하위 아이디어 3~4개 자동 생성 (extraPayload = "general" | "pros_cons" | "actions")
         const expandMode = (extraPayload as any) || "general";
         const { newNodes, newEdges } = await aiExpand(activeId, currentNodes, currentEdges, expandMode);
-        const next = [...currentNodes, ...newNodes].map(bindNodeActions);
-        const nextE = [...currentEdges, ...newEdges];
+        
+        const currentEdgeType = edgeTypeRef.current;
+        const formattedNewEdges = newEdges.map((e) => ({
+          ...e,
+          type: currentEdgeType === "bezier" ? "default" : currentEdgeType,
+        }));
+
+        // 새 노드들에 드래프트 상태 설정
+        const draftNodes = newNodes.map((n) => ({
+          ...n,
+          data: { ...n.data, isDraft: true }
+        }));
+        
+        const next = [...currentNodes, ...draftNodes].map(bindNodeActions);
+        const nextE = [...currentEdges, ...formattedNewEdges];
+        
+        setDraftNodeIds(draftNodes.map((n) => n.id));
         
         if (isManualLayoutRef.current) {
           setNodes(next);
@@ -580,8 +835,23 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         // 3. Generate from text: 텍스트 → 브랜치 (extraPayload = 입력 텍스트)
         if (!extraPayload?.trim()) return;
         const { newNodes, newEdges } = await aiGenerateFromText(extraPayload, activeId, currentNodes);
-        const next = [...currentNodes, ...newNodes].map(bindNodeActions);
-        const nextE = [...currentEdges, ...newEdges];
+        
+        const currentEdgeType = edgeTypeRef.current;
+        const formattedNewEdges = newEdges.map((e) => ({
+          ...e,
+          type: currentEdgeType === "bezier" ? "default" : currentEdgeType,
+        }));
+
+        // 새 노드들에 드래프트 상태 설정
+        const draftNodes = newNodes.map((n) => ({
+          ...n,
+          data: { ...n.data, isDraft: true }
+        }));
+        
+        const next = [...currentNodes, ...draftNodes].map(bindNodeActions);
+        const nextE = [...currentEdges, ...formattedNewEdges];
+        
+        setDraftNodeIds(draftNodes.map((n) => n.id));
         
         if (isManualLayoutRef.current) {
           setNodes(next);
@@ -751,7 +1021,9 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
 
       if (data && Array.isArray(data.nodes)) {
         const initialDir = data.direction || "balanced";
-        const processedNodes = data.nodes.map((n) => bindNodeActions(n, initialDir));
+        const rawNodes = data.nodes.map((n) => bindNodeActions(n, initialDir));
+        // depth 재계산 주입 — 기존 저장 파일에 depth 필드가 없어도 올바른 계층 스타일 적용
+        const processedNodes = computeNodeDepths(rawNodes, data.edges || []);
         
         // 수동 레이아웃 모드인 경우 자동 배치를 건너뛰고 저장된 캔버스 개별 좌표를 고수
         if (data.isManualLayout) {
@@ -772,6 +1044,13 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         setAiError(null);
         setMemoContent(data.memo?.content || "");
         setMemoColor(data.memo?.color || "indigo");
+
+        if (data.edges && data.edges.length > 0) {
+          const firstType = data.edges[0].type;
+          setEdgeType(firstType === "default" ? "bezier" : (firstType || "smoothstep"));
+        } else {
+          setEdgeType("smoothstep");
+        }
       }
     } catch (e: any) {
       console.error("Failed to load mindmap file from local storage:", e);
@@ -821,11 +1100,130 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     saveMapData(nodesRef.current, edgesRef.current, layoutDirectionRef.current, content, color);
   }, [saveMapData]);
 
-  // 노드 드래그가 끝났을 때 수동 정렬 모드를 활성화하고 데이터를 저장하는 콜백
-  const onNodeDragStop = useCallback(() => {
+  // 노드 드래그가 끝났을 때 수동 정렬 모드를 활성화하고 데이터를 저장하는 콜백 (드래그 충돌 시 Reparenting 지원)
+  const onNodeDragStop = useCallback((_: any, draggedNode: any) => {
     setIsManualLayout(true);
-    saveMapData(nodesRef.current, edgesRef.current, undefined, undefined, undefined, true);
+    
+    const activeId = draggedNode.id;
+    if (activeId === "root") {
+      saveMapData(nodesRef.current, edgesRef.current, undefined, undefined, undefined, true);
+      return;
+    }
+
+    const currentNodes = nodesRef.current;
+    const currentEdges = edgesRef.current;
+
+    // 드래그된 노드의 중심 좌표 계산
+    const dragX = draggedNode.position.x + 100;
+    const dragY = draggedNode.position.y + 25;
+
+    // 충돌한 부모 노드 탐색
+    const targetParent = currentNodes.find((n) => {
+      if (n.id === activeId || n.hidden) return false;
+
+      // 자기 자손(Descendant) 구조 순환 방지 검사
+      let curr = n.id;
+      let isDesc = false;
+      while (curr) {
+        const parentEdge = currentEdges.find((e) => e.target === curr);
+        if (!parentEdge) break;
+        if (parentEdge.source === activeId) {
+          isDesc = true;
+          break;
+        }
+        curr = parentEdge.source;
+      }
+      if (isDesc) return false;
+
+      // 충돌 검출: 드래그 중인 노드의 중심점이 후보 노드의 Bounding Box 내에 있는지 판별
+      const candX = n.position.x;
+      const candY = n.position.y;
+      return (
+        dragX >= candX &&
+        dragX <= candX + 200 &&
+        dragY >= candY &&
+        dragY <= candY + 50
+      );
+    });
+
+    if (targetParent) {
+      // 1. 기존 연결 끊기
+      const filteredEdges = currentEdges.filter((e) => e.target !== activeId);
+
+      // 2. 새 부모와 연결
+      const parentColor = targetParent.data.colorTheme || "indigo";
+      const newEdge: Edge = {
+        id: `edge-${targetParent.id}->${activeId}`,
+        source: targetParent.id,
+        target: activeId,
+        type: "smoothstep",
+        style: { stroke: getHexColorByTheme(parentColor), strokeWidth: 2 },
+      };
+      const nextEdges = [...filteredEdges, newEdge];
+
+      // 3. 노드 parentId 갱신
+      const nextNodes = currentNodes.map((n) => {
+        if (n.id === activeId) {
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              parentId: targetParent.id,
+              colorTheme: parentColor,
+            },
+          };
+        }
+        return n;
+      }).map(bindNodeActions);
+
+      // 구조 변경이 발생했으므로 수동 배치를 해제하고 자동 정렬 재정렬 실행
+      setIsManualLayout(false);
+      const effectiveDir = layoutDirectionRef.current;
+      const { nodes: layoutedN, edges: layoutedE } = getLayoutedElements(nextNodes, nextEdges, effectiveDir);
+
+      setNodes(layoutedN);
+      setEdges(layoutedE);
+      saveMapData(layoutedN, layoutedE, effectiveDir, undefined, undefined, false);
+    } else {
+      // 충돌이 없으면 일반 드래그 위치 그대로 저장
+      saveMapData(nodesRef.current, edgesRef.current, undefined, undefined, undefined, true);
+    }
+  }, [saveMapData, setNodes, setEdges]);
+
+  // 연결선(Edge) 스타일 일괄 변경
+  const changeEdgeType = useCallback((newType: string) => {
+    setEdgeType(newType);
+    setEdges((eds) => {
+      const nextEds = eds.map((e) => ({
+        ...e,
+        type: newType === "bezier" ? "default" : newType,
+      }));
+      setTimeout(() => {
+        saveMapData(nodesRef.current, nextEds, layoutDirectionRef.current);
+      }, 0);
+      return nextEds;
+    });
   }, [saveMapData]);
+
+  // 선택 노드의 부모 연결선 진입 방향(handleDir) 수동 변경
+  const updateHandleDir = useCallback(
+    (nodeId: string, dir: "top" | "bottom" | "left" | "right" | null) => {
+      // 1단계: 노드 data 업데이트 → 핸들 DOM 위치 이동
+      setNodes((nds) => {
+        const next = nds.map((n) =>
+          n.id === nodeId
+            ? { ...n, data: { ...n.data, handleDir: dir ?? undefined } }
+            : n
+        );
+        setTimeout(() => saveMapData(next, edgesRef.current), 0);
+        return next;
+      });
+      // 2단계: 핸들 DOM이 새 위치로 이동 완료된 다음 매크로태스크에서 엣지 refresh
+      // → ReactFlow가 새 핸들 위치 기준으로 엣지 경로를 재계산하게 됨
+      setTimeout(() => setEdges((eds) => [...eds]), 0);
+    },
+    [saveMapData]
+  );
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
 
@@ -841,7 +1239,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     updateMemo,
     onNodesChange,
     onEdgesChange,
-    onNodeDragStop, // 뷰와 연동을 위해 추가
+    onNodeDragStop,
     isAiExpanding,
     aiError,
     setAiError,
@@ -853,6 +1251,7 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     setTranslateModal,
     fileList,
     activeFileName,
+    setActiveFileName,
     layoutDirection,
     changeLayoutDirection,
     loadMapContent,
@@ -860,9 +1259,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     refreshFileList,
     updateNodeShape,
     updateNodeTheme,
+    updateNodeEdgeTheme,
     updateNodeLabel,
     updateNodeLockState,
     addChild,
+    addSiblingNode,
+    updateNodeMemo,
     deleteNodeTree,
     toggleNodeExpanded,
     registerAsTodoTask,
@@ -878,7 +1280,19 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     selectedNodeLabel: selectedNode?.data.label || "",
     selectedNodeShape: selectedNode?.data.shape || "rounded-rect",
     selectedNodeTheme: selectedNode?.data.colorTheme || "indigo",
+    selectedNodeEdgeTheme: selectedNode?.data.edgeColorTheme || selectedNode?.data.colorTheme || "indigo",
     selectedNodeIcon: selectedNode?.data.icon || "",
+    editingNodeId,
+    setEditingNodeId,
+    memoOpenNodeId,
+    setMemoOpenNodeId,
+    draftNodeIds,
+    setDraftNodeIds,
+    acceptAiDraft,
+    rejectAiDraft,
+    edgeType,
+    changeEdgeType,
+    updateHandleDir,
   };
 }
 
@@ -887,6 +1301,8 @@ import { createContext, useContext } from "react";
 
 export interface MindMapActions {
   addChild: (targetId?: string) => void;
+  addSiblingNode: (targetId?: string) => void;
+  updateNodeMemo: (nodeId: string, content: string, color?: ColorTheme) => void;
   deleteNodeTree: (targetId?: string) => void;
   updateNodeLabel: (nodeId: string, newLabel: string) => void;
   updateNodeLockState: (nodeId: string, isLocked: boolean, passwordHash?: string) => void;
@@ -895,6 +1311,16 @@ export interface MindMapActions {
   registerAsTodoTask: (nodeLabelText: string) => Promise<void>;
   handleAiAction: (action: string, targetId?: string, extraPayload?: string) => Promise<any>;
   layoutDirection: "LR" | "TB" | "balanced";
+  editingNodeId: string | null;
+  setEditingNodeId: (nodeId: string | null) => void;
+  memoOpenNodeId: string | null;
+  setMemoOpenNodeId: (nodeId: string | null) => void;
+  draftNodeIds: string[];
+  acceptAiDraft: () => void;
+  rejectAiDraft: () => void;
+  edgeType: string;
+  changeEdgeType: (type: string) => void;
+  updateHandleDir: (nodeId: string, dir: "top" | "bottom" | "left" | "right" | null) => void;
 }
 
 export const MindMapActionsContext = createContext<MindMapActions | null>(null);

@@ -162,19 +162,45 @@ export default function NodeToolbar({
       <div className="flex items-center gap-1.5">
         <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500">Shape</span>
         <div className="flex bg-gray-100 dark:bg-surface-800 p-0.5 rounded-lg border border-gray-200 dark:border-surface-700">
-          {(["rounded-rect", "ellipse", "capsule"] as NodeShape[]).map((shape) => (
-            <button
-              key={shape}
-              onClick={() => onUpdateShape(shape)}
-              className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
-                selectedNodeShape === shape
-                  ? "bg-white dark:bg-surface-700 text-gray-800 dark:text-white shadow-sm"
-                  : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"
-              }`}
-            >
-              {shape === "rounded-rect" ? "Rect" : shape === "ellipse" ? "Ellipse" : "Capsule"}
-            </button>
-          ))}
+          {(["rounded-rect", "ellipse", "capsule", "octagon"] as NodeShape[]).map((shape) => {
+            const isActive = selectedNodeShape === shape;
+            const btnCls = `p-1.5 rounded-md transition-all cursor-pointer ${
+              isActive
+                ? "bg-white dark:bg-surface-700 shadow-sm"
+                : "hover:bg-white/60 dark:hover:bg-surface-700/60"
+            }`;
+            const iconCls = isActive
+              ? "fill-indigo-500 stroke-indigo-600 dark:fill-indigo-400 dark:stroke-indigo-300"
+              : "fill-gray-300 stroke-gray-400 dark:fill-gray-600 dark:stroke-gray-500";
+
+            return (
+              <button
+                key={shape}
+                onClick={() => onUpdateShape(shape)}
+                title={shape === "rounded-rect" ? "Rect" : shape === "ellipse" ? "Ellipse" : shape === "capsule" ? "Capsule" : "Octagon"}
+                className={btnCls}
+              >
+                <svg width="18" height="14" viewBox="0 0 18 14" xmlns="http://www.w3.org/2000/svg">
+                  {shape === "rounded-rect" && (
+                    <rect x="1" y="1" width="16" height="12" rx="3" ry="3" strokeWidth="1.5" className={iconCls} />
+                  )}
+                  {shape === "ellipse" && (
+                    <ellipse cx="9" cy="7" rx="8" ry="6" strokeWidth="1.5" className={iconCls} />
+                  )}
+                  {shape === "capsule" && (
+                    <rect x="1" y="2" width="16" height="10" rx="5" ry="5" strokeWidth="1.5" className={iconCls} />
+                  )}
+                  {shape === "octagon" && (
+                    <polygon
+                      points="5.5,1 12.5,1 17,3.5 17,10.5 12.5,13 5.5,13 1,10.5 1,3.5"
+                      strokeWidth="1.5"
+                      className={iconCls}
+                    />
+                  )}
+                </svg>
+              </button>
+            );
+          })}
         </div>
       </div>
 

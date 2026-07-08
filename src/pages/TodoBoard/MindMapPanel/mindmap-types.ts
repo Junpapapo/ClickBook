@@ -1,6 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 
-export type NodeShape = "rounded-rect" | "ellipse" | "capsule";
+export type NodeShape = "rounded-rect" | "ellipse" | "capsule" | "octagon";
 
 export type ColorTheme = "indigo" | "emerald" | "amber" | "rose" | "slate" | "violet";
 
@@ -30,6 +30,7 @@ export interface MindMapNodeData extends Record<string, unknown> {
   label: string;
   shape: NodeShape;
   colorTheme: ColorTheme;
+  edgeColorTheme?: ColorTheme;
   bookmarkUrl?: string;
   icon?: string;
   isRoot?: boolean;
@@ -39,6 +40,10 @@ export interface MindMapNodeData extends Record<string, unknown> {
   isStatic?: boolean;
   isLocked?: boolean;
   passwordHash?: string;
+  memoContent?: string;
+  memoColor?: ColorTheme;
+  isDraft?: boolean;
+  handleDir?: "top" | "bottom" | "left" | "right";
 }
 
 export interface MindMapMemo {

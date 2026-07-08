@@ -117,22 +117,30 @@ export default function SpringNoteToolbar({
   // 테마별 컨테이너 스타일 정의
   const containerClass = isLightTheme
     ? "bg-[#F3F4F6] text-gray-800 border-b border-gray-250/80"
-    : "bg-[#3B281B] dark:bg-[#1E1E20] border-b border-[#2D1E15] dark:border-[#131315] text-[#EBDCB9]";
+    : theme === "sepia"
+    ? "bg-[#EADCC6] text-[#4A3728] border-b border-[#D8C6AC]"
+    : "bg-[#1E1E20] border-b border-[#131315] text-gray-200";
 
   // 테마별 내부 서브 패널 스타일
   const subPanelClass = isLightTheme
     ? "bg-white border border-gray-250/80 shadow-sm"
-    : "bg-[#2D1E15]/75 dark:bg-black/35 border border-[#231710] dark:border-[#131315]";
+    : theme === "sepia"
+    ? "bg-[#FBF6EC] border border-[#D8C6AC] text-[#4A3728]"
+    : "bg-[#2D2D30] border border-[#3E3E42]";
 
   // 테마별 일반 버튼 스타일
   const btnClass = isLightTheme
-    ? "text-gray-600 hover:text-gray-900 hover:bg-gray-150"
+    ? "text-gray-655 hover:text-gray-900 hover:bg-gray-150"
+    : theme === "sepia"
+    ? "text-[#7A604D] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
     : "text-gray-300 hover:text-white hover:bg-white/5";
 
   // 테마별 세퍼레이터 구분선 스타일
   const dividerClass = isLightTheme
     ? "w-px h-4 bg-gray-250/85 shrink-0"
-    : "w-px h-4 bg-[#231710] dark:bg-surface-750 shrink-0";
+    : theme === "sepia"
+    ? "w-px h-4 bg-[#D8C6AC] shrink-0"
+    : "w-px h-4 bg-surface-750 shrink-0";
 
   // Tiptap 에디터의 활성화 여부를 스타일 클래스로 리턴해주는 헬퍼
   const getActiveBtnClass = (name: string, attributes?: Record<string, any>) => {
@@ -141,6 +149,8 @@ export default function SpringNoteToolbar({
     if (isActive) {
       return isLightTheme
         ? "bg-amber-500/10 text-amber-800 font-extrabold border border-amber-500/25 shadow-inner scale-[0.97]"
+        : theme === "sepia"
+        ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold border border-[#7A604D]/25 shadow-inner scale-[0.97]"
         : "bg-amber-500/20 text-[#EBDCB9] font-extrabold border border-amber-500/35 shadow-inner scale-[0.97]";
     }
     return btnClass;

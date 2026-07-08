@@ -4,6 +4,7 @@ import type { SpringNote } from "@/shared/types";
 import { getAllSpringNotes, saveSpringNote, deleteSpringNote } from "@/utils/springNoteDb";
 import SpringNotePanel from "./TodoBoard/SpringNote/SpringNotePanel";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
 
 interface SpringNoteBoardProps {
   lang?: string;
@@ -34,9 +35,29 @@ export default function SpringNoteBoard({
   const dragStartX = useRef<number>(0);
   const dragStartWidth = useRef<number>(0);
 
+  const { theme: systemTheme } = useTheme();
+
   useEffect(() => {
     loadNotes();
   }, []);
+
+  // 시스템 테마 변경 시 현재 선택된 노트 테마 자동 연동
+  useEffect(() => {
+    if (!selectedNoteId || loading) return;
+    const targetTheme = systemTheme === "light" ? "grid" : "dark";
+    
+    const currentNote = notes.find((n) => n.id === selectedNoteId);
+    if (currentNote && currentNote.theme !== targetTheme) {
+      setNotes((prev) =>
+        prev.map((n) => (n.id === selectedNoteId ? { ...n, theme: targetTheme } : n))
+      );
+      
+      const updatedNote = { ...currentNote, theme: targetTheme, updatedAt: Date.now() };
+      saveSpringNote(updatedNote).catch((err) =>
+        console.warn("Failed to save theme sync from system:", err)
+      );
+    }
+  }, [systemTheme, selectedNoteId, loading]);
 
   const loadNotes = async () => {
     setLoading(true);
@@ -165,16 +186,99 @@ export default function SpringNoteBoard({
     n.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const noteTheme = selectedNote?.theme || "sepia";
+
+  // 테마별 사이드바 스타일 정의
+  const sidebarClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "bg-[#F5F5F7] text-gray-700 border-r border-gray-200 flex flex-col shrink-0 transition-colors relative"
+      : noteTheme === "dark"
+      ? "bg-[#1E1E20] text-gray-200 border-r border-[#131315] flex flex-col shrink-0 transition-colors relative"
+      : "bg-[#EFE7D8] text-[#4A3728] border-r border-[#D8C6AC] flex flex-col shrink-0 transition-colors relative"; // sepia
+
+  const sidebarHeaderClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "p-4 border-b border-gray-200 flex justify-between items-center shrink-0"
+      : noteTheme === "dark"
+      ? "p-4 border-b border-[#131315] flex justify-between items-center shrink-0"
+      : "p-4 border-b border-[#D8C6AC] flex justify-between items-center shrink-0"; // sepia
+
+  const sidebarTitleClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "text-sm font-bold text-gray-800 flex items-center gap-1.5"
+      : noteTheme === "dark"
+      ? "text-sm font-bold text-gray-200 flex items-center gap-1.5"
+      : "text-sm font-bold text-[#4A3728] flex items-center gap-1.5"; // sepia
+
+  const sidebarBtnClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "p-1.5 hover:bg-gray-200/80 rounded-lg text-gray-600 transition-all active:scale-95 cursor-pointer border border-gray-200"
+      : noteTheme === "dark"
+      ? "p-1.5 hover:bg-white/10 rounded-lg text-gray-400 transition-all active:scale-95 cursor-pointer border border-white/5"
+      : "p-1.5 hover:bg-[#E2D0B6] rounded-lg text-[#4A3728] transition-all active:scale-95 cursor-pointer border border-[#D8C6AC]/50"; // sepia
+
+  const searchContainerClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "flex items-center gap-1.5 px-2 py-1.5 bg-gray-200/40 border border-gray-250/70 focus-within:border-indigo-500 rounded-lg transition-all"
+      : noteTheme === "dark"
+      ? "flex items-center gap-1.5 px-2 py-1.5 bg-black/30 border border-[#131315] focus-within:border-surface-700 rounded-lg transition-all"
+      : "flex items-center gap-1.5 px-2 py-1.5 bg-[#FBF6EC]/50 border border-[#D8C6AC] focus-within:border-[#7A604D] rounded-lg transition-all"; // sepia
+
+  const searchInputClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "bg-transparent text-xs text-gray-800 placeholder-gray-400 outline-none w-full"
+      : noteTheme === "dark"
+      ? "bg-transparent text-xs text-gray-200 placeholder-gray-500 outline-none w-full"
+      : "bg-transparent text-xs text-[#4A3728] placeholder-[#7A604D]/40 outline-none w-full"; // sepia
+
+  const searchIconColor = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "text-gray-400"
+      : noteTheme === "dark"
+      ? "text-gray-500"
+      : "text-[#7A604D]/60"; // sepia
+
+  const getListItemClass = (isActive: boolean) => {
+    const base = "group relative flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border shadow-sm duration-200 hover:-translate-y-[1px] hover:scale-[1.01]";
+    if (noteTheme === "light" || noteTheme === "grid") {
+      return `${base} ${
+        isActive
+          ? "bg-white text-indigo-700 border-indigo-150 shadow-inner font-bold"
+          : "bg-white/40 text-gray-600 border-gray-200/50 hover:bg-white hover:text-gray-800"
+      }`;
+    } else if (noteTheme === "dark") {
+      return `${base} ${
+        isActive
+          ? "bg-[#2B2B2E] text-white border-white/5 shadow-inner font-bold"
+          : "bg-[#2B2B2E]/30 text-gray-400 border-transparent hover:bg-[#2B2B2E]/75 hover:text-white"
+      }`;
+    } else {
+      // sepia
+      return `${base} ${
+        isActive
+          ? "bg-[#FBF6EC] text-[#4A3728] border-[#D8C6AC] shadow-inner font-bold"
+          : "bg-[#FBF6EC]/35 text-[#7A604D] border-[#D8C6AC]/40 hover:bg-[#FBF6EC] hover:text-[#4A3728]"
+      }`;
+    }
+  };
+
+  const splitterClass = 
+    noteTheme === "light" || noteTheme === "grid"
+      ? "w-1.5 hover:w-2 bg-gray-200 hover:bg-indigo-500/50 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"
+      : noteTheme === "dark"
+      ? "w-1.5 hover:w-2 bg-[#1A1A1C] hover:bg-amber-500/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"
+      : "w-1.5 hover:w-2 bg-[#D8C6AC] hover:bg-[#7A604D]/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"; // sepia
+
   return (
     <div className="h-full flex flex-row overflow-hidden bg-surface-50 dark:bg-surface-950 font-sans select-none">
-      {/* Left List Pane (엠보싱 가죽 다이어리 겉커버 톤 매치) */}
+      {/* Left List Pane */}
       <div 
         style={{ width: `${sidebarWidth}px` }}
-        className="border-r border-[#2D1E15] dark:border-[#1A1A1C] bg-[#3B281B] dark:bg-[#1E1E20] flex flex-col shrink-0 text-[#EBDCB9] transition-colors relative"
+        className={sidebarClass}
       >
-        {/* Header (나의 필기장 대신 Spring Note 라고 선언) */}
-        <div className="p-4 border-b border-[#2D1E15] dark:border-[#131315] flex justify-between items-center shrink-0">
-          <h2 className="text-sm font-bold text-[#EBDCB9] dark:text-gray-350 flex items-center gap-1.5">
+        {/* Header */}
+        <div className={sidebarHeaderClass}>
+          <h2 className={sidebarTitleClass}>
             <Book size={16} className="text-amber-500/80" />
             Spring Note
           </h2>
@@ -182,14 +286,14 @@ export default function SpringNoteBoard({
             {/* 사이드바 접기/펼치기 토글 단추 */}
             <button
               onClick={toggleSidebar}
-              className="p-1.5 hover:bg-white/10 rounded-lg text-[#EBDCB9] dark:text-gray-400 transition-all active:scale-95 cursor-pointer border border-[#EBDCB9]/10"
+              className={sidebarBtnClass}
               title={sidebarWidth <= 170 ? "Expand Sidebar" : "Collapse Sidebar"}
             >
               {sidebarWidth <= 170 ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
             </button>
             <button
               onClick={handleCreateNote}
-              className="p-1.5 hover:bg-white/10 rounded-lg text-[#EBDCB9] dark:text-gray-400 transition-all active:scale-95 cursor-pointer border border-[#EBDCB9]/10"
+              className={sidebarBtnClass}
               title={lang === "ko" ? "새 노트" : lang === "ja" ? "新規ノート" : "New Note"}
             >
               <Plus size={14} strokeWidth={2.5} />
@@ -199,19 +303,19 @@ export default function SpringNoteBoard({
 
         {/* Search */}
         <div className="px-3 py-2 shrink-0">
-          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-[#2D1E15]/50 dark:bg-black/30 border border-[#2D1E15] dark:border-[#131315] focus-within:border-amber-600/70 dark:focus-within:border-surface-700 rounded-lg transition-all">
-            <Search size={14} className="text-[#EBDCB9]/60" />
+          <div className={searchContainerClass}>
+            <Search size={14} className={searchIconColor} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "ko" ? "검색..." : lang === "ja" ? "検索..." : "Search..."}
-              className="bg-transparent text-xs text-[#FBF6EC] dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none w-full"
+              className={searchInputClass}
             />
           </div>
         </div>
 
-        {/* List (가죽 다이어리 내 네임택 카드 위젯 형태로 변형하여 겉돌지 않게 가공) */}
+        {/* List */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin scrollbar-thumb-white/10 dark:scrollbar-thumb-surface-800">
           {loading ? (
             <div className="text-xs text-[#EBDCB9]/50 text-center py-4">Loading...</div>
@@ -226,11 +330,7 @@ export default function SpringNoteBoard({
                 <div
                   key={note.id}
                   onClick={() => setSelectedNoteId(note.id)}
-                  className={`group relative flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border shadow-sm duration-200 hover:-translate-y-[1px] hover:scale-[1.01] ${
-                    isActive
-                      ? "bg-[#2D1E15] text-[#FBF6EC] border-[#EADCC6]/35 shadow-inner ring-1 ring-white/5 font-bold"
-                      : "bg-[#2D1E15]/30 text-gray-300 border-[#2D1E15]/50 hover:bg-[#2D1E15]/75 hover:text-white hover:border-[#EADCC6]/20"
-                  }`}
+                  className={getListItemClass(isActive)}
                 >
                   <span className="text-xs truncate pr-5">{note.title}</span>
                   <button
@@ -246,10 +346,10 @@ export default function SpringNoteBoard({
         </div>
       </div>
 
-      {/* 마우스 드래그 좌우 너비 조절 스플리터 바 (클래식 가죽 바인더 매치) */}
+      {/* 마우스 드래그 좌우 너비 조절 스플리터 바 */}
       <div
         onMouseDown={startResizing}
-        className="w-1.5 hover:w-2 bg-[#2D1E15]/80 hover:bg-amber-600/70 dark:bg-[#1A1A1C] dark:hover:bg-amber-500/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"
+        className={splitterClass}
         title="Drag to adjust width"
       >
         {/* 드래그 호버 가이드 피드백선 */}
@@ -272,6 +372,11 @@ export default function SpringNoteBoard({
           <SpringNotePanel
             taskId={selectedNote.id}
             onClose={() => {}}
+            onThemeChange={(newTheme) => {
+              setNotes((prev) =>
+                prev.map((n) => (n.id === selectedNote.id ? { ...n, theme: newTheme } : n))
+              );
+            }}
             t={t}
             lang={lang}
           />

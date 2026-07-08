@@ -328,11 +328,36 @@ export function createChildNode(
   currentNodes: Node<MindMapNodeData>[],
   currentEdges: Edge[],
   defaultShape: "rounded-rect" | "ellipse" | "capsule" = "rounded-rect",
-  defaultColor: "indigo" | "emerald" | "amber" | "rose" | "slate" | "violet" = "indigo"
+  defaultColor: "indigo" | "emerald" | "amber" | "rose" | "slate" | "violet" = "indigo",
+  layoutDirection: "LR" | "TB" | "balanced" = "balanced"
 ): { nodes: Node<MindMapNodeData>[]; edges: Edge[] } {
   const newId = `node-${Date.now()}`;
   const parentNode = currentNodes.find((n) => n.id === parentId);
   const parentColor = parentNode?.data.colorTheme || defaultColor;
+  const parentEdgeColor = parentNode?.data.edgeColorTheme || parentColor;
+  const parentDepth = parentNode?.data.depth !== undefined ? (parentNode.data.depth as number) : 0;
+
+  // 부모의 기존 자식 수 계산 (겹침 방지 오프셋용)
+  const existingChildCount = currentEdges.filter((e) => e.source === parentId).length;
+  const parentPos = parentNode?.position ?? { x: 0, y: 0 };
+
+  // 레이아웃 방향별 오프셋 계산
+  let offsetX = 0;
+  let offsetY = 0;
+  if (layoutDirection === "TB") {
+    offsetX = (existingChildCount - Math.floor(existingChildCount / 2)) * 200 * (existingChildCount % 2 === 0 ? 1 : -1);
+    offsetY = 160;
+  } else if (layoutDirection === "LR") {
+    offsetX = 220;
+    offsetY = existingChildCount * 90;
+  } else {
+    // balanced: 부모 오른쪽으로 fan-out
+    offsetX = 220;
+    const half = Math.ceil(existingChildCount / 2);
+    offsetY = existingChildCount % 2 === 0
+      ? -(half * 80)
+      : half * 80;
+  }
 
   const newNode: Node<MindMapNodeData> = {
     id: newId,
@@ -340,10 +365,14 @@ export function createChildNode(
     data: {
       label,
       shape: defaultShape,
-      colorTheme: parentColor,
+      colorTheme: parentEdgeColor,
       parentId,
+      depth: parentDepth + 1,
     },
-    position: parentNode ? { ...parentNode.position } : { x: 0, y: 0 },
+    position: {
+      x: parentPos.x + offsetX,
+      y: parentPos.y + offsetY,
+    },
   };
 
   const newEdge: Edge = {
@@ -351,7 +380,7 @@ export function createChildNode(
     source: parentId,
     target: newId,
     type: "smoothstep",
-    style: { stroke: getHexColorByTheme(parentColor), strokeWidth: 2 },
+    style: { stroke: getHexColorByTheme(parentEdgeColor), strokeWidth: 2 },
   };
 
   return {

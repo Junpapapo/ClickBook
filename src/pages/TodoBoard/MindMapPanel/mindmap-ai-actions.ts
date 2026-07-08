@@ -22,6 +22,28 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 // ──────────────────────────────────────────────────
+// 헬퍼: 방사형 팬 오프셋 — 겹침 방지 좌표 계산
+// index: 0-based, total: 전체 개수, radius: 반지름 거리
+// ──────────────────────────────────────────────────
+function radialOffset(
+  base: { x: number; y: number },
+  index: number,
+  total: number,
+  radius = 220,
+  startAngleDeg = -60,
+  sweepDeg = 120
+): { x: number; y: number } {
+  if (total <= 0) return base;
+  const step = total > 1 ? sweepDeg / (total - 1) : 0;
+  const angleDeg = startAngleDeg + step * index;
+  const rad = (angleDeg * Math.PI) / 180;
+  return {
+    x: base.x + Math.cos(rad) * radius,
+    y: base.y + Math.sin(rad) * radius,
+  };
+}
+
+// ──────────────────────────────────────────────────
 // 헬퍼: AI 세션 생성
 // ──────────────────────────────────────────────────
 async function createSession(systemPrompt: string): Promise<any> {
@@ -179,11 +201,11 @@ Output:`;
       const pros = Array.isArray(parsed.pros) ? parsed.pros : [];
       const cons = Array.isArray(parsed.cons) ? parsed.cons : [];
 
-      let index = 0;
-
-      // Pros 추가 (emerald 테마)
-      pros.slice(0, 3).forEach((item) => {
-        const newId = `node-ai-expand-${Date.now()}-${index++}`;
+      // Pros 추가 (emerald 테마) — 부모 기준 좌측 방사형 배치
+      const prosSlice = pros.slice(0, 3);
+      const consSlice = cons.slice(0, 3);
+      prosSlice.forEach((item, i) => {
+        const newId = `node-ai-expand-${Date.now()}-pros${i}`;
         newNodes.push({
           id: newId,
           type: "mindmapNode",
@@ -192,8 +214,9 @@ Output:`;
             shape: "rounded-rect",
             colorTheme: "emerald",
             parentId: nodeId,
+            isDraft: true,
           },
-          position: { ...targetNode.position },
+          position: radialOffset(targetNode.position, i, prosSlice.length, 240, -150, 120),
         });
         newEdges.push({
           id: `edge-${nodeId}->${newId}`,
@@ -204,9 +227,9 @@ Output:`;
         });
       });
 
-      // Cons 추가 (rose 테마)
-      cons.slice(0, 3).forEach((item) => {
-        const newId = `node-ai-expand-${Date.now()}-${index++}`;
+      // Cons 추가 (rose 테마) — 부모 기준 우측 방사형 배치
+      consSlice.forEach((item, i) => {
+        const newId = `node-ai-expand-${Date.now()}-cons${i}`;
         newNodes.push({
           id: newId,
           type: "mindmapNode",
@@ -215,8 +238,9 @@ Output:`;
             shape: "rounded-rect",
             colorTheme: "rose",
             parentId: nodeId,
+            isDraft: true,
           },
-          position: { ...targetNode.position },
+          position: radialOffset(targetNode.position, i, consSlice.length, 240, 30, 120),
         });
         newEdges.push({
           id: `edge-${nodeId}->${newId}`,
@@ -231,7 +255,8 @@ Output:`;
       // general & actions
       const list = parseJsonArray(response);
 
-      list.slice(0, 4).forEach((item, idx) => {
+      const listSlice = list.slice(0, 4);
+      listSlice.forEach((item, idx) => {
         const newId = `node-ai-expand-${Date.now()}-${idx}`;
         newNodes.push({
           id: newId,
@@ -241,8 +266,9 @@ Output:`;
             shape: "rounded-rect",
             colorTheme: targetNode.data.colorTheme,
             parentId: nodeId,
+            isDraft: true,
           },
-          position: { ...targetNode.position },
+          position: radialOffset(targetNode.position, idx, listSlice.length, 220, -90, 180),
         });
         newEdges.push({
           id: `edge-${nodeId}->${newId}`,
@@ -347,8 +373,10 @@ Output:`;
     const newEdges: Edge[] = [];
     const basePos = parentNode?.position || { x: 0, y: 0 };
 
-    (parsed.branches || []).slice(0, 4).forEach((branch, bIdx) => {
+    const branchSlice = (parsed.branches || []).slice(0, 4);
+    branchSlice.forEach((branch, bIdx) => {
       const branchId = `node-ai-gen-${Date.now()}-b${bIdx}`;
+      const branchPos = radialOffset(basePos, bIdx, branchSlice.length, 240, -90, 180);
       newNodes.push({
         id: branchId,
         type: "mindmapNode",
@@ -357,8 +385,9 @@ Output:`;
           shape: "rounded-rect",
           colorTheme: parentColor,
           parentId: parentNodeId,
+          isDraft: true,
         },
-        position: { ...basePos },
+        position: branchPos,
       });
       newEdges.push({
         id: `edge-${parentNodeId}->${branchId}`,
@@ -368,7 +397,8 @@ Output:`;
         style: { stroke: getHexColorByTheme(parentColor), strokeWidth: 2 },
       });
 
-      (branch.children || []).slice(0, 3).forEach((child, cIdx) => {
+      const childSlice = (branch.children || []).slice(0, 3);
+      childSlice.forEach((child, cIdx) => {
         const childId = `node-ai-gen-${Date.now()}-b${bIdx}-c${cIdx}`;
         newNodes.push({
           id: childId,
@@ -378,8 +408,9 @@ Output:`;
             shape: "rounded-rect",
             colorTheme: parentColor,
             parentId: branchId,
+            isDraft: true,
           },
-          position: { ...basePos },
+          position: radialOffset(branchPos, cIdx, childSlice.length, 180, -60, 120),
         });
         newEdges.push({
           id: `edge-${branchId}->${childId}`,

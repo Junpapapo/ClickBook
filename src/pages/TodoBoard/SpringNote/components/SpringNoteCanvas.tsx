@@ -11,6 +11,7 @@ export default function SpringNoteCanvas({
   theme,
   selectedObjId,
   setSelectedObjId,
+  scrollHeight = 500,
 }: SpringNoteCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -365,7 +366,10 @@ export default function SpringNoteCanvas({
   return (
     <div
       ref={canvasRef}
-      className="absolute inset-0 z-20 pointer-events-none min-h-[500px]"
+      style={{
+        height: `${Math.max(500, scrollHeight)}px`,
+      }}
+      className="absolute inset-x-0 top-0 z-20 pointer-events-none"
       onClick={() => setSelectedObjId(null)}
     >
       {objects.map((obj) => {

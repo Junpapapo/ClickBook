@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { Handle, Position, NodeToolbar, useEdges } from "@xyflow/react";
-import { Plus, Pencil, Trash2, ExternalLink, Sparkles, ChevronDown, RotateCcw, Search, Languages, X, Loader2, ClipboardCheck, Lock, Unlock, Smile } from "lucide-react";
+import { Handle, Position, NodeToolbar, useEdges, useUpdateNodeInternals } from "@xyflow/react";
+import { Plus, Pencil, Trash2, ExternalLink, Sparkles, ChevronDown, RotateCcw, Search, Languages, X, Loader2, ClipboardCheck, Lock, Unlock, Smile, FileText } from "lucide-react";
 import { useMindMapActions } from "../mindmap-model";
 import { IconPicker } from "@/components/IconPicker";
 import { LUCIDE_ICONS_MAP } from "@/components/DynamicIcon";
@@ -54,7 +54,18 @@ const THEME_CLASSES: Record<string, { border: string; bg: string; text: string; 
 const SHAPE_CLASSES: Record<string, string> = {
   "rounded-rect": "rounded-xl",
   ellipse: "",
-  capsule: "rounded-full"
+  capsule: "rounded-full",
+  octagon: "",
+};
+
+// 팔각형 SVG 폴리곤용 테마별 fill/stroke Tailwind 클래스
+const OCTAGON_SVG_CLASSES: Record<string, { normal: string; root: string; draft: string }> = {
+  indigo:  { normal: "fill-indigo-50/70 dark:fill-indigo-950/40 stroke-indigo-500 dark:stroke-indigo-400",  root: "fill-indigo-600 dark:fill-indigo-500",  draft: "fill-amber-50/30 dark:fill-amber-950/20 stroke-amber-400 dark:stroke-amber-500" },
+  emerald: { normal: "fill-emerald-50/70 dark:fill-emerald-950/40 stroke-emerald-500 dark:stroke-emerald-400", root: "fill-emerald-600 dark:fill-emerald-500", draft: "fill-amber-50/30 dark:fill-amber-950/20 stroke-amber-400 dark:stroke-amber-500" },
+  amber:   { normal: "fill-amber-50/70 dark:fill-amber-950/40 stroke-amber-500 dark:stroke-amber-400",   root: "fill-amber-500 dark:fill-amber-400",   draft: "fill-amber-50/30 dark:fill-amber-950/20 stroke-amber-400 dark:stroke-amber-500" },
+  rose:    { normal: "fill-rose-50/70 dark:fill-rose-950/40 stroke-rose-500 dark:stroke-rose-400",     root: "fill-rose-600 dark:fill-rose-500",     draft: "fill-amber-50/30 dark:fill-amber-950/20 stroke-amber-400 dark:stroke-amber-500" },
+  violet:  { normal: "fill-violet-50/70 dark:fill-violet-950/40 stroke-violet-500 dark:stroke-violet-400",  root: "fill-violet-600 dark:fill-violet-500",  draft: "fill-amber-50/30 dark:fill-amber-950/20 stroke-amber-400 dark:stroke-amber-500" },
+  slate:   { normal: "fill-slate-50/70 dark:fill-slate-800/60 stroke-slate-500 dark:stroke-slate-400",    root: "fill-slate-600 dark:fill-slate-500",    draft: "fill-amber-50/30 dark:fill-amber-950/20 stroke-amber-400 dark:stroke-amber-500" },
 };
 
 function getShapeStyle(shape: string): CSSProperties {
@@ -107,9 +118,20 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
     registerAsTodoTask: onRegisterTodo,
     handleAiAction: onAiAction,
     layoutDirection,
+    editingNodeId,
+    setEditingNodeId,
+    memoOpenNodeId,
+    setMemoOpenNodeId,
   } = useMindMapActions();
 
   const edges = useEdges();
+  const updateNodeInternals = useUpdateNodeInternals();
+
+  // handleDir이 바뀐면 ReactFlow 내부 핸들 레지스트리를 강제 갱신
+  // 이것이 동적 핸들 position 변경 시 ReactFlow 공식 권장 방법
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [data.handleDir, id, updateNodeInternals]);
 
   const isTB = layoutDirection === "TB";
   const isRL = layoutDirection === "balanced" && data.layoutDir === "RL";
@@ -187,6 +209,14 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
   useEffect(() => { setEditVal(label); }, [label]);
 
   useEffect(() => {
+    if (editingNodeId === id) {
+      setIsEditing(true);
+    } else {
+      setIsEditing(false);
+    }
+  }, [editingNodeId, id]);
+
+  useEffect(() => {
     if (!showAiMenu) return;
     const handler = (e: MouseEvent) => {
       if (aiMenuRef.current && !aiMenuRef.current.contains(e.target as Node)) {
@@ -212,6 +242,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
 
   const handleSave = () => {
     setIsEditing(false);
+    setEditingNodeId?.(null);
     if (editVal.trim() && editVal.trim() !== label) {
       onLabelChange?.(id, editVal.trim());
     } else {
@@ -255,9 +286,44 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
   const theme = THEME_CLASSES[colorTheme] || THEME_CLASSES.indigo;
   const shapeClass = SHAPE_CLASSES[shape] || SHAPE_CLASSES["rounded-rect"];
 
-  const rootNodeStyle = isRoot
-    ? `${theme.rootBg} text-white shadow-lg shadow-black/20 border-transparent min-w-[160px] px-6 py-3`
-    : `${theme.border} ${theme.bg} ${theme.text} border-2 shadow-sm min-w-[120px] max-w-[220px] px-4 py-2`;
+  const nodeDepth = data.depth !== undefined ? data.depth : (isRoot ? 0 : 2);
+
+  const getStyleByDepth = () => {
+    if (isRoot || nodeDepth === 0) {
+      return `${theme.rootBg} text-white shadow-lg shadow-black/20 border-transparent min-w-[160px] px-6 py-3 text-sm font-extrabold`;
+    }
+    if (data.isDraft) {
+      return "border-dashed border-amber-400 dark:border-amber-500 bg-amber-50/30 hover:bg-amber-50/50 dark:bg-amber-950/20 dark:hover:bg-amber-950/30 text-amber-900 dark:text-amber-200 border-2 opacity-80 shadow-inner min-w-[120px] max-w-[220px] px-4 py-2 text-xs font-semibold";
+    }
+    if (nodeDepth === 1) {
+      return `${theme.border} ${theme.bg} ${theme.text} border-[2.5px] shadow-md min-w-[130px] max-w-[220px] px-4 py-2.5 text-xs font-extrabold`;
+    }
+    // depth 2+ : 테마 배경 사용 (다크 모드 호환)
+    return `${theme.border} ${theme.bg} ${theme.text} border shadow-sm min-w-[100px] max-w-[180px] px-3.5 py-1.5 text-[11px] font-semibold opacity-90`;
+  };
+
+  const rootNodeStyle = getStyleByDepth();
+
+  // octagon: 배경/테두리를 SVG가 담당하므로 layout+폰트+글자색만 추출
+  const getOctagonLayoutStyle = (): string => {
+    if (isRoot || nodeDepth === 0) {
+      return "min-w-[140px] px-6 py-4 text-sm font-extrabold text-white";
+    }
+    if (data.isDraft) {
+      return `min-w-[120px] max-w-[220px] px-4 py-3 text-xs font-semibold text-amber-900 dark:text-amber-200 opacity-80`;
+    }
+    if (nodeDepth === 1) {
+      return `${theme.text} min-w-[130px] max-w-[220px] px-4 py-3.5 text-xs font-extrabold`;
+    }
+    return `${theme.text} min-w-[100px] max-w-[180px] px-3.5 py-2.5 text-[11px] font-semibold opacity-90`;
+  };
+
+  const isOctagon = shape === "octagon";
+  // octagon SVG 폴리곤 클래스
+  const octSvgKey = data.isDraft ? "draft" : (isRoot || nodeDepth === 0) ? "root" : "normal";
+  const octSvgCls = (OCTAGON_SVG_CLASSES[colorTheme] || OCTAGON_SVG_CLASSES.indigo)[octSvgKey];
+  // 선택 stroke width: 선택 시 굵게
+  const octStrokeW = selected ? "5" : (isRoot || nodeDepth === 0 ? "0" : nodeDepth === 1 ? "3.5" : "2");
 
   return (
     <>
@@ -273,6 +339,20 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
             title="하위 노드 생성 (Tab)"
           >
             <Plus size={14} />
+          </button>
+
+          <span className="w-px h-3 bg-gray-200 dark:bg-surface-700" />
+
+          <button
+            onClick={() => setMemoOpenNodeId?.(memoOpenNodeId === id ? null : id)}
+            className={`p-1 rounded-md transition-all active:scale-90 cursor-pointer ${
+              memoOpenNodeId === id
+                ? "text-indigo-500 hover:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20"
+                : "text-gray-400 hover:text-indigo-500 dark:text-gray-500 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-800"
+            }`}
+            title="노드 상세 메모 편집 (Side-sheet)"
+          >
+            <FileText size={12} className={memoOpenNodeId === id ? "text-indigo-500" : "text-gray-400"} />
           </button>
 
           <span className="w-px h-3 bg-gray-200 dark:bg-surface-700" />
@@ -582,18 +662,50 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
 
       <div
         onDoubleClick={() => !isRoot && setIsEditing(true)}
-        style={getShapeStyle(shape)}
+        style={isOctagon ? {} : getShapeStyle(shape)}
         className={[
           "relative flex items-center justify-center cursor-pointer transition-all duration-200 select-none",
-          rootNodeStyle, shapeClass,
-          selected ? "ring-2 ring-offset-1 ring-indigo-400 dark:ring-indigo-300" : "",
-          isRoot ? "font-extrabold text-sm" : "font-semibold text-xs",
+          isOctagon ? getOctagonLayoutStyle() : rootNodeStyle,
+          isOctagon ? "" : shapeClass,
+          selected && !isOctagon ? "ring-2 ring-offset-1 ring-indigo-400 dark:ring-indigo-300" : "",
         ].join(" ")}
       >
+        {/* 팔각형 SVG 배경 레이어 — clip-path 없이 polygon으로 직접 그림 */}
+        {isOctagon && (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible", pointerEvents: "none" }}
+          >
+            {selected && (
+              <defs>
+                <filter id={`oct-glow-${id}`} x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                </filter>
+              </defs>
+            )}
+            <polygon
+              points="30,0 70,0 100,18 100,82 70,100 30,100 0,82 0,18"
+              className={octSvgCls}
+              strokeWidth={octStrokeW}
+              vectorEffect="non-scaling-stroke"
+              strokeLinejoin="round"
+              filter={selected ? `url(#oct-glow-${id})` : undefined}
+            />
+          </svg>
+        )}
         {!isRoot && (
           <Handle
             type="target"
-            position={isTB ? Position.Top : (isRL ? Position.Right : Position.Left)}
+            position={
+              data.handleDir === "top" ? Position.Top :
+              data.handleDir === "bottom" ? Position.Bottom :
+              data.handleDir === "left" ? Position.Left :
+              data.handleDir === "right" ? Position.Right :
+              (isTB ? Position.Top : (isRL ? Position.Right : Position.Left))
+            }
             className={`w-2 h-2 border-none ${theme.handle}`}
           />
         )}
@@ -611,7 +723,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
             onBlur={handleSave}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSave();
-              if (e.key === "Escape") { setIsEditing(false); setEditVal(label); }
+              if (e.key === "Escape") { setIsEditing(false); setEditingNodeId?.(null); setEditVal(label); }
             }}
             className="bg-transparent border-b border-current outline-none w-full text-center text-xs font-semibold min-w-[80px]"
           />
@@ -628,6 +740,11 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
           </div>
         ) : (
           <div className="flex items-center gap-1.5 justify-center w-full">
+            {data.memoContent && data.memoContent.trim() && (
+              <span title="상세 메모 있음">
+                <FileText size={11} className="shrink-0 text-indigo-500 dark:text-indigo-400/80" />
+              </span>
+            )}
             {icon && (
               (() => {
                 const IconComp = LUCIDE_ICONS_MAP[icon];

@@ -651,6 +651,9 @@ export const en = {
   mindmapAiSummaryTitle: "AI Branch Summary",
   mindmapAiAnalyzing: "Gemini Nano analyzing...",
   mindmapAiAnalyzingDesc: "Expanding ideas and generating new sub-branches.",
+  mindmapAiDraftProposed: "AI proposed {count} ideas.",
+  mindmapAiDraftAccept: "✓ Accept All",
+  mindmapAiDraftReject: "✗ Reject All",
 
   // ── SpringNote ─────────────────────────────────────────────
   springNoteBoardMenu: "Sprint Note",

@@ -6,6 +6,7 @@ export interface SpringNotePanelProps {
   t: any;
   lang: string;
   isMiniMode?: boolean;
+  onThemeChange?: (theme: "light" | "sepia" | "dark" | "grid") => void;
 }
 
 export interface SpringNoteToolbarProps {
@@ -51,6 +52,7 @@ export interface SpringNoteCanvasProps {
   theme: "light" | "sepia" | "dark" | "grid";
   selectedObjId: string | null;
   setSelectedObjId: (id: string | null) => void;
+  scrollHeight?: number;
 }
 
 export interface BookmarkSelectorProps {

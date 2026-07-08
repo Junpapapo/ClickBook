@@ -12,7 +12,7 @@ export default function SpringNoteBook({
     light: "bg-white !text-black border-gray-200",
     sepia: "bg-[#FBF6EC] !text-[#4A3728] border-[#EADCC6]",
     dark: "bg-[#1E1E1E] !text-gray-200 border-[#2D2D30]",
-    grid: "bg-white dark:bg-[#1E1E1E] !text-black dark:!text-gray-200 border-gray-200 dark:border-[#2D2D30]",
+    grid: "bg-white !text-black border-gray-200",
   };
 
   // 폰트 종류별 클래스 매핑

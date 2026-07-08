@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTheme } from "@/shared/ThemeContext";
 import { ListTodo } from "lucide-react";
 import type { NotePage, NoteObject, SpringNote } from "@/shared/types";
 import type { SpringNotePanelProps } from "./spring-note-types";
@@ -156,7 +157,9 @@ export default function SpringNotePanel({
   t,
   lang,
   isMiniMode = false,
+  onThemeChange,
 }: SpringNotePanelProps) {
+  const { theme: systemTheme } = useTheme();
   const [pages, setPages] = useState<NotePage[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "sepia" | "dark" | "grid">("sepia");
@@ -187,6 +190,19 @@ export default function SpringNotePanel({
   // 에디터 컨테이너 및 이미지 인풋 레퍼런스
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 에디터 스크롤 동기화 연동 상태
+  const [editorScrollHeight, setEditorScrollHeight] = useState(500);
+
+  const updateScrollDimensions = () => {
+    if (editorContainerRef.current) {
+      setEditorScrollHeight(editorContainerRef.current.scrollHeight);
+    }
+  };
+
+  const handleScroll = () => {
+    updateScrollDimensions();
+  };
 
   // 이미지 포커스 플로팅 업로드 위젯 상태
   const [showImagePopover, setShowImagePopover] = useState(false);
@@ -241,6 +257,17 @@ export default function SpringNotePanel({
     chrome.storage.onChanged.addListener(handler);
     return () => chrome.storage.onChanged.removeListener(handler);
   }, []);
+
+  // V6: 시스템 테마(라이트/다크) 변경 감지하여 노트 테마 자동 동기화
+  useEffect(() => {
+    if (loading) return;
+    const targetTheme = systemTheme === "light" ? "grid" : "dark";
+    if (theme !== targetTheme) {
+      setTheme(targetTheme);
+    }
+  }, [systemTheme, loading]);
+
+
 
   // Tiptap 에디터 인스턴스 초기화
   const editor = useEditor({
@@ -426,6 +453,13 @@ export default function SpringNotePanel({
     },
   });
 
+  // V6: 에디터 높이 감지 및 캔버스 스크롤 동기화 연동
+  useEffect(() => {
+    updateScrollDimensions();
+    const timer = setTimeout(updateScrollDimensions, 100);
+    return () => clearTimeout(timer);
+  }, [pages, currentPageIndex, editor?.getHTML()]);
+
   // 날짜 스탬프 포맷팅 헬퍼 함수
   const getFormattedDate = () => {
     const date = new Date();
@@ -575,6 +609,8 @@ export default function SpringNotePanel({
           associatedTaskId,
         };
         await saveSpringNote(noteToSave);
+        // 부모에게도 최신 테마 상태 전파하여 사이드바 실시간 동기화
+        onThemeChange?.(theme);
       } catch (err) {
         console.warn("Failed to auto-save spring note:", err);
       }
@@ -583,7 +619,7 @@ export default function SpringNotePanel({
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     };
-  }, [pages, theme, font, fontSize, noteTitle, noteDateText, associatedTaskId, loading, taskId]);
+  }, [pages, theme, font, fontSize, noteTitle, noteDateText, associatedTaskId, loading, taskId, onThemeChange]);
 
   if (loading || pages.length === 0) {
     return (
@@ -1092,29 +1128,31 @@ export default function SpringNotePanel({
               </div>
             </div>
 
-            {/* 캔버스 자유 오브젝트 레이어 */}
-            <SpringNoteCanvas
-              pageId={currentPage.id}
-              taskId={taskId}
-              objects={currentPage.objects}
-              onUpdateObjects={handleUpdateObjects}
-              t={t}
-              theme={theme}
-              selectedObjId={selectedObjId}
-              setSelectedObjId={setSelectedObjId}
-              scale={isMiniMode ? 0.92 : 1}
-            />
-
             {/* Tiptap 기반 WYSIWYG 에디터 영역 */}
             <div 
               ref={editorContainerRef}
               onClick={handleEditorClick}
+              onScroll={handleScroll}
               className="w-full flex-grow z-10 pl-10 pr-2 min-h-[350px] overflow-y-auto cursor-text relative"
               style={{ minHeight: "350px" }}
             >
+              {/* 캔버스 자유 오브젝트 레이어 */}
+              <SpringNoteCanvas
+                pageId={currentPage.id}
+                taskId={taskId}
+                objects={currentPage.objects}
+                onUpdateObjects={handleUpdateObjects}
+                t={t}
+                theme={theme}
+                selectedObjId={selectedObjId}
+                setSelectedObjId={setSelectedObjId}
+                scale={isMiniMode ? 0.92 : 1}
+                scrollHeight={editorScrollHeight}
+              />
+
               <EditorContent
                 editor={editor}
-                className={`w-full h-full bg-transparent border-none outline-none resize-none focus:ring-0 leading-relaxed font-inherit ${getThemeTextClass()} focus:outline-none`}
+                className={`w-full h-full bg-transparent border-none outline-none resize-none focus:ring-0 leading-relaxed font-inherit ${getThemeTextClass()} focus:outline-none z-10 relative`}
               />
 
               {/* 숨겨진 로컬 이미지 인풋 */}
