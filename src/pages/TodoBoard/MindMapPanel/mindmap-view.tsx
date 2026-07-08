@@ -9,7 +9,7 @@ import {
   Node
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { X, StickyNote, Copy, Trash2, BookOpen, Edit3, ChevronDown, ChevronUp, Sparkles, Loader2 } from "lucide-react";
+import { X, StickyNote, Network, Copy, Trash2, BookOpen, Edit3, ChevronDown, ChevronUp, Sparkles, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import {
   MEMO_DOT,
@@ -411,8 +411,8 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
       <div className="flex items-center justify-between gap-4 p-3 bg-white dark:bg-surface-900 border-b border-gray-200 dark:border-surface-850 shrink-0 select-none">
         {/* Left: Brand & File Title */}
         <div className="min-w-0 flex items-center gap-2">
-          <div className="p-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-500 shrink-0">
-            <StickyNote size={14} />
+          <div className="p-2 rounded-xl bg-[#a855f7] text-white shrink-0 shadow-md">
+            <Network size={16} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
             <span className="text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-widest block leading-none" title="MIND MAP EDITOR">

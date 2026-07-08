@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { DragDropContext, Droppable, DroppableProvided } from "@hello-pangea/dnd";
-import { Plus, Check, Loader2 } from "lucide-react";
+import { Plus, Check, ListTodo, Loader2 } from "lucide-react";
 import type { AppSettings, SpringNote } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -118,13 +118,13 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   return (
     <>
       {DialogEl}
-      <div className="h-full flex font-sans overflow-hidden">
+      <div className="h-full flex font-sans overflow-hidden p-6">
         {/* Left Area - Kanban Board */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
           <div className="mb-6 shrink-0 flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
-            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
-              <Check size={16} strokeWidth={3} />
+            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white shadow-md shadow-emerald-500/25">
+              <ListTodo size={16} strokeWidth={2.2} />
             </span>
             <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 text-transparent bg-clip-text">
               {t("todoBoardTitle") || "TODO Board"}
