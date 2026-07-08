@@ -14,14 +14,22 @@ try {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
   const currentVersion = packageJson.version || '1.0.0';
   
-  // Bump version
-  const parts = currentVersion.split('.');
-  if (parts.length >= 3) {
-    parts[2] = String(parseInt(parts[2], 10) + 1);
-  } else {
-    parts.push('1');
+  // Bump version (10단위 올림 처리되는 시맨틱 버저닝 롤링 규칙 적용)
+  let [major, minor, patch] = currentVersion.split('.').map(num => parseInt(num, 10));
+  if (isNaN(major)) major = 1;
+  if (isNaN(minor)) minor = 0;
+  if (isNaN(patch)) patch = 0;
+
+  patch += 1;
+  if (patch >= 10) {
+    patch = 0;
+    minor += 1;
   }
-  const newVersion = parts.join('.');
+  if (minor >= 10) {
+    minor = 0;
+    major += 1;
+  }
+  const newVersion = `${major}.${minor}.${patch}`;
 
   packageJson.version = newVersion;
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8');
