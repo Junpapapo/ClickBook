@@ -357,7 +357,7 @@ export default function FolderTree({
       )}
 
       {/* フォルダーツリー */}
-      <nav className="flex-1 overflow-y-auto py-1 space-y-0.5 bg-gray-50 dark:bg-surface-950 border-t border-gray-200 dark:border-surface-700 min-h-0 pr-1">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-1 space-y-0.5 bg-gray-55 dark:bg-surface-950 border-t border-gray-250 dark:border-surface-700 min-h-0 pr-1 sidebar-custom-scroll">
         {tree.map((node) => (
           <SidebarFolderNode
             key={node.folder.id}

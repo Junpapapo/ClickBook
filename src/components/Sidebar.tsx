@@ -250,6 +250,22 @@ export default function Sidebar({
 
   return (
     <>
+      <style>{`
+        .sidebar-custom-scroll::-webkit-scrollbar {
+          width: 4px !important;
+          height: 4px !important;
+        }
+        .sidebar-custom-scroll::-webkit-scrollbar-track {
+          background: transparent !important;
+        }
+        .sidebar-custom-scroll::-webkit-scrollbar-thumb {
+          background-color: rgba(156, 163, 175, 0.25) !important;
+          border-radius: 9999px !important;
+        }
+        .sidebar-custom-scroll::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(99, 102, 241, 0.5) !important;
+        }
+      `}</style>
       {DialogEl}
       <aside
         className={`relative group/sidebar bg-white dark:bg-surface-900 border-r border-gray-200 dark:border-surface-700 flex flex-col shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out ${
@@ -310,7 +326,7 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col pr-1">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 flex flex-col pr-1 sidebar-custom-scroll">
           {/* Chrome ブックマークパネル */}
           {!isCollapsed && showChromePanel && (
             <div className="shrink-0">
