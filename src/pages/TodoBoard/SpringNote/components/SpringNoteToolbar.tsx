@@ -73,12 +73,45 @@ export default function SpringNoteToolbar({
   // 링크 팝오버 관련 상태
   const [showLinkPopover, setShowLinkPopover] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (showLinkPopover && editor) {
       setLinkUrl(editor.getAttributes("link").href || "");
     }
   }, [showLinkPopover, editor]);
+
+  // 활성화된 페이지 탭이 가로 스크롤 범위 밖으로 벗어나지 않도록 자동 스크롤
+  useEffect(() => {
+    if (tabsContainerRef.current) {
+      const activeTab = tabsContainerRef.current.querySelector('[data-active="true"]');
+      if (activeTab) {
+        activeTab.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }
+  }, [currentPageIndex]);
+
+  // 휠 스크롤 시 가로 스크롤로 매핑되도록 처리 (패시브 옵션 우회를 위해 네이티브 이벤트 등록)
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+      }
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
 
   const handleApplyLink = () => {
     if (!editor) return;
@@ -115,6 +148,20 @@ export default function SpringNoteToolbar({
   }, []);
 
   const isLightTheme = theme === "light" || theme === "grid";
+
+  // 테마별 그라데이션 페이드 색상 바인딩
+  const fadeColorClass = isLightTheme
+    ? "from-white"
+    : theme === "sepia"
+    ? "from-[#FBF6EC]"
+    : "from-[#2D2D30]";
+
+  // 가로 스크롤바의 thumb 색상 정의 (두드러지게)
+  const scrollbarThumbColor = isLightTheme
+    ? "#d97706" // amber-600
+    : theme === "sepia"
+    ? "#7A604D" // 짙은 세피아 갈색
+    : "#fbbf24"; // amber-400
 
   // 테마별 컨테이너 스타일 정의
   const containerClass = isLightTheme
@@ -191,7 +238,7 @@ export default function SpringNoteToolbar({
       <div className="flex flex-nowrap items-center justify-between w-full gap-2 shrink-0">
         <div className="flex flex-nowrap items-center gap-2">
           {/* Themes */}
-          <div className={`flex items-center p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
+          <div className={`flex items-center h-[26px] p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
             {(["light", "sepia", "dark", "grid"] as const).map((t) => {
               const isSelected = theme === t;
               let btnStyle = "";
@@ -215,7 +262,7 @@ export default function SpringNoteToolbar({
           </div>
 
           {/* Fonts */}
-          <div className={`flex items-center p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
+          <div className={`flex items-center h-[26px] p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
             {(["serif", "sans", "mono", "pretendard"] as const).map((f) => {
               const isSelected = font === f;
               let btnStyle = "";
@@ -239,7 +286,7 @@ export default function SpringNoteToolbar({
           </div>
 
           {/* Font Size */}
-          <div className={`flex items-center p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
+          <div className={`flex items-center h-[26px] p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
             <button
               type="button"
               onClick={() => onChangeFontSize(Math.max(12, fontSize - 1))}
@@ -272,7 +319,7 @@ export default function SpringNoteToolbar({
           <button
             type="button"
             onClick={onToggleDrawer}
-            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg border transition-all shrink-0 ${
+            className={`flex items-center gap-1 px-2.5 h-[26px] text-xs font-bold rounded-lg border transition-all shrink-0 ${
               isDrawerOpen
                 ? isLightTheme
                   ? "bg-amber-500/20 border-amber-500/35 text-amber-900"
@@ -288,55 +335,85 @@ export default function SpringNoteToolbar({
           </button>
 
           {/* 페이지 색인 탭 [ 1 | 2 | 3 | + | - ] */}
-          <div className={`flex items-center p-0.5 rounded-lg border gap-1 shrink-0 transition-colors duration-300 ${subPanelClass}`}>
-            {pages.map((p, idx) => {
-              const isActive = currentPageIndex === idx;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => onChangePageIndex(idx)}
-                  className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all ${
-                    isActive
-                      ? isLightTheme
-                        ? "bg-amber-500/10 text-amber-800 font-extrabold shadow-sm border border-amber-500/25"
-                        : "bg-[#EADCC6]/25 text-white font-extrabold shadow-sm border border-[#EADCC6]/20"
-                      : isLightTheme
-                      ? "text-gray-400 hover:text-gray-700"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                  title={`Go to Page ${idx + 1}`}
-                >
-                  {idx + 1}
-                </button>
-              );
-            })}
+          <div className={`flex items-center h-[26px] py-0 px-0.5 rounded-lg border shrink-0 transition-colors duration-300 ${subPanelClass} max-w-[100px] xs:max-w-[150px] sm:max-w-[210px] md:max-w-[280px] overflow-hidden`}>
+            {/* 가로 스크롤바 높이 극소화 및 색상 강조 스타일 주입 */}
+            <style>{`
+              .custom-page-scroll::-webkit-scrollbar {
+                height: 3px !important;
+              }
+              .custom-page-scroll::-webkit-scrollbar-track {
+                background: transparent !important;
+              }
+              .custom-page-scroll::-webkit-scrollbar-thumb {
+                background-color: ${scrollbarThumbColor} !important;
+                border-radius: 9999px !important;
+              }
+            `}</style>
+
+            {/* 스크롤 가능한 숫자 버튼 영역 (양끝 페이드 마스크) */}
+            <div className="relative flex-1 flex items-center overflow-hidden min-w-0">
+              {/* 왼쪽 그라데이션 페이드 */}
+              <div className={`absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-r ${fadeColorClass} to-transparent pointer-events-none z-10`} />
+
+              <div 
+                ref={tabsContainerRef}
+                className="flex items-center gap-1.5 overflow-x-auto custom-page-scroll h-full pt-0.5 pb-0.5 px-2.5 select-none w-full scroll-smooth"
+              >
+                {pages.map((p, idx) => {
+                  const isActive = currentPageIndex === idx;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      data-active={isActive}
+                      onClick={() => onChangePageIndex(idx)}
+                      className={`px-1.5 py-0.5 text-[10px] font-extrabold rounded transition-all shrink-0 ${
+                        isActive
+                          ? isLightTheme
+                            ? "bg-amber-500/10 text-amber-800 font-extrabold shadow-sm border border-amber-500/25"
+                            : "bg-[#EADCC6]/25 text-white font-extrabold shadow-sm border border-[#EADCC6]/20"
+                          : isLightTheme
+                          ? "text-gray-500 hover:text-gray-800"
+                          : "text-gray-300 hover:text-white"
+                      }`}
+                      title={`Go to Page ${idx + 1}`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 오른쪽 그라데이션 페이드 */}
+              <div className={`absolute right-0 top-0 bottom-0 w-2.5 bg-gradient-to-l ${fadeColorClass} to-transparent pointer-events-none z-10`} />
+            </div>
             
             <div className={`w-px h-3 mx-0.5 shrink-0 ${isLightTheme ? "bg-gray-250/80" : "bg-[#231710] dark:bg-surface-750"}`} />
 
-            {/* 새 페이지 추가 (+) */}
-            <button
-              type="button"
-              onClick={onAddPage}
-              className={`p-1 rounded transition-all shrink-0 ${
-                isLightTheme ? "text-amber-600 hover:text-amber-700 hover:bg-gray-100" : "text-amber-500 hover:text-amber-400 hover:bg-white/10"
-              }`}
-              title="Add New Page"
-            >
-              <Plus size={10} />
-            </button>
+            {/* 새 페이지 추가 (+) 및 삭제 (-) 버튼 (우측 고정) */}
+            <div className="flex items-center gap-0.5 shrink-0 px-0.5">
+              <button
+                type="button"
+                onClick={onAddPage}
+                className={`p-1 rounded transition-all shrink-0 ${
+                  isLightTheme ? "text-amber-600 hover:text-amber-700 hover:bg-gray-100" : "text-amber-500 hover:text-amber-400 hover:bg-white/10"
+                }`}
+                title="Add New Page"
+              >
+                <Plus size={10} />
+              </button>
 
-            {/* 현재 페이지 삭제 (-) */}
-            <button
-              type="button"
-              onClick={onDeletePage}
-              className={`p-1 rounded transition-all shrink-0 ${
-                isLightTheme ? "text-gray-400 hover:text-red-500 hover:bg-red-50" : "text-gray-400 hover:text-red-400 hover:bg-red-500/20"
-              }`}
-              title="Delete Current Page"
-            >
-              <Trash2 size={10} />
-            </button>
+              <button
+                type="button"
+                onClick={onDeletePage}
+                className={`p-1 rounded transition-all shrink-0 ${
+                  isLightTheme ? "text-gray-400 hover:text-red-500 hover:bg-red-50" : "text-gray-400 hover:text-red-400 hover:bg-red-500/20"
+                }`}
+                title="Delete Current Page"
+              >
+                <Trash2 size={10} />
+              </button>
+            </div>
           </div>
 
           {/* Maximize button */}
