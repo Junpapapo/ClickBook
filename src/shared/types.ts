@@ -155,6 +155,7 @@ export interface BuddyConfig {
   xp?: number;                 // 누적 경험치 (기본 0)
   unlockedBuddies?: string[];  // 해금된 캐릭터 ID 리스트
   revealHidden?: boolean;      // Reveal All 토글 - 모든 히든 캐릭터 강제 표시
+  isRealtimeSearchEnabled?: boolean; // 실시간 웹 검색 기능 활성화 여부 (false이면 지구본 버튼 숨김 및 검색 스킵)
 }
 
 export interface AppSettings {

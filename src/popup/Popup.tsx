@@ -4,7 +4,7 @@ import {
   Sparkles, Cpu, AlignLeft, WrapText, Link, FileCode, Layers, ClipboardList, X,
   Settings, Globe2, Check, Sun, Moon, ShieldCheck,
   Database, Cookie, Download, History, HardDrive, KeyRound, Trash2, RefreshCw, StickyNote, BookOpen, Bug, MessageSquare,
-  Calendar, ChevronLeft, ChevronRight, Target, Star
+  Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Target, Star
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import type { MessageResponse, MemoColor, TodoBoardData, TodoTask, TodoColumn } from "@/shared/types";
@@ -43,6 +43,7 @@ export default function Popup() {
   const [buddyConfig, setBuddyConfig] = useState<BuddyConfig | null>(null);
   const [buddyModalOpen, setBuddyModalOpen] = useState(false);
   const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
+  const [buddySelectorExpanded, setBuddySelectorExpanded] = useState(false);
   const [tabUrl, setTabUrl] = useState("");
   const [tabTitle, setTabTitle] = useState("");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -354,6 +355,7 @@ export default function Popup() {
           opacity: 0.9,
           hiddenSites: [],
           enabledMenuItems: ["translate", "bookmark", "memo", "settings"],
+          isRealtimeSearchEnabled: true,
         });
       }
     });
@@ -1349,15 +1351,18 @@ export default function Popup() {
         </div>
       )}
 
-      {/* 버디 간편 제어 UI */}
+      {/* 버디 간편 제어 UI - 은은한 파스텔 톤의 테두리를 두른 고급스러운 카드 형태 패널 */}
       {buddyConfig && (
-        <div className="border-t border-gray-200 dark:border-surface-700 pt-1.5 mt-1.5">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="mt-0.5 p-3 bg-indigo-50/20 dark:bg-indigo-950/15 border border-indigo-500/10 dark:border-indigo-400/10 rounded-2xl shadow-sm transition-all duration-300 hover:border-amber-400 dark:hover:border-amber-500/70 hover:shadow-[0_0_8px_rgba(245,158,11,0.2)]">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={async () => {
                 const nextEnabled = !buddyConfig.enabled;
                 const next = { ...buddyConfig, enabled: nextEnabled };
                 setBuddyConfig(next);
+                if (!nextEnabled) {
+                  setBuddySelectorExpanded(false);
+                }
                 await chrome.runtime.sendMessage({
                   type: "SAVE_BUDDY_CONFIG",
                   config: next,
@@ -1371,7 +1376,7 @@ export default function Popup() {
             >
               🐾 {buddyConfig.enabled ? "버디 ON" : "버디 OFF"}
             </button>
-            <div className="flex-1 flex gap-1.5 items-center bg-gray-105 dark:bg-surface-800 border border-gray-200 dark:border-surface-700/80 rounded-lg px-2.5 py-1">
+            <div className="flex-1 flex gap-1.5 items-center bg-white/70 dark:bg-surface-900/60 border border-gray-200/80 dark:border-surface-700/80 rounded-lg px-2 py-1">
               <input
                 type="text"
                 value={buddyConfig.buddyName || ""}
@@ -1411,29 +1416,48 @@ export default function Popup() {
             </div>
             <button
               onClick={() => setBuddyModalOpen(true)}
-              className="p-1 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0"
+              className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0"
               title="버디 상세 설정"
             >
               <Settings size={15} />
             </button>
+            <button
+              type="button"
+              disabled={!buddyConfig.enabled}
+              onClick={() => setBuddySelectorExpanded(prev => !prev)}
+              className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0 disabled:opacity-35 disabled:cursor-not-allowed"
+              title={buddySelectorExpanded ? t("buddyCollapse" as any) : t("buddyExpand" as any)}
+            >
+              {buddySelectorExpanded ? (
+                <ChevronUp size={15} className="stroke-[2.5]" />
+              ) : (
+                <ChevronDown size={15} className="stroke-[2.5]" />
+              )}
+            </button>
           </div>
           
-          {/* 캐릭터 썸네일 그리드 (캐러셀) */}
-          <div className="mt-1">
-            <BuddySelector
-              selectedId={buddyConfig.buddyId}
-              disabled={!buddyConfig.enabled}
-              unlockedBuddies={buddyConfig.unlockedBuddies}
-              revealHidden={buddyConfig.revealHidden}
-              onSelect={async (id, type) => {
-                const next = { ...buddyConfig, buddyId: id, buddyType: type };
-                setBuddyConfig(next);
-                await chrome.runtime.sendMessage({
-                  type: "SAVE_BUDDY_CONFIG",
-                  config: next,
-                });
-              }}
-            />
+          {/* 캐릭터 썸네일 그리드 (캐러셀) - 부드러운 아코디언 애니메이션 트랜지션 적용 */}
+          <div className={`grid transition-all duration-300 ease-in-out ${
+            buddySelectorExpanded && buddyConfig.enabled
+              ? "grid-rows-[1fr] opacity-100 mt-1.5"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+          }`}>
+            <div className="overflow-hidden">
+              <BuddySelector
+                selectedId={buddyConfig.buddyId}
+                disabled={!buddyConfig.enabled}
+                unlockedBuddies={buddyConfig.unlockedBuddies}
+                revealHidden={buddyConfig.revealHidden}
+                onSelect={async (id, type) => {
+                  const next = { ...buddyConfig, buddyId: id, buddyType: type };
+                  setBuddyConfig(next);
+                  await chrome.runtime.sendMessage({
+                    type: "SAVE_BUDDY_CONFIG",
+                    config: next,
+                  });
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

@@ -68,8 +68,19 @@ git add .
 git commit -m "backup: ClickBook 전체 백업 (buddies, docs, scratch 포함)"
 git push backup backup-temp:main --force
 
-# 5. 원래 브랜치로 복귀 및 임시 자원 정리 (원상복구)
+# 5. 원래 브랜치로 복귀
 git checkout main
+
+# ⚠️ 중요: Git의 checkout 동작 특성상, Tracked 브랜치(backup-temp)에서 Untracked 브랜치(main)로 전환 시 
+# 로컬의 public/buddies/ 폴더가 디렉토리 상에서 삭제됩니다. 아래의 명령어를 순서대로 실행해 즉시 안전하게 복구하십시오.
+
+# 6. 임시 브랜치(backup-temp)의 최신 커밋으로부터 buddies 폴더를 로컬 워킹 디렉토리에 복원
+git checkout backup-temp -- public/buddies
+
+# 7. 복원된 폴더가 main 브랜치의 인덱스(추적 대상)에 들어가지 않도록 캐시에서 즉시 제외
+git rm -r --cached public/buddies
+
+# 8. 임시 자원 정리 및 뒷정리
 git branch -D backup-temp
 git remote remove backup
 ```

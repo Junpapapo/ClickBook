@@ -5,6 +5,16 @@ import type { BuddyConfig, MessageResponse } from "@/shared/types";
 import { t, setLang } from "@/buddy/i18n";
 import { useLang } from "@/shared/LanguageContext";
 
+// buddyId로 캐릭터 타입 자동 판별 (BuddySelector 상수와 동기화)
+const PREMIUM_IDS = new Set(["astrobot","p_cat","chef","corgi","dog","dragon","fairy","fennec","p_fox","jellyfish","nebula","p_owl","p_penguin","p_rabbit","sprout","ufo","unicorn","wizard"]);
+const HIDDEN_IDS = new Set(["cactus","h_chef","frosty","witchy","dino","ghost","hamster","hedgehog","otter","panda","blue_dragon","cloud","cupcake","penguin_blue_hat","red_panda","sky_dragon","sprout_fairy"]);
+function resolveBuddyType(buddyId: string, buddyType?: string): "basic" | "premium" | "hidden" {
+  if (buddyType === "premium" || buddyType === "hidden" || buddyType === "basic") return buddyType as any;
+  if (PREMIUM_IDS.has(buddyId)) return "premium";
+  if (HIDDEN_IDS.has(buddyId)) return "hidden";
+  return "basic";
+}
+
 interface BuddySettingsPanelProps {
   config: BuddyConfig;
   onChange: (newConfig: BuddyConfig) => void;
@@ -73,9 +83,10 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
         <div className="flex justify-between items-center pb-2.5 border-b border-slate-800/80 mb-3 shrink-0">
           <h3 className="text-sm font-semibold text-white flex items-center gap-2 select-none">
             <img 
-              src={chrome.runtime.getURL(`buddies/characters/${config.buddyId}/frame_01.webp`)} 
+              src={chrome.runtime.getURL(`buddies/characters/${resolveBuddyType(config.buddyId, config.buddyType)}/${config.buddyId}/frame_01.webp`)} 
               alt={config.buddyId} 
               className="w-5 h-5 object-contain" 
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
             <span className="truncate max-w-[180px]">{config.buddyName || t("settingsBuddyName" as any)}</span>
           </h3>
@@ -182,8 +193,8 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
               </select>
             </div>
             
-            <div className="w-[45%] shrink-0 pb-1">
-              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[32px]">
+            <div className="w-[45%] shrink-0 pb-1 space-y-1">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[26px]">
                 <input
                   type="checkbox"
                   checked={config.showDragMenu !== false}
@@ -191,6 +202,15 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
                   className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
                 />
                 <span className="truncate">{t("settingsShowDragMenu")}</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[26px]">
+                <input
+                  type="checkbox"
+                  checked={config.isRealtimeSearchEnabled !== false}
+                  onChange={(e) => handleUpdate({ isRealtimeSearchEnabled: e.target.checked })}
+                  className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
+                />
+                <span className="truncate">{t("settingsRealtimeSearch" as any)}</span>
               </label>
             </div>
           </div>
