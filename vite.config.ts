@@ -11,7 +11,6 @@ export default defineConfig({
       skipManifestValidation: true,
       additionalInputs: [
         "src/newtab/index.html",
-        "src/buddy/content-entry.ts",
       ],
     }),
   ],

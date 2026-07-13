@@ -9,7 +9,7 @@ import { saveActiveTab } from "./services/bookmark-sync-service";
 import { clipSelection } from "./services/clip-service";
 import { updateGCAlarm } from "./services/helpers/alarm-helper";
 import { handleMessage } from "./services/message-router";
-import { injectBuddy, markBuddyInjected } from "@/buddy/services/buddy-service";
+
 
 // ============================================================
 // Service Worker — Chrome MV3 Background (Entry & Router)
@@ -138,11 +138,6 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // 탭 로딩 시작 시 혹은 주소 변경 시 주입 캐시 해제
-  if (changeInfo.status === "loading" || changeInfo.url) {
-    await markBuddyInjected(tabId, false);
-  }
-
   if (changeInfo.url) {
     try {
       const res = await chrome.storage.session.get("tabUrls");
@@ -168,9 +163,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         await injectToast(tabId, "secureSessionActiveToast");
       }
     }
-
-    // 버디 자동 주입
-    await injectBuddy(tabId);
   }
 });
 
