@@ -18,7 +18,7 @@ import {
   loadChromePattern 
 } from "./bookmark-sync-service";
 import { updateGCAlarm } from "./helpers/alarm-helper";
-import { handleBuddyMessage } from "./buddy-service";
+import { handleBuddyMessage } from "@/buddy/services/buddy-service";
 
 export async function handleMessage(message: Message, sender?: chrome.runtime.MessageSender): Promise<MessageResponse> {
   switch (message.type) {

@@ -7,5 +7,6 @@ docs/
 .gemini/
 vite.config.ts.timestamp-*.mjs
 public/buddies/
+src/buddy/
 scratch/
 
