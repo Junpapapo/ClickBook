@@ -37,3 +37,39 @@ All other commands are automatically rewritten by the Claude Code hook.
 Example: `git status` → `rtk git status` (transparent, 0 tokens overhead)
 
 Refer to CLAUDE.md for full command reference.
+
+# 3. GitHub 저장소 이원화 및 백업 가이드
+
+프로젝트 저장소는 용도에 따라 **공개용(메인)**과 **백업용**의 두 가지 원격 저장소로 이원화하여 관리합니다.
+
+## 저장소별 차이점 비교
+| 항목 | 공개용(메인) 저장소 | 백업용 저장소 |
+| :--- | :--- | :--- |
+| **저장소 주소** | `https://github.com/Junpapapo/ClickBook.git` | `https://github.com/Junpapapo/Backup_ClickBook.git` |
+| **포함 대상** | 순수 프로젝트 소스 코드 및 기본 리소스 | **전체 데이터** (대용량 에셋 및 로컬 문서 포함) |
+| **제외 대상** | `node_modules/`, `dist/`, `docs/`, `public/buddies/`, `scratch/` 등 | `node_modules/`, `dist/`, `.history/`, `.DS_Store`, `*.zip`, `.gemini/` 등 |
+| **주요 목적** | 배포 및 협업을 위한 콤팩트한 메인 소스 관리 | 에셋 이미지 및 개발/기획 기록 문서 등의 전체 백업 |
+
+## 백업용 저장소 푸시 방법 (Full Backup)
+로컬 `main` 브랜치의 커밋 히스토리를 콤팩트하게 유지하기 위해, 백업 시에는 임시 브랜치를 생성해 백업 저장소로 강제 푸시하는 방식을 사용합니다.
+
+```bash
+# 1. 임시 백업 브랜치 생성 및 이동
+git checkout -b backup-temp
+
+# 2. .gitignore 파일 임시 수정
+# (buddies, docs, scratch 등을 예외 리스트에서 삭제하여 git 추적 대상에 포함)
+
+# 3. 백업 원격 저장소 추가 및 전체 스테이징
+git remote add backup https://github.com/Junpapapo/Backup_ClickBook.git
+git add .
+
+# 4. 백업용 커밋 생성 및 백업 원격지의 main으로 강제 푸시
+git commit -m "backup: ClickBook 전체 백업 (buddies, docs, scratch 포함)"
+git push backup backup-temp:main --force
+
+# 5. 원래 브랜치로 복귀 및 임시 자원 정리 (원상복구)
+git checkout main
+git branch -D backup-temp
+git remote remove backup
+```
