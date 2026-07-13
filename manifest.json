@@ -40,6 +40,7 @@
     "notifications"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://api.github.com/*",
     "https://wikimedia.org/*",
     "https://*.wikipedia.org/*",
@@ -54,5 +55,13 @@
       },
       "description": "__MSG_saveCurrentTab__"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "buddies/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

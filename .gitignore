@@ -6,3 +6,5 @@ docs/
 *.zip
 .gemini/
 vite.config.ts.timestamp-*.mjs
+public/buddies/
+scratch/

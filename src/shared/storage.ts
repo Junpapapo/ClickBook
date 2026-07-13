@@ -520,15 +520,124 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
   enableTodoNotifications: false,
   customSearchConfigs: [],
   customPresets: [],
+  buddyConfig: {
+    enabled: false,
+    buddyId: "owl",
+    buddyName: "",
+    theme: "midnight",
+    targetLanguage: "ko",
+    size: 96,
+    animationInterval: 6000,
+    position: { x: 85, y: 70 },
+    opacity: 0.9,
+    hiddenSites: [],
+    enabledMenuItems: ["translate", "bookmark", "memo", "settings"],
+    isPomodoroMode: false,
+    isSoundEnabled: true,
+    isDndMode: false,
+    asmrType: "off",
+    aiPromptPresets: [
+      "이 문장에 대해 쉽게 설명해줘",
+      "이 문장의 핵심적인 문법적 요소를 분석해줘",
+      "이 내용을 초등학생 눈높이로 쉽게 요약해줘"
+    ],
+    showDragMenu: true,
+    timerCompleteTheme: "night",
+    restRandomTheme: false,
+    focusRandomTheme: false,
+    galleryOfflineMode: false,
+    level: 1,
+    xp: 0,
+    unlockedBuddies: ["owl", "cat", "fox", "penguin", "rabbit", "leafy", "jellyfish", "fennec", "unicorn", "wizard", "fairy", "ufo", "cotton", "dragon", "pingu", "shiba", "shroom", "starbot"],
+  },
 };
 
-export async function getSettings(): Promise<import("./types").AppSettings> {
-  const r = await chrome.storage.local.get(SETTINGS_KEY);
-  const s = r[SETTINGS_KEY];
-  if (s && typeof s === "object") {
-    return { ...DEFAULT_SETTINGS, ...s };
+const KO_PRESETS = [
+  "이 문장에 대해 쉽게 설명해줘",
+  "이 문장의 핵심적인 문법적 요소를 분석해줘",
+  "이 내용을 초등학생 눈높이로 쉽게 요약해줘"
+];
+
+const JA_PRESETS = [
+  "この文章について分かりやすく説明して",
+  "この文章の重要な文法要素を分析して",
+  "この内容を小学生レベルで簡単に要約して"
+];
+
+const EN_PRESETS = [
+  "Explain this sentence in simple terms.",
+  "Analyze the key grammatical elements of this sentence.",
+  "Summarize this content at an elementary school level."
+];
+
+function isPresetListEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((val, index) => val === b[index]);
+}
+
+// 브라우저 언어 설정을 읽어 로컬라이즈된 디폴트 AI 프리셋 목록 리턴
+function getDefaultAiPromptPresets(langCode?: string): string[] {
+  let lang = langCode;
+  if (!lang) {
+    try {
+      if (typeof chrome !== "undefined" && chrome.i18n && typeof chrome.i18n.getUILanguage === "function") {
+        lang = chrome.i18n.getUILanguage().toLowerCase();
+      } else if (typeof navigator !== "undefined") {
+        lang = navigator.language.toLowerCase();
+      }
+    } catch {}
   }
-  return { ...DEFAULT_SETTINGS };
+  
+  const cleanLang = String(lang || "en").toLowerCase();
+
+  if (cleanLang.startsWith("ko")) {
+    return KO_PRESETS;
+  } else if (cleanLang.startsWith("ja")) {
+    return JA_PRESETS;
+  } else {
+    return EN_PRESETS;
+  }
+}
+
+export async function getSettings(): Promise<import("./types").AppSettings> {
+  const r = await chrome.storage.local.get([SETTINGS_KEY, "clickbook_lang"]);
+  const s = r[SETTINGS_KEY];
+  const clickbookLang = r["clickbook_lang"] || "";
+  
+  const defaultPresets = getDefaultAiPromptPresets(clickbookLang);
+  const baseSettings = {
+    ...DEFAULT_SETTINGS,
+    buddyConfig: {
+      ...DEFAULT_SETTINGS.buddyConfig,
+      aiPromptPresets: defaultPresets
+    }
+  };
+
+  if (s && typeof s === "object") {
+    const mergedBuddyConfig = {
+      ...baseSettings.buddyConfig,
+      ...(s.buddyConfig || {})
+    };
+    
+    const currentPresets = mergedBuddyConfig.aiPromptPresets || [];
+    
+    // 만약 현재 프리셋 목록이 어떠한 언어의 디폴트 프리셋 목록과 정확히 일치하거나 비어있다면,
+    // 현재 유저의 설정 언어(clickbook_lang)에 대응하는 디폴트 프리셋 목록으로 자동 마이그레이션(치환)합니다.
+    const isKoDefault = isPresetListEqual(currentPresets, KO_PRESETS);
+    const isJaDefault = isPresetListEqual(currentPresets, JA_PRESETS);
+    const isEnDefault = isPresetListEqual(currentPresets, EN_PRESETS);
+    
+    if (currentPresets.length === 0 || isKoDefault || isJaDefault || isEnDefault) {
+      mergedBuddyConfig.aiPromptPresets = defaultPresets;
+    }
+
+    return {
+      ...baseSettings,
+      ...s,
+      buddyConfig: mergedBuddyConfig
+    };
+  }
+  return baseSettings;
 }
 
 export async function saveSettings(settings: import("./types").AppSettings): Promise<void> {
@@ -536,13 +645,20 @@ export async function saveSettings(settings: import("./types").AppSettings): Pro
 }
 
 export async function factoryReset(): Promise<void> {
-  // chrome.storage.local의 모든 데이터를 삭제
   await chrome.storage.local.clear();
   
-  // 필수 기본 데이터 명시적 초기화
+  const defaultPresets = getDefaultAiPromptPresets();
+  const initialSettings = {
+    ...DEFAULT_SETTINGS,
+    buddyConfig: {
+      ...DEFAULT_SETTINGS.buddyConfig,
+      aiPromptPresets: defaultPresets
+    }
+  };
+
   await chrome.storage.local.set({
     clickbook_data: { bookmarks: [], folders: [...DEFAULT_FOLDERS] },
-    clickbook_settings: { ...DEFAULT_SETTINGS },
+    clickbook_settings: initialSettings,
     clickbook_onboarded: false
   });
 }
@@ -795,4 +911,102 @@ export async function getOrphanedStorageStats(): Promise<OrphanedStats> {
 
   return { count, bytes };
 }
+
+// ── Daily Focus Timer Statistics ───────────────────────────
+export interface DailyTimerStats {
+  date: string;
+  totalMinutes: number;
+  cycles: number;
+  goals?: { [goalText: string]: { minutes: number; cycles: number } };
+}
+
+const TIMER_STATS_KEY = "clickbook_timer_stats";
+
+export async function getTodayTimerStats(): Promise<DailyTimerStats> {
+  const todayStr = new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD
+  const r = await chrome.storage.local.get(TIMER_STATS_KEY);
+  const stats = r[TIMER_STATS_KEY];
+  if (stats && stats.date === todayStr) {
+    if (!stats.goals) {
+      stats.goals = {};
+    }
+    return stats;
+  }
+  return { date: todayStr, totalMinutes: 0, cycles: 0, goals: {} };
+}
+
+export async function addTimerStats(minutes: number, addCycle: boolean, goal?: string): Promise<DailyTimerStats> {
+  const stats = await getTodayTimerStats();
+  stats.totalMinutes += minutes;
+  if (addCycle) {
+    stats.cycles += 1;
+  }
+  
+  if (!stats.goals) {
+    stats.goals = {};
+  }
+  const cleanGoal = goal && goal.trim() ? goal.trim() : "";
+  if (!stats.goals[cleanGoal]) {
+    stats.goals[cleanGoal] = { minutes: 0, cycles: 0 };
+  }
+  stats.goals[cleanGoal].minutes += minutes;
+  if (addCycle) {
+    stats.goals[cleanGoal].cycles += 1;
+  }
+  
+  await chrome.storage.local.set({ [TIMER_STATS_KEY]: stats });
+  return stats;
+}
+
+// ── Anchored Sticky Memo Helpers ────────────────────────────
+export interface AnchoredMemo {
+  id: string;
+  anchorText: string;
+  content: string;
+  color: import("./types").MemoColor;
+  updatedAt: number;
+}
+
+export async function saveAnchoredMemo(
+  url: string,
+  anchorText: string,
+  content: string,
+  color: import("./types").MemoColor
+): Promise<void> {
+  const memos = await readMemos();
+  const existing = memos[url] || { bookmarkId: url, content: "", color, updatedAt: Date.now() };
+  if (!existing.anchoredMemos) {
+    existing.anchoredMemos = [];
+  }
+  
+  const newMemo: AnchoredMemo = {
+    id: `anchored_${Date.now()}`,
+    anchorText,
+    content,
+    color,
+    updatedAt: Date.now()
+  };
+  
+  existing.anchoredMemos.push(newMemo);
+  existing.updatedAt = Date.now();
+  memos[url] = existing;
+  await chrome.storage.local.set({ [MEMOS_KEY]: memos });
+}
+
+export async function deleteAnchoredMemo(url: string, memoId: string): Promise<void> {
+  const memos = await readMemos();
+  const existing = memos[url];
+  if (existing && existing.anchoredMemos) {
+    existing.anchoredMemos = existing.anchoredMemos.filter((m: any) => m.id !== memoId);
+    existing.updatedAt = Date.now();
+    
+    if (!existing.content && existing.anchoredMemos.length === 0) {
+      delete memos[url];
+    } else {
+      memos[url] = existing;
+    }
+    await chrome.storage.local.set({ [MEMOS_KEY]: memos });
+  }
+}
+
 

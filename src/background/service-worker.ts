@@ -9,6 +9,7 @@ import { saveActiveTab } from "./services/bookmark-sync-service";
 import { clipSelection } from "./services/clip-service";
 import { updateGCAlarm } from "./services/helpers/alarm-helper";
 import { handleMessage } from "./services/message-router";
+import { injectBuddy, markBuddyInjected } from "./services/buddy-service";
 
 // ============================================================
 // Service Worker — Chrome MV3 Background (Entry & Router)
@@ -137,6 +138,11 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  // 탭 로딩 시작 시 혹은 주소 변경 시 주입 캐시 해제
+  if (changeInfo.status === "loading" || changeInfo.url) {
+    await markBuddyInjected(tabId, false);
+  }
+
   if (changeInfo.url) {
     try {
       const res = await chrome.storage.session.get("tabUrls");
@@ -162,6 +168,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         await injectToast(tabId, "secureSessionActiveToast");
       }
     }
+
+    // 버디 자동 주입
+    await injectBuddy(tabId);
   }
 });
 
@@ -187,6 +196,9 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   } catch (e) {
     console.warn("Failed to handle tab remove:", e);
   }
+  
+  // 세션 캐시에서 제거
+  await markBuddyInjected(tabId, false);
 });
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
@@ -213,6 +225,9 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   } catch (e) {
     console.warn("Failed to update secure badge or auto-resume on tab activate:", e);
   }
+
+  // 활성화된 탭에 버디 주입
+  await injectBuddy(activeInfo.tabId);
 });
 
 // 포트 기반 장기 연결 리스너
@@ -228,8 +243,8 @@ chrome.runtime.onConnect.addListener((port) => {
 
 // 메시지 핸들러
 chrome.runtime.onMessage.addListener(
-  (message: Message, _sender, sendResponse) => {
-    handleMessage(message)
+  (message: Message, sender, sendResponse) => {
+    handleMessage(message, sender)
       .then(async (response) => {
         if (response.success && (response as any)._shouldReinit) {
           try {

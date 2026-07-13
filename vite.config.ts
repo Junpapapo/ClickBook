@@ -8,8 +8,10 @@ export default defineConfig({
     react(),
     webExtension({
       manifest: "./manifest.json",
+      skipManifestValidation: true,
       additionalInputs: [
         "src/newtab/index.html",
+        "src/buddy/content-entry.ts",
       ],
     }),
   ],

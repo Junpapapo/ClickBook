@@ -13,6 +13,9 @@ import { useLang } from "@/shared/LanguageContext";
 import { isAIAvailable, setAIEnabled, verifyAISession } from "@/shared/categorizer";
 import MemoForm from "./components/MemoForm";
 import BulkImportForm from "./components/BulkImportForm";
+import { BuddySettingsPanel } from "./components/BuddySettingsPanel";
+import { BuddySelector } from "./components/BuddySelector";
+import type { BuddyConfig, AppSettings } from "@/shared/types";
 
 type Status = "idle" | "loading" | "analyzing" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
@@ -37,6 +40,9 @@ export default function Popup() {
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
   const [aiAvailable, setAiAvailable] = useState<boolean | null>(null);
   const [isTogglingAi, setIsTogglingAi] = useState(false);
+  const [buddyConfig, setBuddyConfig] = useState<BuddyConfig | null>(null);
+  const [buddyModalOpen, setBuddyModalOpen] = useState(false);
+  const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
   const [tabUrl, setTabUrl] = useState("");
   const [tabTitle, setTabTitle] = useState("");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
@@ -336,6 +342,20 @@ export default function Popup() {
       if (r.clickbook_settings?.openDashboardInNewTab !== undefined) {
         setOpenDashboardInNewTab(r.clickbook_settings.openDashboardInNewTab);
       }
+      if (r.clickbook_settings?.buddyConfig) {
+        setBuddyConfig(r.clickbook_settings.buddyConfig);
+      } else {
+        setBuddyConfig({
+          enabled: false,
+          buddyId: "owl",
+          size: 96,
+          animationInterval: 6000,
+          position: { x: 85, y: 70 },
+          opacity: 0.9,
+          hiddenSites: [],
+          enabledMenuItems: ["translate", "bookmark", "memo", "settings"],
+        });
+      }
     });
   }, []);
 
@@ -407,6 +427,9 @@ export default function Popup() {
         const next = changes.clickbook_settings.newValue;
         if (next && next.openDashboardInNewTab !== undefined) {
           setOpenDashboardInNewTab(next.openDashboardInNewTab);
+        }
+        if (next && next.buddyConfig !== undefined) {
+          setBuddyConfig(next.buddyConfig);
         }
       }
     };
@@ -1324,6 +1347,110 @@ export default function Popup() {
         <div className="border-t border-surface-700 -mx-4 px-0 pt-0">
           <ChromeBookmarkPanel onRefresh={() => {}} />
         </div>
+      )}
+
+      {/* 버디 간편 제어 UI */}
+      {buddyConfig && (
+        <div className="border-t border-gray-200 dark:border-surface-700 pt-1.5 mt-1.5">
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={async () => {
+                const nextEnabled = !buddyConfig.enabled;
+                const next = { ...buddyConfig, enabled: nextEnabled };
+                setBuddyConfig(next);
+                await chrome.runtime.sendMessage({
+                  type: "SAVE_BUDDY_CONFIG",
+                  config: next,
+                });
+              }}
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-lg font-semibold cursor-pointer transition-all duration-205 shrink-0 ${
+                buddyConfig.enabled
+                  ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/30 hover:bg-indigo-500"
+                  : "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-750 hover:bg-gray-200 dark:hover:bg-surface-700"
+              }`}
+            >
+              🐾 {buddyConfig.enabled ? "버디 ON" : "버디 OFF"}
+            </button>
+            <div className="flex-1 flex gap-1.5 items-center bg-gray-105 dark:bg-surface-800 border border-gray-200 dark:border-surface-700/80 rounded-lg px-2.5 py-1">
+              <input
+                type="text"
+                value={buddyConfig.buddyName || ""}
+                disabled={!buddyConfig.enabled}
+                onChange={async (e) => {
+                  const nextName = e.target.value;
+                  const isSuperAdmin = nextName === "superadmin";
+                  const next = { ...buddyConfig, buddyName: nextName, revealHidden: isSuperAdmin };
+                  setBuddyConfig(next);
+                  await chrome.runtime.sendMessage({
+                    type: "SAVE_BUDDY_CONFIG",
+                    config: next,
+                  });
+                }}
+                placeholder="예: Coco, Lulu..."
+                className="flex-1 bg-transparent border-none text-xs text-gray-800 dark:text-gray-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                type="button"
+                disabled={!buddyConfig.enabled}
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const names = ["Coco", "Lulu", "Mochi", "Pico", "Bella", "Toby", "Milo", "Cookie", "Buddy", "Lucky", "Joy", "Penny", "Daisy", "Teddy", "Rocky"];
+                  const random = names[Math.floor(Math.random() * names.length)];
+                  const next = { ...buddyConfig, buddyName: random, revealHidden: random === "superadmin" };
+                  setBuddyConfig(next);
+                  await chrome.runtime.sendMessage({
+                    type: "SAVE_BUDDY_CONFIG",
+                    config: next,
+                  });
+                }}
+                className="text-xs hover:scale-115 active:scale-95 transition-transform disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                title="랜덤 이름 생성"
+              >
+                🎲
+              </button>
+            </div>
+            <button
+              onClick={() => setBuddyModalOpen(true)}
+              className="p-1 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0"
+              title="버디 상세 설정"
+            >
+              <Settings size={15} />
+            </button>
+          </div>
+          
+          {/* 캐릭터 썸네일 그리드 (캐러셀) */}
+          <div className="mt-1">
+            <BuddySelector
+              selectedId={buddyConfig.buddyId}
+              disabled={!buddyConfig.enabled}
+              unlockedBuddies={buddyConfig.unlockedBuddies}
+              revealHidden={buddyConfig.revealHidden}
+              onSelect={async (id, type) => {
+                const next = { ...buddyConfig, buddyId: id, buddyType: type };
+                setBuddyConfig(next);
+                await chrome.runtime.sendMessage({
+                  type: "SAVE_BUDDY_CONFIG",
+                  config: next,
+                });
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 버디 상세 설정 모달 */}
+      {buddyModalOpen && buddyConfig && (
+        <BuddySettingsPanel
+          config={buddyConfig}
+          onChange={async (newConfig) => {
+            setBuddyConfig(newConfig);
+            await chrome.runtime.sendMessage({
+              type: "SAVE_BUDDY_CONFIG",
+              config: newConfig,
+            });
+          }}
+          onClose={() => setBuddyModalOpen(false)}
+        />
       )}
     </div>
   );

@@ -125,6 +125,38 @@ export interface CustomSearchConfig {
   urlTemplate: string;
 }
 
+export interface BuddyConfig {
+  enabled: boolean;
+  buddyId: string;             // "owl" | "cat" | "fox" ...
+  buddyType?: "basic" | "premium" | "hidden"; // 캐릭터 등급 타입
+  buddyName?: string;          // 버디의 고유 이름
+  theme?: "midnight" | "cozy" | "sky" | "sweet" | "fresh" | "carbon" | "cyber"; // 버디 보조창 및 다이얼 테마
+  targetLanguage?: string;     // 드래그/빠른 번역 기본 대상 언어 ("ko", "en", "ja"...)
+  size: number;                // 64~192px (기본 96)
+  animationInterval: number;   // 500~3000ms (기본 1000)
+  position: { x: number; y: number }; // % 기반 위치 (드래그 저장)
+  opacity: number;             // 0.3~1.0
+  hiddenSites: string[];       // 숨김 처리된 도메인 리스트
+  enabledMenuItems: string[];  // 활성 메뉴 아이템 ID
+  isPomodoroMode?: boolean;    // 집중/휴식 뽀모도로 기능 활성화 여부
+  isReversePomodoro?: boolean;  // 뽀모도로 리버스 모드 활성화 여부
+  isSoundEnabled?: boolean;    // 타이머 완료 시 효과음 재생 여부
+  isDndMode?: boolean;         // 집중 시 주변 요소 흐리게 처리하는 방해 금지 모드 여부
+  asmrType?: "off" | "rain" | "metronome"; // 집중 시 재생할 백색 소음 종류
+  aiPromptPresets?: string[];  // 사용자가 정의한 커스텀 AI 질문 프리셋 목록
+  timerSize?: "S" | "M" | "L"; // 타이머 숫자 크기 (S: 소, M: 중, L: 대)
+  timerColor?: "default" | "purple" | "blue" | "mint" | "rose" | "yellow" | "white" | "orange"; // 타이머 숫자 색상
+  showDragMenu?: boolean;      // 드래그 시 나오는 팝업 메뉴 표시 여부
+  timerCompleteTheme?: "night" | "forest" | "ocean" | "fireplace" | "sunset" | "yoga" | "gallery" | "breath" | "comic_random" | "comic1" | "comic2" | "comic3" | "comic4" | "comic5" | "comic6" | "comic7" | "comic8" | "comic9" | "comic10" | "comic11" | "comic12" | "comic13" | "comic14" | "comic15" | "comic16" | "comic17" | "comic18" | "random"; // 타이머 완료 시 효과 테마
+  restRandomTheme?: boolean;   // 휴식 클릭 시 완료테마 랜덤 적용 여부
+  focusRandomTheme?: boolean;  // 집중 완료 시 효과 테마 랜덤 적용 여부
+  galleryOfflineMode?: boolean; // 명화 갤러리 로컬 이미지 우선(오프라인) 모드 여부
+  level?: number;              // 버디의 레벨 (기본 1)
+  xp?: number;                 // 누적 경험치 (기본 0)
+  unlockedBuddies?: string[];  // 해금된 캐릭터 ID 리스트
+  revealHidden?: boolean;      // Reveal All 토글 - 모든 히든 캐릭터 강제 표시
+}
+
 export interface AppSettings {
   recentCount: number;          // 最近追加の表示数 default: 8
   rankingCount: number;         // よく見るサイト表示数 default: 5
@@ -138,14 +170,24 @@ export interface AppSettings {
   customSearchConfigs?: CustomSearchConfig[]; // 커스텀 검색 설정
   customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
   holidayCountry?: "auto" | "KR" | "JP" | "US" | "off"; // 공휴일 표시 국가 설정
+  buddyConfig?: BuddyConfig;   // 버디 설정 추가
 }
 
+
+export interface AnchoredMemo {
+  id: string;
+  anchorText: string;
+  content: string;
+  color: MemoColor;
+  updatedAt: number;
+}
 
 export interface BookmarkMemo {
   bookmarkId: string;
   content: string;
   color: MemoColor;
   updatedAt: number;
+  anchoredMemos?: AnchoredMemo[];
 }
 
 export type MemoMap = Record<string, BookmarkMemo>;
@@ -213,6 +255,7 @@ export type Message =
   | { type: "SAVE_TAB_GROUP_AS_FOLDER"; groupId: number; name: string }
   | { type: "OPEN_FOLDER_AS_TAB_GROUP"; folderId: string }
   | { type: "TOGGLE_FOLDER_SECURE"; id: string }
+  | { type: "BUDDY_TRANSLATE"; text: string; srcLang: string; targetLang: string; actionType?: "translate" | "summary" | "vocab" }
   | { type: "UPDATE_AI_INFO"; id: string; url: string; title: string }
   | { type: "GET_TODO_BOARD" }
   | { type: "SAVE_TODO_BOARD"; data: TodoBoardData }
@@ -227,7 +270,18 @@ export type Message =
   | { type: "RUN_GARBAGE_COLLECTOR" }
   | { type: "GET_ORPHANED_STATS" }
   | { type: "COLLAPSE_ALL_FOLDERS" }
-  | { type: "CHECK_DOMAIN_SECURE"; url: string };
+  | { type: "CHECK_DOMAIN_SECURE"; url: string }
+  | { type: "GET_BUDDY_CONFIG" }
+  | { type: "SAVE_BUDDY_CONFIG"; config: BuddyConfig }
+  | { type: "BUDDY_SAVE_BOOKMARK"; url: string; title: string }
+  | { type: "BUDDY_SAVE_MEMO"; url: string; content: string; color: MemoColor }
+  | { type: "BUDDY_HIDE_SITE"; domain: string }
+  | { type: "BUDDY_UNHIDE_SITE"; domain: string }
+  | { type: "BUDDY_CHECK_BOOKMARK"; url: string }
+  | { type: "BUDDY_ASK_AI"; text: string; context?: string }
+  | { type: "BUDDY_GET_MEMO"; url: string }
+  | { type: "BUDDY_DELETE_MEMO"; url: string }
+  | { type: "BUDDY_GET_ALL_MEMOS" };
 
 
 export type MessageResponse<T = any> =

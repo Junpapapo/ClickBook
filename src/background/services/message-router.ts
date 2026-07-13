@@ -18,8 +18,9 @@ import {
   loadChromePattern 
 } from "./bookmark-sync-service";
 import { updateGCAlarm } from "./helpers/alarm-helper";
+import { handleBuddyMessage } from "./buddy-service";
 
-export async function handleMessage(message: Message): Promise<MessageResponse> {
+export async function handleMessage(message: Message, sender?: chrome.runtime.MessageSender): Promise<MessageResponse> {
   switch (message.type) {
     case "SAVE_TAB":
       return await saveActiveTab();
@@ -332,6 +333,24 @@ export async function handleMessage(message: Message): Promise<MessageResponse> 
       preloadAIModel().catch(err => console.warn("[AI Preload Error in Router]:", err));
       return { success: true };
     }
+    case "GET_BUDDY_CONFIG":
+    case "SAVE_BUDDY_CONFIG":
+    case "BUDDY_SAVE_BOOKMARK":
+    case "BUDDY_CHECK_BOOKMARK":
+    case "BUDDY_SAVE_MEMO":
+    case "BUDDY_GET_MEMO":
+    case "BUDDY_DELETE_MEMO":
+    case "BUDDY_GET_ALL_MEMOS":
+    case "BUDDY_HIDE_SITE":
+    case "BUDDY_UNHIDE_SITE":
+    case "BUDDY_TRANSLATE":
+    case "BUDDY_ASK_AI":
+    case "BUDDY_GET_TIMER_STATS":
+    case "BUDDY_ADD_TIMER_STATS":
+    case "BUDDY_SAVE_ANCHORED_MEMO":
+    case "BUDDY_DELETE_ANCHORED_MEMO":
+    case "BUDDY_GET_ANCHORED_MEMOS":
+      return await handleBuddyMessage(message, sender!);
     default:
       return { success: false, error: "Unknown message type" };
   }
