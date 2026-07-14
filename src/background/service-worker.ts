@@ -9,6 +9,7 @@ import { saveActiveTab } from "./services/bookmark-sync-service";
 import { clipSelection } from "./services/clip-service";
 import { updateGCAlarm } from "./services/helpers/alarm-helper";
 import { handleMessage } from "./services/message-router";
+import { syncDeclarativeRules, setupAdBlockRulesSyncAlarm, updateEasyListRules } from "./services/adblock";
 
 
 // ============================================================
@@ -100,6 +101,14 @@ async function initializeBackground() {
   } catch (err) {
     console.warn("Failed to load preloadAIModel in background init:", err);
   }
+
+  // AdBlock DNR rules initialization
+  try {
+    await syncDeclarativeRules();
+    await setupAdBlockRulesSyncAlarm();
+  } catch (err) {
+    console.warn("Failed to sync declarative rules on init:", err);
+  }
 }
 
 // Initialize on startup
@@ -117,6 +126,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     }
   } else if (alarm.name === "clickbook-todo-reminder-alarm") {
     await checkTodoReminders();
+  } else if (alarm.name === "clickbook-adblock-update-alarm") {
+    try {
+      await updateEasyListRules();
+    } catch (err) {
+      console.warn("Adblock rules update alarm failed:", err);
+    }
   }
 });
 

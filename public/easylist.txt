@@ -1,0 +1,21 @@
+! EasyList ClickBook Core Fallback
+||pubads.g.doubleclick.net^
+||googleads.g.doubleclick.net^
+||googlesyndication.com^
+||pagead2.googlesyndication.com^
+||partner.googleadservices.com^
+||adservice.google.com^
+||analytics.google.com^
+||adnxs.com^
+||amazon-adsystem.com^
+||criteo.com^
+||popads.net^
+||daumcdn.net/adfit/
+||static.nid.naver.com/ad/
+||ad.naver.com^
+##.adsbygoogle
+##.ad-container
+##[class*="ad-google"]
+##[id*="google_ads"]
+##.daum_ad
+##.adfit-ad

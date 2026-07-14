@@ -350,6 +350,10 @@ export async function handleMessage(message: Message, sender?: chrome.runtime.Me
     case "BUDDY_SAVE_ANCHORED_MEMO":
     case "BUDDY_DELETE_ANCHORED_MEMO":
     case "BUDDY_GET_ANCHORED_MEMOS":
+    case "BUDDY_GET_ADBLOCK_STATE":
+    case "BUDDY_TOGGLE_ADBLOCK":
+    case "BUDDY_UPDATE_ADBLOCK_RULES":
+    case "BUDDY_GET_TOP_SITES":
       return await handleBuddyMessage(message, sender!);
     default:
       return { success: false, error: "Unknown message type" };

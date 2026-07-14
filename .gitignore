@@ -2,13 +2,8 @@ node_modules/
 dist/
 .history/
 .DS_Store
-docs/*
-!docs/assets/
-docs/assets/*
-!docs/assets/dist_zip/
-!docs/assets/dist_zip/*.zip
+docs/
 *.zip
-!docs/assets/dist_zip/*.zip
 .gemini/
 vite.config.ts.timestamp-*.mjs
 public/buddies/

@@ -37,7 +37,10 @@
     "contextMenus",
     "tabGroups",
     "alarms",
-    "notifications"
+    "notifications",
+    "declarativeNetRequest",
+    "topSites",
+    "history"
   ],
   "host_permissions": [
     "<all_urls>",
@@ -70,5 +73,14 @@
       ],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_adblock",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  }
 }

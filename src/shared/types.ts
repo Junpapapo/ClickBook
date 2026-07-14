@@ -159,6 +159,10 @@ export interface BuddyConfig {
   showBreakDatetime?: boolean;       // 휴식 화면 내 날짜/시간 표시 여부
   breakDatetimePosition?: "top-left" | "top-right" | "center" | "bottom-left" | "bottom-right"; // 휴식 화면 내 날짜/시간 표시 위치
   breakDatetimeSize?: "S" | "M" | "L"; // 휴식 화면 내 날짜/시간 표시 크기
+  adBlockEnabled?: boolean;          // 광고 차단 활성화 여부
+  adBlockBypassDomains?: string[];   // 광고 차단 우회/예외 도메인 목록
+  isTopSitesEnabled?: boolean;       // 자주 가는 사이트(Top Sites) 다이얼 활성화 여부
+  topSitesExcludeDomains?: string[]; // 자주 가는 사이트(Top Sites) 제외 도메인 목록
 }
 
 export interface AppSettings {
@@ -285,7 +289,10 @@ export type Message =
   | { type: "BUDDY_ASK_AI"; text: string; context?: string }
   | { type: "BUDDY_GET_MEMO"; url: string }
   | { type: "BUDDY_DELETE_MEMO"; url: string }
-  | { type: "BUDDY_GET_ALL_MEMOS" };
+  | { type: "BUDDY_GET_ALL_MEMOS" }
+  | { type: "BUDDY_GET_ADBLOCK_STATE"; domain: string }
+  | { type: "BUDDY_TOGGLE_ADBLOCK"; domain: string }
+  | { type: "BUDDY_UPDATE_ADBLOCK_RULES" };
 
 
 export type MessageResponse<T = any> =

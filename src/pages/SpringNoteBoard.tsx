@@ -157,6 +157,8 @@ export default function SpringNoteBoard({
 
   // 1. 드래그식 좌우 폭 조절 상태 추가 (기본 240px)
   const [sidebarWidth, setSidebarWidth] = useState<number>(240);
+  // 사용자가 수동으로 설정한 선호하는 사이드바 너비 보존 (기본 240px)
+  const [preferredWidth, setPreferredWidth] = useState<number>(240);
   const isResizing = useRef(false);
   const dragStartX = useRef<number>(0);
   const dragStartWidth = useRef<number>(0);
@@ -278,7 +280,9 @@ export default function SpringNoteBoard({
     if (sidebarWidth > 100) {
       setSidebarWidth(64);
     } else {
-      setSidebarWidth(240);
+      const restoreWidth = preferredWidth > 100 ? preferredWidth : 240;
+      setSidebarWidth(restoreWidth);
+      setPreferredWidth(restoreWidth);
     }
   };
 
@@ -292,6 +296,9 @@ export default function SpringNoteBoard({
       // 최소 64px ~ 최대 420px 로 폭 제한
       const nextWidth = Math.max(64, Math.min(420, targetWidth));
       setSidebarWidth(nextWidth);
+      if (nextWidth > 100) {
+        setPreferredWidth(nextWidth);
+      }
     };
 
     const handleMouseUp = () => {
@@ -305,6 +312,21 @@ export default function SpringNoteBoard({
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [sidebarWidth]);
+
+  // 화면 가로폭이 좁아질 때(예: 크롬 사이드 패널 활성화) 사이드바를 자동으로 접고(64px), 넓어지면 원래 너비로 복구
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1000) {
+        setSidebarWidth(64);
+      } else {
+        setSidebarWidth(preferredWidth);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [preferredWidth]);
 
   const isCollapsed = sidebarWidth <= 100;
 
@@ -398,7 +420,7 @@ export default function SpringNoteBoard({
       : "w-1.5 hover:w-2 bg-[#D8C6AC] hover:bg-[#7A604D]/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"; // sepia
 
   return (
-    <div className="h-full flex flex-row overflow-hidden bg-surface-50 dark:bg-surface-950 font-sans select-none">
+    <div className="w-full h-full flex flex-row overflow-hidden bg-surface-50 dark:bg-surface-950 font-sans select-none">
       {/* Left List Pane */}
       <div 
         style={{ width: `${sidebarWidth}px` }}
@@ -571,7 +593,7 @@ export default function SpringNoteBoard({
 
       {/* Right Main Editor Pane */}
       <div 
-        className={`flex-1 h-full overflow-hidden flex flex-col min-w-0 transition-colors duration-300 ${
+        className={`flex-1 h-full overflow-hidden flex flex-col min-w-[360px] transition-colors duration-300 ${
           noteTheme === "light" || noteTheme === "grid"
             ? "bg-[#ECEFF1] dark:bg-surface-950/20"
             : noteTheme === "dark"

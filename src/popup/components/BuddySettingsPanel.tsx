@@ -212,6 +212,15 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
                 />
                 <span className="truncate">{t("settingsRealtimeSearch" as any)}</span>
               </label>
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[26px]">
+                <input
+                  type="checkbox"
+                  checked={config.isTopSitesEnabled !== false}
+                  onChange={(e) => handleUpdate({ isTopSitesEnabled: e.target.checked })}
+                  className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
+                />
+                <span className="truncate">{t("settingsTopsitesLabel" as any)}</span>
+              </label>
             </div>
           </div>
 

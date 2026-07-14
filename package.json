@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ghostery/adblocker": "^2.18.1",
     "@hello-pangea/dnd": "^18.0.1",
     "@tiptap/extension-color": "^2.4.0",
     "@tiptap/extension-highlight": "^2.4.0",
