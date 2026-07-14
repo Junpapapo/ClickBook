@@ -22,7 +22,9 @@ export default function MemorySaverPanel({
     if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage({ type: "GET_SUSPEND_COUNT" }, (res) => {
         if (res && res.success) {
-          setSuspendedCount((res.data as number) || 0);
+          const rawData = res.data;
+          const count = rawData && typeof rawData === "object" ? (rawData.count || 0) : (rawData || 0);
+          setSuspendedCount(count);
         }
       });
     }

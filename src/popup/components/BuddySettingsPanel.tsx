@@ -346,6 +346,65 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
                 </div>
               </div>
             )}
+
+            {/* 휴식 중 날짜/시간 표시 설정 */}
+            <div className="pt-1.5 border-t border-slate-800/40">
+              <label className="flex items-center gap-1.5 cursor-pointer text-[10px] text-slate-400 font-medium select-none mb-1">
+                <input
+                  type="checkbox"
+                  checked={config.showBreakDatetime === true}
+                  onChange={(e) => handleUpdate({ showBreakDatetime: e.target.checked })}
+                  className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
+                />
+                <span>{t("timerShowDatetime" as any)}</span>
+              </label>
+
+              {config.showBreakDatetime && (
+                <div className="flex flex-col gap-2 pl-5 mt-1.5">
+                  {/* 표시 위치 */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-slate-400 whitespace-nowrap">{t("settingsDatetimePosition" as any)}</span>
+                    <select
+                      value={config.breakDatetimePosition || "top-right"}
+                      onChange={(e) => handleUpdate({ breakDatetimePosition: e.target.value as any })}
+                      className="bg-slate-950/60 text-slate-100 text-[10px] border border-slate-800 rounded px-1.5 py-0.5 h-5 focus:outline-none focus:border-indigo-500 cursor-pointer w-auto min-w-[90px]"
+                    >
+                      <option value="top-left">{t("posTopLeft" as any)}</option>
+                      <option value="top-right">{t("posTopRight" as any)}</option>
+                      <option value="center">{t("posCenter" as any)}</option>
+                      <option value="bottom-left">{t("posBottomLeft" as any)}</option>
+                      <option value="bottom-right">{t("posBottomRight" as any)}</option>
+                    </select>
+                  </div>
+
+                  {/* 글자 크기 */}
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between text-[10px] text-slate-450">
+                      <span>{t("settingsDatetimeSize" as any)}</span>
+                      <span className="text-indigo-400 font-bold">{config.breakDatetimeSize || "M"}</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="3"
+                      step="1"
+                      value={config.breakDatetimeSize === "S" ? 1 : config.breakDatetimeSize === "L" ? 3 : 2}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        const sizeLabel = val === 1 ? "S" : val === 3 ? "L" : "M";
+                        handleUpdate({ breakDatetimeSize: sizeLabel });
+                      }}
+                      className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                    />
+                    <div className="flex justify-between text-[8px] text-slate-500 px-1 mt-0.5 select-none">
+                      <span>S</span>
+                      <span>M</span>
+                      <span>L</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 가로 병렬 배치: 타이머 숫자 크기 & 타이머 숫자 색상 */}

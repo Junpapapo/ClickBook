@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import { type Lang, type TFunction, createT, detectBrowserLang } from "./i18n";
@@ -39,6 +40,27 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useState(() => {
     chrome.storage.local.set({ [STORAGE_KEY]: readLang() }).catch(() => {});
   });
+
+  // Listen to chrome.storage changes to sync language settings in real-time across pages
+  useEffect(() => {
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === "local" && changes[STORAGE_KEY]) {
+        const nextLang = changes[STORAGE_KEY].newValue as Lang;
+        if (nextLang === "ko" || nextLang === "en" || nextLang === "ja") {
+          localStorage.setItem(STORAGE_KEY, nextLang);
+          setLangState(nextLang);
+        }
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
 
   return (
     <LangContext.Provider value={{ lang, setLang, t: createT(lang) }}>

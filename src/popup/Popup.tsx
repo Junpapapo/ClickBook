@@ -16,6 +16,7 @@ import BulkImportForm from "./components/BulkImportForm";
 import { BuddySettingsPanel } from "./components/BuddySettingsPanel";
 import { BuddySelector } from "./components/BuddySelector";
 import type { BuddyConfig, AppSettings } from "@/shared/types";
+import { tForLang, initLang as initBuddyLang } from "@/buddy/i18n";
 
 type Status = "idle" | "loading" | "analyzing" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
@@ -335,6 +336,7 @@ export default function Popup() {
   }, []);
 
   useEffect(() => {
+    initBuddyLang();
     chrome.storage.local.get([
       "clickbook_popup_chrome", 
       "clickbook_settings"
@@ -1374,7 +1376,7 @@ export default function Popup() {
                   : "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-750 hover:bg-gray-200 dark:hover:bg-surface-700"
               }`}
             >
-              🐾 {buddyConfig.enabled ? "버디 ON" : "버디 OFF"}
+              🐾 {buddyConfig.enabled ? tForLang("buddyOn", lang) : tForLang("buddyOff", lang)}
             </button>
             <div className="flex-1 flex gap-1.5 items-center bg-white/70 dark:bg-surface-900/60 border border-gray-200/80 dark:border-surface-700/80 rounded-lg px-2 py-1">
               <input
@@ -1426,7 +1428,7 @@ export default function Popup() {
               disabled={!buddyConfig.enabled}
               onClick={() => setBuddySelectorExpanded(prev => !prev)}
               className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0 disabled:opacity-35 disabled:cursor-not-allowed"
-              title={buddySelectorExpanded ? t("buddyCollapse" as any) : t("buddyExpand" as any)}
+              title={buddySelectorExpanded ? tForLang("buddyCollapse", lang) : tForLang("buddyExpand", lang)}
             >
               {buddySelectorExpanded ? (
                 <ChevronUp size={15} className="stroke-[2.5]" />

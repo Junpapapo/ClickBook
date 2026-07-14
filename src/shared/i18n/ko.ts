@@ -679,7 +679,5 @@ export const ko = {
   springNoteAiDiscard: "취소",
   springNoteAiApply: "적용",
   springNoteAiErrorModel: "AI 모델을 사용할 수 없습니다.",
-  buddyCollapse: "캐릭터 목록 접기",
-  buddyExpand: "캐릭터 목록 펼치기",
 };
 

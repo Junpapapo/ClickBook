@@ -679,7 +679,5 @@ export const ja = {
   springNoteAiDiscard: "破棄",
   springNoteAiApply: "適用",
   springNoteAiErrorModel: "AIモデルを使用できません。",
-  buddyCollapse: "キャラクターリストを折りたたむ",
-  buddyExpand: "キャラクターリストを展開する",
 };
 

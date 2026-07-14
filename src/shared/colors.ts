@@ -4,6 +4,7 @@ import type { MemoColor } from "./types";
 
 /** メモドット（丸インジケーター） */
 export const MEMO_DOT: Record<MemoColor, string> = {
+  default: "bg-slate-400 dark:bg-slate-600",
   yellow: "bg-yellow-400",
   pink:   "bg-pink-400",
   blue:   "bg-sky-400",
@@ -13,6 +14,7 @@ export const MEMO_DOT: Record<MemoColor, string> = {
 
 /** メモカードの背景・ボーダー */
 export const MEMO_CARD_BG: Record<MemoColor, string> = {
+  default: "bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-700/40",
   yellow: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/40",
   pink:   "bg-pink-50   dark:bg-pink-900/20   border-pink-200   dark:border-pink-700/40",
   blue:   "bg-sky-50    dark:bg-sky-900/20    border-sky-200    dark:border-sky-700/40",
@@ -22,6 +24,7 @@ export const MEMO_CARD_BG: Record<MemoColor, string> = {
 
 /** メモカードのアクセントバー */
 export const MEMO_ACCENT: Record<MemoColor, string> = {
+  default: "bg-slate-300 dark:bg-slate-500/70",
   yellow: "bg-yellow-300 dark:bg-yellow-500/70",
   pink:   "bg-pink-300   dark:bg-pink-500/70",
   blue:   "bg-sky-300    dark:bg-sky-500/70",
@@ -31,6 +34,7 @@ export const MEMO_ACCENT: Record<MemoColor, string> = {
 
 /** テキストエリア背景 */
 export const MEMO_TEXTAREA_BG: Record<MemoColor, string> = {
+  default: "bg-slate-100 dark:bg-slate-900/40",
   yellow: "bg-yellow-100 dark:bg-yellow-900/40",
   pink:   "bg-pink-100   dark:bg-pink-900/40",
   blue:   "bg-sky-100    dark:bg-sky-900/40",

@@ -681,7 +681,5 @@ export const en = {
   springNoteAiDiscard: "Discard",
   springNoteAiApply: "Apply",
   springNoteAiErrorModel: "AI model is not available.",
-  buddyCollapse: "Collapse Character List",
-  buddyExpand: "Expand Character List",
 };
 

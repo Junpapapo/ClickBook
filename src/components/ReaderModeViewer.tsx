@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import {
   X,
   Copy,
@@ -56,7 +58,7 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
   const [theme, setTheme] = useState<"light" | "sepia" | "dark">(() => {
     return (localStorage.getItem("clickbook_reader_theme") as any) || "dark";
   });
-  const [fontFamily, setFontFamily] = useState<"serif" | "sans" | "mono">(() => {
+  const [fontFamily, setFontFamily] = useState<"serif" | "sans" | "mono" | "pretendard">(() => {
     return (localStorage.getItem("clickbook_reader_font") as any) || "serif";
   });
   const [fontSize, setFontSize] = useState<"s" | "m" | "l" | "xl">(() => {
@@ -364,23 +366,30 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
                 <button
                   onClick={() => setFontFamily("serif")}
                   className={`reader-pill-btn ${fontFamily === "serif" ? "reader-pill-btn-active" : ""}`}
-                  title={t("readerFontSerif")}
+                  title="Serif"
                 >
-                  {t("readerFontSerif")}
+                  Serif
                 </button>
                 <button
                   onClick={() => setFontFamily("sans")}
                   className={`reader-pill-btn ${fontFamily === "sans" ? "reader-pill-btn-active" : ""}`}
-                  title={t("readerFontSans")}
+                  title="Sans"
                 >
-                  {t("readerFontSans")}
+                  Sans
                 </button>
                 <button
                   onClick={() => setFontFamily("mono")}
                   className={`reader-pill-btn ${fontFamily === "mono" ? "reader-pill-btn-active" : ""}`}
-                  title={t("readerFontMono")}
+                  title="Mono"
                 >
-                  {t("readerFontMono")}
+                  Mono
+                </button>
+                <button
+                  onClick={() => setFontFamily("pretendard")}
+                  className={`reader-pill-btn ${fontFamily === "pretendard" ? "reader-pill-btn-active" : ""}`}
+                  title="Pretendard"
+                >
+                  Pretendard
                 </button>
               </div>
 
@@ -465,7 +474,13 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
             <article
               className={`reader-markdown-content reader-font-${fontFamily} reader-size-${fontSize}`}
             >
-              <ReactMarkdown components={mdComponents as any}>{initialContent}</ReactMarkdown>
+              <ReactMarkdown
+                components={mdComponents as any}
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw]}
+              >
+                {initialContent}
+              </ReactMarkdown>
               {/* Spacer at bottom */}
               <div className="reader-spacer" />
             </article>

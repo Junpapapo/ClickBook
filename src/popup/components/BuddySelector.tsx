@@ -166,7 +166,18 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
       <style dangerouslySetInnerHTML={{ __html: goldAnimStyle }} />
 
       {/* 탭 카테고리 렌더링 */}
-      <div className="flex items-center justify-between px-2 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80 mx-3">
+      <div className="flex items-center justify-between px-0.5 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80 mx-1 gap-1">
+        {/* 왼쪽 화살표 사각형 버튼 */}
+        <button
+          type="button"
+          disabled={disabled || currentPage === 0}
+          onClick={handlePrev}
+          className="px-4 py-1.5 rounded-lg text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed bg-slate-950/50 hover:bg-slate-950/90 border border-slate-800/40 transition-colors flex items-center justify-center shrink-0"
+          title="Previous Page"
+        >
+          <ChevronLeft size={14} strokeWidth={3} />
+        </button>
+
         {(["basic", "premium", "hidden"] as const).map((tab) => {
           const isActive = activeTab === tab;
           return (
@@ -191,20 +202,21 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
             </button>
           );
         })}
-      </div>
 
-      {/* 캐러셀 뷰포트 영역 */}
-      <div className="relative flex items-center w-full px-3.5 min-h-[58px]">
-        {/* 왼쪽 화살표 */}
+        {/* 오른쪽 화살표 사각형 버튼 */}
         <button
           type="button"
-          onClick={handlePrev}
-          disabled={disabled || currentPage === 0}
-          className="absolute left-0.5 z-10 p-0.5 rounded-full text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-slate-800/40 transition-colors"
+          disabled={disabled || currentPage === totalPages - 1 || totalPages <= 1}
+          onClick={handleNext}
+          className="px-4 py-1.5 rounded-lg text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed bg-slate-950/50 hover:bg-slate-950/90 border border-slate-800/40 transition-colors flex items-center justify-center shrink-0"
+          title="Next Page"
         >
-          <ChevronLeft size={14} />
+          <ChevronRight size={14} strokeWidth={3} />
         </button>
+      </div>
 
+      {/* 캐러셀 뷰포트 영역 (화살표 제거, 좌우 패딩을 px-1로 넓혀 썸네일 가로너비 최대화) */}
+      <div className="relative flex items-center w-full px-1 min-h-[58px]">
         {/* 그리드 뷰포트 */}
         <div className="w-full overflow-hidden pt-1.5 pb-3.5">
           <div className="grid grid-cols-5 gap-1.5 w-full shrink-0 px-0.5 pt-1 pb-0">
@@ -275,16 +287,6 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
             }
           </div>
         </div>
-
-        {/* 오른쪽 화살표 */}
-        <button
-          type="button"
-          onClick={handleNext}
-          disabled={disabled || currentPage === totalPages - 1 || totalPages <= 1}
-          className="absolute right-0.5 z-10 p-0.5 rounded-full text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed hover:bg-slate-800/40 transition-colors"
-        >
-          <ChevronRight size={14} />
-        </button>
       </div>
     </div>
   );

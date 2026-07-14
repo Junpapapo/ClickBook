@@ -117,7 +117,7 @@ export interface Pattern {
   createdAt: number;
 }
 
-export type MemoColor = "yellow" | "pink" | "blue" | "green" | "purple";
+export type MemoColor = "default" | "yellow" | "pink" | "blue" | "green" | "purple";
 
 export interface CustomSearchConfig {
   id: string;
@@ -156,6 +156,9 @@ export interface BuddyConfig {
   unlockedBuddies?: string[];  // 해금된 캐릭터 ID 리스트
   revealHidden?: boolean;      // Reveal All 토글 - 모든 히든 캐릭터 강제 표시
   isRealtimeSearchEnabled?: boolean; // 실시간 웹 검색 기능 활성화 여부 (false이면 지구본 버튼 숨김 및 검색 스킵)
+  showBreakDatetime?: boolean;       // 휴식 화면 내 날짜/시간 표시 여부
+  breakDatetimePosition?: "top-left" | "top-right" | "center" | "bottom-left" | "bottom-right"; // 휴식 화면 내 날짜/시간 표시 위치
+  breakDatetimeSize?: "S" | "M" | "L"; // 휴식 화면 내 날짜/시간 표시 크기
 }
 
 export interface AppSettings {

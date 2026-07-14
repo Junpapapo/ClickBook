@@ -188,9 +188,6 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   } catch (e) {
     console.warn("Failed to handle tab remove:", e);
   }
-  
-  // 세션 캐시에서 제거
-  await markBuddyInjected(tabId, false);
 });
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
@@ -217,9 +214,6 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
   } catch (e) {
     console.warn("Failed to update secure badge or auto-resume on tab activate:", e);
   }
-
-  // 활성화된 탭에 버디 주입
-  await injectBuddy(activeInfo.tabId);
 });
 
 // 포트 기반 장기 연결 리스너

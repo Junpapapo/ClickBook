@@ -238,4 +238,4 @@ If you have any questions, suggestions, or bug reports, please use the following
 
 ## License
 
-MIT
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
