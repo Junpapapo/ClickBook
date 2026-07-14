@@ -163,6 +163,8 @@ export interface BuddyConfig {
   adBlockBypassDomains?: string[];   // 광고 차단 우회/예외 도메인 목록
   isTopSitesEnabled?: boolean;       // 자주 가는 사이트(Top Sites) 다이얼 활성화 여부
   topSitesExcludeDomains?: string[]; // 자주 가는 사이트(Top Sites) 제외 도메인 목록
+  buddyClickSound?: string;          // 버디 클릭 효과음 ("default", "none", "click01"~"click09")
+  timerBellSound?: string;           // 타이머 완료 벨소리 ("default", "none", "bell01"~"bell10")
 }
 
 export interface AppSettings {

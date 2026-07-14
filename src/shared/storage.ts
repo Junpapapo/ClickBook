@@ -583,7 +583,7 @@ function isPresetListEqual(a: string[], b: string[]): boolean {
 }
 
 // 브라우저 언어 설정을 읽어 로컬라이즈된 디폴트 AI 프리셋 목록 리턴
-function getDefaultAiPromptPresets(langCode?: string): string[] {
+export function getDefaultAiPromptPresets(langCode?: string): string[] {
   let lang = langCode;
   if (!lang) {
     try {
@@ -611,7 +611,9 @@ export async function getSettings(): Promise<import("./types").AppSettings> {
   const s = r[SETTINGS_KEY];
   const clickbookLang = r["clickbook_lang"] || "";
   
-  const defaultPresets = getDefaultAiPromptPresets(clickbookLang);
+  // 기본 targetLanguage를 먼저 결정 (buddyConfig에 설정된 언어를 우선으로 하되 없으면 전체 앱 언어 사용)
+  const targetLang = (s && s.buddyConfig && s.buddyConfig.targetLanguage) || clickbookLang || "ko";
+  const defaultPresets = getDefaultAiPromptPresets(targetLang);
   const baseSettings = {
     ...DEFAULT_SETTINGS,
     buddyConfig: {
@@ -629,7 +631,7 @@ export async function getSettings(): Promise<import("./types").AppSettings> {
     const currentPresets = mergedBuddyConfig.aiPromptPresets || [];
     
     // 만약 현재 프리셋 목록이 어떠한 언어의 디폴트 프리셋 목록과 정확히 일치하거나 비어있다면,
-    // 현재 유저의 설정 언어(clickbook_lang)에 대응하는 디폴트 프리셋 목록으로 자동 마이그레이션(치환)합니다.
+    // 현재 유저의 설정 언어에 대응하는 디폴트 프리셋 목록으로 자동 마이그레이션(치환)합니다.
     const isKoDefault = isPresetListEqual(currentPresets, KO_PRESETS);
     const isJaDefault = isPresetListEqual(currentPresets, JA_PRESETS);
     const isEnDefault = isPresetListEqual(currentPresets, EN_PRESETS);
@@ -648,6 +650,20 @@ export async function getSettings(): Promise<import("./types").AppSettings> {
 }
 
 export async function saveSettings(settings: import("./types").AppSettings): Promise<void> {
+  // 저장하기 전에도 aiPromptPresets의 자동 마이그레이션(치환)을 점검하여 동기화해 줍니다.
+  if (settings && settings.buddyConfig) {
+    const targetLang = settings.buddyConfig.targetLanguage || "ko";
+    const defaultPresets = getDefaultAiPromptPresets(targetLang);
+    const currentPresets = settings.buddyConfig.aiPromptPresets || [];
+    
+    const isKoDefault = isPresetListEqual(currentPresets, KO_PRESETS);
+    const isJaDefault = isPresetListEqual(currentPresets, JA_PRESETS);
+    const isEnDefault = isPresetListEqual(currentPresets, EN_PRESETS);
+    
+    if (currentPresets.length === 0 || isKoDefault || isJaDefault || isEnDefault) {
+      settings.buddyConfig.aiPromptPresets = defaultPresets;
+    }
+  }
   await chrome.storage.local.set({ [SETTINGS_KEY]: settings });
 }
 

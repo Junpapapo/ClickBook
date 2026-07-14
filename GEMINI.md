@@ -7,6 +7,7 @@
 4. **Collaborative Synergy**: Treat the pairing process as a collaborative brainstorm. The ultimate goal is to co-create the best possible outcome through continuous dialogue and alignment.
 5. **Strict Change Boundaries**: Do not perform arbitrary or unsolicited modifications to files, configurations, or lines of code unrelated to the approved task. Always seek permission or alignment first.
 6. **Reporting Style**: Write artifacts, plans, and task documents with professional depth and technical precision. However, when reporting results back to the user in conversation, keep it simple, concise, and clear — no verbose re-summaries of what was already written in the document.
+7. **Protect Local Ignored Resources**: `.gitignore`에 등록되어 깃허브 추적에서 제외된 파일 및 디렉토리(예: `public/buddies/`, `src/buddy/` 등)는 로컬 환경에만 존재하는 중요한 리소스입니다. 빌드(build), 청소(git clean), 파일 교체 등의 작업 수행 시 이들 파일이 절대 삭제되거나 임의로 덮어써져 유실되지 않도록 엄격하게 보호하고 필요시 사전 백업을 생활화하십시오.
 
 # 2. RTK - Rust Token Killer
 
