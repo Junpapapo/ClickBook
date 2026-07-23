@@ -268,7 +268,7 @@ export default function Sidebar({
       `}</style>
       {DialogEl}
       <aside
-        className={`relative group/sidebar bg-white dark:bg-surface-900 border-r border-gray-200 dark:border-surface-700 flex flex-col shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out ${
+        className={`relative group/sidebar bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/90 dark:border-slate-800 flex flex-col shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out ${
           isCollapsed ? "w-16" : "w-60"
         }`}
       >

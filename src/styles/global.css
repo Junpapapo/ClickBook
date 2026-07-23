@@ -15,20 +15,20 @@
 
   /* ── Light (default) ────────────────────── */
   body {
-    @apply bg-surface-50 text-gray-800;
+    @apply bg-slate-50 text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900;
   }
 
   /* ── Dark ─────────────────────────────── */
   .dark body {
-    @apply bg-surface-950 text-gray-100;
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-indigo-900 selection:text-indigo-100;
   }
 
   * {
-    @apply box-border;
+    @apply box-border border-slate-200/60 dark:border-slate-800/60;
   }
 
   ::-webkit-scrollbar {
-    @apply w-1.5;
+    @apply w-1.5 h-1.5;
   }
 
   ::-webkit-scrollbar-track {
@@ -36,11 +36,33 @@
   }
 
   .dark ::-webkit-scrollbar-thumb {
-    @apply bg-surface-700 rounded-full;
+    @apply bg-slate-700/60 hover:bg-slate-600 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-surface-300 rounded-full;
+    @apply bg-slate-300/80 hover:bg-slate-400 rounded-full;
+  }
+}
+
+@layer components {
+  /* Figma Studio Panel & Components */
+  .figma-panel {
+    @apply bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800/90 rounded-xl shadow-figma-sm transition-all duration-150;
+  }
+  .figma-card {
+    @apply bg-white dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/60 rounded-lg p-3 shadow-figma-sm transition-all duration-150 hover:border-slate-300 dark:hover:border-slate-600;
+  }
+  .figma-input {
+    @apply bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-slate-400;
+  }
+  .figma-btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-medium text-xs px-3 py-1.5 rounded-md shadow-figma-sm transition-all duration-150 flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .figma-btn-secondary {
+    @apply bg-slate-100 hover:bg-slate-200/80 active:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium text-xs px-3 py-1.5 rounded-md border border-slate-200/80 dark:border-slate-700/80 transition-all duration-150 flex items-center justify-center gap-1.5;
+  }
+  .figma-icon-btn {
+    @apply text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors;
   }
 }
 
