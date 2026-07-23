@@ -285,12 +285,10 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
           )}
         </div>
       )}
-      
 
-
-      {/* フォルダーサマリー */}
+      {/* 폴더 요약 섹션 */}
       <section>
-        <h2 className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-600 font-semibold mb-3">
+        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold mb-2.5">
           {t("folders")}
         </h2>
         <div className="grid grid-cols-4 xl:grid-cols-8 gap-2">
@@ -301,7 +299,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
             return (
               <div
                 key={f.id}
-                className="group relative flex flex-col items-center gap-1.5 p-3 bg-white dark:bg-surface-800 hover:bg-gray-50 dark:hover:bg-surface-700 border border-gray-200 dark:border-surface-700 hover:border-indigo-300 dark:hover:border-indigo-500/30 rounded-xl transition-all shadow-sm dark:shadow-none cursor-pointer select-none"
+                className="group relative flex flex-col items-center gap-1 p-2.5 bg-white dark:bg-slate-800/70 hover:bg-slate-100/80 dark:hover:bg-slate-700/80 border border-slate-200/90 dark:border-slate-700/70 hover:border-indigo-400 dark:hover:border-indigo-500/50 rounded-xl transition-all shadow-figma-sm cursor-pointer select-none"
                 onClick={() => { if (!isRenaming) onSelectFolder(f.id); }}
               >
                 {!isRenaming && (
@@ -318,7 +316,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                       className={`absolute top-1.5 left-1.5 p-0.5 rounded transition-all ${
                         f.locked
                           ? "opacity-100 text-amber-500 hover:text-amber-400"
-                          : "opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-amber-500 dark:hover:text-amber-400"
+                          : "opacity-0 group-hover:opacity-100 text-slate-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400"
                       }`}
                       title={f.locked ? t("dashboardUnlockTooltip") : t("dashboardLockTooltip")}
                     >
@@ -333,7 +331,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                       className="p-0.5 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all"
                       title={t("dashboardRenameTooltip")}
                     >
-                      <Pencil size={10} className="text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400" />
+                      <Pencil size={10} className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400" />
                     </button>
 
                     {f.id !== DEFAULT_FOLDER_ID && (
@@ -342,19 +340,19 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                         className="p-0.5 rounded hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all"
                         title={t("deleteTooltip")}
                       >
-                        <Trash2 size={10} className="text-gray-400 hover:text-rose-500 dark:hover:text-rose-400" />
+                        <Trash2 size={10} className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400" />
                       </button>
                     )}
                   </div>
                 )}
-                <div className="relative flex justify-center items-center h-8">
+                <div className="relative flex justify-center items-center h-7 mt-0.5">
                   <FolderIcon 
                     iconName={f.icon || EMOJI_MAP[f.id] || "📂"} 
-                    size={22} 
-                    className="text-[22px] text-gray-700 dark:text-gray-200" 
+                    size={20} 
+                    className="text-[20px] text-slate-700 dark:text-slate-200" 
                   />
                   {subCount > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold px-1 py-0.5 rounded-full leading-none shadow-[0_0_2px_rgba(0,0,0,0.1)]">
+                    <span className="absolute -top-1 -right-2 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[9px] font-bold px-1 py-0.5 rounded-full leading-none shadow-figma-sm">
                       {subCount}
                     </span>
                   )}
@@ -373,7 +371,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                         if (e.key === "Escape") setRenamingFolderId(null);
                       }}
                       onBlur={() => commitRename(f.id, f.name)}
-                      className="w-full text-center text-[11px] bg-transparent border-b border-indigo-500 text-gray-800 dark:text-gray-100 outline-none"
+                      className="w-full text-center text-xs bg-transparent border-b border-indigo-500 text-slate-800 dark:text-slate-100 outline-none"
                     />
                     <div className="flex items-center gap-1">
                       <button
@@ -384,7 +382,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                       </button>
                       <button
                         onMouseDown={(e) => { e.preventDefault(); setRenamingFolderId(null); }}
-                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                       >
                         <X size={12} />
                       </button>
@@ -392,10 +390,10 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
                   </div>
                 ) : (
                   <>
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400 truncate w-full text-center mt-1">
+                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 truncate w-full text-center">
                       {getLocalizedFolderName(f, lang)}
                     </span>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
                       {count}
                     </span>
                   </>
@@ -410,14 +408,14 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       {/* 최근 읽은 사이트 */}
       <RecentReaderWidget bookmarks={bookmarks} />
 
-      {/* 最近追加 */}
+      {/* 최근 추가 */}
       <section>
         <RecentWidget bookmarks={bookmarks} folders={folders} memos={memos} count={recentCount} onDelete={handleDelete} onEdit={setEditingBookmark} onMemoChange={onRefresh} />
       </section>
 
-      {/* ランキング */}
+      {/* 랭킹 위젯 */}
       <section>
-        <div className="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl p-4 shadow-sm dark:shadow-none">
+        <div className="bg-white dark:bg-slate-800/70 border border-slate-200/90 dark:border-slate-700/70 rounded-xl p-3.5 shadow-figma-sm">
           <RankingWidget bookmarks={bookmarks} count={rankingCount} />
         </div>
       </section>

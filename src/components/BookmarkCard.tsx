@@ -313,7 +313,7 @@ export default function BookmarkCard({ bookmark, memo, folderName, onDelete, onE
       <div
         draggable
         onDragStart={handleDragStart}
-        className="group relative bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl overflow-hidden hover:border-indigo-300 dark:hover:border-indigo-500/40 transition-all duration-200 cursor-grab active:cursor-grabbing shadow-sm dark:shadow-none"
+        className="group relative bg-white dark:bg-slate-800/70 border border-slate-200/90 dark:border-slate-700/70 rounded-xl overflow-hidden hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-all duration-200 cursor-grab active:cursor-grabbing shadow-figma-sm"
       >
         {/* メモ有りドット */}
         {memo && (
@@ -354,17 +354,17 @@ export default function BookmarkCard({ bookmark, memo, folderName, onDelete, onE
             </span>
           </div>
 
-          {/* タイトル */}
+          {/* 타이틀 */}
           <button
             onClick={handleOpen}
-            className="text-left text-sm font-medium text-gray-800 dark:text-gray-200 hover:text-indigo-500 dark:hover:text-indigo-300 line-clamp-2 transition-colors leading-snug"
+            className="text-left text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 transition-colors leading-snug"
           >
             {bookmark.title}
           </button>
 
-          {/* URL + 編集ボタン */}
+          {/* URL + 편집 버튼 */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-gray-600 truncate flex-1">{shortenUrl(bookmark.url)}</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate flex-1">{shortenUrl(bookmark.url)}</span>
             {onEdit && (
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(bookmark); }}

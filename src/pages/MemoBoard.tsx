@@ -426,7 +426,7 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
           <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30">
             <StickyNote size={16} strokeWidth={3} />
           </span>
-          <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 text-transparent bg-clip-text">
+          <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 text-transparent bg-clip-text">
             MEMO
           </span>
         </h1>
