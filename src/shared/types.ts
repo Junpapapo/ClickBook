@@ -301,7 +301,8 @@ export type Message =
   | { type: "BUDDY_SAVE_ANCHORED_MEMO"; url: string; anchorText: string; content: string; color: MemoColor }
   | { type: "BUDDY_DELETE_ANCHORED_MEMO"; url: string; memoId: string }
   | { type: "BUDDY_GET_ANCHORED_MEMOS"; url: string }
-  | { type: "BUDDY_GET_TOP_SITES" };
+  | { type: "BUDDY_GET_TOP_SITES" }
+  | { type: "BUDDY_OPEN_DASHBOARD" };
 
 
 export type MessageResponse<T = any> =
