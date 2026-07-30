@@ -62,7 +62,7 @@ export default function PrintSettingsPanel({ settings, onChange, onPrint, onClos
     onChange((prev) => ({ ...prev, template }));
   };
 
-  const handleThemeChange = (theme: "mono" | "blue" | "pink" | "green") => {
+  const handleThemeChange = (theme: PrintSettings["theme"]) => {
     onChange((prev) => ({ ...prev, theme }));
   };
 

@@ -9,7 +9,7 @@ interface Props {
   onRefresh: () => void;
 }
 
-export default function MindMapBoard({ onRefresh }: Props) {
+export default function MindMapBoard({ onRefresh: _onRefresh }: Props) {
   const { lang } = useLang();
 
   return (

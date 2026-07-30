@@ -1,6 +1,6 @@
 import dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
-import type { MindMapNodeData } from "./mindmap-types";
+import type { MindMapNodeData, NodeShape } from "./mindmap-types";
 
 const nodeWidth = 200;
 const nodeHeight = 50;
@@ -327,7 +327,7 @@ export function createChildNode(
   label: string,
   currentNodes: Node<MindMapNodeData>[],
   currentEdges: Edge[],
-  defaultShape: "rounded-rect" | "ellipse" | "capsule" = "rounded-rect",
+  defaultShape: NodeShape = "rounded-rect",
   defaultColor: "indigo" | "emerald" | "amber" | "rose" | "slate" | "violet" = "indigo",
   layoutDirection: "LR" | "TB" | "balanced" = "balanced"
 ): { nodes: Node<MindMapNodeData>[]; edges: Edge[] } {

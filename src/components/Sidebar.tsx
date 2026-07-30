@@ -916,9 +916,9 @@ export default function Sidebar({
                 onNavigate={onNavigate}
                 onRefresh={onRefresh}
                 maxFolderDepth={maxFolderDepth}
-                t={t}
+                t={t as any}
                 lang={lang}
-                showConfirm={showConfirm}
+                showConfirm={showConfirm as any}
               />
             </div>
             {/* 세로 크기 조절 핸들 */}
@@ -938,7 +938,7 @@ export default function Sidebar({
             isCollapsed={isCollapsed}
             isMemorySaverCollapsed={isMemorySaverCollapsed}
             onToggleCollapse={handleToggleMemorySaver}
-            t={t}
+            t={t as any}
           />
         </div>
 
@@ -1002,7 +1002,7 @@ export default function Sidebar({
             showWikiRankingMenu={showWikiRankingMenu}
             showHFRankingMenu={showHFRankingMenu}
             showHNRankingMenu={showHNRankingMenu}
-            t={t}
+            t={t as any}
           />
         </div>
         </div>

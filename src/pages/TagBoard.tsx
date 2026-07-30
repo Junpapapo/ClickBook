@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   Tag as TagIcon,
   Tags as TagsIcon,
@@ -366,7 +366,7 @@ export default function TagBoard({
           handleSelectAllTags={handleSelectAllTags}
           handleDeselectAllTags={handleDeselectAllTags}
           getTagColor={getTagColor}
-          t={t}
+          t={t as any}
         />
 
         {/* Filter State Banner & Switch */}
@@ -431,9 +431,9 @@ export default function TagBoard({
           folderMap={folderMap}
           onRefresh={onRefresh}
           showToast={showToast}
-          showConfirm={showConfirm}
+          showConfirm={showConfirm as any}
           handleEditBookmarkClick={handleEditBookmarkClick}
-          t={t}
+          t={t as any}
         />
 
         {/* Tag Action Dialogs (Merge and Inline Tag Modals) */}
@@ -446,9 +446,9 @@ export default function TagBoard({
           bookmarks={bookmarks}
           onRefresh={onRefresh}
           showToast={showToast}
-          showConfirm={showConfirm}
+          showConfirm={showConfirm as any}
           getTagColor={getTagColor}
-          t={t}
+          t={t as any}
           lang={lang}
         />
       </div>

@@ -1,4 +1,3 @@
-import React from "react";
 import type { PrintSettings } from "./PrintSettingsPanel";
 import type { TodoTask, Bookmark, BookmarkMemo } from "@/shared/types";
 
@@ -328,7 +327,7 @@ export default function PrintCalendarPage({
                   )}
 
                   {/* 메모 표시 */}
-                  {dateMemos.slice(0, 2).map(({ memo, bookmark }) => (
+                  {dateMemos.slice(0, 2).map(({ memo }) => (
                     <div
                       key={memo.bookmarkId}
                       className="px-1 py-0.5 rounded text-[0.68em] bg-amber-50 border border-amber-100 text-amber-800 truncate"

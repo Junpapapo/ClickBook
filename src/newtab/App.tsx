@@ -629,7 +629,7 @@ function AppContent() {
             ) : activePage === "mindmap" ? (
               <MindMapBoard bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
             ) : activePage === "springnote" ? (
-              <SpringNoteBoard t={t} lang={lang} />
+              <SpringNoteBoard t={t as any} lang={lang} />
             ) : activePage === "memo" ? (
               <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
             ) : activePage === "dashboard" ? (

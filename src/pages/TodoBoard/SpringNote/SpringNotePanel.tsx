@@ -115,10 +115,10 @@ const Indent = Extension.create({
   },
   addCommands() {
     return {
-      indent: () => ({ tr, state, dispatch }) => {
+      indent: () => ({ tr, state, dispatch }: any) => {
         const { selection } = state;
         let isModified = false;
-        tr.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+        tr.doc.nodesBetween(selection.from, selection.to, (node: any, pos: number) => {
           if (this.options.types.includes(node.type.name)) {
             const indent = (node.attrs.indent || 0) + 1;
             tr.setNodeMarkup(pos, undefined, {
@@ -131,10 +131,10 @@ const Indent = Extension.create({
         if (isModified && dispatch) dispatch(tr);
         return isModified;
       },
-      outdent: () => ({ tr, state, dispatch }) => {
+      outdent: () => ({ tr, state, dispatch }: any) => {
         const { selection } = state;
         let isModified = false;
-        tr.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+        tr.doc.nodesBetween(selection.from, selection.to, (node: any, pos: number) => {
           if (this.options.types.includes(node.type.name)) {
             const indent = Math.max(0, (node.attrs.indent || 0) - 1);
             tr.setNodeMarkup(pos, undefined, {
@@ -216,7 +216,7 @@ export default function SpringNotePanel({
     progress: number;
   }
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
-  const uploadIntervals = useRef<Record<string, NodeJS.Timeout>>({});
+  const uploadIntervals = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // 컴포넌트 언마운트 시 업로드 타이머들 강제 해제
   useEffect(() => {
@@ -237,7 +237,7 @@ export default function SpringNotePanel({
   }, []);
 
   const currentPage = pages[currentPageIndex] || pages[0];
-  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Tiptap 용 인덱스 추적 ref (클로저 갇힘 방지)
   const currentPageIndexRef = useRef(currentPageIndex);
@@ -1006,7 +1006,7 @@ export default function SpringNotePanel({
   // V6: contentEditable 전용 execCommand WYSIWYG 서식 적용 -> Tiptap API 서식 적용으로 마이그레이션
   const handleApplyFormatting = (format: "bold" | "italic" | "underline" | "strikethrough" | "code" | "quote" | "bullet" | "number" | "indent" | "outdent") => {
     if (!editor) return;
-    editor.focus();
+    editor.commands.focus();
 
     if (format === "bold") {
       editor.chain().focus().toggleBold().run();
@@ -1025,16 +1025,16 @@ export default function SpringNotePanel({
     } else if (format === "number") {
       editor.chain().focus().toggleOrderedList().run();
     } else if (format === "indent") {
-      editor.commands.indent();
+      (editor.commands as any).indent?.();
     } else if (format === "outdent") {
-      editor.commands.outdent();
+      (editor.commands as any).outdent?.();
     }
   };
 
   // V6: contentEditable 용 텍스트 색상 변경 -> Tiptap TextStyle/Color API 적용
   const handleApplyTextColor = (colorCode: string) => {
     if (!editor) return;
-    editor.focus();
+    editor.commands.focus();
 
     if (colorCode === "default") {
       editor.chain().focus().unsetColor().run();
@@ -1046,7 +1046,7 @@ export default function SpringNotePanel({
   // V6: contentEditable 용 형광펜 하이라이트 색상 변경 -> Tiptap Highlight API 적용
   const handleApplyHighlightColor = (colorCode: string) => {
     if (!editor) return;
-    editor.focus();
+    editor.commands.focus();
 
     if (colorCode === "default") {
       editor.chain().focus().unsetHighlight().run();

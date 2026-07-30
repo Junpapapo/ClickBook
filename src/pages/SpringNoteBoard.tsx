@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Book, BookOpen, Plus, Search, Trash2, ArrowLeft, ChevronLeft, ChevronRight, Keyboard } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Book, BookOpen, Plus, Search, Trash2, Keyboard } from "lucide-react";
 import type { SpringNote } from "@/shared/types";
 import { getAllSpringNotes, saveSpringNote, deleteSpringNote } from "@/utils/springNoteDb";
 import SpringNotePanel from "./TodoBoard/SpringNote/SpringNotePanel";
@@ -180,7 +180,7 @@ export default function SpringNoteBoard({
         prev.map((n) => (n.id === selectedNoteId ? { ...n, theme: targetTheme } : n))
       );
       
-      const updatedNote = { ...currentNote, theme: targetTheme, updatedAt: Date.now() };
+      const updatedNote = { ...currentNote, theme: targetTheme as "light" | "sepia" | "dark" | "grid", updatedAt: Date.now() };
       saveSpringNote(updatedNote).catch((err) =>
         console.warn("Failed to save theme sync from system:", err)
       );
@@ -388,6 +388,7 @@ export default function SpringNoteBoard({
       ? "text-gray-500"
       : "text-[#7A604D]/60"; // sepia
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getListItemClass = (isActive: boolean) => {
     const base = "group relative flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border shadow-sm duration-200 hover:-translate-y-[1px] hover:scale-[1.01]";
     if (noteTheme === "light" || noteTheme === "grid") {

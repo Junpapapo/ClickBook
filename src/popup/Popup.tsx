@@ -7,8 +7,7 @@ import {
   Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Target, Star
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
-import type { MessageResponse, MemoColor, TodoBoardData, TodoTask, TodoColumn } from "@/shared/types";
-import type { ClassifyMethod } from "@/shared/categorizer";
+import type { MessageResponse, TodoBoardData, TodoTask } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { isAIAvailable, setAIEnabled, verifyAISession } from "@/shared/categorizer";
 import MemoForm from "./components/MemoForm";
@@ -18,6 +17,7 @@ import { BuddySelector } from "./components/BuddySelector";
 import type { BuddyConfig, AppSettings } from "@/shared/types";
 import { tForLang, initLang as initBuddyLang } from "@/buddy/i18n";
 
+export type ClassifyMethod = "rule" | "ai" | "nano" | "existing" | "manual" | "default";
 type Status = "idle" | "loading" | "analyzing" | "success" | "duplicate" | "error";
 type SaveResult = { folderName: string; method: ClassifyMethod };
 
@@ -519,48 +519,6 @@ export default function Popup() {
     setBulkStatus("done");
     setBulkResult({ saved, skipped: validTabs.length - saved });
     setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
-  }
-
-  async function handleTextImport() {
-    const urls = extractUrls(textInput);
-    if (urls.length === 0) return;
-    setTextImportStatus("loading");
-    setTextImportResult(null);
-    const items = urls.map(u => ({ url: u, title: u }));
-    const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items }) as MessageResponse;
-    const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
-    
-    setTextImportStatus("done");
-    setTextImportResult({ saved, skipped: urls.length - saved });
-    if (saved > 0) setTextInput("");
-    setTimeout(() => { setTextImportStatus("idle"); setTextImportResult(null); }, 4000);
-  }
-
-  async function handleSaveMemo() {
-    if (!memoText.trim()) return;
-    setMemoStatus("loading");
-
-    let bookmarkId = existingBookmarkId;
-
-    // 북마크 미등록 시에는 단독(standalone) 메모 형태로 저장
-    if (!bookmarkId) {
-      bookmarkId = `standalone_${crypto.randomUUID()}`;
-      setExistingBookmarkId(bookmarkId);
-    }
-
-    try {
-      await chrome.runtime.sendMessage({
-        type: "SAVE_MEMO",
-        bookmarkId,
-        content: memoText.trim(),
-        color: memoColor
-      });
-      setMemoStatus("done");
-      setTimeout(() => setMemoStatus("idle"), 1500);
-    } catch (err) {
-      console.warn("Failed to save memo:", err);
-      setMemoStatus("idle");
-    }
   }
 
   async function handleSaveTabGroup(groupId: number, name: string) {

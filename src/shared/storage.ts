@@ -13,7 +13,7 @@ export async function getGitHubRankingCache(): Promise<GitHubRankingCache | null
 export async function setGitHubRankingCache(cache: GitHubRankingCache): Promise<void> {
   await chrome.storage.local.set({ [GITHUB_RANKING_KEY]: cache });
 }
-import type { Bookmark, Folder, StorageData, ClickBookBackupData } from "./types";
+import type { Bookmark, Folder, StorageData, ClickBookBackupData, AppSettings } from "./types";
 import { DEFAULT_FOLDERS, DEFAULT_FOLDER_ID } from "./categories";
 
 const STORAGE_KEY = "clickbook_data";
@@ -625,7 +625,8 @@ export async function getSettings(): Promise<import("./types").AppSettings> {
   if (s && typeof s === "object") {
     const mergedBuddyConfig = {
       ...baseSettings.buddyConfig,
-      ...(s.buddyConfig || {})
+      ...(s.buddyConfig || {}),
+      enabled: s.buddyConfig?.enabled ?? baseSettings.buddyConfig.enabled
     };
     
     const currentPresets = mergedBuddyConfig.aiPromptPresets || [];
@@ -640,13 +641,14 @@ export async function getSettings(): Promise<import("./types").AppSettings> {
       mergedBuddyConfig.aiPromptPresets = defaultPresets;
     }
 
-    return {
+    const resultSettings: AppSettings = {
       ...baseSettings,
       ...s,
-      buddyConfig: mergedBuddyConfig
+      buddyConfig: mergedBuddyConfig as import("./types").BuddyConfig
     };
+    return resultSettings;
   }
-  return baseSettings;
+  return baseSettings as AppSettings;
 }
 
 export async function saveSettings(settings: import("./types").AppSettings): Promise<void> {
@@ -822,6 +824,26 @@ export async function migratePageContents(): Promise<void> {
   // 4. 레거시 마스터 키 소거 (1회성 작업 완료)
   await chrome.storage.local.remove(PAGE_CONTENTS_KEY);
   console.log("[Storage Migration] Migration completed successfully. Legacy clickbook_page_contents key removed.");
+}
+
+export async function getOrphanedContentStats(): Promise<{ count: number; totalBytes: number }> {
+  const data = await readStorage();
+  const activeIds = new Set(data.bookmarks.map(b => b.id));
+  const allStorage = await chrome.storage.local.get(null);
+  let count = 0;
+  let totalBytes = 0;
+
+  for (const [key, value] of Object.entries(allStorage)) {
+    if (key.startsWith(PAGE_CONTENT_PREFIX)) {
+      const bookmarkId = key.substring(PAGE_CONTENT_PREFIX.length);
+      if (!activeIds.has(bookmarkId)) {
+        count++;
+        totalBytes += JSON.stringify(value).length;
+      }
+    }
+  }
+
+  return { count, totalBytes };
 }
 
 // ── 백그라운드 위생 가비지 컬렉터 (GC) ──

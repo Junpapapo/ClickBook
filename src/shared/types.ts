@@ -294,7 +294,14 @@ export type Message =
   | { type: "BUDDY_GET_ALL_MEMOS" }
   | { type: "BUDDY_GET_ADBLOCK_STATE"; domain: string }
   | { type: "BUDDY_TOGGLE_ADBLOCK"; domain: string }
-  | { type: "BUDDY_UPDATE_ADBLOCK_RULES" };
+  | { type: "BUDDY_UPDATE_ADBLOCK_RULES" }
+  | { type: "PRELOAD_AI" }
+  | { type: "BUDDY_GET_TIMER_STATS" }
+  | { type: "BUDDY_ADD_TIMER_STATS"; minutes: number; addCycle: boolean; goal: string }
+  | { type: "BUDDY_SAVE_ANCHORED_MEMO"; url: string; anchorText: string; content: string; color: MemoColor }
+  | { type: "BUDDY_DELETE_ANCHORED_MEMO"; url: string; memoId: string }
+  | { type: "BUDDY_GET_ANCHORED_MEMOS"; url: string }
+  | { type: "BUDDY_GET_TOP_SITES" };
 
 
 export type MessageResponse<T = any> =
@@ -321,6 +328,9 @@ export interface NoteObject {
   rotation?: number;  // 회전각 (-180 ~ 180deg)
   content: string;    // imageId 또는 bookmarkId
   metadata?: {
+    bookmarkId?: string;
+    bookmarkTitle?: string;
+    bookmarkUrl?: string;
     title?: string;
     url?: string;
     favicon?: string;

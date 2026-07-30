@@ -19,6 +19,7 @@ export const TASK_SOLID_COLORS: Record<string, string> = {
 };
 
 export const MEMO_COLORS: Record<MemoColor, string> = {
+  default: "bg-slate-50/40 border-slate-200 dark:bg-slate-900/40 dark:border-slate-800 text-slate-700 dark:text-slate-300",
   yellow: "bg-amber-50/40 border-amber-200 dark:bg-[#2D281E] dark:border-amber-900/40 text-amber-700 dark:text-amber-300",
   pink: "bg-rose-50/40 border-rose-200 dark:bg-[#2D1E22] dark:border-rose-900/40 text-rose-700 dark:text-rose-300",
   blue: "bg-blue-50/40 border-blue-200 dark:bg-[#1C2331] dark:border-blue-900/40 text-blue-700 dark:text-blue-300",

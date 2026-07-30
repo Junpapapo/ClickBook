@@ -1,4 +1,3 @@
-import React from "react";
 import type { PrintSettings } from "./PrintSettingsPanel";
 import type { TodoTask } from "@/shared/types";
 

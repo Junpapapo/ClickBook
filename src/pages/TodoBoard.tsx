@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { DragDropContext, Droppable, DroppableProvided } from "@hello-pangea/dnd";
-import { Plus, Check, ListTodo, Loader2 } from "lucide-react";
-import type { AppSettings, SpringNote } from "@/shared/types";
+import { Plus, ListTodo, Loader2 } from "lucide-react";
+import type { AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import TodoColumn from "./TodoBoard/TodoColumn";
@@ -15,7 +15,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   // TODO 카드에서 노트 클릭 시, 해당 태스크명으로 연동 노트를 자동생성/선택하고 스프링 노트 전용 화면으로 탭 이동
   const handleOpenSpringNoteAndRedirect = async (taskId: string) => {
     try {
-      const clickedTask = data.tasks[taskId];
+      const clickedTask = data?.tasks?.[taskId];
       const taskTitle = clickedTask ? clickedTask.content : "Task Note";
 
       // 1. IndexedDB 상에 태스크 연동 노트가 생성되어 있는지 조회

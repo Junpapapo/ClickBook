@@ -149,9 +149,9 @@ const scaleMaps = {
   maxHeight: "maxHeights"
 };
 
-const isObject = (val) => val && typeof val === "object" && !Array.isArray(val);
+const isObject = (val: any) => val && typeof val === "object" && !Array.isArray(val);
 
-const getThemeValue = (theme, scale, val) => {
+const getThemeValue = (theme: any, scale: string, val: any) => {
   if (!theme || !scale) return val;
   const themeScale = theme[scale];
   if (!themeScale) return val;
@@ -170,8 +170,8 @@ const getThemeValue = (theme, scale, val) => {
   return val;
 };
 
-const merge = (target, source) => {
-  const output = { ...target };
+const merge = (target: any, source: any) => {
+  const output: Record<string, any> = { ...target };
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach((key) => {
       if (isObject(source[key])) {
@@ -188,9 +188,9 @@ const merge = (target, source) => {
   return output;
 };
 
-const handleResponsive = (theme, scale, prop, val) => {
+const handleResponsive = (theme: any, scale: any, prop: string, val: any) => {
   if (Array.isArray(val)) {
-    const styles = {};
+    const styles: Record<string, any> = {};
     val.forEach((item, index) => {
       const themeVal = getThemeValue(theme, scale, item);
       if (index === 0) {
@@ -208,7 +208,7 @@ const handleResponsive = (theme, scale, prop, val) => {
   }
 
   if (isObject(val)) {
-    const styles = {};
+    const styles: Record<string, any> = {};
     Object.keys(val).forEach((key) => {
       const themeVal = getThemeValue(theme, scale, val[key]);
       if (key === "_") {
@@ -229,8 +229,8 @@ const handleResponsive = (theme, scale, prop, val) => {
   return { [prop]: getThemeValue(theme, scale, val) };
 };
 
-const resolveXAndY = (theme, prop, val) => {
-  const scale = scaleMaps[prop] || "space";
+const resolveXAndY = (theme: any, prop: string, val: any) => {
+  const scale = (scaleMaps as Record<string, string>)[prop] || "space";
   if (prop === "marginX") {
     const left = handleResponsive(theme, scale, "marginLeft", val);
     const right = handleResponsive(theme, scale, "marginRight", val);
@@ -254,20 +254,20 @@ const resolveXAndY = (theme, prop, val) => {
   return {};
 };
 
-export const parser = (props) => {
+export const parser = (props: any) => {
   const theme = props.theme && Object.keys(props.theme).length > 0 ? props.theme : defaultTheme;
-  let styles = {};
+  let styles: Record<string, any> = {};
 
   Object.keys(props).forEach((rawProp) => {
-    const prop = aliases[rawProp] || rawProp;
+    const prop = (aliases as Record<string, string>)[rawProp] || rawProp;
     const val = props[rawProp];
 
     if (val === undefined || val === null) return;
 
     if (prop === "marginX" || prop === "marginY" || prop === "paddingX" || prop === "paddingY") {
       styles = merge(styles, resolveXAndY(theme, prop, val));
-    } else if (properties[prop]) {
-      const scale = scaleMaps[prop];
+    } else if ((properties as Record<string, boolean>)[prop]) {
+      const scale = (scaleMaps as Record<string, string>)[prop];
       styles = merge(styles, handleResponsive(theme, scale, prop, val));
     }
   });

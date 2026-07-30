@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import PrintSettingsPanel, { type PrintSettings } from "./PrintSettingsPanel";
 import PrintCalendarPage from "./PrintCalendarPage";
 import PrintYearlyPage from "./PrintYearlyPage";
-import type { Bookmark, BookmarkMemo, TodoBoardData, TodoTask } from "@/shared/types";
+import type { Bookmark, BookmarkMemo, TodoBoardData } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
@@ -31,7 +31,7 @@ const getMonthRange = (startYear: number, startMonth: number, endYear: number, e
   return range;
 };
 
-export default function PrintCalendar({ settings: appSettings, bookmarks, memos, onRefresh }: Props) {
+export default function PrintCalendar({ settings: appSettings, bookmarks, memos, onRefresh: _onRefresh }: Props) {
   const { lang } = useLang();
   
   // URL 쿼리 파라미터에서 초기 연월 파싱

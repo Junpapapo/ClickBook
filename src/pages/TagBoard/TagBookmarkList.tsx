@@ -1,4 +1,3 @@
-import React from "react";
 import { Filter as FilterIcon } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import type { Bookmark, MessageResponse } from "@/shared/types";

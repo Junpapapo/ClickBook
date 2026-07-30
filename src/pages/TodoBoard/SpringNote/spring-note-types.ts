@@ -1,5 +1,7 @@
 import type { TodoTask, NotePage, NoteObject } from "@/shared/types";
 
+export type { NoteObject, NotePage };
+
 export interface SpringNotePanelProps {
   taskId: string;
   onClose: () => void;

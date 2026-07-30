@@ -1033,7 +1033,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
           onClose={() => setEditingTask(null)}
           onSave={saveTaskChanges}
           onDelete={deleteTaskFromCal}
-          t={t}
+          t={t as any}
         />
       )}
 
@@ -1046,7 +1046,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
           onClose={() => setEditingMemo(null)}
           onSave={saveMemoChanges}
           onDelete={deleteMemoFromCal}
-          t={t}
+          t={t as any}
         />
       )}
     </div>
