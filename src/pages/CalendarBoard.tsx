@@ -1,21 +1,14 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   ChevronLeft, 
   ChevronRight, 
   Plus, 
-  Check, 
-  Trash2, 
-  X, 
   Calendar, 
   Clock, 
   StickyNote, 
-  Link as LinkIcon, 
   CheckCircle2, 
   Circle, 
-  Tag, 
-  Palette, 
   CheckSquare, 
-  AlignLeft, 
   AlertCircle,
   Edit,
   Printer
@@ -23,22 +16,14 @@ import {
 import type { TodoBoardData, TodoTask, Bookmark, BookmarkMemo, MemoColor, MessageResponse, AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
-import ReactMarkdown from "react-markdown";
 import { FolderIcon } from "@/components/DynamicIcon";
-import { IconPicker } from "@/components/IconPicker";
 import TaskEditModal from "./Calendar/components/TaskEditModal";
 import MemoEditModal from "./Calendar/components/MemoEditModal";
 import MonthView from "./Calendar/components/MonthView";
 import WeekView from "./Calendar/components/WeekView";
 import DayView from "./Calendar/components/DayView";
 import {
-  TASK_BG_COLORS,
-  TASK_SOLID_COLORS,
-  MEMO_COLORS,
-  TASK_CELL_BG_COLORS,
   TASK_TEXT_COLORS,
-  REMINDER_OPTIONS,
-  timeOptions,
   formatDateStr,
   getCalendarGrid
 } from "./Calendar/calendar-utils";
@@ -532,12 +517,6 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
       // 2. Quick Add Standalone Memo
       const standaloneId = `standalone_${Date.now()}`;
       
-      // Calculate timestamp based on selected date plus current time
-      const now = new Date();
-      const memoDate = new Date(selectedDate);
-      memoDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
-      const memoTimestamp = memoDate.getTime();
-
       await chrome.runtime.sendMessage({
         type: "SAVE_MEMO",
         bookmarkId: standaloneId,

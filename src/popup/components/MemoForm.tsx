@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { StickyNote, Loader2, Sparkles, X, Check } from "lucide-react";
 import type { MemoColor, MessageResponse } from "@/shared/types";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";

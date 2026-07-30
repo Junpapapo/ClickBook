@@ -1,4 +1,3 @@
-import React from "react";
 import { ChevronRight, ChevronDown, Trophy, Book, Sparkles, Newspaper } from "lucide-react";
 import type { PageId } from "@/shared/types";
 

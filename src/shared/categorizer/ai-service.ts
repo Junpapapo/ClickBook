@@ -1,9 +1,8 @@
-import type { Bookmark, BookmarkMemo, Folder } from "../types";
+import type { Bookmark, Folder } from "../types";
 import { CATEGORY_IDS, isValidCategoryId } from "./rules";
 import type { SimilarTagGroup, FindSimilarTagsResult } from "./rules";
 import { ruleBasedTagGroups } from "./rules";
 import { classifyByDomain } from "./rules";
-import { DEFAULT_FOLDER_ID } from "../categories";
 
 const AI_ENABLED_KEY = "clickbook_ai_enabled";
 let cachedAIAvailable: boolean | null = null;

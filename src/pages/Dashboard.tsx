@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon, Sparkles } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
@@ -52,34 +52,13 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery, onAiLoadingChange, customSearchConfigs = [], customPresets = [], onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard, organizeResult = null, onClearOrganizeResult }: Props) {
+export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount: _recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery: _aiSearchQuery, onAiLoadingChange: _onAiLoadingChange, customSearchConfigs: _customSearchConfigs = [], customPresets: _customPresets = [], onSaveCustomSearchConfigs: _onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard, organizeResult = null, onClearOrganizeResult }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [aiAvailable, setAiAvailable] = useState(false);
   const renameInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    async function checkAI() {
-      try {
-        const result = await chrome.storage.local.get("clickbook_ai_enabled");
-        setAiAvailable(result.clickbook_ai_enabled === true);
-      } catch (e) {
-        setAiAvailable(false);
-      }
-    }
-    checkAI();
-
-    const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-      if (changes.clickbook_ai_enabled) {
-        setAiAvailable(changes.clickbook_ai_enabled.newValue === true);
-      }
-    };
-    chrome.storage.onChanged.addListener(listener);
-    return () => chrome.storage.onChanged.removeListener(listener);
-  }, []);
 
   async function handleDelete(id: string) {
     try {

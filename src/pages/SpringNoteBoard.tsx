@@ -388,30 +388,7 @@ export default function SpringNoteBoard({
       ? "text-gray-500"
       : "text-[#7A604D]/60"; // sepia
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getListItemClass = (isActive: boolean) => {
-    const base = "group relative flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all border shadow-sm duration-200 hover:-translate-y-[1px] hover:scale-[1.01]";
-    if (noteTheme === "light" || noteTheme === "grid") {
-      return `${base} ${
-        isActive
-          ? "bg-white text-indigo-700 border-indigo-150 shadow-inner font-bold"
-          : "bg-white/40 text-gray-600 border-gray-200/50 hover:bg-white hover:text-gray-800"
-      }`;
-    } else if (noteTheme === "dark") {
-      return `${base} ${
-        isActive
-          ? "bg-[#2B2B2E] text-white border-white/5 shadow-inner font-bold"
-          : "bg-[#2B2B2E]/30 text-gray-400 border-transparent hover:bg-[#2B2B2E]/75 hover:text-white"
-      }`;
-    } else {
-      // sepia
-      return `${base} ${
-        isActive
-          ? "bg-[#FBF6EC] text-[#4A3728] border-[#D8C6AC] shadow-inner font-bold"
-          : "bg-[#FBF6EC]/35 text-[#7A604D] border-[#D8C6AC]/40 hover:bg-[#FBF6EC] hover:text-[#4A3728]"
-      }`;
-    }
-  };
+
 
   const splitterClass = 
     noteTheme === "light" || noteTheme === "grid"

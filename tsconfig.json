@@ -22,5 +22,6 @@
     },
     "types": ["chrome"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/buddy/realtime-search-reference/**"]
 }

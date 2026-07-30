@@ -1,4 +1,4 @@
-import type { TodoTask, NotePage, NoteObject } from "@/shared/types";
+import type { NotePage, NoteObject } from "@/shared/types";
 
 export type { NoteObject, NotePage };
 

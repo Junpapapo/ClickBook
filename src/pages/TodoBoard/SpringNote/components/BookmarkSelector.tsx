@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Search, X, Link, FileText } from "lucide-react";
 import type { BookmarkSelectorProps } from "../spring-note-types";
 import type { Bookmark, BookmarkMemo, MessageResponse } from "@/shared/types";

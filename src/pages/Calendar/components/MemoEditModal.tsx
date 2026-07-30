@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   X, 
   Check, 
@@ -7,7 +7,6 @@ import {
   Link as LinkIcon 
 } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
-import { MEMO_COLORS } from "../calendar-utils";
 
 interface MemoEditModalProps {
   item: { bookmark: Bookmark | null; memo: BookmarkMemo };

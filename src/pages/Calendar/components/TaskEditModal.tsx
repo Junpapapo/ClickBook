@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { 
   X, 
   Plus, 
@@ -487,9 +487,11 @@ export default function TaskEditModal({
             ) : (
               <div className="w-full min-h-[60px] max-h-[180px] overflow-auto resize-y bg-gray-50/30 dark:bg-surface-800/20 border border-gray-200/50 dark:border-surface-800/60 rounded-xl p-2.5 text-xs text-gray-700 dark:text-gray-300 leading-relaxed scrollbar-thin">
                 {description.trim() ? (
-                  <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none text-xs leading-normal">
-                    {description}
-                  </ReactMarkdown>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-normal">
+                    <ReactMarkdown>
+                      {description}
+                    </ReactMarkdown>
+                  </div>
                 ) : (
                   <span className="text-gray-400 dark:text-gray-500 italic text-[11px]">{t("descriptionEmpty")}</span>
                 )}

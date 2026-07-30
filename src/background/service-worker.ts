@@ -7,7 +7,6 @@ import { initializeTabCache, handleTabClosed, trackTabAccessed } from "./service
 import { runAutoTagViaPort, runAIReorganizeViaPort, runAIReorganizeOtherViaPort } from "./services/ai-port-service";
 import { saveActiveTab } from "./services/bookmark-sync-service";
 import { clipSelection } from "./services/clip-service";
-import { updateGCAlarm } from "./services/helpers/alarm-helper";
 import { handleMessage } from "./services/message-router";
 import { syncDeclarativeRules, setupAdBlockRulesSyncAlarm, updateEasyListRules } from "./services/adblock";
 

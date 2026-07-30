@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { SlidersHorizontal, Pencil, Smile } from "lucide-react";
+import { SlidersHorizontal, Pencil } from "lucide-react";
 import type { NodeShape, ColorTheme } from "../mindmap-types";
 import { IconPicker } from "@/components/IconPicker";
 import { LUCIDE_ICONS_MAP } from "@/components/DynamicIcon";

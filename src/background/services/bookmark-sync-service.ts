@@ -1,5 +1,5 @@
-import type { Bookmark, Folder, StorageData, MessageResponse } from "@/shared/types";
-import { getBookmarks, addBookmark } from "@/shared/storage";
+import type { Bookmark, StorageData, MessageResponse } from "@/shared/types";
+import { getBookmarks, getFolders } from "@/shared/storage";
 import { checkAndSetSecureTabIndicator } from "./security-service";
 import { categorize } from "@/shared/categorizer";
 import { getEffectiveLanguage } from "./helpers/lang-helper";
@@ -115,7 +115,8 @@ export async function saveActiveTab(): Promise<MessageResponse> {
 
         try {
           const { getFolderById, getLocalizedFolderName } = await import("@/shared/categories");
-          const updatedFolder = await getFolderById(finalFolderId);
+          const folders = await getFolders();
+          const updatedFolder = getFolderById(folders, finalFolderId);
           const lang = await getEffectiveLanguage();
           chrome.runtime.sendMessage({
             type: "BOOKMARK_AI_UPDATED",
@@ -401,7 +402,8 @@ export async function saveTabGroupAsFolder(groupId: number, name: string): Promi
 
 export async function openFolderAsTabGroup(folderId: string): Promise<MessageResponse> {
   const { getFolderById } = await import("@/shared/categories");
-  const f = await getFolderById(folderId);
+  const folders = await getFolders();
+  const f = getFolderById(folders, folderId);
   if (!f) return { success: false, error: "Folder not found" };
   const allBms = await getBookmarks();
   const folderBms = allBms.filter(b => b.folderId === folderId);

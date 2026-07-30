@@ -43,7 +43,6 @@ export default function Popup() {
   const [isTogglingAi, setIsTogglingAi] = useState(false);
   const [buddyConfig, setBuddyConfig] = useState<BuddyConfig | null>(null);
   const [buddyModalOpen, setBuddyModalOpen] = useState(false);
-  const [buddyPanelOpen, setBuddyPanelOpen] = useState(false);
   const [buddySelectorExpanded, setBuddySelectorExpanded] = useState(false);
   const [tabUrl, setTabUrl] = useState("");
   const [tabTitle, setTabTitle] = useState("");

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Copy, RefreshCw, Check } from "lucide-react";
 import { getRandomQuote } from "@/shared/quotes";
 import type { Quote } from "@/shared/quotes";

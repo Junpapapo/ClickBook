@@ -1,4 +1,4 @@
-import type { TodoTask, MemoColor } from "@/shared/types";
+import type { MemoColor } from "@/shared/types";
 
 export const TASK_BG_COLORS: Record<string, string> = {
   default: "bg-indigo-50/40 border-indigo-200 dark:bg-[#1C2331] dark:border-indigo-900/40 text-indigo-700 dark:text-indigo-300",

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { X, Maximize2, Move, Trash2, Plus, Type, RotateCcw, RotateCw, Undo2, FlipHorizontal, FlipVertical } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Maximize2, Move, Trash2, Plus, Type, RotateCcw, RotateCw, Undo2, FlipHorizontal, FlipVertical } from "lucide-react";
 import type { NoteObject, SpringNoteCanvasProps } from "../spring-note-types";
 import { getSpringNoteImage } from "@/utils/springNoteDb";
 
@@ -7,7 +7,7 @@ export default function SpringNoteCanvas({
   pageId,
   objects,
   onUpdateObjects,
-  t,
+  t: _t,
   theme,
   selectedObjId,
   setSelectedObjId,
@@ -269,7 +269,6 @@ export default function SpringNoteCanvas({
   };
 
   const handleTableColAdd = (obj: NoteObject) => {
-    const rows = obj.metadata?.tableRows || 3;
     const cols = obj.metadata?.tableCols || 3;
     const data = obj.metadata?.tableData ? [...obj.metadata.tableData] : [];
 

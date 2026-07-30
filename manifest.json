@@ -38,9 +38,7 @@
     "tabGroups",
     "alarms",
     "notifications",
-    "declarativeNetRequest",
-    "topSites",
-    "history"
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>",

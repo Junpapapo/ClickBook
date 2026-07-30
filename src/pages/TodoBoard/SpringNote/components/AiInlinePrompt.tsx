@@ -171,7 +171,7 @@ export default function AiInlinePrompt({ editor, aiType, aiAvailable, t, onClose
             <button
               type="button"
               onClick={runAskAI}
-              disabled={!prompt.trim() || phase === "loading"}
+              disabled={!prompt.trim() || (phase as string) === "loading"}
               className="p-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
             >
               <Send size={12} className="text-white" />

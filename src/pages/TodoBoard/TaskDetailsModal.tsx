@@ -20,7 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import type { TodoTask, AppSettings } from "@/shared/types";
+import type { TodoTask } from "@/shared/types";
 import { refineMemoDraft, isAIAvailable } from "@/shared/categorizer";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { IconPicker } from "@/components/IconPicker";

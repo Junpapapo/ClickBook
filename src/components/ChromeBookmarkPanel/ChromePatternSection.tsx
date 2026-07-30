@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronRight, ChevronDown, Plus, Download, Trash2, Check, X } from "lucide-react";
 import type { ChromePattern, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";

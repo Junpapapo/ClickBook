@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { DragDropContext, Droppable, DroppableProvided } from "@hello-pangea/dnd";
 import { Plus, ListTodo, Loader2 } from "lucide-react";
 import type { AppSettings } from "@/shared/types";

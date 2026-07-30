@@ -53,7 +53,7 @@ export default function DayView({
                 key={task.id}
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", task.id)}
-                onClick={(e) => onOpenTaskEditor(task)}
+                onClick={() => onOpenTaskEditor(task)}
                 className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-2.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1
                   ${(!isEvent && task.completed)
                     ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 
@@ -69,7 +69,7 @@ export default function DayView({
           {dayMemos.map((item) => (
             <div
               key={item.memo.bookmarkId}
-              onClick={(e) => onOpenMemoEditor(item)}
+              onClick={() => onOpenMemoEditor(item)}
               className={`text-[9px] font-bold px-2.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1
                 ${MEMO_COLORS[item.memo.color || "yellow"]}
               `}
@@ -106,7 +106,7 @@ export default function DayView({
                       key={task.id}
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", task.id)}
-                      onClick={(e) => onOpenTaskEditor(task)}
+                      onClick={() => onOpenTaskEditor(task)}
                       className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-2 py-1 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1.5
                         ${(!isEvent && task.completed) 
                           ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 

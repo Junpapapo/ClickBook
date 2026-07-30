@@ -288,7 +288,7 @@ export type Message =
   | { type: "BUDDY_HIDE_SITE"; domain: string }
   | { type: "BUDDY_UNHIDE_SITE"; domain: string }
   | { type: "BUDDY_CHECK_BOOKMARK"; url: string }
-  | { type: "BUDDY_ASK_AI"; text: string; context?: string }
+  | { type: "BUDDY_ASK_AI"; text: string; context?: string; lang?: string }
   | { type: "BUDDY_GET_MEMO"; url: string }
   | { type: "BUDDY_DELETE_MEMO"; url: string }
   | { type: "BUDDY_GET_ALL_MEMOS" }
@@ -306,8 +306,8 @@ export type Message =
 
 
 export type MessageResponse<T = any> =
-  | { success: true; data?: T; isSecure?: boolean }
-  | { success: false; error: string; isDuplicate?: boolean; isSecure?: boolean };
+  | { success: true; data?: T; exists?: boolean; isSecure?: boolean; _shouldReinit?: boolean }
+  | { success: false; error: string; exists?: boolean; isDuplicate?: boolean; isSecure?: boolean };
 
 // =============================
 // TODO Board (Kanban) Models

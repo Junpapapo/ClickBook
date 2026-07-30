@@ -460,21 +460,6 @@ export default function SpringNotePanel({
     return () => clearTimeout(timer);
   }, [pages, currentPageIndex, editor?.getHTML()]);
 
-  // 날짜 스탬프 포맷팅 헬퍼 함수
-  const getFormattedDate = () => {
-    const date = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      weekday: "long",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true
-    };
-    return date.toLocaleDateString(lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : "en-US", options);
-  };
-
   // 밝은 배경(라이트/세피아)에서 어두운 글자색을 엄격히 고정하기 위한 헬퍼
   const getThemeTextClass = () => {
     if (theme === "light" || theme === "grid") return "!text-black";
@@ -751,7 +736,7 @@ export default function SpringNotePanel({
   };
 
   // 겹치지 않게 순차적으로 비껴가며 계단식 위치(x, y)를 연산하는 함수
-  const getNextObjectPosition = (width: number, height: number) => {
+  const getNextObjectPosition = (_width: number, _height: number) => {
     const existing = currentPage.objects;
     if (existing.length === 0) {
       return { x: 30, y: 80 };

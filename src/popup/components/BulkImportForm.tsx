@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ClipboardList, X, Loader2, BookmarkCheck, CheckCircle2 } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import { extractUrls } from "@/shared/utils";

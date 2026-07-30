@@ -25,7 +25,7 @@ function getDb(): Promise<IDBDatabase> {
       resolve(dbInstance);
     };
 
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME);

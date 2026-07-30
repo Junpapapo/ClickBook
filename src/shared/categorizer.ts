@@ -1,4 +1,3 @@
-import type { Bookmark } from "./types";
 import { DEFAULT_FOLDER_ID } from "./categories";
 import { 
   classifyByDomain, 
@@ -6,8 +5,7 @@ import {
 } from "./categorizer/rules";
 import type { ClassifyResult, FindDuplicateResult } from "./categorizer/rules";
 import { 
-  classifyWithNano, 
-  isAIAvailable 
+  classifyWithNano
 } from "./categorizer/ai-service";
 
 // re-export
