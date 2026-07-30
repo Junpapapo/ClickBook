@@ -1,81 +1,57 @@
-# CLAUDE.md
+# CLAUDE.md - Technical & Build Guidelines
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+This document specifies the core compile/build commands, technical constraints, and modular standards for this project.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-
-## 5. Architectural Guidelines
-- **No Monolithic Coding**: Monolithic programming is strictly prohibited. Keep modules small, decoupled, and split files before they exceed 400 lines. Refer to the [proactive-code-architect](file:///c:/00_Workspace/AlphaTerm/.gemini/skills/proactive-code-architect/SKILL.md) guide for strict architectural limits and enforcements.
-
-
-## Skill Guides
-
-This project uses a set of "skill" guides — focused how-to documents for common implementation tasks. When your task matches one of the descriptions below, **read the linked SKILL.md file before proceeding** and follow its instructions precisely.
-
-| Skill        | File                                     | Description                                                                                                                                                                                                                                 |
-| ------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| proactive-code-architect | `../.gemini/skills/proactive-code-architect/SKILL.md` | Enforces modular architecture. **NEVER use monolithic coding.** Refer to the [proactive-code-architect](file:///c:/00_Workspace/AlphaTerm/.gemini/skills/proactive-code-architect/SKILL.md) guide before writing any code to prevent file size exceeding. |
-
+> [!IMPORTANT]
+> All technical operations MUST comply with this document and the global [[common-rules.md](file:///c:/00_Workspace/00_Tools/00_프로젝트초기설정/.agents/rules/common-rules.md)] guidelines.
 
 ---
 
+## 1. Technical Build & Command Reference
 
+| Action | Command | Purpose |
+| :--- | :--- | :--- |
+| Install Dependencies | `npm install` / `rtk install` | Set up workspace libraries |
+| Type/Compile Verification | `npx tsc --noEmit` | Strict pre-push compilation check |
+| Start Dev Server | `npm run dev` | Run local development environment |
+| Build Production | `npm run build` | Compile final bundle for distribution |
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+---
+
+## 2. Project Architecture & Decoupling Limits
+
+* **Module Architecture Enforcement**:
+  * Proactively break down complex components and views into separate feature modules.
+  * Files MUST NOT exceed **400 lines of code**. For detailed code scaffolding, refer to [[proactive-code-architect](file:///c:/00_Workspace/00_Tools/00_프로젝트초기설정/.gemini/skills/proactive-code-architect/SKILL.md)].
+* **Surgical Edits Only**:
+  * Only touch lines within the target scope. Do not clean up unrelated legacy files.
+  * Clean up any unused imports or variables introduced *by your changes* before committing.
+* **Mandatory AI Agent Synchronous Verification Rule**:
+  * During pair programming with AI (Antigravity), immediately after implementing any feature or modifying source files, **always execute `npx tsc --noEmit` as a mandatory synchronous verification step**.
+  * **Purpose & Effect**: Detects and resolves type errors immediately per task unit, preventing type errors from accumulating in the codebase.
+
+---
+
+## 3. Core Behavioral Guidelines (Karpathy Guidelines)
+
+### 1) Think Before Coding
+- State assumptions explicitly. Surface tradeoffs and present simple alternatives before implementing.
+
+### 2) Simplicity First
+- Minimum code that solves the problem. No speculative abstractions, unused features, or unnecessary flexibility.
+
+### 3) Surgical Changes
+- Touch only what you must. Match existing style and clean up only your own orphans.
+
+### 4) Goal-Driven Execution
+- Transform tasks into verifiable goals and define clear success criteria.
+
+---
+
+## 4. Skill Guides
+
+This project uses a set of "skill" guides — focused how-to documents for common implementation tasks. When your task matches one of the descriptions below, **read the linked SKILL.md file before proceeding** and follow its instructions precisely.
+
+| Skill | File | Description |
+| :--- | :--- | :--- |
+| proactive-code-architect | [[proactive-code-architect](file:///c:/00_Workspace/00_Tools/00_프로젝트초기설정/.gemini/skills/proactive-code-architect/SKILL.md)] | Enforces modular architecture. **NEVER use monolithic coding.** Refer to the skill guide before writing code to prevent file size exceeding 400 lines. |

@@ -20,8 +20,18 @@ if not exist "package.json" (
     exit /b 1
 )
 
-:: 3. Run production build
-echo [1/3] Running 'npm run build'...
+:: 3. Run TypeScript type check & production build
+echo [1/4] Checking TypeScript types ('npx tsc --noEmit')...
+call npx tsc --noEmit
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] TypeScript type check failed with exit code %errorlevel%.
+    echo Aborting build and archive creation.
+    pause
+    exit /b %errorlevel%
+)
+
+echo [2/4] Running 'npm run build'...
 call npm run build
 if %errorlevel% neq 0 (
     echo.
@@ -35,7 +45,7 @@ echo [SUCCESS] Build completed successfully.
 echo.
 
 :: 4. Ensure target directory docs\assets\dist_zip exists and clear any existing archive
-echo [2/3] Preparing destination folder...
+echo [3/4] Preparing destination folder...
 set DEST_DIR=docs\assets\dist_zip
 if not exist "%DEST_DIR%" (
     echo Destination directory "%DEST_DIR%" does not exist. Creating it...
@@ -48,7 +58,7 @@ if exist "%DEST_DIR%\dist.zip" (
 echo.
 
 :: 5. Compress dist contents using PowerShell Compress-Archive
-echo [3/3] Compressing dist contents to %DEST_DIR%\dist.zip...
+echo [4/4] Compressing dist contents to %DEST_DIR%\dist.zip...
 :: PowerShell Compress-Archive is standard on Windows 10/11 and doesn't require external tools.
 powershell -NoProfile -Command "Compress-Archive -Path 'dist\*' -DestinationPath '%DEST_DIR%\dist.zip' -Force"
 
