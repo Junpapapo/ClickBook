@@ -413,10 +413,9 @@ export default function SpringNotePanel({
           const hasTable = /\|.+\|\s*\r?\n\s*\|[ :|-]+\|/.test(rawText);
           if (hasTable) {
             const htmlContent = markdownToHtml(rawText);
-            const parser = DOMParser.fromSchema(view.state.schema);
-            const dom = document.createElement("div");
-            dom.innerHTML = htmlContent;
-            const slice = parser.parseSlice(dom);
+            const pmParser = DOMParser.fromSchema(view.state.schema);
+            const parsed = new window.DOMParser().parseFromString(htmlContent, "text/html");
+            const slice = pmParser.parseSlice(parsed.body);
             const transaction = view.state.tr.replaceSelection(slice);
             view.dispatch(transaction);
             return true;

@@ -1,35 +1,36 @@
-import { useState, useEffect, useCallback, useMemo, useDeferredValue, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useDeferredValue, useRef, lazy, Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
 import SearchBar from "@/components/SearchBar";
 import PatternBar from "@/components/PatternBar";
 import RightPanelBar, { type RightPanelId } from "@/components/RightPanelBar";
-import SettingsModal from "@/components/SettingsModal";
 import WelcomeModal from "@/components/WelcomeModal";
 import ProgressBar from "@/components/ProgressBar";
 import Dashboard from "@/pages/Dashboard";
-import FolderView from "@/pages/FolderView";
-import MemoBoard from "@/pages/MemoBoard";
-import BookmarkMap from "@/pages/BookmarkMap";
-import GitHubRankingPage from "@/pages/GitHubRanking";
-import WikiRankingPage from "@/pages/WikiRanking";
-import HFRankingPage from "@/pages/HFRanking";
-import HNRankingPage from "@/pages/HNRanking";
+const FolderView = lazy(() => import("@/pages/FolderView"));
+const MemoBoard = lazy(() => import("@/pages/MemoBoard"));
+const TodoBoard = lazy(() => import("@/pages/TodoBoard"));
+const TagBoard = lazy(() => import("@/pages/TagBoard"));
+const TaskControlPage = lazy(() => import("@/pages/TaskControlPage"));
+
+// Lazy loaded heavy sub-pages & components for code splitting & initial load optimization
+const SettingsModal = lazy(() => import("@/components/SettingsModal"));
+const BookmarkMap = lazy(() => import("@/pages/BookmarkMap"));
+const GitHubRankingPage = lazy(() => import("@/pages/GitHubRanking"));
+const WikiRankingPage = lazy(() => import("@/pages/WikiRanking"));
+const HFRankingPage = lazy(() => import("@/pages/HFRanking"));
+const HNRankingPage = lazy(() => import("@/pages/HNRanking"));
+const CalendarBoard = lazy(() => import("@/pages/CalendarBoard"));
+const PrintCalendar = lazy(() => import("@/pages/PrintCalendar"));
+const MindMapBoard = lazy(() => import("@/pages/MindMapBoard"));
+const SpringNoteBoard = lazy(() => import("@/pages/SpringNoteBoard"));
+const ReaderModeViewer = lazy(() => import("@/components/ReaderModeViewer").then(m => ({ default: m.ReaderModeViewer })));
+
 import type { Bookmark, Folder, MemoMap, StorageData, AppSettings, ClickBookBackupData, TodoBoardData, PageId } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
 import { sendMsg } from "@/shared/utils";
 import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
-
-import TodoBoard from "@/pages/TodoBoard";
-import TagBoard from "@/pages/TagBoard";
-import TaskControlPage from "@/pages/TaskControlPage";
-import CalendarBoard from "@/pages/CalendarBoard";
-import PrintCalendar from "@/pages/PrintCalendar";
-import MindMapBoard from "@/pages/MindMapBoard";
-import SpringNoteBoard from "@/pages/SpringNoteBoard";
-
-import { ReaderModeViewer } from "@/components/ReaderModeViewer";
 import { useTaskQueue } from "@/shared/useTaskQueue";
 import { Sparkles, X } from "lucide-react";
 
@@ -577,96 +578,100 @@ function AppContent() {
         <PatternBar onPatternLoad={loadData} />
 
         <div className="flex flex-1 overflow-hidden">
-          <main className={`flex-1 overflow-y-auto ${
-            activePage === "springnote" || activePage === "todo" || activePage === "mindmap" ? "p-0" : "p-6"
-          }`}>
-            {activePage === "taskcontrol" ? (
-              <TaskControlPage
-                tasks={taskQueue.tasks}
-                aiRunningCount={taskQueue.aiRunningCount}
-                aiQueuedCount={taskQueue.aiQueuedCount}
-                onCancel={(taskId) => {
-                  const port = portsRef.current[taskId];
-                  if (port) {
-                    try {
-                      port.disconnect();
-                    } catch (e) {
-                      console.warn("Failed to disconnect port on cancel:", e);
+          <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-[#0F172A] text-slate-100">
+            <Suspense fallback={
+              <div className="flex-1 flex items-center justify-center p-8 text-slate-400 text-sm font-medium animate-pulse">
+                페이지 로딩 중...
+              </div>
+            }>
+              {activePage === "taskcontrol" ? (
+                <TaskControlPage
+                  tasks={taskQueue.tasks}
+                  aiRunningCount={taskQueue.aiRunningCount}
+                  aiQueuedCount={taskQueue.aiQueuedCount}
+                  onCancel={(taskId) => {
+                    const port = portsRef.current[taskId];
+                    if (port) {
+                      try {
+                        port.disconnect();
+                      } catch (e) {
+                        console.warn("Failed to disconnect port on cancel:", e);
+                      }
+                      delete portsRef.current[taskId];
                     }
-                    delete portsRef.current[taskId];
-                  }
-                  taskQueue.cancelTask(taskId);
-                }}
-                onDismiss={(taskId) => taskQueue.dismissTask(taskId)}
-                onRetry={(task) => {
-                  taskQueue.dismissTask(task.id);
-                  // Re-add the task
-                  taskQueue.addTask(task.category, task.name);
-                }}
-              />
-            ) : activePage === "calendar" ? (
-              <CalendarBoard settings={settings} bookmarks={bookmarks} memos={memos} onRefresh={loadData} />
-            ) : activePage === "todo" ? (
-              <TodoBoard settings={settings} />
-            ) : activePage === "tagboard" ? (
-              <TagBoard
-                bookmarks={filtered}
-                folders={folders}
-                onRefresh={loadData}
-                isAutoTagging={taskQueue.tasks.some(t => t.category === "ai-tag" && (t.status === "running" || t.status === "queued"))}
-                onAutoTag={handleAutoTag}
-              />
-            ) : activePage === "github" ? (
-              <GitHubRankingPage />
-            ) : activePage === "wiki" ? (
-              <WikiRankingPage />
-            ) : activePage === "hf" ? (
-              <HFRankingPage />
-            ) : activePage === "hn" ? (
-              <HNRankingPage />
-            ) : activePage === "map" ? (
-              <BookmarkMap bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
-            ) : activePage === "mindmap" ? (
-              <MindMapBoard bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
-            ) : activePage === "springnote" ? (
-              <SpringNoteBoard t={t as any} lang={lang} />
-            ) : activePage === "memo" ? (
-              <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
-            ) : activePage === "dashboard" ? (
-              <Dashboard
-                bookmarks={filtered}
-                folders={folders}
-                memos={memos}
-                todoStats={todoStats}
-                urgentTasks={urgentTasks}
-                onSelectTodoBoard={handleSelectTodoBoard}
-                recentCount={settings.recentCount}
-                rankingCount={settings.rankingCount}
-                recommendCount={settings.recommendCount}
-                onSelectFolder={(id) => navigate("folder", id)}
-                onRefresh={loadData}
-                searchQuery={deferredQuery}
-                aiSearchQuery={aiSearchQuery}
-                onAiLoadingChange={setAiLoading}
-                customSearchConfigs={settings.customSearchConfigs || []}
-                customPresets={settings.customPresets || []}
-                onSaveCustomSearchConfigs={(configs, presets) => {
-                  handleSaveSettings({ ...settings, customSearchConfigs: configs, customPresets: presets || settings.customPresets });
-                }}
-                organizeResult={organizeResult}
-                onClearOrganizeResult={() => setOrganizeResult(null)}
-              />
-            ) : (
-              <FolderView
-                bookmarks={folderBookmarks}
-                folders={folders}
-                folderId={selectedFolderId ?? ""}
-                memos={memos}
-                onBack={() => navigate("dashboard")}
-                onSelectFolder={(id) => navigate("folder", id)}
-                onRefresh={loadData}
-              />
-            )}
+                    taskQueue.cancelTask(taskId);
+                  }}
+                  onDismiss={(taskId) => taskQueue.dismissTask(taskId)}
+                  onRetry={(task) => {
+                    taskQueue.dismissTask(task.id);
+                    // Re-add the task
+                    taskQueue.addTask(task.category, task.name);
+                  }}
+                />
+              ) : activePage === "calendar" ? (
+                <CalendarBoard settings={settings} bookmarks={bookmarks} memos={memos} onRefresh={loadData} />
+              ) : activePage === "todo" ? (
+                <TodoBoard settings={settings} />
+              ) : activePage === "tagboard" ? (
+                <TagBoard
+                  bookmarks={filtered}
+                  folders={folders}
+                  onRefresh={loadData}
+                  isAutoTagging={taskQueue.tasks.some(t => t.category === "ai-tag" && (t.status === "running" || t.status === "queued"))}
+                  onAutoTag={handleAutoTag}
+                />
+              ) : activePage === "github" ? (
+                <GitHubRankingPage />
+              ) : activePage === "wiki" ? (
+                <WikiRankingPage />
+              ) : activePage === "hf" ? (
+                <HFRankingPage />
+              ) : activePage === "hn" ? (
+                <HNRankingPage />
+              ) : activePage === "map" ? (
+                <BookmarkMap bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
+              ) : activePage === "mindmap" ? (
+                <MindMapBoard bookmarks={filtered} folders={folders} memos={memos} onRefresh={loadData} />
+              ) : activePage === "springnote" ? (
+                <SpringNoteBoard t={t as any} lang={lang} />
+              ) : activePage === "memo" ? (
+                <MemoBoard memos={memos} bookmarks={bookmarks} onRefresh={loadData} />
+              ) : activePage === "dashboard" ? (
+                <Dashboard
+                  bookmarks={filtered}
+                  folders={folders}
+                  memos={memos}
+                  todoStats={todoStats}
+                  urgentTasks={urgentTasks}
+                  onSelectTodoBoard={handleSelectTodoBoard}
+                  recentCount={settings.recentCount}
+                  rankingCount={settings.rankingCount}
+                  recommendCount={settings.recommendCount}
+                  onSelectFolder={(id) => navigate("folder", id)}
+                  onRefresh={loadData}
+                  searchQuery={deferredQuery}
+                  aiSearchQuery={aiSearchQuery}
+                  onAiLoadingChange={setAiLoading}
+                  customSearchConfigs={settings.customSearchConfigs || []}
+                  customPresets={settings.customPresets || []}
+                  onSaveCustomSearchConfigs={(configs, presets) => {
+                    handleSaveSettings({ ...settings, customSearchConfigs: configs, customPresets: presets || settings.customPresets });
+                  }}
+                  organizeResult={organizeResult}
+                  onClearOrganizeResult={() => setOrganizeResult(null)}
+                />
+              ) : (
+                <FolderView
+                  bookmarks={folderBookmarks}
+                  folders={folders}
+                  folderId={selectedFolderId ?? ""}
+                  memos={memos}
+                  onBack={() => navigate("dashboard")}
+                  onSelectFolder={(id) => navigate("folder", id)}
+                  onRefresh={loadData}
+                />
+              )}
+            </Suspense>
           </main>
 
           {/* 右パネルバー（アイコンレール + 展開パネル） */}
@@ -684,43 +689,45 @@ function AppContent() {
       </div>
 
       {/* 詳細設定モーダル */}
-      {settingsModalOpen && (
-        <SettingsModal
-          settings={settings}
-          onSave={handleSaveSettings}
-          onClose={() => setSettingsModalOpen(false)}
-          onExportJSON={handleExportJSON}
-          onExportHTML={handleExportHTML}
-          onImport={handleImport}
-          sidebarChromeOpen={sidebarChromeOpen}
-          onToggleSidebarChrome={toggleSidebarChrome}
-          showGitHubRankingMenu={showGitHubRankingMenu}
-          onToggleGitHubRankingMenu={(v) => {
-            setShowGitHubRankingMenu(v);
-            chrome.storage.local.set({ clickbook_show_github_ranking: v });
-            if (!v && activePage === "github") navigate("dashboard");
-          }}
-          showWikiRankingMenu={showWikiRankingMenu}
-          onToggleWikiRankingMenu={(v) => {
-            setShowWikiRankingMenu(v);
-            chrome.storage.local.set({ clickbook_show_wiki_ranking: v });
-            if (!v && activePage === "wiki") navigate("dashboard");
-          }}
-          showHFRankingMenu={showHFRankingMenu}
-          onToggleHFRankingMenu={(v) => {
-            setShowHFRankingMenu(v);
-            chrome.storage.local.set({ clickbook_show_hf_ranking: v });
-            if (!v && activePage === "hf") navigate("dashboard");
-          }}
-          showHNRankingMenu={showHNRankingMenu}
-          onToggleHNRankingMenu={(v) => {
-            setShowHNRankingMenu(v);
-            chrome.storage.local.set({ clickbook_show_hn_ranking: v });
-            if (!v && activePage === "hn") navigate("dashboard");
-          }}
-          settingsMessage={settingsMessage}
-        />
-      )}
+      <Suspense fallback={null}>
+        {settingsModalOpen && (
+          <SettingsModal
+            settings={settings}
+            onSave={handleSaveSettings}
+            onClose={() => setSettingsModalOpen(false)}
+            onExportJSON={handleExportJSON}
+            onExportHTML={handleExportHTML}
+            onImport={handleImport}
+            sidebarChromeOpen={sidebarChromeOpen}
+            onToggleSidebarChrome={toggleSidebarChrome}
+            showGitHubRankingMenu={showGitHubRankingMenu}
+            onToggleGitHubRankingMenu={(v) => {
+              setShowGitHubRankingMenu(v);
+              chrome.storage.local.set({ clickbook_show_github_ranking: v });
+              if (!v && activePage === "github") navigate("dashboard");
+            }}
+            showWikiRankingMenu={showWikiRankingMenu}
+            onToggleWikiRankingMenu={(v) => {
+              setShowWikiRankingMenu(v);
+              chrome.storage.local.set({ clickbook_show_wiki_ranking: v });
+              if (!v && activePage === "wiki") navigate("dashboard");
+            }}
+            showHFRankingMenu={showHFRankingMenu}
+            onToggleHFRankingMenu={(v) => {
+              setShowHFRankingMenu(v);
+              chrome.storage.local.set({ clickbook_show_hf_ranking: v });
+              if (!v && activePage === "hf") navigate("dashboard");
+            }}
+            showHNRankingMenu={showHNRankingMenu}
+            onToggleHNRankingMenu={(v) => {
+              setShowHNRankingMenu(v);
+              chrome.storage.local.set({ clickbook_show_hn_ranking: v });
+              if (!v && activePage === "hn") navigate("dashboard");
+            }}
+            settingsMessage={settingsMessage}
+          />
+        )}
+      </Suspense>
 
       {/* 온보딩 가이드 */}
       {showWelcome && (
@@ -733,19 +740,21 @@ function AppContent() {
       )}
 
       {/* Reader Mode Viewer Overlay */}
-      {readerOpen && readerData && (
-        <ReaderModeViewer
-          bookmarkId={readerData.bookmarkId}
-          title={readerData.title}
-          url={readerData.url}
-          initialContent={readerData.content}
-          onClose={() => {
-            setReaderOpen(false);
-            setReaderData(null);
-            loadData(); // Load any memo updates if applicable
-          }}
-        />
-      )}
+      <Suspense fallback={null}>
+        {readerOpen && readerData && (
+          <ReaderModeViewer
+            bookmarkId={readerData.bookmarkId}
+            title={readerData.title}
+            url={readerData.url}
+            initialContent={readerData.content}
+            onClose={() => {
+              setReaderOpen(false);
+              setReaderData(null);
+              loadData(); // Load any memo updates if applicable
+            }}
+          />
+        )}
+      </Suspense>
 
       {/* AI Error Floating Panel */}
       {aiError && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Send, RotateCcw, X, Check, Loader2, Sparkles } from "lucide-react";
 import type { Editor } from "@tiptap/react";
-import { getAIModel } from "@/shared/categorizer/ai-service";
+import { getAIModel, safePromptAI } from "@/shared/categorizer/ai-service";
 
 interface Props {
   editor: Editor;
@@ -46,16 +46,9 @@ export default function AiInlinePrompt({ editor, aiType, aiAvailable, t, onClose
       const lm = await getAIModel();
       if (!lm) throw new Error(t("springNoteAiErrorModel") || "AI 모델을 사용할 수 없습니다.");
       const context = getContext();
-      const session = await lm.create({
-        systemPrompt: "You are a helpful writing assistant. Continue the user's text naturally and fluently in the same language and style. Output only the continuation text as HTML format (e.g. use <strong> for bold, <ul>/<li> for lists, <p> for paragraphs), no markdown, no explanations.",
-        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
-        temperature: 0.7,
-        topK: 40,
-      });
-      const result: string = await session.prompt(
-        `Continue this text naturally:\n\n${context}`
-      );
-      session.destroy();
+      const systemPrompt = "You are a helpful writing assistant. Continue the user's text naturally and fluently in the same language and style. Output only the continuation text as HTML format (e.g. use <strong> for bold, <ul>/<li> for lists, <p> for paragraphs), no markdown, no explanations.";
+      const promptText = `${systemPrompt}\n\nContinue this text naturally:\n\n${context}`;
+      const result = await safePromptAI(promptText, 35000);
       setGeneratedText(result.trim());
       setPhase("preview");
       try {
@@ -74,16 +67,9 @@ export default function AiInlinePrompt({ editor, aiType, aiAvailable, t, onClose
       const lm = await getAIModel();
       if (!lm) throw new Error(t("springNoteAiErrorModel") || "AI 모델을 사용할 수 없습니다.");
       const context = getContext();
-      const session = await lm.create({
-        systemPrompt: "You are a helpful writing assistant embedded in a note editor. Respond concisely in the same language as the user's request. Output only the content to insert in HTML format (e.g. use <strong> for bold, <ul>/<li> for lists, <p> for paragraphs). Do not use Markdown, no explanations.",
-        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
-        temperature: 0.7,
-        topK: 40,
-      });
-      const result: string = await session.prompt(
-        context ? `Context:\n${context}\n\nRequest: ${prompt.trim()}` : prompt.trim()
-      );
-      session.destroy();
+      const systemPrompt = "You are a helpful writing assistant embedded in a note editor. Respond concisely in the same language as the user's request. Output only the content to insert in HTML format (e.g. use <strong> for bold, <ul>/<li> for lists, <p> for paragraphs). Do not use Markdown, no explanations.";
+      const promptText = `${systemPrompt}\n\n${context ? `Context:\n${context}\n\nRequest: ${prompt.trim()}` : prompt.trim()}`;
+      const result = await safePromptAI(promptText, 35000);
       setGeneratedText(result.trim());
       setPhase("preview");
       try {

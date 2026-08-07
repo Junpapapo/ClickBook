@@ -30,6 +30,9 @@ export async function getAIModel() {
     if (!lm && typeof glob.LanguageModel !== "undefined") {
       lm = glob.LanguageModel;
     }
+    if (!lm && glob.ai && typeof glob.ai.create === "function") {
+      lm = glob.ai;
+    }
     if (!lm || typeof lm.create !== "function") return null;
     return lm;
   } catch {
@@ -60,6 +63,109 @@ export async function preloadAIModel(): Promise<void> {
   }
 }
 
+let sharedAISession: any = null;
+let sharedAISessionPromise: Promise<any> | null = null;
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  onLateResult?: (result: T) => void
+): Promise<T> {
+  let isTimedOut = false;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    setTimeout(() => {
+      isTimedOut = true;
+      reject(new Error("Timeout"));
+    }, ms);
+  });
+
+  return Promise.race([
+    promise.then((res) => {
+      if (isTimedOut && onLateResult) {
+        try {
+          onLateResult(res);
+        } catch { /* ignore */ }
+      }
+      return res;
+    }),
+    timeoutPromise,
+  ]);
+}
+
+export async function getSharedAISession(opts?: any, timeoutMs = 35000): Promise<any> {
+  if (sharedAISession) {
+    return sharedAISession;
+  }
+  if (sharedAISessionPromise) {
+    try {
+      return await sharedAISessionPromise;
+    } catch {
+      sharedAISessionPromise = null;
+    }
+  }
+
+  const lm = await getAIModel();
+  if (!lm || typeof lm.create !== "function") {
+    throw new Error("AI LanguageModel API is unavailable");
+  }
+
+  const defaultOpts = {
+    expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
+    temperature: 0.2,
+    topK: 3,
+    ...opts,
+  };
+
+  sharedAISessionPromise = withTimeout(
+    (lm.create as (o: unknown) => Promise<any>)(defaultOpts),
+    timeoutMs,
+    (lateSession) => {
+      // 타임아웃 초과 후 뒤늦게 생성이 완료된 세션은 즉시 destroy하여 메모리 방치 예방
+      console.warn("[AI Session] Destroying session that completed after timeout.");
+      if (lateSession && typeof lateSession.destroy === "function") {
+        try { lateSession.destroy(); } catch {}
+      }
+    }
+  ).then((sess) => {
+    sharedAISession = sess;
+    sharedAISessionPromise = null;
+    return sess;
+  }).catch((err) => {
+    sharedAISessionPromise = null;
+    throw err;
+  });
+
+  return await sharedAISessionPromise;
+}
+
+export function resetSharedAISession(): void {
+  if (sharedAISession) {
+    try {
+      if (typeof sharedAISession.destroy === "function") {
+        sharedAISession.destroy();
+      }
+    } catch { /* ignore */ }
+    sharedAISession = null;
+  }
+  sharedAISessionPromise = null;
+}
+
+export async function safePromptAI(
+  promptText: string,
+  timeoutMs = 35000,
+  sessionOpts?: any
+): Promise<string> {
+  try {
+    const session = await getSharedAISession(sessionOpts, timeoutMs);
+    return await withTimeout(session.prompt(promptText), timeoutMs);
+  } catch (firstErr) {
+    console.warn("[AI Session SafePrompt] First attempt failed. Resetting session and retrying...", firstErr);
+    resetSharedAISession();
+    const session = await getSharedAISession(sessionOpts, timeoutMs);
+    return await withTimeout(session.prompt(promptText), timeoutMs);
+  }
+}
+
 export async function verifyAISession(): Promise<boolean> {
   try {
     const lm = await getAIModel();
@@ -70,14 +176,14 @@ export async function verifyAISession(): Promise<boolean> {
         systemPrompt: "Reply with OK only.",
         expectedOutputs: [{ type: "text", languages: ["en", "ja"] }]
       }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 35000)),
     ]);
 
     const response = await Promise.race([
       session.prompt("ping"),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000)),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 35000)),
     ]);
-    session.destroy();
+    try { session.destroy(); } catch { /* ignore */ }
 
     return !!response && response.trim().length > 0;
   } catch {
@@ -122,22 +228,9 @@ export async function classifyWithNano(
   title: string,
   existingFolders?: Array<{ id: string; name: string; nameJa?: string; nameKo?: string }>
 ): Promise<string | null> {
-  let session: any = null;
   try {
     const aiAvailable = await isAIAvailable();
     if (!aiAvailable) return null;
-
-    const lm = await getAIModel();
-    if (!lm) return null;
-
-    session = await Promise.race([
-      (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
-        temperature: 0.1,
-        topK: 3
-      }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
-    ]);
 
     const folderNames = existingFolders ? existingFolders.map((f) => f.nameKo || f.name) : [];
     const folderListStr = folderNames.length > 0 ? folderNames.join(", ") : CATEGORY_IDS.join(", ");
@@ -151,10 +244,7 @@ Respond with only the category name from the list, nothing else. Do not add punc
 URL: ${url}
 Title: ${title}`;
 
-    const response: string = await Promise.race([
-      session.prompt(promptText),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-    ]);
+    const response = await safePromptAI(promptText, 35000);
     const trimmed = response.trim();
     const trimmedLower = trimmed.toLowerCase();
 
@@ -212,12 +302,6 @@ Title: ${title}`;
       chrome.storage.local.set({ clickbook_ai_error: `classifyWithNano_error: ${String(err)}` });
     } catch (_) {}
     return null;
-  } finally {
-    if (session && typeof session.destroy === "function") {
-      try {
-        session.destroy();
-      } catch { /* ignore */ }
-    }
   }
 }
 
@@ -230,30 +314,13 @@ export async function expandSearchQuery(query: string): Promise<string[]> {
     return [query];
   }
 
-  let session: any = null;
   try {
-    const lm = await getAIModel();
-    if (!lm) return [query];
-
-    session = await Promise.race([
-      (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
-        temperature: 0.1,
-        topK: 3
-      }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-    ]);
-
     const promptText = `System: You are a search assistant. Given a user's natural language query, extract 5-8 core keywords, synonyms, and related terms in both English and the user's language. 
 Output ONLY a JSON array of strings. No markdown, no conversational text.
 
 User query: "${query}"`;
 
-    const response: string = await Promise.race([
-      session.prompt(promptText),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-    ]);
-
+    const response = await safePromptAI(promptText, 35000);
     const jsonMatch = response.match(/\[[\s\S]*?\]/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -264,12 +331,6 @@ User query: "${query}"`;
     return [query];
   } catch (err) {
     return [query];
-  } finally {
-    if (session && typeof session.destroy === "function") {
-      try {
-        session.destroy();
-      } catch { /* ignore */ }
-    }
   }
 }
 
@@ -282,20 +343,7 @@ export async function recommendSites(keyword: string, count = 6): Promise<Array<
     return [];
   }
 
-  let session: any = null;
   try {
-    const lm = await getAIModel();
-    if (!lm) return [];
-
-    session = await Promise.race([
-      (lm.create as (opts?: unknown) => Promise<{ prompt: (s: string) => Promise<string>; destroy: () => void }>)({
-        expectedOutputs: [{ type: "text", languages: ["en", "ja"] }],
-        temperature: 0.1,
-        topK: 3
-      }),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-    ]);
-
     const promptText = `System: You are a helpful assistant. Your task is to recommend top websites for a given keyword.
 You MUST output ONLY a valid JSON array of objects. Each object must have "title" and "url" keys.
 Do not include any explanations, markdown code blocks, or conversational text.
@@ -304,11 +352,7 @@ Task: Provide exactly ${count} popular websites for the keyword "${keyword}".
 Output format: [{"title": "...", "url": "..."}]
 Output:`;
 
-    const response: string = await Promise.race([
-      session.prompt(promptText),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 10000))
-    ]);
-
+    const response = await safePromptAI(promptText, 35000);
     if (!response || !response.trim()) return [];
 
     let jsonStr = response.trim();
@@ -335,12 +379,6 @@ Output:`;
     return [];
   } catch (err) {
     return [];
-  } finally {
-    if (session && typeof session.destroy === "function") {
-      try {
-        session.destroy();
-      } catch { /* ignore */ }
-    }
   }
 }
 
@@ -463,17 +501,7 @@ ${context}
 
 Memo draft:`;
 
-    const session = await (lm.create as any)({
-      systemPrompt: systemPrompt,
-      expectedOutputs: [{ type: "text", languages: ["en", "ja"] }]
-    });
-
-    const response = await Promise.race([
-      session.prompt(prompt),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000)),
-    ]);
-    session.destroy();
-
+    const response = await safePromptAI(`${systemPrompt}\n\n${prompt}`, 35000);
     const draft = response?.trim();
     if (!draft || draft.length < 10) return { draft: fallback, aiUsed: false };
 
@@ -563,17 +591,7 @@ ${originalMemo}
 Enhanced Memo:`;
     }
 
-    const session = await (lm.create as any)({
-      systemPrompt: systemPrompt,
-      expectedOutputs: [{ type: "text", languages: ["en", "ja"] }]
-    });
-
-    const response = await Promise.race([
-      session.prompt(prompt),
-      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000)),
-    ]);
-    session.destroy();
-
+    const response = await safePromptAI(`${systemPrompt}\n\n${prompt}`, 35000);
     const draft = response?.trim();
     if (!draft || draft.length < 5) return { draft: originalMemo, aiUsed: false };
 
@@ -716,12 +734,7 @@ const AI_REORGANIZE_CATEGORIES = new Set([
   "science", "sports", "travel", "other",
 ]);
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms))
-  ]);
-}
+
 
 export async function reorganizeWithAI(
   bookmarks: Bookmark[],

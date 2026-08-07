@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import Popup from "./Popup";
 import { LanguageProvider } from "@/shared/LanguageContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import "@/shared/initImeGuard";
 import "../styles/global.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

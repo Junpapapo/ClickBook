@@ -12,12 +12,27 @@ import { getHexColorByTheme } from "./mindmap-utils";
 // ──────────────────────────────────────────────────
 // 헬퍼: 타임아웃 래퍼
 // ──────────────────────────────────────────────────
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  onLateResult?: (result: T) => void
+): Promise<T> {
+  let isTimedOut = false;
+  const timeoutPromise = new Promise<T>((_, reject) =>
+    setTimeout(() => {
+      isTimedOut = true;
+      reject(new Error("AI_TIMEOUT"));
+    }, ms)
+  );
+
   return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error("AI_TIMEOUT")), ms)
-    ),
+    promise.then((res) => {
+      if (isTimedOut && onLateResult) {
+        try { onLateResult(res); } catch {}
+      }
+      return res;
+    }),
+    timeoutPromise,
   ]);
 }
 
@@ -57,7 +72,12 @@ async function createSession(systemPrompt: string): Promise<any> {
       temperature: 0.7,
       topK: 40,
     }),
-    15000
+    15000,
+    (lateSession) => {
+      if (lateSession && typeof lateSession.destroy === "function") {
+        try { lateSession.destroy(); } catch {}
+      }
+    }
   );
   return session;
 }

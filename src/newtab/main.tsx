@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import "@/shared/initImeGuard";
 import "../styles/global.css";
 
 // Check if we should use ClickBook as the new tab page.
