@@ -65,7 +65,7 @@ export async function fetchWikiRanking(langCode: string = "ko", period: string =
     const res = await fetch(url);
     if (!res.ok) throw new Error("Wiki API error");
     const data = await res.json();
-    return data.items[0].articles as any[];
+    return (data?.items?.[0]?.articles as any[]) || [];
   };
 
   try {
@@ -79,7 +79,7 @@ export async function fetchWikiRanking(langCode: string = "ko", period: string =
       const res = await fetch(url);
       if (!res.ok) throw new Error("Wiki API error");
       const data = await res.json();
-      articles = data.items[0].articles;
+      articles = data?.items?.[0]?.articles || [];
     } else {
       try {
         articles = await fetchForDate(1); // Try yesterday

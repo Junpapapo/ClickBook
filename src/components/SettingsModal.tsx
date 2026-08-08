@@ -586,16 +586,7 @@ export default function SettingsModal({
           </div>
 
           {/* フッター */}
-          <div className="px-5 py-4 border-t border-gray-200 dark:border-surface-700 flex justify-between items-center gap-2">
-            <a
-              href="https://nexusforce.cloud/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 border border-gray-300 dark:border-surface-600 rounded-full text-[10px] tracking-widest text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-surface-700 transition-colors"
-              style={{ textShadow: "-1px 0 0 rgba(0, 255, 255, 0.7), 1px 0 0 rgba(255, 100, 0, 0.7)" }}
-            >
-              POWERED BY NEXUSFORCE
-            </a>
+          <div className="px-5 py-4 border-t border-gray-200 dark:border-surface-700 flex justify-end items-center gap-2">
             <div className="flex gap-2">
               <button
                 onClick={onClose}

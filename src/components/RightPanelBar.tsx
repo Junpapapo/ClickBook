@@ -1,12 +1,13 @@
-import { Trophy, Pencil, Globe2, Info } from "lucide-react";
+import { Trophy, Pencil, Globe2, Info, HelpCircle } from "lucide-react";
 import RankingPanel from "@/components/RankingPanel";
 import BookmarkEditPanel from "@/components/BookmarkEditPanel";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
 import BookmarkInfoPanel from "@/components/BookmarkInfoPanel";
+import GuidePanel from "@/components/GuidePanel";
 import type { Bookmark, Folder, BookmarkMemo } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 
-export type RightPanelId = "ranking" | "edit" | "chrome" | "info";
+export type RightPanelId = "ranking" | "edit" | "chrome" | "info" | "guide";
 
 interface Props {
   activePanel: RightPanelId | null;
@@ -17,6 +18,7 @@ interface Props {
   onRefresh: () => void;
   infoBookmark?: Bookmark | null;
   infoMemo?: BookmarkMemo;
+  onOpenCommandPalette?: () => void;
 }
 
 export default function RightPanelBar({
@@ -28,8 +30,10 @@ export default function RightPanelBar({
   onRefresh,
   infoBookmark,
   infoMemo,
+  onOpenCommandPalette,
 }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const isKo = lang === "ko";
   const RAIL_ITEMS: { id: RightPanelId; icon: React.ReactNode; label: string; activeClass: string }[] = [
     {
       id: "ranking",
@@ -55,6 +59,12 @@ export default function RightPanelBar({
       label: "Site Info", // Can add i18n later
       activeClass: "text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10",
     },
+    {
+      id: "guide",
+      icon: <HelpCircle size={16} />,
+      label: isKo ? "단축키 & 가이드" : "Guide & Hotkeys",
+      activeClass: "text-purple-400 bg-purple-50 dark:bg-purple-500/10",
+    },
   ];
   return (
     <div className="flex h-full shrink-0">
@@ -77,10 +87,13 @@ export default function RightPanelBar({
             />
           )}
           {activePanel === "chrome" && (
-            <ChromeBookmarkPanel onRefresh={onRefresh} onClose={onClose} fullHeight />
+            <ChromeBookmarkPanel onRefresh={onClose} onClose={onClose} fullHeight />
           )}
           {activePanel === "info" && (
             <BookmarkInfoPanel bookmark={infoBookmark || null} memo={infoMemo} folders={folders} onClose={onClose} onRefresh={onRefresh} />
+          )}
+          {activePanel === "guide" && (
+            <GuidePanel onClose={onClose} onOpenCommandPalette={onOpenCommandPalette} />
           )}
         </div>
       </div>
@@ -92,7 +105,7 @@ export default function RightPanelBar({
             key={item.id}
             onClick={() => onToggle(item.id)}
             title={item.label}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
               activePanel === item.id
                 ? item.activeClass
                 : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800"
@@ -105,3 +118,4 @@ export default function RightPanelBar({
     </div>
   );
 }
+

@@ -3,7 +3,7 @@ import { migratePageContents, runGarbageCollector } from "@/shared/storage";
 
 import { updateBadgeCount, checkTodoReminders } from "./services/todo-service";
 import { checkAndSetSecureTabIndicator, checkIsDomainSecure } from "./services/security-service";
-import { initializeTabCache, handleTabClosed, trackTabAccessed } from "./services/suspend-service";
+import { initializeTabCache, handleTabClosed, trackTabAccessed, setTabUrlCache, removeTabUrlCache } from "./services/suspend-service";
 import { runAutoTagViaPort, runAIReorganizeViaPort, runAIReorganizeOtherViaPort } from "./services/ai-port-service";
 import { saveActiveTab } from "./services/bookmark-sync-service";
 import { clipSelection } from "./services/clip-service";
@@ -137,14 +137,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // 크롬 탭 생성, 갱신, 삭제, 활성화 리스너
 chrome.tabs.onCreated.addListener(async (tab) => {
   if (tab.id && tab.url) {
-    try {
-      const res = await chrome.storage.session.get("tabUrls");
-      const tabMap = res.tabUrls || {};
-      tabMap[String(tab.id)] = tab.url;
-      await chrome.storage.session.set({ tabUrls: tabMap });
-    } catch (e) {
-      console.warn("Failed to update tab cache on create:", e);
-    }
+    setTabUrlCache(tab.id, tab.url);
   }
   if (tab.id && tab.active) {
     await trackTabAccessed(tab.id);
@@ -153,15 +146,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.url) {
-    try {
-      const res = await chrome.storage.session.get("tabUrls");
-      const tabMap = res.tabUrls || {};
-      tabMap[String(tabId)] = changeInfo.url;
-      await chrome.storage.session.set({ tabUrls: tabMap });
-    } catch (e) {
-      console.warn("Failed to update tab cache on update:", e);
-    }
-
+    setTabUrlCache(tabId, changeInfo.url);
     await checkAndSetSecureTabIndicator(tabId, changeInfo.url);
   }
   
@@ -182,23 +167,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   try {
-    const res = await chrome.storage.session.get("tabUrls");
-    const tabMap = res.tabUrls || {};
-    const closedUrl = tabMap[String(tabId)];
-
-    const accessRes = await chrome.storage.session.get("tabLastAccessed");
-    const lastAccessedMap = accessRes.tabLastAccessed || {};
-    if (lastAccessedMap[String(tabId)]) {
-      delete lastAccessedMap[String(tabId)];
-      await chrome.storage.session.set({ tabLastAccessed: lastAccessedMap });
+    const closedUrl = removeTabUrlCache(tabId);
+    if (closedUrl) {
+      await handleTabClosed(closedUrl);
     }
-
-    if (!closedUrl) return;
-
-    delete tabMap[String(tabId)];
-    await chrome.storage.session.set({ tabUrls: tabMap });
-
-    await handleTabClosed(closedUrl);
   } catch (e) {
     console.warn("Failed to handle tab remove:", e);
   }

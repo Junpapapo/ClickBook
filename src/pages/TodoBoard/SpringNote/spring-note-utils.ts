@@ -58,7 +58,7 @@ export function parseMarkdownTables(text: string): string {
   const resultLines: string[] = [];
 
   const buildHtmlTable = (headers: string[], rows: string[][]): string => {
-    let htmlTable = "<table><thead><tr>";
+    let htmlTable = '<div class="buddy-table-wrapper"><table><thead><tr>';
     headers.forEach(h => {
       htmlTable += `<th>${h}</th>`;
     });
@@ -70,27 +70,41 @@ export function parseMarkdownTables(text: string): string {
       });
       htmlTable += "</tr>";
     });
-    htmlTable += "</tbody></table>";
+    htmlTable += "</tbody></table></div>";
     return htmlTable;
   };
 
+  const isTableLine = (line: string) => {
+    const trimmed = line.trim();
+    return trimmed.includes("|") && (trimmed.startsWith("|") || trimmed.endsWith("|") || (trimmed.match(/\|/g) || []).length >= 2);
+  };
+
+  const isDelimiterLine = (line: string) => {
+    const trimmed = line.trim();
+    if (!trimmed.includes("|")) return false;
+    // 구분선은 -, |, :, 공백으로만 구성됨
+    return /^[|:\s-]+$/.test(trimmed) && trimmed.includes("-");
+  };
+
+  const extractCells = (line: string): string[] => {
+    let trimmed = line.trim();
+    if (trimmed.startsWith("|")) trimmed = trimmed.slice(1);
+    if (trimmed.endsWith("|")) trimmed = trimmed.slice(0, -1);
+    return trimmed.split("|").map(c => c.trim());
+  };
+
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.startsWith("|") && line.endsWith("|")) {
-      // 파이프 기호를 기준으로 셀 데이터 추출
-      const cells = line.split("|").slice(1, -1).map(c => c.trim());
+    const line = lines[i];
+    if (isTableLine(line)) {
+      const cells = extractCells(line);
       
       if (!inTable) {
-        // 다음 줄이 테이블 구분선(예: |---|---| 또는 |:---|---:|)인지 확인하여 헤더 결정
-        const nextLine = lines[i + 1] ? lines[i + 1].trim() : "";
-        const isDelimiter = nextLine.startsWith("|") && 
-                            nextLine.endsWith("|") && 
-                            /^[|:\s-]+$/.test(nextLine);
-        
-        if (isDelimiter) {
+        // 다음 줄이 테이블 구분선인지 체크
+        const nextLine = lines[i + 1] ? lines[i + 1] : "";
+        if (isDelimiterLine(nextLine)) {
           inTable = true;
           tableHeaders = cells;
-          i++; // 구분선 라인은 건너뜀
+          i++; // 구분선행 건너뜀
         } else {
           resultLines.push(lines[i]);
         }
@@ -117,16 +131,18 @@ export function parseMarkdownTables(text: string): string {
 
 // 공통 Markdown -> HTML 파서
 export function markdownToHtml(md: string): string {
-  // 1. 이미 블록 레벨 HTML 태그(단락, 리스트, 제목, 테이블 등)가 원본에 포함되어 있다면 중복 래핑 방지를 위해 즉시 반환
-  if (/<(p|ul|ol|li|h1|h2|h3|table|tr|td|th|div)[^>]*>/i.test(md)) {
-    return md;
+  if (!md) return "";
+
+  // 1. 마크다운 표(Table) 파싱 (이미 <table> 태그가 완벽히 들어있지 않은 경우 수행)
+  let html = md.includes("<table") ? md : parseMarkdownTables(md);
+
+  // 2. table 태그 가로 스크롤 & MD 표 래퍼 자동 감싸기
+  if (html.includes("<table") && !html.includes("buddy-table-wrapper")) {
+    html = html.replace(/(<table[\s\S]*?<\/table>)/gi, '<div class="buddy-table-wrapper">$1</div>');
   }
 
-  // 2. 마크다운 표(Table) 전처리 파싱
-  let html = parseMarkdownTables(md);
-
-  // 3. 인라인 마크다운 요소(링크, 볼드, 이탤릭, 인라인 코드) 치환
-  // Link: [text](url) -> <a href="url" target="_blank" rel="noopener noreferrer" class="spring-note-link">$1</a>
+  // 2. 인라인 마크다운 요소(링크, 볼드, 이탤릭, 인라인 코드) 치환
+  // Link: [text](url)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="spring-note-link">$1</a>');
   
   // Bold: **text** -> <strong>text</strong>
@@ -138,7 +154,7 @@ export function markdownToHtml(md: string): string {
   // Code: `code` -> <code>code</code>
   html = html.replace(/`(.*?)`/g, "<code>$1</code>");
 
-  // 4. 블록 단위 마크다운(리스트, 제목, 단락 래핑) 변환 진행
+  // 3. 블록 단위 마크다운(리스트, 제목) 변환
   const lines = html.split("\n");
   let inList = false;
   const processedLines = lines.map(line => {

@@ -151,6 +151,8 @@ const Indent = Extension.create({
   },
 });
 
+import SpringNoteExportModal from "./components/SpringNoteExportModal";
+
 export default function SpringNotePanel({
   taskId,
   onClose,
@@ -167,6 +169,7 @@ export default function SpringNotePanel({
   const [fontSize, setFontSize] = useState<number>(16);
   const [noteTitle, setNoteTitle] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // 슬래시 커맨드 + AI 상태
@@ -1088,6 +1091,7 @@ export default function SpringNotePanel({
         currentPageIndex={currentPageIndex}
         onChangePageIndex={setCurrentPageIndex}
         onToggleImagePopover={handleToggleImagePopover}
+        onOpenExport={() => setExportModalOpen(true)}
       />
 
       <div className="flex-grow flex w-full overflow-hidden relative">
@@ -1322,6 +1326,14 @@ export default function SpringNotePanel({
           </div>
         </div>
       )}
+
+      {/* 5. Export 2.0 내보내기 모달 */}
+      <SpringNoteExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        title={noteTitle}
+        content={editor?.getHTML() || ""}
+      />
     </div>
   );
 }

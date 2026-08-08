@@ -32,7 +32,8 @@ import {
   Link as LinkIcon,
   Check,
   ExternalLink,
-  StickyNote
+  StickyNote,
+  Share2
 } from "lucide-react";
 import type { SpringNoteToolbarProps } from "../spring-note-types";
 
@@ -59,6 +60,7 @@ export default function SpringNoteToolbar({
   currentPageIndex,
   onChangePageIndex,
   onToggleImagePopover,
+  onOpenExport,
 }: SpringNoteToolbarProps) {
   // 색상 토글 팝오버 상태
   const [showColorPopover, setShowColorPopover] = useState(false);
@@ -314,7 +316,7 @@ export default function SpringNoteToolbar({
           <button
             type="button"
             onClick={onToggleDrawer}
-            className={`flex items-center gap-1 px-2.5 h-[26px] text-xs font-bold rounded-lg border transition-all shrink-0 ${
+            className={`flex items-center gap-1 px-2.5 h-[26px] text-xs font-bold rounded-lg border transition-all shrink-0 cursor-pointer ${
               isDrawerOpen
                 ? isLightTheme
                   ? "bg-amber-500/20 border-amber-500/35 text-amber-900"
@@ -328,6 +330,23 @@ export default function SpringNoteToolbar({
             <FolderOpen size={12} />
             <span>Library</span>
           </button>
+
+          {/* Export Button */}
+          {onOpenExport && (
+            <button
+              type="button"
+              onClick={onOpenExport}
+              className={`flex items-center gap-1 px-2.5 h-[26px] text-xs font-bold rounded-lg border transition-all shrink-0 cursor-pointer ${
+                isLightTheme
+                  ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600 shadow-xs"
+                  : "bg-amber-600 text-white border-amber-700 hover:bg-amber-700 shadow-xs"
+              }`}
+              title="Export Note (Markdown / HTML / TXT / PDF)"
+            >
+              <Share2 size={12} />
+              <span>Export</span>
+            </button>
+          )}
 
           {/* 페이지 색인 탭 [ 1 | 2 | 3 | + | - ] */}
           <div className={`flex items-center h-[26px] py-0 px-0.5 rounded-lg border shrink-0 transition-colors duration-300 ${subPanelClass} max-w-[100px] xs:max-w-[150px] sm:max-w-[210px] md:max-w-[280px] overflow-hidden`}>

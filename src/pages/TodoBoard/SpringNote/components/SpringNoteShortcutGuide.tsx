@@ -44,20 +44,20 @@ export default function SpringNoteShortcutGuide({ onClose, lang = "ko" }: Props)
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900/95 dark:bg-surface-950/95 border border-white/10 dark:border-surface-800/80 w-full max-w-lg rounded-2xl shadow-2xl p-6 text-white animate-in zoom-in-95 duration-200 relative select-none max-h-[85vh] overflow-y-auto scrollbar-thin">
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-surface-950 border border-slate-200 dark:border-surface-800/80 w-full max-w-lg rounded-2xl shadow-2xl p-6 text-slate-800 dark:text-white animate-in zoom-in-95 duration-200 relative select-none max-h-[85vh] overflow-y-auto scrollbar-thin">
         
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b border-white/10 mb-5 shrink-0">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/10 mb-5 shrink-0">
           <div className="flex items-center gap-2 text-amber-500">
             <Keyboard size={18} />
-            <h3 className="text-sm font-black tracking-wide uppercase text-white">
+            <h3 className="text-sm font-black tracking-wide uppercase text-slate-900 dark:text-white">
               {isKo ? "스프링노트 단축키 & 기능 가이드" : "Spring Note Shortcuts & Guide"}
             </h3>
           </div>
           <button 
             onClick={onClose} 
-            className="p-1 hover:bg-white/10 rounded-lg transition-all active:scale-90 text-gray-400 hover:text-white cursor-pointer"
+            className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-all active:scale-90 text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
           >
             <X size={16} />
           </button>
@@ -66,22 +66,22 @@ export default function SpringNoteShortcutGuide({ onClose, lang = "ko" }: Props)
         <div className="space-y-6">
           {/* Section 1: Shortcuts */}
           <div>
-            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Type size={12} className="text-indigo-400" />
+            <h4 className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Type size={12} className="text-indigo-500 dark:text-indigo-400" />
               {isKo ? "텍스트 편집 단축키" : "Editor Hotkeys"}
             </h4>
-            <div className="space-y-3 bg-slate-950/40 rounded-xl p-3.5 border border-white/5">
+            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/40 rounded-xl p-3.5 border border-slate-200/80 dark:border-white/5">
               {shortcuts.map((s, idx) => (
                 <div key={idx} className="flex items-start justify-between gap-4 py-0.5">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-100">{s.label}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">{s.desc}</p>
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{s.label}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{s.desc}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0 mt-0.5">
                     {s.keys.map((k, kIdx) => (
                       <React.Fragment key={kIdx}>
-                        {kIdx > 0 && <span className="text-[9px] text-slate-600 font-bold">+</span>}
-                        <kbd className="px-1.5 py-0.5 text-[9px] font-black font-mono bg-slate-800 border border-slate-700/80 rounded shadow-sm text-amber-400">
+                        {kIdx > 0 && <span className="text-[9px] text-slate-400 dark:text-slate-600 font-bold">+</span>}
+                        <kbd className="px-1.5 py-0.5 text-[9px] font-black font-mono bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 rounded shadow-xs text-amber-600 dark:text-amber-400">
                           {k}
                         </kbd>
                       </React.Fragment>
@@ -94,19 +94,19 @@ export default function SpringNoteShortcutGuide({ onClose, lang = "ko" }: Props)
 
           {/* Section 2: Features */}
           <div>
-            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Sparkles size={12} className="text-purple-400" />
+            <h4 className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Sparkles size={12} className="text-purple-500 dark:text-purple-400" />
               {isKo ? "스마트 필기 기능" : "Core Writing Features"}
             </h4>
-            <div className="space-y-3.5 bg-slate-950/40 rounded-xl p-3.5 border border-white/5">
+            <div className="space-y-3.5 bg-slate-50 dark:bg-slate-950/40 rounded-xl p-3.5 border border-slate-200/80 dark:border-white/5">
               {features.map((f, idx) => (
                 <div key={idx} className="flex gap-3">
-                  <div className="p-1.5 bg-white/5 rounded-lg shrink-0 h-fit mt-0.5">
+                  <div className="p-1.5 bg-purple-500/10 dark:bg-white/5 rounded-lg shrink-0 h-fit mt-0.5">
                     {f.icon}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-100">{f.title}</p>
-                    <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">{f.desc}</p>
+                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{f.title}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{f.desc}</p>
                   </div>
                 </div>
               ))}
@@ -115,8 +115,8 @@ export default function SpringNoteShortcutGuide({ onClose, lang = "ko" }: Props)
         </div>
 
         {/* Footer info */}
-        <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-center">
-          <p className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase text-center">
+        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-white/5 flex items-center justify-center">
+          <p className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold tracking-wider uppercase text-center">
             {isKo 
               ? "💡 마우스 없이 키보드와 드래그만으로 풍부한 아날로그 필기를 경험하세요." 
               : "💡 Experience rich analog styling using keyboard hotkeys and simple drag-drops."}

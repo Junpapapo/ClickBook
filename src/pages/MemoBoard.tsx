@@ -377,6 +377,9 @@ function MemoCard({
   );
 }
 
+const COLS_STORAGE_KEY = "clickbook_memo_cols";
+type ColumnOption = "auto" | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
 // ── MemoBoard（メインエクスポート） ───────────────────────
 
 interface Props {
@@ -386,15 +389,29 @@ interface Props {
 }
 
 export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const isKo = lang === "ko";
   const [showNew, setShowNew] = useState(false);
   const [cardSize, setCardSize] = useState<CardSize>(() => {
     return (localStorage.getItem(SIZE_STORAGE_KEY) as CardSize | null) ?? "m";
   });
+  const [customCols, setCustomCols] = useState<ColumnOption>(() => {
+    const saved = localStorage.getItem(COLS_STORAGE_KEY);
+    if (!saved || saved === "auto") return "auto";
+    const num = parseInt(saved, 10);
+    return isNaN(num) ? "auto" : (num as ColumnOption);
+  });
 
   function handleSizeChange(s: CardSize) {
     setCardSize(s);
+    setCustomCols("auto");
     localStorage.setItem(SIZE_STORAGE_KEY, s);
+    localStorage.setItem(COLS_STORAGE_KEY, "auto");
+  }
+
+  function handleColsChange(c: ColumnOption) {
+    setCustomCols(c);
+    localStorage.setItem(COLS_STORAGE_KEY, String(c));
   }
 
   const memoList = Object.values(memos).sort((a, b) => b.updatedAt - a.updatedAt);
@@ -410,7 +427,7 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
         </p>
         <button
           onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors shadow-sm"
         >
           <Plus size={13} />
           {t("addMemo")}
@@ -420,13 +437,13 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3 mb-2">
+    <div className="flex flex-col gap-6 p-6">
+      <div className="flex items-center gap-3 mb-2 flex-wrap select-none">
         <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
           <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30">
             <StickyNote size={16} strokeWidth={3} />
           </span>
-          <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 text-transparent bg-clip-text">
+          <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 text-transparent bg-clip-text font-black">
             MEMO
           </span>
         </h1>
@@ -434,33 +451,62 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
           {memoList.length}
         </span>
 
-        {/* サイズ切り替え */}
-        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-surface-800 rounded-lg p-0.5">
+        {/* 반응형 프리셋 카드 크기 (S / M / L) */}
+        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-surface-800 rounded-lg p-0.5 ml-2 border border-gray-200/80 dark:border-surface-700">
           {(["s", "m", "l"] as CardSize[]).map((s) => (
             <button
               key={s}
               onClick={() => handleSizeChange(s)}
-              className={`text-[10px] font-semibold w-6 h-6 rounded-md transition-all ${
-                cardSize === s
+              className={`text-[10px] font-bold w-6 h-6 rounded-md transition-all cursor-pointer ${
+                cardSize === s && customCols === "auto"
                   ? "bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-300 shadow-sm"
                   : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
               }`}
+              title={`Preset Size ${SIZE_LABEL[s]}`}
             >
               {SIZE_LABEL[s]}
             </button>
           ))}
         </div>
 
+        {/* 한 열당 메모 개수 지정 옵션 피커 (2 ~ 8개 / Auto) */}
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-surface-800 rounded-lg p-0.5 text-[11px] border border-gray-200/80 dark:border-surface-700">
+          <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-1.5 select-none">
+            {isKo ? "열 개수" : "Cols"}:
+          </span>
+          {(["auto", 2, 3, 4, 5, 6, 7, 8] as ColumnOption[]).map((c) => (
+            <button
+              key={c}
+              onClick={() => handleColsChange(c)}
+              className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                customCols === c
+                  ? "bg-indigo-600 text-white shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-surface-700"
+              }`}
+              title={c === "auto" ? "Responsive Auto Layout" : `${c} Columns per Row`}
+            >
+              {c === "auto" ? (isKo ? "자동" : "Auto") : c}
+            </button>
+          ))}
+        </div>
+
         <button
           onClick={() => setShowNew(true)}
-          className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors"
+          className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
         >
-          <Plus size={12} />
+          <Plus size={14} />
           {t("addMemo")}
         </button>
       </div>
 
-      <div className={`grid ${SIZE_GRID[cardSize]} gap-4 items-start`}>
+      <div
+        className={`grid gap-4 items-start ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
+        style={
+          customCols !== "auto"
+            ? { gridTemplateColumns: `repeat(${customCols}, minmax(0, 1fr))` }
+            : undefined
+        }
+      >
         {/* 新規入力カード（先頭に表示） */}
         {showNew && (
           <NewMemoCard

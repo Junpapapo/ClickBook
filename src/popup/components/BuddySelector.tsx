@@ -166,13 +166,13 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
       <style dangerouslySetInnerHTML={{ __html: goldAnimStyle }} />
 
       {/* 탭 카테고리 렌더링 */}
-      <div className="flex items-center justify-between px-0.5 bg-slate-900/60 p-1 rounded-xl border border-slate-800/80 mx-1 gap-1">
+      <div className="flex items-center justify-between px-0.5 bg-slate-100 dark:bg-slate-900/60 p-1 rounded-xl border border-slate-200 dark:border-slate-800/80 mx-1 gap-1">
         {/* 왼쪽 화살표 사각형 버튼 */}
         <button
           type="button"
           disabled={disabled || currentPage === 0}
           onClick={handlePrev}
-          className="px-4 py-1.5 rounded-lg text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed bg-slate-950/50 hover:bg-slate-950/90 border border-slate-800/40 transition-colors flex items-center justify-center shrink-0"
+          className="px-4 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed bg-white dark:bg-slate-950/50 hover:bg-slate-200/80 dark:hover:bg-slate-950/90 border border-slate-200 dark:border-slate-800/40 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
           title="Previous Page"
         >
           <ChevronLeft size={14} strokeWidth={3} />
@@ -186,18 +186,18 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
               type="button"
               disabled={disabled}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-1 rounded-lg text-[9px] font-extrabold tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-1 ${
+              className={`flex-1 py-1 rounded-lg text-[9px] font-extrabold tracking-wide uppercase transition-all duration-200 flex items-center justify-center gap-1 cursor-pointer ${
                 isActive
                   ? tab === "premium"
-                    ? "bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+                    ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/40 shadow-xs"
                     : tab === "hidden"
-                    ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 shadow-[0_0_8px_rgba(99,102,241,0.2)]"
-                    : "bg-slate-800 text-slate-100 border border-slate-700/80 shadow-[0_2px_4px_rgba(0,0,0,0.15)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+                    ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/40 shadow-xs"
+                    : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700/80 shadow-xs font-black"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/40"
               }`}
             >
-              {tab === "premium" && <Crown size={9} className={isActive ? "text-amber-400" : "text-slate-400"} />}
-              {tab === "hidden" && <Sparkles size={9} className={isActive ? "text-indigo-400" : "text-slate-400"} />}
+              {tab === "premium" && <Crown size={9} className={isActive ? "text-amber-500 dark:text-amber-400" : "text-slate-400"} />}
+              {tab === "hidden" && <Sparkles size={9} className={isActive ? "text-indigo-500 dark:text-indigo-400" : "text-slate-400"} />}
               {tab}
             </button>
           );
@@ -208,7 +208,7 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
           type="button"
           disabled={disabled || currentPage === totalPages - 1 || totalPages <= 1}
           onClick={handleNext}
-          className="px-4 py-1.5 rounded-lg text-slate-400 hover:text-white disabled:opacity-20 disabled:cursor-not-allowed bg-slate-950/50 hover:bg-slate-950/90 border border-slate-800/40 transition-colors flex items-center justify-center shrink-0"
+          className="px-4 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 disabled:cursor-not-allowed bg-white dark:bg-slate-950/50 hover:bg-slate-200/80 dark:hover:bg-slate-950/90 border border-slate-200 dark:border-slate-800/40 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
           title="Next Page"
         >
           <ChevronRight size={14} strokeWidth={3} />
@@ -227,15 +227,15 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
 
               // 등급 및 상태별 스타일 분기
               const getBorderColor = () => {
-                if (!unlocked) return "border-slate-800 opacity-50 cursor-not-allowed";
+                if (!unlocked) return "border-slate-200 dark:border-slate-800 opacity-50 cursor-not-allowed bg-slate-100 dark:bg-slate-900";
                 if (isSelected) {
-                  if (activeTab === "premium") return "premium-glow-selected border-amber-400 bg-gradient-to-tr from-amber-950/40 via-yellow-950/30 to-amber-950/40";
-                  if (activeTab === "hidden") return "special-glow-selected border-pink-400 bg-gradient-to-tr from-indigo-950/40 via-purple-950/30 to-pink-950/40";
-                  return "border-slate-400 bg-slate-800/60 shadow-[0_0_6px_rgba(255,255,255,0.15)]";
+                  if (activeTab === "premium") return "premium-glow-selected border-amber-400 bg-amber-500/10 dark:bg-gradient-to-tr dark:from-amber-950/40 dark:via-yellow-950/30 dark:to-amber-950/40";
+                  if (activeTab === "hidden") return "special-glow-selected border-pink-400 bg-pink-500/10 dark:bg-gradient-to-tr dark:from-indigo-950/40 dark:via-purple-950/30 dark:to-pink-950/40";
+                  return "border-purple-500 bg-purple-50 dark:bg-slate-800/60 dark:border-slate-400 shadow-xs font-bold";
                 }
-                if (activeTab === "premium") return "border-amber-600/30 hover:border-amber-500 hover:bg-slate-800 bg-gradient-to-tr from-amber-950/15 via-yellow-950/10 to-amber-950/15";
-                if (activeTab === "hidden") return "border-purple-900/30 hover:border-pink-500/50 bg-gradient-to-tr from-indigo-950/20 via-purple-950/10 to-pink-950/20";
-                return "border-slate-800 hover:bg-slate-800";
+                if (activeTab === "premium") return "border-amber-500/30 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-slate-800 bg-amber-500/5 dark:bg-gradient-to-tr dark:from-amber-950/15 dark:via-yellow-950/10 dark:to-amber-950/15";
+                if (activeTab === "hidden") return "border-indigo-500/30 hover:border-pink-500/50 hover:bg-indigo-50 dark:hover:bg-slate-800 bg-indigo-500/5 dark:bg-gradient-to-tr dark:from-indigo-950/20 dark:via-purple-950/10 dark:to-pink-950/20";
+                return "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-850";
               };
 
               return (
@@ -244,7 +244,7 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
                   type="button"
                   disabled={disabled || !unlocked}
                   onClick={() => unlocked && onSelect(b.id, activeTab)}
-                  className={`flex items-center justify-center p-0.5 rounded-xl bg-slate-850 border transition-all aspect-square relative group !overflow-visible ${getBorderColor()}`}
+                  className={`flex items-center justify-center p-0.5 rounded-xl border transition-all aspect-square relative group !overflow-visible cursor-pointer ${getBorderColor()}`}
                 >
                   {unlocked ? (
                     <img
@@ -254,25 +254,25 @@ export const BuddySelector: React.FC<BuddySelectorProps> = ({
                     />
                   ) : (
                     /* 잠긴 캐릭터 물음표 */
-                    <HelpCircle size={18} className="text-slate-600" />
+                    <HelpCircle size={18} className="text-slate-400 dark:text-slate-600" />
                   )}
 
                   {/* 프리미엄 뱃지 오버레이 */}
                   {unlocked && activeTab === "premium" && (
-                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 flex items-center justify-center rounded-full bg-amber-500 text-slate-950 shadow-[0_1px_4px_rgba(0,0,0,0.45)] border border-amber-300 z-10">
+                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 flex items-center justify-center rounded-full bg-amber-500 text-slate-950 shadow-xs border border-amber-300 z-10">
                       <Crown size={9} className="fill-slate-950 stroke-[2]" />
                     </span>
                   )}
 
                   {/* 히든 반짝이 뱃지 오버레이 */}
                   {unlocked && activeTab === "hidden" && (
-                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_1px_4px_rgba(236,72,153,0.5)] border border-pink-300 z-10">
+                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xs border border-pink-300 z-10">
                       <Sparkles size={8} className="text-white fill-white" />
                     </span>
                   )}
 
-                  {/* 세련된 커스텀 하단 툴팁 (마우스 오버시 표시되며, 브라우저 기본 title과 겹치지 않게 조절) */}
-                  <span className="absolute top-full mt-0.5 bg-slate-950/95 border border-slate-700 text-[8px] text-slate-100 px-1.5 py-0.5 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[110] shadow-md">
+                  {/* 세련된 커스텀 하단 툴팁 */}
+                  <span className="absolute top-full mt-0.5 bg-slate-900 text-white dark:bg-slate-950/95 dark:text-slate-100 border border-slate-700 text-[8px] px-1.5 py-0.5 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[110]">
                     {unlocked ? b.name : "🔒 Locked (Level Up)"}
                   </span>
                 </button>

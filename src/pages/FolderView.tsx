@@ -111,19 +111,23 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
     setRenamingFolderId(null);
   }
 
-  // 直接の子フォルダー
-  const childFolders = folders
-    .filter((f) => f.parentId === folderId)
-    .sort((a, b) => a.order - b.order);
+  // 직접 자식 폴더 목록
+  const childFolders = useMemo(() => {
+    return folders
+      .filter((f) => f.parentId === folderId)
+      .sort((a, b) => a.order - b.order);
+  }, [folders, folderId]);
 
-  // 移動先候補: 現在のフォルダー以外の全フォルダー (表示順)
-  const otherFolders = folders
-    .filter((f) => f.id !== folderId)
-    .sort((a, b) => {
-      if (a.id === "other") return -1;
-      if (b.id === "other") return 1;
-      return a.order - b.order;
-    });
+  // 이동 대상 후보 폴더 목록
+  const otherFolders = useMemo(() => {
+    return folders
+      .filter((f) => f.id !== folderId)
+      .sort((a, b) => {
+        if (a.id === "other") return -1;
+        if (b.id === "other") return 1;
+        return a.order - b.order;
+      });
+  }, [folders, folderId]);
 
   const { folderCumulativeCounts } = useMemo(() => {
     const counts = bookmarks.reduce<Record<string, number>>((acc, b) => {
@@ -146,7 +150,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
 
   const getCount = (id: string) => folderCumulativeCounts[id] ?? 0;
 
-  // 子孫フォルダーID一覧を BFS で列挙（folderId 自身は含まない）
+  // 자손 폴더 ID 목록 (BFS)
   const descendantFolderIds = useMemo(() => {
     const ids = new Set<string>();
     const queue = [folderId];
@@ -162,19 +166,24 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
     return ids;
   }, [folders, folderId]);
 
-  const sortFn = (a: import("@/shared/types").Bookmark, b: import("@/shared/types").Bookmark) =>
-    sortKey === "title" ? a.title.localeCompare(b.title, "ja")
-    : sortKey === "visitCount" ? b.visitCount - a.visitCount
-    : b.savedAt - a.savedAt;
+  const jaCollator = useMemo(() => new Intl.Collator("ja"), []);
 
-  const directBookmarks = bookmarks
-    .filter((b) => b.folderId === folderId)
-    .sort(sortFn);
+  const { directBookmarks, descendantBookmarks } = useMemo(() => {
+    const sortFn = (a: Bookmark, b: Bookmark) =>
+      sortKey === "title" ? jaCollator.compare(a.title, b.title)
+      : sortKey === "visitCount" ? b.visitCount - a.visitCount
+      : b.savedAt - a.savedAt;
 
-  // 子孫フォルダーに属するブックマーク（明示的に階層から算出）
-  const descendantBookmarks = bookmarks
-    .filter((b) => descendantFolderIds.has(b.folderId))
-    .sort(sortFn);
+    const direct = bookmarks
+      .filter((b) => b.folderId === folderId)
+      .sort(sortFn);
+
+    const descendant = bookmarks
+      .filter((b) => descendantFolderIds.has(b.folderId))
+      .sort(sortFn);
+
+    return { directBookmarks: direct, descendantBookmarks: descendant };
+  }, [bookmarks, folderId, descendantFolderIds, sortKey, jaCollator]);
 
   async function handleDelete(id: string) {
     const response = (await chrome.runtime.sendMessage({

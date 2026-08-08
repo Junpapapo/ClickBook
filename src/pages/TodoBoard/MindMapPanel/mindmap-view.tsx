@@ -30,6 +30,7 @@ import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import RenameModal from "./components/RenameModal";
 import ShortcutGuide from "./components/ShortcutGuide";
 import NodeMemoSidePanel from "./components/NodeMemoSidePanel";
+import MindMapExportModal from "./components/MindMapExportModal";
 
 const nodeTypes = {
   mindmapNode: MindMapNode
@@ -137,7 +138,6 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
     addBookmarkNode,
     handleAiAction,
     importMapFromJson,
-    exportMapToJson,
     deleteMapFile,
     renameMapFile,
     updateNodeIcon,
@@ -164,6 +164,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
 
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [isShortcutGuideOpen, setIsShortcutGuideOpen] = useState(false);
@@ -431,7 +432,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
             activeFileName={activeFileName}
             onSelectFile={loadMapContent}
             onImportClick={() => setIsImportModalOpen(true)}
-            onExportClick={exportMapToJson}
+            onExportClick={() => setIsExportModalOpen(true)}
             onExportMarkdownClick={exportMapToMarkdown}
             onExportImageClick={exportMapToImage}
             isSavingImage={isSavingImage}
@@ -537,7 +538,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                   const curDir = selNode?.data.handleDir ?? null;
 
                   return (
-                    <div className={`bg-slate-900/95 dark:bg-surface-950/95 backdrop-blur-md border border-white/10 dark:border-surface-800/80 px-4 py-2.5 shadow-lg shadow-black/30 flex items-center gap-4 text-white text-xs font-semibold transition-all duration-300 ${
+                    <div className={`bg-white/90 dark:bg-surface-950/95 text-slate-800 dark:text-white backdrop-blur-md border border-slate-200/80 dark:border-surface-800/80 px-4 py-2.5 shadow-lg shadow-slate-200/50 dark:shadow-black/30 flex items-center gap-4 text-xs font-semibold transition-all duration-300 ${
                       hasActiveNode ? "rounded-[24px]" : "rounded-full"
                     }`}>
                       {/* 왼쪽 컬럼: 기본 툴바(1행) + 컬러 팔레트(2행, 노드가 선택된 경우만) */}
@@ -546,25 +547,25 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                         <div className="flex items-center gap-3">
                           <button 
                             onClick={() => zoomOut({ duration: 300 })}
-                            className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                            className="hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
                           >
                             Zoom Out
                           </button>
-                          <span className="w-px h-3.5 bg-white/20" />
+                          <span className="w-px h-3.5 bg-slate-200 dark:bg-white/20" />
                           <button 
                             onClick={() => zoomIn({ duration: 300 })}
-                            className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                            className="hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
                           >
                             Zoom In
                           </button>
-                          <span className="w-px h-3.5 bg-white/20" />
+                          <span className="w-px h-3.5 bg-slate-200 dark:bg-white/20" />
                           <button 
                             onClick={triggerAutoFit}
-                            className="hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                            className="hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
                           >
                             Fit View
                           </button>
-                          <span className="w-px h-3.5 bg-white/20" />
+                          <span className="w-px h-3.5 bg-slate-200 dark:bg-white/20" />
                           <button 
                             onClick={() => {
                               const nextDir = 
@@ -575,7 +576,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                                     : "balanced";
                               changeLayoutDirection(nextDir);
                             }}
-                            className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer"
+                            className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
                           >
                             {layoutDirection === "balanced" 
                               ? "🌀 Balanced" 
@@ -584,7 +585,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                                 : "⬇️ Vertical"
                             }
                           </button>
-                          <span className="w-px h-3.5 bg-white/20" />
+                          <span className="w-px h-3.5 bg-slate-200 dark:bg-white/20" />
                           <button 
                             onClick={() => {
                               const nextType = 
@@ -595,7 +596,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                                     : "smoothstep";
                               changeEdgeType(nextType);
                             }}
-                            className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer text-amber-300 font-bold"
+                            className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer text-amber-600 dark:text-amber-300 font-bold"
                             title="연결선 스타일 변경"
                           >
                             {edgeType === "smoothstep" 
@@ -605,10 +606,10 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                                 : "📉 Straight"
                             }
                           </button>
-                          <span className="w-px h-3.5 bg-white/20" />
+                          <span className="w-px h-3.5 bg-slate-200 dark:bg-white/20" />
                           <button 
                             onClick={() => setIsShortcutGuideOpen(true)}
-                            className="flex items-center gap-1.5 hover:text-indigo-400 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-white/5 cursor-pointer text-indigo-300 font-bold"
+                            className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer text-indigo-600 dark:text-indigo-300 font-bold"
                             title="단축키 가이드 보기"
                           >
                             ⌨️ Guide
@@ -617,7 +618,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
 
                         {/* 2행: 연결선 컬러 테마 변경 (노드 선택되었을 때만 렌더링) */}
                         {hasActiveNode && (
-                          <div className="flex items-center gap-2 border-t border-white/10 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                          <div className="flex items-center gap-2 border-t border-slate-200/80 dark:border-white/10 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Line Color</span>
                             <div className="flex items-center gap-1.5 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">
                               {(["indigo", "emerald", "amber", "rose", "violet", "slate"] as ColorTheme[]).map((theme) => {
@@ -815,6 +816,17 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
       {/* Shortcut Guide Modal */}
       {isShortcutGuideOpen && (
         <ShortcutGuide onClose={() => setIsShortcutGuideOpen(false)} />
+      )}
+
+      {/* Export 2.0 MindMap Modal */}
+      {isExportModalOpen && (
+        <MindMapExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          title={activeFileName ? activeFileName.replace(".json", "") : "MindMap"}
+          nodes={nodes}
+          edges={edges}
+        />
       )}
 
       {/* MindMap 전용 메모 위젯 */}

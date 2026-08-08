@@ -5,6 +5,7 @@ import PatternBar from "@/components/PatternBar";
 import RightPanelBar, { type RightPanelId } from "@/components/RightPanelBar";
 import WelcomeModal from "@/components/WelcomeModal";
 import ProgressBar from "@/components/ProgressBar";
+import CommandPalette from "@/components/CommandPalette";
 import Dashboard from "@/pages/Dashboard";
 const FolderView = lazy(() => import("@/pages/FolderView"));
 const MemoBoard = lazy(() => import("@/pages/MemoBoard"));
@@ -48,6 +49,8 @@ function AppContent() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [activePage, setActivePage] = useState<PageId>("dashboard");
   const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
   const [infoBookmarkId, setInfoBookmarkId] = useState<string | null>(null);
   const [sidebarChromeOpen, setSidebarChromeOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>({ ...DEFAULT_SETTINGS });
@@ -90,6 +93,21 @@ function AppContent() {
   const navigate = useCallback((page: PageId, folderId?: string | null) => {
     setActivePage(page);
     setSelectedFolderId(folderId ?? null);
+  }, []);
+
+  // Global Keyboard Shortcuts (Ctrl+K / Cmd+K -> Command Palette, Ctrl+/ -> Guide Panel)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "/") {
+        e.preventDefault();
+        setActivePanel((prev) => (prev === "guide" ? null : "guide"));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const handleAutoTag = useCallback(() => {
@@ -578,7 +596,7 @@ function AppContent() {
         <PatternBar onPatternLoad={loadData} />
 
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-[#0F172A] text-slate-100">
+          <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-slate-50 text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 p-6">
             <Suspense fallback={
               <div className="flex-1 flex items-center justify-center p-8 text-slate-400 text-sm font-medium animate-pulse">
                 페이지 로딩 중...
@@ -684,9 +702,22 @@ function AppContent() {
             onRefresh={loadData}
             infoBookmark={infoBookmark}
             infoMemo={infoBookmark ? memos[infoBookmark.id] : undefined}
+            onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           />
         </div>
       </div>
+
+      {/* 대시보드 커맨드 팔레트 */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onNavigate={navigate}
+        onOpenSettings={() => setSettingsModalOpen(true)}
+        onOpenGuide={() => setActivePanel("guide")}
+        onAiOrganize={handleAiOrganize}
+        onAutoTag={handleAutoTag}
+        bookmarks={bookmarks}
+      />
 
       {/* 詳細設定モーダル */}
       <Suspense fallback={null}>

@@ -75,13 +75,13 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[100] flex items-start justify-center p-3 pt-4">
+    <div className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[100] flex items-start justify-center p-3 pt-4">
       {/* 팝업창 크기를 가로 w-[320px], 세로를 calc(100%-20px) 및 max-h-[500px]로 확장 */}
-      <div className="bg-slate-900/95 border border-slate-700/50 rounded-2xl p-4 shadow-2xl w-[320px] max-h-[500px] h-[calc(100%-20px)] flex flex-col relative text-slate-200 font-sans">
+      <div className="bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-4 shadow-2xl w-[320px] max-h-[500px] h-[calc(100%-20px)] flex flex-col relative text-slate-800 dark:text-slate-200 font-sans">
         
         {/* 모달 헤더 - 스크롤에서 제외 고정 */}
-        <div className="flex justify-between items-center pb-2.5 border-b border-slate-800/80 mb-3 shrink-0">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2 select-none">
+        <div className="flex justify-between items-center pb-2.5 border-b border-slate-200 dark:border-slate-800/80 mb-3 shrink-0">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 select-none">
             <img 
               src={chrome.runtime.getURL(`buddies/characters/${resolveBuddyType(config.buddyId, config.buddyType)}/${config.buddyId}/frame_01.webp`)} 
               alt={config.buddyId} 
@@ -92,7 +92,7 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
           </h3>
           <button 
             onClick={onClose} 
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
             title={t("settingsClose" as any)}
           >
             <X size={16} />
@@ -104,19 +104,19 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
           
           {/* 버디 이름 입력 및 주사위 랜덤 버튼 */}
           <div>
-            <label className="text-[10px] text-slate-400 block mb-1 font-medium">{t("settingsBuddyName" as any)}</label>
+            <label className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1 font-bold">{t("settingsBuddyName" as any)}</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={config.buddyName || ""}
                 onChange={(e) => handleUpdate({ buddyName: e.target.value })}
                 placeholder="예: Coco, Lulu..."
-                className="flex-1 bg-slate-950/60 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="flex-1 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
               />
               <button
                 type="button"
                 onClick={handleRandomName}
-                className="px-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-750 rounded-lg text-slate-200 text-xs transition-colors flex items-center justify-center shrink-0"
+                className="px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-700 dark:text-slate-200 text-xs transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                 title={t("themeRandomName")}
               >
                 🎲
@@ -135,7 +135,7 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
 
           {/* 테마 설정 섹션 (2줄 그리드 배치) */}
           <div>
-            <label className="text-[10px] text-slate-400 block mb-1 font-medium font-bold">{t("settingsTheme")}</label>
+            <label className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1 font-bold">{t("settingsTheme")}</label>
             <div className="grid grid-cols-4 gap-1.5 w-full">
               {[
                 { id: "midnight", name: "Midnight", color: "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-750" },
@@ -172,17 +172,17 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
           {/* 기본 번역 언어 & 드래그 메뉴 온오프 (가로 병렬 배치) */}
           <div className="flex gap-4 items-end">
             <div className="flex-1 min-w-0">
-              <label className="text-[10px] text-slate-400 block mb-1 font-medium">{t("settingsTargetLang")}</label>
+              <label className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1 font-bold">{t("settingsTargetLang")}</label>
               <select
                 value={config.targetLanguage || "ko"}
                 onChange={(e) => handleUpdate({ targetLanguage: e.target.value })}
-                className="w-full bg-slate-950/60 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
               >
                 <option value="ko">Korean (한국어)</option>
                 <option value="en">English (영어)</option>
                 <option value="ja">Japanese (일본어)</option>
                 <option value="zh">Chinese (중국어)</option>
-                <option value="es">Spanish (스ペイン어)</option>
+                <option value="es">Spanish (스페인어)</option>
                 <option value="fr">French (프랑스어)</option>
                 <option value="de">German (독일어)</option>
                 <option value="it">Italian (이탈리아어)</option>
@@ -194,30 +194,30 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
             </div>
             
             <div className="w-[45%] shrink-0 pb-1 space-y-1">
-              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[26px]">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-600 dark:text-slate-400 font-medium h-[26px]">
                 <input
                   type="checkbox"
                   checked={config.showDragMenu !== false}
                   onChange={(e) => handleUpdate({ showDragMenu: e.target.checked })}
-                  className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
+                  className="rounded bg-slate-50 dark:bg-slate-950/60 border-slate-300 dark:border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
                 />
                 <span className="truncate">{t("settingsShowDragMenu")}</span>
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[26px]">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-600 dark:text-slate-400 font-medium h-[26px]">
                 <input
                   type="checkbox"
                   checked={config.isRealtimeSearchEnabled !== false}
                   onChange={(e) => handleUpdate({ isRealtimeSearchEnabled: e.target.checked })}
-                  className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
+                  className="rounded bg-slate-50 dark:bg-slate-950/60 border-slate-300 dark:border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
                 />
                 <span className="truncate">{t("settingsRealtimeSearch" as any)}</span>
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-400 font-medium h-[26px]">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none text-[10px] text-slate-600 dark:text-slate-400 font-medium h-[26px]">
                 <input
                   type="checkbox"
                   checked={config.isTopSitesEnabled !== false}
                   onChange={(e) => handleUpdate({ isTopSitesEnabled: e.target.checked })}
-                  className="rounded bg-slate-950/60 border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
+                  className="rounded bg-slate-50 dark:bg-slate-950/60 border-slate-300 dark:border-slate-850 text-indigo-600 focus:ring-indigo-500/30 w-3.5 h-3.5 cursor-pointer accent-indigo-500"
                 />
                 <span className="truncate">{t("settingsTopsitesLabel" as any)}</span>
               </label>
@@ -226,9 +226,9 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
 
           {/* 크기 설정 슬라이더 */}
           <div>
-            <div className="flex justify-between text-[10px] text-slate-400 mb-0.5 font-medium">
+            <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400 mb-0.5 font-medium">
               <span>{t("settingsSize")}</span>
-              <span className="text-indigo-400 font-semibold">{size}px</span>
+              <span className="text-indigo-600 dark:text-indigo-400 font-bold">{size}px</span>
             </div>
             <input
               type="range"
@@ -241,7 +241,7 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
                 setSize(val);
                 handleUpdate({ size: val });
               }}
-              className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
           </div>
 

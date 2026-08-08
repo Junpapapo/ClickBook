@@ -184,7 +184,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
         placeholder={t("memoPlaceholder")}
         rows={4}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
-        className={`w-full text-xs rounded-lg px-2.5 py-2 resize-none outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
+        className={`w-full text-xs rounded-lg px-2.5 py-2 resize-y min-h-[90px] outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
       />
 
       {/* AI Draft Panel */}
@@ -282,7 +282,7 @@ interface Props {
   onMemoChange?: () => void;
 }
 
-export default function BookmarkCard({ bookmark, memo, folderName, onDelete, onEdit, onMemoChange }: Props) {
+const BookmarkCard = React.memo(function BookmarkCard({ bookmark, memo, folderName, onDelete, onEdit, onMemoChange }: Props) {
   const { t } = useLang();
   const [showPopover, setShowPopover] = useState(false);
   const stickyBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -447,4 +447,6 @@ export default function BookmarkCard({ bookmark, memo, folderName, onDelete, onE
       )}
     </>
   );
-}
+});
+
+export default BookmarkCard;

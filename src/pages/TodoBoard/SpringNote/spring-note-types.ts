@@ -36,6 +36,7 @@ export interface SpringNoteToolbarProps {
   currentPageIndex: number;
   onChangePageIndex: (idx: number) => void;
   onToggleImagePopover?: () => void;
+  onOpenExport?: () => void;
 }
 
 export interface SpringNoteBookProps {

@@ -1,17 +1,55 @@
 import type { MessageResponse } from "@/shared/types";
 import { injectToast } from "./helpers/toast-helper";
 
+// In-memory caches for fast lookup without chrome.storage.session I/O overhead
+const tabUrlMap = new Map<number, string>();
+const tabLastAccessedMap = new Map<number, number>();
+let lastSuspendCheckTime = 0;
+
+export function setTabUrlCache(tabId: number, url: string): void {
+  tabUrlMap.set(tabId, url);
+  // Async backup to session storage
+  chrome.storage.session.get("tabUrls").then((res) => {
+    const map = res.tabUrls || {};
+    map[String(tabId)] = url;
+    return chrome.storage.session.set({ tabUrls: map });
+  }).catch(() => {});
+}
+
+export function removeTabUrlCache(tabId: number): string | undefined {
+  const closedUrl = tabUrlMap.get(tabId);
+  tabUrlMap.delete(tabId);
+  tabLastAccessedMap.delete(tabId);
+  
+  // Async cleanup from session storage
+  chrome.storage.session.get(["tabUrls", "tabLastAccessed"]).then((res) => {
+    const urls = res.tabUrls || {};
+    const accessed = res.tabLastAccessed || {};
+    delete urls[String(tabId)];
+    delete accessed[String(tabId)];
+    return chrome.storage.session.set({ tabUrls: urls, tabLastAccessed: accessed });
+  }).catch(() => {});
+  
+  return closedUrl;
+}
+
+export function getTabUrlCache(tabId: number): string | undefined {
+  return tabUrlMap.get(tabId);
+}
+
 // Tab cache for Privacy-First Session Sweeper
 export async function initializeTabCache(): Promise<void> {
   try {
     const tabs = await chrome.tabs.query({});
-    const tabMap: Record<string, string> = {};
+    const sessionMap: Record<string, string> = {};
+    tabUrlMap.clear();
     for (const tab of tabs) {
       if (tab.id && tab.url) {
-        tabMap[String(tab.id)] = tab.url;
+        tabUrlMap.set(tab.id, tab.url);
+        sessionMap[String(tab.id)] = tab.url;
       }
     }
-    await chrome.storage.session.set({ tabUrls: tabMap });
+    await chrome.storage.session.set({ tabUrls: sessionMap });
   } catch (err) {
     console.warn("Failed to initialize tab cache:", err);
   }
@@ -100,24 +138,18 @@ export async function handleTabClosed(closedUrl: string): Promise<void> {
 export async function trackTabAccessed(tabId: number): Promise<void> {
   try {
     const now = Date.now();
-    const res = await chrome.storage.session.get(["tabLastAccessed", "lastSuspendCheckTime"]);
-    const lastAccessedMap = res.tabLastAccessed || {};
-    const lastCheck = res.lastSuspendCheckTime || 0;
-    
-    lastAccessedMap[String(tabId)] = now;
-    
-    const sessionUpdate: Record<string, any> = { tabLastAccessed: lastAccessedMap };
-    
+    tabLastAccessedMap.set(tabId, now);
+
     let runCheck = false;
-    if (now - lastCheck >= 30000) {
-      sessionUpdate.lastSuspendCheckTime = now;
+    if (now - lastSuspendCheckTime >= 30000) {
+      lastSuspendCheckTime = now;
       runCheck = true;
     }
     
-    await chrome.storage.session.set(sessionUpdate);
-    
     if (runCheck) {
-      await checkAndAutoSuspend(now, lastAccessedMap);
+      const accessedRecord: Record<string, number> = {};
+      tabLastAccessedMap.forEach((v, k) => { accessedRecord[String(k)] = v; });
+      await checkAndAutoSuspend(now, accessedRecord);
     }
   } catch (e) {
     console.warn("Failed to track tab access:", e);

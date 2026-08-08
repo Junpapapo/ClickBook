@@ -648,7 +648,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
 
 
   return (
-    <div className="flex flex-col gap-6 w-full pb-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="flex flex-col gap-6 w-full p-6 pb-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
       {DialogEl}
 
       {/* Header Panel */}
