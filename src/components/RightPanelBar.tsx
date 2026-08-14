@@ -33,7 +33,6 @@ export default function RightPanelBar({
   onOpenCommandPalette,
 }: Props) {
   const { t, lang } = useLang();
-  const isKo = lang === "ko";
   const RAIL_ITEMS: { id: RightPanelId; icon: React.ReactNode; label: string; activeClass: string }[] = [
     {
       id: "ranking",
@@ -62,7 +61,7 @@ export default function RightPanelBar({
     {
       id: "guide",
       icon: <HelpCircle size={16} />,
-      label: isKo ? "단축키 & 가이드" : "Guide & Hotkeys",
+      label: lang === "ko" ? "단축키 & 가이드" : lang === "ja" ? "ガイド＆ショートカット" : "Guide & Hotkeys",
       activeClass: "text-purple-400 bg-purple-50 dark:bg-purple-500/10",
     },
   ];

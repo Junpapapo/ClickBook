@@ -28,7 +28,7 @@ const RANDOM_NAMES = [
 ];
 
 export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, onChange, onClose }) => {
-  const { lang } = useLang();
+  const { lang, t: mainT } = useLang();
   // 언어셋을 팝업의 현재 다국어 설정 언어와 동기화
   setLang(lang as any);
 
@@ -110,7 +110,7 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
                 type="text"
                 value={config.buddyName || ""}
                 onChange={(e) => handleUpdate({ buddyName: e.target.value })}
-                placeholder="예: Coco, Lulu..."
+                placeholder={mainT("buddyNamePlaceholder")}
                 className="flex-1 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
               />
               <button

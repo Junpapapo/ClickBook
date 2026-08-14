@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, ExternalLink, Sparkles, ChevronDown, RotateCcw, S
 import { useMindMapActions } from "../mindmap-model";
 import { IconPicker } from "@/components/IconPicker";
 import { LUCIDE_ICONS_MAP } from "@/components/DynamicIcon";
+import { useLang } from "@/shared/LanguageContext";
 
 const THEME_CLASSES: Record<string, { border: string; bg: string; text: string; handle: string; rootBg: string }> = {
   indigo: {
@@ -97,6 +98,7 @@ const EXPAND_MODES = [
 ];
 
 export default function MindMapNode({ id, data, selected }: { id: string; data: any; selected?: boolean }) {
+  const { t, lang } = useLang();
   const {
     label,
     shape = "rounded-rect",
@@ -336,7 +338,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
           <button
             onClick={() => onAddChild?.(id)}
             className="p-1 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-md transition-all active:scale-90 cursor-pointer"
-            title="하위 노드 생성 (Tab)"
+            title={t("mindmapCreateChild")}
           >
             <Plus size={14} />
           </button>
@@ -350,7 +352,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                 ? "text-indigo-500 hover:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20"
                 : "text-gray-400 hover:text-indigo-500 dark:text-gray-500 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-800"
             }`}
-            title="노드 상세 메모 편집 (Side-sheet)"
+            title={t("mindmapDetailMemo")}
           >
             <FileText size={12} className={memoOpenNodeId === id ? "text-indigo-500" : "text-gray-400"} />
           </button>
@@ -360,7 +362,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
           <button
             onClick={() => setIsEditing(true)}
             className="p-1 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-md transition-all active:scale-90 cursor-pointer"
-            title="텍스트 편집 (더블클릭)"
+            title={t("mindmapEditText")}
           >
             <Pencil size={12} />
           </button>
@@ -370,7 +372,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
           <button
             onClick={() => onRegisterTodo?.(label)}
             className="p-1 text-gray-500 hover:text-emerald-600 dark:text-gray-400 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 rounded-md transition-all active:scale-90 cursor-pointer"
-            title="클릭북 Todo에 할 일 카드로 즉시 등록"
+            title={t("mindmapRegisterTodo")}
           >
             <ClipboardCheck size={13} className="text-emerald-500 dark:text-emerald-400" />
           </button>
@@ -381,7 +383,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
             <button
               onClick={() => { setShowAiMenu((v) => !v); setShowTranslateSub(false); setShowExpandSub(false); }}
               className="p-1 text-gray-500 hover:text-amber-500 dark:text-gray-400 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 rounded-md transition-all active:scale-90 cursor-pointer flex items-center gap-0.5"
-              title="AI 액션 메뉴"
+              title={t("mindmapAiAction")}
               disabled={isAiLoading}
             >
               {isAiLoading
@@ -506,7 +508,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                   ? "text-indigo-500 hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20"
                   : "text-gray-400 hover:text-indigo-500 dark:text-gray-500 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-800"
               }`}
-              title="이모지/아이콘 설정"
+              title={t("mindmapIconSetting")}
             >
               {icon ? (
                 (() => {
@@ -601,7 +603,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                 onClick={() => setShowLockModal(false)}
                 className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-xl transition-colors cursor-pointer"
               >
-                Cancel
+                {t("closeTooltip")}
               </button>
               <button
                 onClick={handleLockSubmit}
@@ -618,8 +620,8 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
       {summaryPopup && (
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full z-[300] w-64 bg-slate-900 text-white rounded-2xl shadow-2xl p-3 text-xs leading-relaxed animate-in zoom-in-95 duration-200">
           <div className="flex items-start justify-between gap-2 mb-1.5">
-            <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">AI 요약</span>
-            <button onClick={() => setSummaryPopup(null)} className="text-gray-400 hover:text-white transition-colors">
+            <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">AI Summary</span>
+            <button onClick={() => setSummaryPopup(null)} className="text-gray-400 hover:text-white transition-colors" title={t("closeTooltip")}>
               <X size={12} />
             </button>
           </div>
@@ -633,12 +635,14 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
             <h3 className="text-sm font-extrabold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
               <Sparkles size={14} className="text-amber-500" /> Generate from text
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">텍스트를 입력하면 AI가 마인드맵 브랜치로 자동 변환합니다.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              {lang === "ko" ? "텍스트를 입력하면 AI가 마인드맵 브랜치로 자동 변환합니다." : lang === "ja" ? "テキストを入力するとAIがマインドマップブランチに自動変換します。" : "Enter text to auto-generate mindmap branches with AI."}
+            </p>
             <textarea
               autoFocus
               value={generateText}
               onChange={(e) => setGenerateText(e.target.value)}
-              placeholder="예: 우리 팀의 2분기 마케팅 전략은 SNS 광고 강화, 인플루언서 협업, 콘텐츠 SEO 최적화를 중심으로..."
+              placeholder={t("mindmapAiPlaceholder")}
               className="w-full h-28 px-3 py-2.5 bg-gray-50 dark:bg-surface-800 border border-gray-200 dark:border-surface-700 rounded-xl text-xs text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-600 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 resize-none"
             />
             <div className="flex justify-end gap-2 mt-3">
@@ -646,14 +650,14 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                 onClick={() => { setShowGenerateModal(false); setGenerateText(""); }}
                 className="px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-lg transition-colors cursor-pointer"
               >
-                취소
+                {t("closeTooltip")}
               </button>
               <button
                 onClick={handleGenerateSubmit}
                 disabled={!generateText.trim()}
                 className="px-4 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors cursor-pointer"
               >
-                생성하기
+                {lang === "ko" ? "생성하기" : lang === "ja" ? "生成する" : "Generate"}
               </button>
             </div>
           </div>
@@ -741,7 +745,7 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
         ) : (
           <div className="flex items-center gap-1.5 justify-center w-full">
             {data.memoContent && data.memoContent.trim() && (
-              <span title="상세 메모 있음">
+              <span title={t("mindmapHasMemo")}>
                 <FileText size={11} className="shrink-0 text-indigo-500 dark:text-indigo-400/80" />
               </span>
             )}

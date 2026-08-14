@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Maximize2, Move, Trash2, Plus, Type, RotateCcw, RotateCw, Undo2, FlipHorizontal, FlipVertical } from "lucide-react";
 import type { NoteObject, SpringNoteCanvasProps } from "../spring-note-types";
 import { getSpringNoteImage } from "@/utils/springNoteDb";
+import { useLang } from "@/shared/LanguageContext";
 
 export default function SpringNoteCanvas({
   pageId,
@@ -13,6 +14,7 @@ export default function SpringNoteCanvas({
   setSelectedObjId,
   scrollHeight = 500,
 }: SpringNoteCanvasProps) {
+  const { t } = useLang();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // 테이블 셀 글자색을 지면 테마에 확실히 맞추기 위한 전용 헬퍼
@@ -942,7 +944,7 @@ export default function SpringNoteCanvas({
                               suppressContentEditableWarning
                               onBlur={(e) => {
                                 const newTitle = e.currentTarget.innerText;
-                                if (newTitle !== (obj.metadata?.bookmarkTitle || "메모")) {
+                                if (newTitle !== (obj.metadata?.bookmarkTitle || t("generalMemo"))) {
                                   onUpdateObjects(
                                     objects.map((o) =>
                                       o.id === obj.id
@@ -962,7 +964,7 @@ export default function SpringNoteCanvas({
                               className="font-bold truncate outline-none select-text focus:bg-black/5 dark:focus:bg-white/5 px-1 rounded flex-1 min-w-[30px] opacity-80"
                               title="Edit Title"
                             >
-                              {obj.metadata?.bookmarkTitle || "메모"}
+                              {obj.metadata?.bookmarkTitle || t("generalMemo")}
                             </span>
                           </div>
                         )}

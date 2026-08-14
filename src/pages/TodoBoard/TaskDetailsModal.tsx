@@ -325,7 +325,7 @@ export default function TaskDetailsModal({
                   type="button"
                   onClick={() => setShowIconPicker(!showIconPicker)}
                   className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-surface-800 border border-gray-250 dark:border-surface-700/60 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-surface-700 transition-all shadow-sm shrink-0"
-                  title="일정 아이콘 설정"
+                  title={t("scheduleIconSetting")}
                 >
                   {editTaskIcon ? (
                     <FolderIcon
@@ -375,6 +375,7 @@ export default function TaskDetailsModal({
           <button
             onClick={onClose}
             className="text-gray-450 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors shrink-0"
+            title={t("closeTooltip")}
           >
             <X size={20} />
           </button>
@@ -433,7 +434,7 @@ export default function TaskDetailsModal({
                           onClick={handleRefineDescription}
                           disabled={isRefining || !editTaskDescModal.trim()}
                           className="ml-auto flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors shadow-sm shadow-violet-500/20 active:scale-95"
-                          title="AI가 본문 내용의 오탈자를 수정하고 보기 좋게 다듬어 줍니다."
+                          title={t("aiProofreadTooltip")}
                         >
                           {isRefining ? (
                             <Loader2 size={12} className="animate-spin" />
@@ -442,11 +443,7 @@ export default function TaskDetailsModal({
                           )}
                           {isRefining
                             ? "Refining..."
-                            : lang === "ko"
-                            ? "AI 다듬기"
-                            : lang === "ja"
-                            ? "AI 整頓"
-                            : "AI Refine"}
+                            : t("aiProofreadBtn")}
                         </button>
                       )}
                     </div>
@@ -644,7 +641,7 @@ export default function TaskDetailsModal({
                         setEditTaskReminder("none");
                       }}
                       className="text-gray-450 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-0.5 rounded hover:bg-gray-100 dark:hover:bg-surface-800"
-                      title="초기화"
+                      title={t("resetTooltip")}
                     >
                       <RotateCcw size={12} />
                     </button>

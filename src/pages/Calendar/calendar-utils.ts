@@ -45,6 +45,17 @@ export const TASK_TEXT_COLORS: Record<string, string> = {
   purple: "text-purple-600 dark:text-purple-400",
 };
 
+import type { TFunction } from "@/shared/i18n";
+
+export const getReminderOptions = (t: TFunction) => [
+  { value: "none", label: t("reminderNone") },
+  { value: "at_due", label: t("reminderAtDue") },
+  { value: "15m_before", label: t("reminder15mBefore") },
+  { value: "1h_before", label: t("reminder1hBefore") },
+  { value: "3h_before", label: t("reminder3hBefore") },
+  { value: "1d_before", label: t("reminder1dBefore") },
+];
+
 export const REMINDER_OPTIONS = [
   { value: "none", label: "없음" },
   { value: "at_due", label: "기한 정시" },

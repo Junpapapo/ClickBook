@@ -76,7 +76,7 @@ export default function MemoEditModal({
             setIsResizing(true);
           }}
           className="absolute top-0 right-0 bottom-0 w-2.5 cursor-col-resize hover:bg-indigo-500/20 active:bg-indigo-500/40 transition-colors z-50 flex items-center justify-center group"
-          title="가로폭 조절"
+          title={t("resizeWidth")}
         >
           <div className="w-0.5 h-8 bg-gray-350 dark:bg-surface-600 rounded opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
@@ -127,7 +127,7 @@ export default function MemoEditModal({
             <div className="p-2.5 bg-amber-500/5 dark:bg-amber-955/10 border border-amber-250/20 dark:border-amber-900/30 rounded-2xl flex items-center gap-2">
               <StickyNote size={14} className="text-amber-500" />
               <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
-                독립형 일반 메모 (연결된 북마크 없음)
+                {t("memoColorLabel") ? t("generalMemo") : "Memo"}
               </span>
             </div>
           )}
@@ -135,7 +135,7 @@ export default function MemoEditModal({
           {/* Memo Color picker */}
           <div className="flex items-center justify-between bg-gray-50/50 dark:bg-surface-800/40 p-2.5 rounded-2xl border border-gray-200/10">
             <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
-              메모 색상
+              {t("memoColorLabel") || "Memo Color"}
             </label>
             <div className="flex gap-2">
               {(["yellow", "pink", "blue", "green", "purple"] as MemoColor[]).map((col) => {

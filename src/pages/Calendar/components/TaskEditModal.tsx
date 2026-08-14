@@ -208,7 +208,7 @@ export default function TaskEditModal({
                 type="button"
                 onClick={() => setShowIconPicker(!showIconPicker)}
                 className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-surface-800 border border-gray-200 dark:border-surface-700/66 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-surface-700 transition-all shadow-sm"
-                title="일정 아이콘 설정"
+                title={t("scheduleIconSetting")}
               >
                 {icon ? (
                   <FolderIcon iconName={icon} size={20} className="text-indigo-500 dark:text-indigo-400" />

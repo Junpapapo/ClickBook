@@ -679,5 +679,97 @@ export const ko = {
   springNoteAiDiscard: "취소",
   springNoteAiApply: "적용",
   springNoteAiErrorModel: "AI 모델을 사용할 수 없습니다.",
+
+  // ── Global & Common Action Tooltips ──────────────────────
+  memoTooltip: "메모",
+  copyTooltip: "복사",
+  closeTooltip: "닫기",
+  resetTooltip: "초기화",
+  generalMemo: "일반 메모",
+  memoPrefix: "[메모]",
+
+  // ── MapNodes & Bookmark Map ──────────────────────────────
+  collapseSubfolders: "하위 폴더 펼치기/접기",
+  toggleBookmarks: "북마크 목록 펼치기/접기",
+  renameFolder: "폴더 이름 변경",
+
+  // ── BookmarkCard & Memo ──────────────────────────────────
+  aiDraftTooltip: "AI 메모 초안 생성",
+  aiDraftBtn: "AI 초안",
+  aiDraftApplying: "AI가 메모 초안을 작성 중...",
+  aiDraftApplied: "초안 적용됨",
+  aiDraftLabel: "AI 초안",
+  aiDraftDismiss: "닫기",
+  aiDraftUseThis: "이 내용 사용",
+
+  // ── Todo & Status ────────────────────────────────────────
+  springNoteWritten: "스프링 노트 작성됨",
+  springNoteTooltipShort: "스프링 노트",
+  statusCompleted: "완료",
+  statusOverdue: "지연됨",
+  statusToday: "오늘",
+  statusTomorrow: "내일",
+  scheduleIconSetting: "일정 아이콘 설정",
+  aiProofreadTooltip: "AI가 본문 내용의 오탈자를 수정하고 보기 좋게 다듬어 줍니다.",
+  aiProofreadBtn: "AI 다듬기",
+
+  // ── Calendar & Holiday ───────────────────────────────────
+  holidayEdit: "휴일 편집",
+  resizeWidth: "가로폭 조절",
+
+  // ── MindMap ──────────────────────────────────────────────
+  mindmapChangeLineStyle: "연결선 스타일 변경",
+  mindmapShortcutGuideTitle: "단축키 가이드 보기",
+  mindmapConnectDir: "연결 진입 방향 수동 선택",
+  mindmapConnectTop: "위쪽에서 연결",
+  mindmapConnectLeft: "왼쪽에서 연결",
+  mindmapConnectAuto: "자동 (초기화)",
+  mindmapConnectRight: "오른쪽에서 연결",
+  mindmapConnectBottom: "아래쪽에서 연결",
+  mindmapDefaultNode: "새 아이디어",
+  mindmapIdeaLabel: "아이디어",
+  mindmapCreateChild: "하위 노드 생성 (Tab)",
+  mindmapDetailMemo: "노드 상세 메모 편집 (Side-sheet)",
+  mindmapEditText: "텍스트 편집 (더블클릭)",
+  mindmapRegisterTodo: "클릭북 Todo에 할 일 카드로 즉시 등록",
+  mindmapAiAction: "AI 액션 메뉴",
+  mindmapIconSetting: "이모지/아이콘 설정",
+  mindmapHasMemo: "상세 메모 있음",
+  mindmapAiPlaceholder: "예: 우리 팀의 2분기 마케팅 전략은 SNS 광고 강화, 인플루언서 협업, 콘텐츠 SEO 최적화를 중심으로...",
+  mindmapRegisteredTodoSuccess: "성공적으로 Todo 보드에 할 일로 등록되었습니다!",
+  mindmapTodoLoadError: "Todo 보드 데이터를 불러올 수 없습니다.",
+  mindmapTodoNoColumnError: "할 일을 등록할 Todo 컬럼이 존재하지 않습니다.",
+  mindmapNanoNotReady: "Local Gemini Nano가 활성화되지 않았습니다. chrome://flags에서 최신 로컬 모델을 활성화해 주세요.",
+  mindmapInvalidFormat: "올바른 마인드맵 데이터 형식이 아닙니다.",
+  mindmapParseError: "마인드맵 파일 분석에 실패했습니다. 올바른 JSON 규격인지 확인해 주세요.",
+  mindmapLoadFail: "마인드맵 파일을 불러오는데 실패했습니다: ",
+  mindmapChangeIconTooltip: "이모지/아이콘 변경",
+
+  // ── Popup ────────────────────────────────────────────────
+  prevMonth: "이전 달",
+  nextMonth: "다음 달",
+  today: "오늘로 이동",
+  prevYear: "이전 해",
+  nextYear: "다음 해",
+  randomNameTooltip: "랜덤 이름 생성",
+  buddyDetailSettingsTooltip: "버디 상세 설정",
+  buddyNamePlaceholder: "예: Coco, Lulu...",
+
+  // ── Drawing Component ────────────────────────────────────
+  drawingBgGround: "지면",
+  drawingBgWhite: "흰색",
+  drawingBgBlack: "검은색",
+  drawingBgSepia: "세피아",
+  drawingBgMemoPaper: "메모지",
+
+  // ── Reminders & Calendar ─────────────────────────────────
+  reminder15mBefore: "15분 전",
+  reminder1hBefore: "1시간 전",
+  reminder3hBefore: "3시간 전",
+  reminder1dBefore: "1일 전",
+  noSchedulesToday: "오늘 등록된 일정이 없습니다.",
+
+  // ── AI & Mindmap ─────────────────────────────────────────
+  aiErrorTimeout: "AI 응답 시간이 초과되었습니다.",
 };
 

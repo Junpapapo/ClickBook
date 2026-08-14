@@ -597,7 +597,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                               changeEdgeType(nextType);
                             }}
                             className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer text-amber-600 dark:text-amber-300 font-bold"
-                            title="연결선 스타일 변경"
+                            title={t("mindmapChangeLineStyle")}
                           >
                             {edgeType === "smoothstep" 
                               ? "🧱 Step" 
@@ -610,7 +610,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                           <button 
                             onClick={() => setIsShortcutGuideOpen(true)}
                             className="flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-300 active:scale-95 transition-all px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer text-indigo-600 dark:text-indigo-300 font-bold"
-                            title="단축키 가이드 보기"
+                            title={t("mindmapShortcutGuideTitle")}
                           >
                             ⌨️ Guide
                           </button>
@@ -671,13 +671,13 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                               updateHandleDir(selNode.id, curDir === dir ? null : dir);
                             };
                             return (
-                              <div className="flex flex-col items-center gap-[3px]" title="연결 진입 방향 수동 선택">
+                              <div className="flex flex-col items-center gap-[3px]" title={t("mindmapConnectDir")}>
                                 {/* 위쪽 행: ↑ */}
                                 <div className="flex justify-center">
                                   <button
                                     className={`${btnBase} ${curDir === "top" ? active : inactive}`}
                                     onClick={() => handleClick("top")}
-                                    title="위쪽에서 연결"
+                                    title={t("mindmapConnectTop")}
                                   >↑</button>
                                 </div>
                                 {/* 가운데 행: ← [A] → */}
@@ -685,17 +685,17 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                                   <button
                                     className={`${btnBase} ${curDir === "left" ? active : inactive}`}
                                     onClick={() => handleClick("left")}
-                                    title="왼쪽에서 연결"
+                                    title={t("mindmapConnectLeft")}
                                   >←</button>
                                   <button
                                     className={curDir === null ? autoActive : autoInactive}
                                     onClick={() => updateHandleDir(selNode.id, null)}
-                                    title="자동 (초기화)"
+                                    title={t("mindmapConnectAuto")}
                                   >A</button>
                                   <button
                                     className={`${btnBase} ${curDir === "right" ? active : inactive}`}
                                     onClick={() => handleClick("right")}
-                                    title="오른쪽에서 연결"
+                                    title={t("mindmapConnectRight")}
                                   >→</button>
                                 </div>
                                 {/* 아래쪽 행: ↓ */}
@@ -703,7 +703,7 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
                                   <button
                                     className={`${btnBase} ${curDir === "bottom" ? active : inactive}`}
                                     onClick={() => handleClick("bottom")}
-                                    title="아래쪽에서 연결"
+                                    title={t("mindmapConnectBottom")}
                                   >↓</button>
                                 </div>
                               </div>

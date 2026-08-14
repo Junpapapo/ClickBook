@@ -5,6 +5,7 @@ import type { MindMapNodeData, MindMapData, MindMapMeta, NodeShape, ColorTheme }
 import { getLayoutedElements, createChildNode, getHexColorByTheme } from "./mindmap-utils";
 import { buildTemplateData } from "./mindmap-fs";
 import { isAIAvailable } from "@/shared/categorizer/ai-service";
+import { detectBrowserLang, createT, type Lang } from "@/shared/i18n";
 import {
   aiExpand,
   aiSummarizeBranch,
@@ -14,6 +15,12 @@ import {
   aiTranslateNode,
   type TranslateLang,
 } from "./mindmap-ai-actions";
+
+function getMindmapI18n() {
+  const stored = (typeof localStorage !== "undefined" ? localStorage.getItem("clickbook_lang") : null) as Lang | null;
+  const lang = (stored === "en" || stored === "ja" || stored === "ko") ? stored : detectBrowserLang();
+  return { lang, t: createT(lang) };
+}
 
 export function useMindMapState(taskId: string, _onClose: () => void) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<MindMapNodeData>>([]);
@@ -347,9 +354,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const parentShape = parentNode?.data.shape || "rounded-rect";
     const parentTheme = parentNode?.data.colorTheme || "indigo";
 
+    const { t } = getMindmapI18n();
+    const defaultLabel = t("mindmapDefaultNode");
+
     const { nodes: nextNodes, edges: nextEdges } = createChildNode(
       activeId,
-      "새 아이디어",
+      defaultLabel,
       currentNodes,
       currentEdges,
       parentShape,
@@ -403,9 +413,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const parentShape = parentNode?.data.shape || "rounded-rect";
     const parentTheme = parentNode?.data.colorTheme || "indigo";
 
+    const { t } = getMindmapI18n();
+    const defaultLabel = t("mindmapDefaultNode");
+
     const { nodes: nextNodes, edges: nextEdges } = createChildNode(
       parentId,
-      "새 아이디어",
+      defaultLabel,
       currentNodes,
       currentEdges,
       parentShape,
@@ -616,15 +629,16 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   // 특정 노드를 클릭북의 Todo 할 일로 등록
   const registerAsTodoTask = useCallback(async (nodeLabelText: string) => {
     try {
-      const res = await chrome.runtime.sendMessage({ type: "GET_TODO_BOARD" });
+      const { t } = getMindmapI18n();
+      const res = await chrome.runtime.sendMessage({ type: "LOAD_TODO_BOARD" });
       if (!res || !res.success || !res.data) {
-        throw new Error("Todo 보드 데이터를 불러올 수 없습니다.");
+        throw new Error(t("mindmapTodoLoadError"));
       }
 
       const todoData = res.data;
       const firstColId = todoData.columnOrder[0];
       if (!firstColId) {
-        throw new Error("할 일을 등록할 Todo 컬럼이 존재하지 않습니다.");
+        throw new Error(t("mindmapTodoNoColumnError"));
       }
 
       const newTaskId = `task-${Date.now()}`;
@@ -652,14 +666,14 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
 
       await chrome.runtime.sendMessage({ type: "SAVE_TODO_BOARD", data: updatedTodoData });
 
-      setAiError("성공적으로 Todo 보드에 할 일로 등록되었습니다!");
+      setAiError(t("mindmapRegisteredTodoSuccess"));
       setTimeout(() => {
         setAiError(null);
       }, 3000);
 
     } catch (err: any) {
       console.error("Failed to register task:", err);
-      setAiError(`Todo 등록 실패: ${err?.message || err}`);
+      setAiError(`${err?.message || err}`);
     }
   }, [setAiError]);
 
@@ -772,10 +786,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     const currentNodes = nodesRef.current;
     const currentEdges = edgesRef.current;
 
+    const { t } = getMindmapI18n();
+
     try {
       const available = await isAIAvailable();
       if (!available) {
-        setAiError("Local Gemini Nano가 활성화되지 않았습니다. chrome://flags에서 최신 로컬 모델을 활성화해 주세요.");
+        setAiError(t("mindmapNanoNotReady"));
         return;
       }
 
@@ -817,12 +833,12 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
         setAiSummaryResult({ nodeId: activeId, text: summary });
 
         const targetNode = currentNodes.find(n => n.id === activeId);
-        const nodeLabel = targetNode?.data.label || "아이디어";
+        const nodeLabel = targetNode?.data.label || t("mindmapIdeaLabel");
 
         setMemoContent((prev) => {
           const nextMemo = prev
-            ? `${prev}\n\n🤖 [${nodeLabel} 요약]\n${summary}`
-            : `🤖 [${nodeLabel} 요약]\n${summary}`;
+            ? `${prev}\n\n🤖 [${nodeLabel}]\n${summary}`
+            : `🤖 [${nodeLabel}]\n${summary}`;
           
           setTimeout(() => {
             saveMapData(nodesRef.current, edgesRef.current, layoutDirectionRef.current, nextMemo);
@@ -888,11 +904,11 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
     } catch (e: any) {
       console.warn(`AI action '${action}' failed:`, e);
       if (e?.message === "AI_UNAVAILABLE") {
-        setAiError("Local Gemini Nano가 활성화되지 않았습니다. chrome://flags에서 최신 로컬 모델을 활성화해 주세요.");
+        setAiError(t("mindmapNanoNotReady"));
       } else if (e?.message === "AI_TIMEOUT") {
-        setAiError("AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.");
+        setAiError(t("aiErrorTimeout") || "AI 응답 시간이 초과되었습니다.");
       } else {
-        setAiError(`AI 오류: ${e?.message || "알 수 없는 오류"}`);
+        setAiError(`AI Error: ${e?.message || "Unknown error"}`);
       }
     } finally {
       setIsAiExpanding(false);
@@ -902,9 +918,10 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
   // JSON 파일 가져오기 (Import)
   const importMapFromJson = async (fileName: string, jsonContent: string) => {
     try {
+      const { t } = getMindmapI18n();
       const parsed = JSON.parse(jsonContent);
       if (!parsed.nodes || !Array.isArray(parsed.nodes)) {
-        throw new Error("올바른 마인드맵 데이터 형식이 아닙니다.");
+        throw new Error(t("mindmapInvalidFormat"));
       }
 
       const cleanName = fileName.trim().replace(".json", "").replace(/[\/\\?%*:|"<>. ]/g, "_");
@@ -923,9 +940,10 @@ export function useMindMapState(taskId: string, _onClose: () => void) {
       await refreshFileList();
       await loadMapContent(finalFileName);
       setAiError(null);
-    } catch (e) {
+    } catch (e: any) {
       console.warn("Import failed:", e);
-      setAiError("마인드맵 파일 분석에 실패했습니다. 올바른 JSON 규격인지 확인해 주세요.");
+      const { t } = getMindmapI18n();
+      setAiError(t("mindmapParseError"));
     }
   };
 

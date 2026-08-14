@@ -126,15 +126,15 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
                   ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
                   : "bg-gray-100 dark:bg-surface-700 text-gray-500 dark:text-gray-400 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:text-violet-600 dark:hover:text-violet-400"
               }`}
-              title="AI 메모 초안 생성"
+              title={t("aiDraftTooltip")}
             >
               {draftState === "loading"
                 ? <Loader2 size={8} className="animate-spin" />
                 : <Sparkles size={8} />}
-              AI 초안
+              {t("aiDraftBtn")}
             </button>
           )}
-          <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+          <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors" title={t("closeTooltip")}>
             <X size={12} />
           </button>
         </div>
@@ -160,7 +160,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
             }}
             disabled={!content}
             className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors disabled:opacity-40"
-            title="Copy"
+            title={t("copyTooltip")}
           >
             <Copy size={12} />
           </button>
@@ -192,7 +192,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
         <div className="mt-2 p-3 rounded-xl border border-violet-200 dark:border-violet-700/40 bg-violet-50 dark:bg-violet-900/20 flex items-center gap-2">
           <Loader2 size={12} className="text-violet-500 animate-spin shrink-0" />
           <span className="text-[10px] text-violet-600 dark:text-violet-400 animate-pulse">
-            {lang === "ko" ? "AI가 메모 초안을 작성 중..." : lang === "ja" ? "AI が下書きを生成中..." : "AI is drafting..."}
+            {t("aiDraftApplying")}
           </span>
         </div>
       )}
@@ -216,8 +216,8 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
               draftState === "used" ? "text-emerald-600 dark:text-emerald-400" : "text-violet-600 dark:text-violet-400"
             }`}>
               {draftState === "used"
-                ? (lang === "ko" ? "초안 적용됨" : lang === "ja" ? "下書き適用済" : "Draft applied")
-                : (lang === "ko" ? `AI 초안 ${draftAiUsed ? "(Gemini Nano)" : "(요약 기반)"}` : lang === "ja" ? `AI 下書き ${draftAiUsed ? "(Gemini Nano)" : "(要約ベース)"}` : `AI Draft ${draftAiUsed ? "(Gemini Nano)" : "(summary-based)"}`)}
+                ? t("aiDraftApplied")
+                : `${t("aiDraftLabel")} ${draftAiUsed ? "(Gemini Nano)" : lang === "ko" ? "(요약 기반)" : lang === "ja" ? "(要約ベース)" : "(summary-based)"}`}
             </span>
           </div>
           {/* Draft text */}
@@ -233,14 +233,14 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
                 onClick={() => setDraftState("idle")}
                 className="text-[9px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-1.5 py-0.5 rounded transition-colors"
               >
-                {lang === "ko" ? "닫기" : lang === "ja" ? "閉じる" : "Dismiss"}
+                {t("aiDraftDismiss")}
               </button>
               <button
                 onClick={handleUseDraft}
                 className="flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm shadow-violet-500/30"
               >
                 <CheckCheck size={8} />
-                {lang === "ko" ? "이 내용 사용" : lang === "ja" ? "使用する" : "Use this"}
+                {t("aiDraftUseThis")}
               </button>
             </div>
           )}
@@ -253,7 +253,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
           onClick={onClose}
           className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
         >
-          Close
+          {t("closeTooltip")}
         </button>
         <button
           onClick={async () => {

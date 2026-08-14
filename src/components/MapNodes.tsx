@@ -5,8 +5,10 @@ import { ChevronRight, ChevronDown, Pencil, Trash2, StickyNote } from "lucide-re
 import { MemoPopover } from "./BookmarkCard";
 import { MEMO_DOT } from "@/shared/colors";
 import type { MemoColor } from "@/shared/types";
+import { useLang } from "@/shared/LanguageContext";
 
 export function FolderNode({ data }: { data: any }) {
+  const { t } = useLang();
   const { label, icon, isExpanded, isBookmarksExpanded, count, isRoot, layoutDir, onToggleSubfolders, onToggleBookmarks, onRenameFolder, folderId, isHighlighted } = data;
   const isTB = layoutDir === "TB";
   const [isEditing, setIsEditing] = useState(false);
@@ -30,7 +32,7 @@ export function FolderNode({ data }: { data: any }) {
       <div 
         className={`bg-white dark:bg-surface-800 border-2 border-indigo-400 rounded-full px-4 py-2 shadow-lg flex items-center gap-2 cursor-pointer hover:border-indigo-500 hover:shadow-indigo-500/20 transition-all ${highlightClass}`}
         onClick={(e) => { e.stopPropagation(); onToggleSubfolders?.(folderId); }}
-        title="하위 폴더 펼치기/접기"
+        title={t("collapseSubfolders")}
       >
         <span className="text-lg leading-none shrink-0"><FolderIcon iconName={icon} fallbackColorClass="bg-indigo-400" /></span>
         <span className="font-bold text-gray-800 dark:text-gray-100 text-sm whitespace-nowrap">{label}</span>
@@ -56,7 +58,7 @@ export function FolderNode({ data }: { data: any }) {
             onToggleBookmarks?.(folderId); 
           }
         }}
-        title="북마크 목록 펼치기/접기"
+        title={t("toggleBookmarks")}
       >
         <span className="text-lg leading-none shrink-0"><FolderIcon iconName={icon} fallbackColorClass="bg-indigo-400" /></span>
         {isEditing ? (
@@ -92,10 +94,10 @@ export function FolderNode({ data }: { data: any }) {
           className="opacity-0 group-hover:opacity-100 flex items-center justify-center px-2 cursor-pointer bg-gray-50 dark:bg-surface-700/50 hover:bg-gray-100 dark:hover:bg-surface-600 transition-all border-l border-gray-100 dark:border-surface-600 w-0 group-hover:w-8 overflow-hidden"
           onClick={(e) => { 
             e.stopPropagation(); 
-            setIsEditing(true);
+            setIsEditing(true); 
             setEditName(label);
           }}
-          title="폴더 이름 변경"
+          title={t("renameFolder")}
         >
           <Pencil size={14} className="text-gray-400 hover:text-indigo-500 shrink-0" />
         </div>
@@ -105,7 +107,7 @@ export function FolderNode({ data }: { data: any }) {
       <div 
         className="flex items-center justify-center px-2 cursor-pointer bg-gray-50 dark:bg-surface-700/50 hover:bg-gray-100 dark:hover:bg-surface-600 transition-colors border-l border-gray-100 dark:border-surface-600"
         onClick={(e) => { e.stopPropagation(); onToggleSubfolders?.(folderId); }}
-        title="하위 폴더 펼치기/접기"
+        title={t("collapseSubfolders")}
       >
         {isExpanded ? <ChevronDown size={16} className="text-gray-500" /> : <ChevronRight size={16} className="text-gray-400" />}
       </div>
@@ -116,6 +118,7 @@ export function FolderNode({ data }: { data: any }) {
 }
 
 export function BookmarkNode({ data }: { data: any }) {
+  const { t } = useLang();
   const { id, title, url, favicon, onRename, onDelete, onMemoChange, onDeleteMemo, memo, layoutDir, isHighlighted } = data;
   const isTB = layoutDir === "TB";
   const [isEditing, setIsEditing] = useState(false);
@@ -179,7 +182,7 @@ export function BookmarkNode({ data }: { data: any }) {
           <button 
             onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} 
             className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-indigo-500 transition-opacity shrink-0"
-            title="Edit"
+            title={t("editTooltip")}
           >
             <Pencil size={11} />
           </button>
@@ -187,7 +190,7 @@ export function BookmarkNode({ data }: { data: any }) {
             ref={stickyBtnRef}
             onClick={(e) => { e.stopPropagation(); setShowPopover(true); }} 
             className={`opacity-0 group-hover:opacity-100 p-0.5 transition-opacity shrink-0 ${memo ? "text-yellow-500 opacity-100" : "text-gray-400 hover:text-yellow-500"}`}
-            title="Memo"
+            title={t("memoTooltip")}
           >
             <StickyNote size={11} />
           </button>
@@ -195,7 +198,7 @@ export function BookmarkNode({ data }: { data: any }) {
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(id); }} 
               className="opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-500 transition-opacity shrink-0"
-              title="Delete"
+              title={t("deleteTooltip")}
             >
               <Trash2 size={11} />
             </button>

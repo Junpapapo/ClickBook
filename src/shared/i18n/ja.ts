@@ -679,5 +679,97 @@ export const ja = {
   springNoteAiDiscard: "破棄",
   springNoteAiApply: "適用",
   springNoteAiErrorModel: "AIモデルを使用できません。",
+
+  // ── Global & Common Action Tooltips ──────────────────────
+  memoTooltip: "メモ",
+  copyTooltip: "コピー",
+  closeTooltip: "閉じる",
+  resetTooltip: "リセット",
+  generalMemo: "一般メモ",
+  memoPrefix: "[メモ]",
+
+  // ── MapNodes & Bookmark Map ──────────────────────────────
+  collapseSubfolders: "サブフォルダーの展開/折りたたみ",
+  toggleBookmarks: "ブックマーク一覧の展開/折りたたみ",
+  renameFolder: "フォルダー名の変更",
+
+  // ── BookmarkCard & Memo ──────────────────────────────────
+  aiDraftTooltip: "AIメモ下書き生成",
+  aiDraftBtn: "AI下書き",
+  aiDraftApplying: "AIが下書きを生成中...",
+  aiDraftApplied: "下書き適用済",
+  aiDraftLabel: "AI下書き",
+  aiDraftDismiss: "閉じる",
+  aiDraftUseThis: "これを使用",
+
+  // ── Todo & Status ────────────────────────────────────────
+  springNoteWritten: "スプリングノート作成済",
+  springNoteTooltipShort: "スプリングノート",
+  statusCompleted: "完了",
+  statusOverdue: "遅延",
+  statusToday: "今日",
+  statusTomorrow: "明日",
+  scheduleIconSetting: "アイコン設定",
+  aiProofreadTooltip: "AIが本文の誤字脱字を修正し、読みやすく整えます。",
+  aiProofreadBtn: "AI推敲",
+
+  // ── Calendar & Holiday ───────────────────────────────────
+  holidayEdit: "休日編集",
+  resizeWidth: "幅を調整",
+
+  // ── MindMap ──────────────────────────────────────────────
+  mindmapChangeLineStyle: "接続線のスタイル変更",
+  mindmapShortcutGuideTitle: "ショートカット一覧",
+  mindmapConnectDir: "接続方向の手動選択",
+  mindmapConnectTop: "上から接続",
+  mindmapConnectLeft: "左から接続",
+  mindmapConnectAuto: "自動（初期化）",
+  mindmapConnectRight: "右から接続",
+  mindmapConnectBottom: "下から接続",
+  mindmapDefaultNode: "新しいアイデア",
+  mindmapIdeaLabel: "アイデア",
+  mindmapCreateChild: "子ノード作成 (Tab)",
+  mindmapDetailMemo: "詳細メモ編集 (Side-sheet)",
+  mindmapEditText: "テキスト編集 (ダブルクリック)",
+  mindmapRegisterTodo: "Todoボードにタスクとして登録",
+  mindmapAiAction: "AIアクションメニュー",
+  mindmapIconSetting: "絵文字/アイコン設定",
+  mindmapHasMemo: "詳細メモあり",
+  mindmapAiPlaceholder: "例：チームの第2四半期マーケティング戦略は、SNS広告の強化、インフルエンサー協業、SEO最適化を中心に...",
+  mindmapRegisteredTodoSuccess: "Todoボードにタスクとして登録されました！",
+  mindmapTodoLoadError: "Todoボードデータの読み込みに失敗しました。",
+  mindmapTodoNoColumnError: "タスクを登録するTodo列が存在しません。",
+  mindmapNanoNotReady: "Local Gemini Nanoが準備できていません。chrome://flagsで有効にしてください。",
+  mindmapInvalidFormat: "有効なマインドマップデータ形式ではありません。",
+  mindmapParseError: "マインドマップファイルの解析に失敗しました。JSON形式をご確認ください。",
+  mindmapLoadFail: "マインドマップファイルの読み込みに失敗しました: ",
+  mindmapChangeIconTooltip: "絵文字/アイコン変更",
+
+  // ── Popup ────────────────────────────────────────────────
+  prevMonth: "前月",
+  nextMonth: "翌月",
+  today: "今日へ移動",
+  prevYear: "前年",
+  nextYear: "翌年",
+  randomNameTooltip: "ランダムな名前を生成",
+  buddyDetailSettingsTooltip: "バディ詳細設定",
+  buddyNamePlaceholder: "例: Coco, Lulu...",
+
+  // ── Drawing Component ────────────────────────────────────
+  drawingBgGround: "地色",
+  drawingBgWhite: "ホワイト",
+  drawingBgBlack: "ブラック",
+  drawingBgSepia: "セピア",
+  drawingBgMemoPaper: "メモ用紙",
+
+  // ── Reminders & Calendar ─────────────────────────────────
+  reminder15mBefore: "15分前",
+  reminder1hBefore: "1時間前",
+  reminder3hBefore: "3時間前",
+  reminder1dBefore: "1日前",
+  noSchedulesToday: "今日の予定はありません。",
+
+  // ── AI & Mindmap ─────────────────────────────────────────
+  aiErrorTimeout: "AIの応答時間がタイムアウトしました。",
 };
 

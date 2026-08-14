@@ -23,6 +23,7 @@ import {
 import type { PageId, Bookmark } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useTheme } from "@/shared/ThemeContext";
+import { smartMatch } from "@/utils/hangulUtils";
 
 interface Props {
   isOpen: boolean;
@@ -231,13 +232,13 @@ export default function CommandPalette({
 
     // Filter bookmarks if search query exists
     if (query.trim() && bookmarks.length > 0) {
-      const q = query.toLowerCase().trim();
+      const q = query.trim();
       const matchedBookmarks = bookmarks
         .filter(
           (b) =>
-            b.title.toLowerCase().includes(q) ||
-            b.url.toLowerCase().includes(q) ||
-            (b.tags && b.tags.some((t) => t.toLowerCase().includes(q)))
+            smartMatch(b.title, q) ||
+            smartMatch(b.url, q) ||
+            (b.tags && b.tags.some((t) => smartMatch(t, q)))
         )
         .slice(0, 5);
 
@@ -263,13 +264,13 @@ export default function CommandPalette({
 
   // Flattened items for keyboard navigation
   const flatItems = useMemo(() => {
-    const q = query.toLowerCase().trim();
+    const q = query.trim();
     return commandGroups.flatMap((g) =>
       g.items.filter(
         (item) =>
           !q ||
-          item.title.toLowerCase().includes(q) ||
-          (item.description && item.description.toLowerCase().includes(q))
+          smartMatch(item.title, q) ||
+          (item.description && smartMatch(item.description, q))
       )
     );
   }, [commandGroups, query]);

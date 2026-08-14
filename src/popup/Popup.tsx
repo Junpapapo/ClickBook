@@ -15,7 +15,7 @@ import BulkImportForm from "./components/BulkImportForm";
 import { BuddySettingsPanel } from "./components/BuddySettingsPanel";
 import { BuddySelector } from "./components/BuddySelector";
 import type { BuddyConfig, AppSettings } from "@/shared/types";
-import { tForLang, initLang as initBuddyLang } from "@/buddy/i18n";
+import { initLang as initBuddyLang } from "@/buddy/i18n";
 
 export type ClassifyMethod = "rule" | "ai" | "nano" | "existing" | "manual" | "default";
 type Status = "idle" | "loading" | "analyzing" | "success" | "duplicate" | "error";
@@ -1009,18 +1009,22 @@ export default function Popup() {
                     setCurrentMonth(prev);
                   }}
                   className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
-                  title="이전 달"
+                  title={t("prevMonth")}
                 >
                   <ChevronLeft size={14} />
                 </button>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 tracking-wider">
-                    {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
+                    {lang === "ko"
+                      ? `${currentMonth.getFullYear()}년 ${currentMonth.getMonth() + 1}월`
+                      : lang === "ja"
+                      ? `${currentMonth.getFullYear()}年 ${currentMonth.getMonth() + 1}月`
+                      : `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][currentMonth.getMonth()]} ${currentMonth.getFullYear()}`}
                   </span>
                   <button
                     onClick={handleSetToday}
                     className="p-0.5 rounded text-indigo-400 hover:text-indigo-300 hover:bg-surface-700/50 transition-all active:scale-90 cursor-pointer"
-                    title="오늘로 이동"
+                    title={t("today")}
                   >
                     <Target size={11} />
                   </button>
@@ -1032,7 +1036,7 @@ export default function Popup() {
                     setCurrentMonth(next);
                   }}
                   className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-700 active:scale-90 transition-all cursor-pointer"
-                  title="다음 달"
+                  title={t("nextMonth")}
                 >
                   <ChevronRight size={14} />
                 </button>
@@ -1040,13 +1044,13 @@ export default function Popup() {
 
               {/* 요일 헤더 */}
               <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-500 py-0.5">
-                <span className="text-red-500/80">일</span>
-                <span>월</span>
-                <span>화</span>
-                <span>수</span>
-                <span>목</span>
-                <span>금</span>
-                <span className="text-blue-400/80">토</span>
+                <span className="text-red-500/80">{lang === "ko" ? "일" : lang === "ja" ? "日" : "Sun"}</span>
+                <span>{lang === "ko" ? "월" : lang === "ja" ? "月" : "Mon"}</span>
+                <span>{lang === "ko" ? "화" : lang === "ja" ? "火" : "Tue"}</span>
+                <span>{lang === "ko" ? "수" : lang === "ja" ? "水" : "Wed"}</span>
+                <span>{lang === "ko" ? "목" : lang === "ja" ? "木" : "Thu"}</span>
+                <span>{lang === "ko" ? "금" : lang === "ja" ? "金" : "Fri"}</span>
+                <span className="text-blue-400/80">{lang === "ko" ? "토" : lang === "ja" ? "土" : "Sat"}</span>
               </div>
 
               {/* 날짜 그리드 */}
@@ -1333,7 +1337,9 @@ export default function Popup() {
                   : "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-750 hover:bg-gray-200 dark:hover:bg-surface-700"
               }`}
             >
-              🐾 {buddyConfig.enabled ? tForLang("buddyOn", lang) : tForLang("buddyOff", lang)}
+              🐾 {buddyConfig.enabled 
+                ? (lang === "ko" ? "버디 ON" : lang === "ja" ? "バディ ON" : "Buddy ON") 
+                : (lang === "ko" ? "버디 OFF" : lang === "ja" ? "バディ OFF" : "Buddy OFF")}
             </button>
             <div className="flex-1 flex gap-1.5 items-center bg-white/70 dark:bg-surface-900/60 border border-gray-200/80 dark:border-surface-700/80 rounded-lg px-2 py-1">
               <input
@@ -1350,7 +1356,7 @@ export default function Popup() {
                     config: next,
                   });
                 }}
-                placeholder="예: Coco, Lulu..."
+                placeholder={t("buddyNamePlaceholder")}
                 className="flex-1 bg-transparent border-none text-xs text-gray-800 dark:text-gray-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
@@ -1368,7 +1374,7 @@ export default function Popup() {
                   });
                 }}
                 className="text-xs hover:scale-115 active:scale-95 transition-transform disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
-                title="랜덤 이름 생성"
+                title={t("randomNameTooltip")}
               >
                 🎲
               </button>
@@ -1376,7 +1382,7 @@ export default function Popup() {
             <button
               onClick={() => setBuddyModalOpen(true)}
               className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0"
-              title="버디 상세 설정"
+              title={t("buddyDetailSettingsTooltip")}
             >
               <Settings size={15} />
             </button>
@@ -1385,7 +1391,7 @@ export default function Popup() {
               disabled={!buddyConfig.enabled}
               onClick={() => setBuddySelectorExpanded(prev => !prev)}
               className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0 disabled:opacity-35 disabled:cursor-not-allowed"
-              title={buddySelectorExpanded ? tForLang("buddyCollapse", lang) : tForLang("buddyExpand", lang)}
+              title={buddySelectorExpanded ? (lang === "ko" ? "접기" : lang === "ja" ? "折りたたむ" : "Collapse") : (lang === "ko" ? "펼치기" : lang === "ja" ? "展開" : "Expand")}
             >
               {buddySelectorExpanded ? (
                 <ChevronUp size={15} className="stroke-[2.5]" />

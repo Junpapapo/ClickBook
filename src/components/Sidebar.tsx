@@ -601,7 +601,7 @@ export default function Sidebar({
                       desc = `AI가 일부 배치를 분석했습니다. 실패한 항목은 로컬 규칙으로 대체되었습니다. (${movedCount}개 정리 완료)`;
                     } else if (lang === "ja") {
                       title = `⚠ AI整理（一部成功: ${aiSuccessCount}/${aiTotalBatches}）`;
-                      desc = `AI가 일부의 바ッチを解析しました。失敗した部分はローカルルールになりました. (${movedCount}件整理完了)`;
+                      desc = `AIが一部のバッチを解析しました。失敗した部分はローカルルールで代替されました.(${movedCount}件整理完了)`;
                     } else {
                       title = `⚠ AI Organize (Partial: ${aiSuccessCount}/${aiTotalBatches})`;
                       desc = `AI successfully parsed some batches. Others fell back to domain rules. (${movedCount} sites organized)`;

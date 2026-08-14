@@ -24,13 +24,14 @@ export default function SpringNoteExportModal({
   title,
   content,
 }: Props) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const isKo = lang === "ko";
+  const isJa = lang === "ja";
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const safeTitle = title.trim() || (isKo ? "무제_스프링노트" : "Untitled_SpringNote");
+  const safeTitle = title.trim() || (isKo ? "무제_스프링노트" : isJa ? "無題_スプリングノート" : "Untitled_SpringNote");
   const fileNameSlug = safeTitle.replace(/[/\\?%*:|"<>]/g, "_");
 
   // Helper to convert HTML to simple clean Markdown
@@ -151,11 +152,12 @@ export default function SpringNoteExportModal({
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-surface-800 bg-slate-50/80 dark:bg-surface-950/60">
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
             <Share2 size={18} />
-            <span>{isKo ? "스프링노트 내보내기 & 공유" : "Export & Share Note"}</span>
+            <span>{isKo ? "스프링노트 내보내기 & 공유" : isJa ? "スプリングノート エクスポート＆共有" : "Export & Share Note"}</span>
           </div>
           <button
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-surface-800 rounded-lg transition-colors cursor-pointer"
+            title={t("closeTooltip")}
           >
             <X size={16} />
           </button>
@@ -164,7 +166,7 @@ export default function SpringNoteExportModal({
         {/* Modal Body */}
         <div className="p-5 space-y-4">
           <div className="p-3 bg-slate-100/70 dark:bg-surface-800/60 rounded-xl border border-slate-200/60 dark:border-surface-700/60">
-            <p className="text-[11px] text-slate-400 font-medium">{isKo ? "대상 노트 제목" : "Target Note Title"}</p>
+            <p className="text-[11px] text-slate-400 font-medium">{isKo ? "대상 노트 제목" : isJa ? "対象ノートタイトル" : "Target Note Title"}</p>
             <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate mt-0.5">{safeTitle}</p>
           </div>
 
@@ -178,14 +180,14 @@ export default function SpringNoteExportModal({
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-900 dark:text-white">Markdown (.md)</p>
-                  <p className="text-[10px] text-slate-400">{isKo ? "마크다운 문서 저장 및 복사" : "Save/copy as Markdown"}</p>
+                  <p className="text-[10px] text-slate-400">{isKo ? "마크다운 문서 저장 및 복사" : isJa ? "Markdownドキュメントの保存・コピー" : "Save/copy as Markdown"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleCopy("md")}
                   className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors cursor-pointer"
-                  title={isKo ? "마크다운 복사" : "Copy Markdown"}
+                  title={isKo ? "마크다운 복사" : isJa ? "Markdownをコピー" : "Copy Markdown"}
                 >
                   {copiedFormat === "md" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                 </button>
@@ -207,7 +209,7 @@ export default function SpringNoteExportModal({
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-900 dark:text-white">HTML 웹 문서 (.html)</p>
-                  <p className="text-[10px] text-slate-400">{isKo ? "웹 브라우저용 서식 문서" : "Web document with styles"}</p>
+                  <p className="text-[10px] text-slate-400">{isKo ? "웹 브라우저용 서식 문서" : isJa ? "ウェブブラウザ用フォーマット文書" : "Web document with styles"}</p>
                 </div>
               </div>
               <button
@@ -227,14 +229,14 @@ export default function SpringNoteExportModal({
                 </div>
                 <div>
                   <p className="text-xs font-bold text-slate-900 dark:text-white">순수 텍스트 (.txt)</p>
-                  <p className="text-[10px] text-slate-400">{isKo ? "서식 없는 일반 텍스트" : "Plain unformatted text"}</p>
+                  <p className="text-[10px] text-slate-400">{isKo ? "서식 없는 일반 텍스트" : isJa ? "書式なしプレーンテキスト" : "Plain unformatted text"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => handleCopy("text")}
                   className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer"
-                  title={isKo ? "텍스트 복사" : "Copy Text"}
+                  title={isKo ? "텍스트 복사" : isJa ? "テキストをコピー" : "Copy Text"}
                 >
                   {copiedFormat === "text" ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                 </button>
@@ -255,8 +257,8 @@ export default function SpringNoteExportModal({
                   <Printer size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">{isKo ? "인쇄 / PDF 미리보기" : "Print / Save to PDF"}</p>
-                  <p className="text-[10px] text-slate-400">{isKo ? "브라우저 인쇄 모달을 통한 PDF 저장" : "Print layout or PDF save"}</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{isKo ? "인쇄 / PDF 미리보기" : isJa ? "印刷 / PDFプレビュー" : "Print / Save to PDF"}</p>
+                  <p className="text-[10px] text-slate-400">{isKo ? "브라우저 인쇄 모달을 통한 PDF 저장" : isJa ? "ブラウザ印刷ダイアログによるPDF保存" : "Print layout or PDF save"}</p>
                 </div>
               </div>
               <button
@@ -273,7 +275,11 @@ export default function SpringNoteExportModal({
         {/* Modal Footer */}
         <div className="p-3 border-t border-slate-200 dark:border-surface-800 bg-slate-50/60 dark:bg-surface-950/60 text-center">
           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-            {isKo ? "💡 언제든지 원하는 포맷으로 자유롭게 내보내세요." : "💡 Export your notes in any preferred format anytime."}
+            {isKo 
+              ? "💡 언제든지 원하는 포맷으로 자유롭게 내보내세요." 
+              : isJa
+              ? "💡 いつでもお好みの形式で自由にエクスポートできます。"
+              : "💡 Export your notes in any preferred format anytime."}
           </p>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
 import { Trash2, AlignLeft, AlignCenter, AlignRight, ZoomIn, ZoomOut } from "lucide-react";
+import { useLang } from "@/shared/LanguageContext";
 
 interface Point {
   x: number;
@@ -14,6 +15,7 @@ interface Line {
 }
 
 export default function DrawingComponent({ node, updateAttributes, deleteNode }: NodeViewProps) {
+  const { lang } = useLang();
   const svgRef = useRef<SVGSVGElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
@@ -130,11 +132,11 @@ export default function DrawingComponent({ node, updateAttributes, deleteNode }:
   };
 
   const bgColorsList = [
-    { key: "transparent", val: "transparent", label: "지면" },
-    { key: "#ffffff", val: "#ffffff", label: "흰색" },
-    { key: "#1e1e20", val: "#1e1e20", label: "검은색" },
-    { key: "#f4ecd8", val: "#f4ecd8", label: "세피아" },
-    { key: "#fff9db", val: "#fff9db", label: "메모지" },
+    { key: "transparent", val: "transparent", label: lang === "ko" ? "지면" : lang === "ja" ? "用紙" : "Paper" },
+    { key: "#ffffff", val: "#ffffff", label: lang === "ko" ? "흰색" : lang === "ja" ? "白色" : "White" },
+    { key: "#1e1e20", val: "#1e1e20", label: lang === "ko" ? "검은색" : lang === "ja" ? "黒色" : "Black" },
+    { key: "#f4ecd8", val: "#f4ecd8", label: lang === "ko" ? "세피아" : lang === "ja" ? "セピア" : "Sepia" },
+    { key: "#fff9db", val: "#fff9db", label: lang === "ko" ? "메모지" : lang === "ja" ? "メモ用紙" : "Yellow Note" },
   ];
 
   return (

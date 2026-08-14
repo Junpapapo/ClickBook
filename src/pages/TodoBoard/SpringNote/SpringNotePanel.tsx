@@ -13,6 +13,7 @@ import { SlashCommandExtension } from "./components/SlashCommandExtension";
 import type { SlashCommandState } from "./components/SlashCommandExtension";
 import SlashCommandMenu from "./components/SlashCommandMenu";
 import { isAIAvailable } from "@/shared/categorizer";
+import { useDialog } from "@/shared/useDialog";
 
 // Tiptap WYSIWYG 에디터 관련 임포트 추가
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -162,6 +163,7 @@ export default function SpringNotePanel({
   onThemeChange,
 }: SpringNotePanelProps) {
   const { theme: systemTheme } = useTheme();
+  const { showAlert, DialogEl } = useDialog();
   const [pages, setPages] = useState<NotePage[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "sepia" | "dark" | "grid">("sepia");
@@ -889,22 +891,22 @@ export default function SpringNotePanel({
   };
 
   // 이미지 파일 업로드 프로세싱 및 가상 진행률(로딩 슬라이드) 관리
-  const processFiles = (files: File[]) => {
+  const processFiles = async (files: File[]) => {
     if (!editor) return;
     if (files.length === 0) return;
 
     if (files.length > 3) {
-      alert("Maximum 3 files can be uploaded at once.");
+      await showAlert("Maximum 3 files can be uploaded at once.", "warn");
       return;
     }
 
-    files.forEach((file) => {
+    for (const file of files) {
       if (file.size > 5 * 1024 * 1024) {
-        alert(`File "${file.name}" exceeds the 5MB limit.`);
+        await showAlert(`File "${file.name}" exceeds the 5MB limit.`, "warn");
         return;
       }
       if (!file.type.startsWith("image/")) {
-        alert(`File "${file.name}" is not a valid image file.`);
+        await showAlert(`File "${file.name}" is not a valid image file.`, "warn");
         return;
       }
 
@@ -965,7 +967,7 @@ export default function SpringNotePanel({
       }, 120);
 
       uploadIntervals.current[uploadId] = interval;
-    });
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1057,6 +1059,7 @@ export default function SpringNotePanel({
 
   return (
     <div className="flex-grow flex flex-col h-full bg-gray-55/10 dark:bg-surface-900/10 border-l border-gray-150 dark:border-white/5 overflow-hidden animate-in fade-in duration-300">
+      {DialogEl}
       {/* 슬래시(/) 커맨드 메뉴 — Portal로 body에 렌더링 */}
       {editor && slashState.active && (
         <SlashCommandMenu
@@ -1320,7 +1323,7 @@ export default function SpringNotePanel({
                 onClick={confirmDeletePage}
                 className="flex-1 py-2 text-xs font-bold text-[#3B281B] bg-red-400 hover:bg-red-500 active:scale-95 transition-all rounded-xl shadow-md shadow-red-900/10 cursor-pointer"
               >
-                {lang === "ko" ? "삭제" : lang === "ja" ? "삭제" : "Delete"}
+                {lang === "ko" ? "삭제" : lang === "ja" ? "削除" : "Delete"}
               </button>
             </div>
           </div>

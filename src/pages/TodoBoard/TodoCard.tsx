@@ -4,8 +4,8 @@ import { GripVertical, CheckCircle2, Circle, Calendar, AlignLeft, CheckSquare, T
 import type { TodoTask } from "@/shared/types";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { checkSpringNoteExists } from "@/utils/springNoteDb";
-
-
+import { useLang } from "@/shared/LanguageContext";
+import type { TFunction, Lang } from "@/shared/i18n";
 
 const TASK_BG_COLORS: Record<string, string> = {
   default: "bg-white dark:bg-[#2C2C2E]",
@@ -16,13 +16,16 @@ const TASK_BG_COLORS: Record<string, string> = {
   purple: "bg-purple-50 dark:bg-[#251E2D]",
 };
 
-const formatDateKorean = (dateStr?: string) => {
+const formatDateByLang = (dateStr?: string, lang: Lang = "en") => {
   if (!dateStr) return "";
   const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
   const m = parseInt(parts[1], 10);
   const d = parseInt(parts[2], 10);
-  return `${m}월 ${d}일`;
+  if (lang === "ko") return `${m}월 ${d}일`;
+  if (lang === "ja") return `${m}月 ${d}日`;
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return `${months[m - 1] || m} ${d}`;
 };
 
 const formatDateStr = (date: Date) => {
@@ -32,7 +35,7 @@ const formatDateStr = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
-const getDueBadgeInfo = (task: TodoTask) => {
+const getDueBadgeInfo = (task: TodoTask, lang: Lang, t: TFunction) => {
   if (!task.dueDate) return null;
 
   const todayStr = formatDateStr(new Date());
@@ -46,7 +49,7 @@ const getDueBadgeInfo = (task: TodoTask) => {
   const isDueToday = !isCompleted && task.dueDate === todayStr;
   const isDueTomorrow = !isCompleted && task.dueDate === tomorrowStr;
 
-  const dateFormatted = formatDateKorean(task.dueDate);
+  const dateFormatted = formatDateByLang(task.dueDate, lang);
   const timeFormatted = task.dueTime ? ` ${task.dueTime}` : "";
   const displayLabel = `${dateFormatted}${timeFormatted}`;
 
@@ -55,16 +58,16 @@ const getDueBadgeInfo = (task: TodoTask) => {
 
   if (isCompleted) {
     bgClass = "bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30";
-    statusText = "완료";
+    statusText = t("statusCompleted");
   } else if (isOverdue) {
     bgClass = "bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-900/30 font-semibold animate-pulse";
-    statusText = "지연됨";
+    statusText = t("statusOverdue");
   } else if (isDueToday) {
     bgClass = "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30 font-semibold";
-    statusText = "오늘";
+    statusText = t("statusToday");
   } else if (isDueTomorrow) {
     bgClass = "bg-amber-50/60 dark:bg-amber-950/10 text-amber-600/90 dark:text-amber-400/90 border-amber-100/50 dark:border-amber-900/20";
-    statusText = "내일";
+    statusText = t("statusTomorrow");
   }
 
   return {
@@ -95,6 +98,7 @@ export default React.memo(function TodoCard({
   onDeleteTask,
   onOpenSpringNote,
 }: TodoTaskCardProps) {
+  const { lang, t } = useLang();
   const [hasNote, setHasNote] = React.useState(false);
 
   React.useEffect(() => {
@@ -137,7 +141,7 @@ export default React.memo(function TodoCard({
                   {(task.description || (task.checklist && task.checklist.length > 0) || task.dueDate) && (
                     <div className="flex flex-wrap items-center gap-2">
                       {task.dueDate && (() => {
-                        const badge = getDueBadgeInfo(task);
+                        const badge = getDueBadgeInfo(task, lang, t);
                         if (!badge) return null;
                         return (
                           <div className={`flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-lg border ${badge.bgClass}`}>
@@ -166,7 +170,7 @@ export default React.memo(function TodoCard({
                       )}
 
                       {hasNote && (
-                        <div className="flex items-center gap-1 text-[11px] font-bold bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-100/30 dark:border-indigo-900/30" title="스프링 노트 작성됨">
+                        <div className="flex items-center gap-1 text-[11px] font-bold bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-100/30 dark:border-indigo-900/30" title={t("springNoteWritten")}>
                           <BookOpen size={12} />
                           <span>Note</span>
                         </div>
@@ -208,14 +212,14 @@ export default React.memo(function TodoCard({
                 onOpenSpringNote(task.id, e);
               }}
               className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-indigo-500 hover:text-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-colors"
-              title="스프링 노트"
+              title={t("springNoteTooltipShort")}
             >
               <BookOpen size={13} />
             </button>
             <button
               onClick={(e) => onDeleteTask(task.id, columnId, e)}
               className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-gray-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 transition-colors"
-              title="삭제"
+              title={t("deleteTooltip")}
             >
               <Trash2 size={13} />
             </button>

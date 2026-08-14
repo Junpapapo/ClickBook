@@ -2,6 +2,7 @@ import React from "react";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { StickyNote } from "lucide-react";
 import type { TodoTask, Bookmark, BookmarkMemo } from "@/shared/types";
+import { useLang } from "@/shared/LanguageContext";
 import {
   TASK_BG_COLORS,
   MEMO_COLORS,
@@ -25,6 +26,7 @@ export default function DayView({
   onOpenTaskEditor,
   onOpenMemoEditor,
 }: DayViewProps) {
+  const { t } = useLang();
   if (!selectedDate) return null;
   const dStr = formatDateStr(selectedDate);
   const dayTasks = tasksByDate[dStr] || [];
@@ -75,11 +77,11 @@ export default function DayView({
               `}
             >
               <StickyNote size={9} className="shrink-0" />
-              <span className="truncate max-w-[120px]">{item.bookmark ? item.bookmark.title : "일반 메모"}</span>
+              <span className="truncate max-w-[120px]">{item.bookmark ? item.bookmark.title : t("generalMemo")}</span>
             </div>
           ))}
           {allDayTasks.length === 0 && dayMemos.length === 0 && (
-            <span className="text-[9px] text-gray-400 dark:text-gray-500 italic">일정이 없습니다.</span>
+            <span className="text-[9px] text-gray-400 dark:text-gray-500 italic">{t("noSchedulesToday")}</span>
           )}
         </div>
       </div>

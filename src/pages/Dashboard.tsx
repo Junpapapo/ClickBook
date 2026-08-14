@@ -54,7 +54,7 @@ const EMOJI_MAP: Record<string, string> = {
 
 export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount: _recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery: _aiSearchQuery, onAiLoadingChange: _onAiLoadingChange, customSearchConfigs: _customSearchConfigs = [], customPresets: _customPresets = [], onSaveCustomSearchConfigs: _onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard, organizeResult = null, onClearOrganizeResult }: Props) {
   const { t, lang } = useLang();
-  const { showConfirm, DialogEl } = useDialog();
+  const { showConfirm, showAlert, DialogEl } = useDialog();
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -69,11 +69,11 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       if (response && response.success) {
         onRefresh();
       } else {
-        alert(response?.error || t("saveFailed") || "Failed to delete bookmark");
+        await showAlert(response?.error || t("saveFailed") || "Failed to delete bookmark", "warn");
       }
     } catch (err) {
       console.error(err);
-      alert("Error deleting bookmark");
+      await showAlert("Error deleting bookmark", "warn");
     }
   }
 
@@ -88,11 +88,11 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       if (response && response.success) {
         onRefresh();
       } else {
-        alert(response?.error || t("saveFailed") || "Failed to delete folder");
+        await showAlert(response?.error || t("saveFailed") || "Failed to delete folder", "warn");
       }
     } catch (err) {
       console.error(err);
-      alert("Error deleting folder");
+      await showAlert("Error deleting folder", "warn");
     }
   }
 

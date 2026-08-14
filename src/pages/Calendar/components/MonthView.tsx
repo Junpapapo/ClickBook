@@ -2,6 +2,7 @@ import React from "react";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { StickyNote } from "lucide-react";
 import type { TodoTask, Bookmark, BookmarkMemo } from "@/shared/types";
+import { useLang } from "@/shared/LanguageContext";
 import {
   TASK_BG_COLORS,
   TASK_CELL_BG_COLORS,
@@ -35,6 +36,7 @@ export default function MonthView({
   onOpenTaskEditor,
   onOpenMemoEditor,
 }: MonthViewProps) {
+  const { t } = useLang();
   return (
     <>
       {/* Weekday Titles */}
@@ -164,10 +166,10 @@ export default function MonthView({
                     className={`text-[9px] font-bold px-1.5 py-0.5 rounded border truncate shadow-sm transition-all hover:scale-102 flex items-center gap-0.5
                       ${MEMO_COLORS[item.memo.color || "yellow"]}
                     `}
-                    title={`[메모] ${item.bookmark ? item.bookmark.title : "일반 메모"}`}
+                    title={`[${t("generalMemo")}] ${item.bookmark ? item.bookmark.title : t("generalMemo")}`}
                   >
                     <StickyNote size={8} className="shrink-0" />
-                    <span className="truncate">{item.bookmark ? item.bookmark.title : "일반 메모"}</span>
+                    <span className="truncate">{item.bookmark ? item.bookmark.title : t("generalMemo")}</span>
                   </div>
                 ))}
 

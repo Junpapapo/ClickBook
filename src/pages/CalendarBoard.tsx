@@ -772,7 +772,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                       <button
                         onClick={() => openTaskEditor(manualHolidays[formatDateStr(selectedDate)]!)}
                         className="p-1 text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors"
-                        title="휴일 편집"
+                        title={t("holidayEdit")}
                       >
                         <Edit size={12} />
                       </button>

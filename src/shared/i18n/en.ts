@@ -681,5 +681,97 @@ export const en = {
   springNoteAiDiscard: "Discard",
   springNoteAiApply: "Apply",
   springNoteAiErrorModel: "AI model is not available.",
+
+  // ── Global & Common Action Tooltips ──────────────────────
+  memoTooltip: "Memo",
+  copyTooltip: "Copy",
+  closeTooltip: "Close",
+  resetTooltip: "Reset",
+  generalMemo: "General Memo",
+  memoPrefix: "[Memo]",
+
+  // ── MapNodes & Bookmark Map ──────────────────────────────
+  collapseSubfolders: "Expand/Collapse subfolders",
+  toggleBookmarks: "Expand/Collapse bookmark list",
+  renameFolder: "Rename folder",
+
+  // ── BookmarkCard & Memo ──────────────────────────────────
+  aiDraftTooltip: "Generate AI memo draft",
+  aiDraftBtn: "AI Draft",
+  aiDraftApplying: "AI is drafting...",
+  aiDraftApplied: "Draft applied",
+  aiDraftLabel: "AI Draft",
+  aiDraftDismiss: "Dismiss",
+  aiDraftUseThis: "Use this",
+
+  // ── Todo & Status ────────────────────────────────────────
+  springNoteWritten: "Spring note written",
+  springNoteTooltipShort: "Spring Note",
+  statusCompleted: "Completed",
+  statusOverdue: "Overdue",
+  statusToday: "Today",
+  statusTomorrow: "Tomorrow",
+  scheduleIconSetting: "Set task icon",
+  aiProofreadTooltip: "AI refines text and corrects typos nicely.",
+  aiProofreadBtn: "AI Refine",
+
+  // ── Calendar & Holiday ───────────────────────────────────
+  holidayEdit: "Edit Holiday",
+  resizeWidth: "Adjust Width",
+
+  // ── MindMap ──────────────────────────────────────────────
+  mindmapChangeLineStyle: "Change line style",
+  mindmapShortcutGuideTitle: "View shortcut guide",
+  mindmapConnectDir: "Manual connection direction",
+  mindmapConnectTop: "Connect from top",
+  mindmapConnectLeft: "Connect from left",
+  mindmapConnectAuto: "Auto (Reset)",
+  mindmapConnectRight: "Connect from right",
+  mindmapConnectBottom: "Connect from bottom",
+  mindmapDefaultNode: "New Idea",
+  mindmapIdeaLabel: "Idea",
+  mindmapCreateChild: "Create sub-node (Tab)",
+  mindmapDetailMemo: "Edit node memo (Side-sheet)",
+  mindmapEditText: "Edit text (Double-click)",
+  mindmapRegisterTodo: "Register to ClickBook Todo",
+  mindmapAiAction: "AI Action Menu",
+  mindmapIconSetting: "Set emoji/icon",
+  mindmapHasMemo: "Detailed memo exists",
+  mindmapAiPlaceholder: "e.g., Our Q2 marketing strategy focuses on SNS ads, influencer collaboration, and SEO optimization...",
+  mindmapRegisteredTodoSuccess: "Successfully added to Todo board!",
+  mindmapTodoLoadError: "Failed to load Todo board data.",
+  mindmapTodoNoColumnError: "No Todo column found to add tasks.",
+  mindmapNanoNotReady: "Local Gemini Nano is not ready. Please enable it in chrome://flags.",
+  mindmapInvalidFormat: "Invalid mind map data format.",
+  mindmapParseError: "Failed to parse mind map file. Please check JSON format.",
+  mindmapLoadFail: "Failed to load mind map file: ",
+  mindmapChangeIconTooltip: "Change emoji/icon",
+
+  // ── Popup ────────────────────────────────────────────────
+  prevMonth: "Previous Month",
+  nextMonth: "Next Month",
+  today: "Go to Today",
+  prevYear: "Previous Year",
+  nextYear: "Next Year",
+  randomNameTooltip: "Generate random name",
+  buddyDetailSettingsTooltip: "Buddy detail settings",
+  buddyNamePlaceholder: "e.g. Coco, Lulu...",
+
+  // ── Drawing Component ────────────────────────────────────
+  drawingBgGround: "Ground",
+  drawingBgWhite: "White",
+  drawingBgBlack: "Black",
+  drawingBgSepia: "Sepia",
+  drawingBgMemoPaper: "Sticky Note",
+
+  // ── Reminders & Calendar ─────────────────────────────────
+  reminder15mBefore: "15 minutes before",
+  reminder1hBefore: "1 hour before",
+  reminder3hBefore: "3 hours before",
+  reminder1dBefore: "1 day before",
+  noSchedulesToday: "No schedules for today.",
+
+  // ── AI & Mindmap ─────────────────────────────────────────
+  aiErrorTimeout: "AI response timed out.",
 };
 

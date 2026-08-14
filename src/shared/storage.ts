@@ -71,6 +71,9 @@ export async function addBookmarks(newBookmarks: Bookmark[]): Promise<void> {
 }
 
 export async function deleteBookmark(id: string): Promise<void> {
+  if (visitBatchQueue[id]) {
+    delete visitBatchQueue[id];
+  }
   await withStorageLock(async (data) => {
     data.bookmarks = data.bookmarks.filter((b) => b.id !== id);
   });
@@ -111,7 +114,9 @@ export async function updateBookmark(
 
 export async function isDuplicateUrl(url: string, excludeId?: string): Promise<boolean> {
   const data = await readStorage();
-  return data.bookmarks.some((b) => b.url === url && b.id !== excludeId);
+  const normalize = (u: string) => u.trim().replace(/\/+$/, "").toLowerCase();
+  const target = normalize(url);
+  return data.bookmarks.some((b) => normalize(b.url) === target && b.id !== excludeId);
 }
 
 export async function saveBookmarkTransaction(
@@ -129,12 +134,49 @@ export async function saveBookmarkTransaction(
   });
 }
 
+// ── 방문 카운트 I/O 최적화 배치 큐 ──
+let visitBatchQueue: Record<string, { count: number; lastVisitedAt: number }> = {};
+let visitBatchTimer: any = null;
+
+async function flushVisitBatch(): Promise<void> {
+  if (Object.keys(visitBatchQueue).length === 0) return;
+  const currentBatch = { ...visitBatchQueue };
+  visitBatchQueue = {};
+  visitBatchTimer = null;
+
+  try {
+    await withStorageLock(async (data) => {
+      data.bookmarks = data.bookmarks.map((b) => {
+        const update = currentBatch[b.id];
+        if (update) {
+          return {
+            ...b,
+            visitCount: b.visitCount + update.count,
+            lastVisitedAt: Math.max(b.lastVisitedAt || 0, update.lastVisitedAt),
+          };
+        }
+        return b;
+      });
+    });
+  } catch (err) {
+    console.warn("[Storage] Failed to flush visit batch:", err);
+  }
+}
+
 export async function incrementVisitCount(id: string): Promise<void> {
-  await withStorageLock(async (data) => {
-    data.bookmarks = data.bookmarks.map((b) =>
-      b.id === id ? { ...b, visitCount: b.visitCount + 1, lastVisitedAt: Date.now() } : b
-    );
-  });
+  const now = Date.now();
+  if (!visitBatchQueue[id]) {
+    visitBatchQueue[id] = { count: 0, lastVisitedAt: now };
+  }
+  visitBatchQueue[id].count += 1;
+  visitBatchQueue[id].lastVisitedAt = now;
+
+  if (visitBatchTimer) {
+    clearTimeout(visitBatchTimer);
+  }
+  visitBatchTimer = setTimeout(() => {
+    flushVisitBatch();
+  }, 400);
 }
 
 // ── Folders ───────────────────────────────────────────────

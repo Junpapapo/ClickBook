@@ -7,7 +7,6 @@ import {
   Download,
   Check,
 } from "lucide-react";
-import { toPng, toSvg } from "html-to-image";
 import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
@@ -42,6 +41,7 @@ export default function MindMapExportModal({
     if (!el) return;
     try {
       setIsExporting(true);
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(el as HTMLElement, {
         cacheBust: true,
         backgroundColor: "#0f172a",
@@ -71,6 +71,7 @@ export default function MindMapExportModal({
     if (!el) return;
     try {
       setIsExporting(true);
+      const { toSvg } = await import("html-to-image");
       const dataUrl = await toSvg(el as HTMLElement, {
         cacheBust: true,
         backgroundColor: "#0f172a",

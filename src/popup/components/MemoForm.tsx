@@ -143,16 +143,16 @@ export default function MemoForm({
                 ? "bg-violet-900/30 text-violet-400"
                 : "bg-surface-700 text-gray-400 hover:bg-violet-900/30 hover:text-violet-400"
             }`}
-            title="AI 메모 초안 생성"
+            title={t("aiDraftTooltip")}
           >
             {draftState === "loading" ? (
               <Loader2 size={8} className="animate-spin" />
             ) : (
               <Sparkles size={8} />
             )}
-            AI 초안
+            {t("aiDraftBtn")}
           </button>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-400">
+          <button onClick={onClose} className="text-gray-600 hover:text-gray-400" title={t("closeTooltip")}>
             <X size={12} />
           </button>
         </div>
@@ -173,11 +173,7 @@ export default function MemoForm({
         <div className="mt-1 p-2 rounded-lg border border-violet-700/40 bg-violet-900/20 flex items-center gap-2">
           <Loader2 size={12} className="text-violet-500 animate-spin shrink-0" />
           <span className="text-[10px] text-violet-400 animate-pulse">
-            {lang === "ko"
-              ? "AI가 메모 초안을 작성 중..."
-              : lang === "ja"
-              ? "AI が下書きを生成중..."
-              : "AI is drafting..."}
+            {t("aiDraftApplying")}
           </span>
         </div>
       )}
@@ -204,16 +200,8 @@ export default function MemoForm({
               }`}
             >
               {draftState === "used"
-                ? lang === "ko"
-                  ? "초안 적용됨"
-                  : lang === "ja"
-                  ? "下書き適用済"
-                  : "Draft applied"
-                : lang === "ko"
-                ? `AI 초안 ${draftAiUsed ? "(Gemini Nano)" : "(요약 기반)"}`
-                : lang === "ja"
-                ? `AI 下書き ${draftAiUsed ? "(Gemini Nano)" : "(要約ベース)"}`
-                : `AI Draft ${draftAiUsed ? "(Gemini Nano)" : "(summary-based)"}`}
+                ? t("aiDraftApplied")
+                : `${t("aiDraftLabel")} ${draftAiUsed ? "(Gemini Nano)" : lang === "ko" ? "(요약 기반)" : lang === "ja" ? "(要約ベース)" : "(summary-based)"}`}
             </span>
           </div>
           <div className="px-2.5 py-1.5">
@@ -231,14 +219,14 @@ export default function MemoForm({
                 onClick={() => setDraftState("idle")}
                 className="text-[9px] text-gray-500 hover:text-gray-300 px-1.5 py-0.5 rounded transition-colors"
               >
-                {lang === "ko" ? "닫기" : lang === "ja" ? "閉じる" : "Dismiss"}
+                {t("aiDraftDismiss")}
               </button>
               <button
                 onClick={handleUsePopupDraft}
                 className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
               >
                 <Check size={8} />
-                {lang === "ko" ? "이 내용 사용" : lang === "ja" ? "使用する" : "Use this"}
+                {t("aiDraftUseThis")}
               </button>
             </div>
           )}

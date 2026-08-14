@@ -3,6 +3,7 @@ import { SlidersHorizontal, Pencil } from "lucide-react";
 import type { NodeShape, ColorTheme } from "../mindmap-types";
 import { IconPicker } from "@/components/IconPicker";
 import { LUCIDE_ICONS_MAP } from "@/components/DynamicIcon";
+import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
   selectedNodeId: string | null;
@@ -34,8 +35,9 @@ export default function NodeToolbar({
   onUpdateShape,
   onUpdateTheme,
   onUpdateLabel,
-  onUpdateIcon,
+  onUpdateIcon
 }: Props) {
+  const { t } = useLang();
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editVal, setEditVal] = useState(selectedNodeLabel);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -117,7 +119,7 @@ export default function NodeToolbar({
                 setShowIconPicker((v) => !v);
               }}
               className="p-1 hover:bg-gray-200 dark:hover:bg-surface-700 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0"
-              title="이모지/아이콘 변경"
+              title={t("mindmapChangeIconTooltip")}
             >
               {selectedNodeIcon ? (
                 (() => {

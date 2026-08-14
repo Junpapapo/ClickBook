@@ -2,6 +2,7 @@ import React from "react";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { StickyNote } from "lucide-react";
 import type { TodoTask, Bookmark, BookmarkMemo } from "@/shared/types";
+import { useLang } from "@/shared/LanguageContext";
 import {
   TASK_BG_COLORS,
   TASK_CELL_BG_COLORS,
@@ -35,6 +36,7 @@ export default function WeekView({
   onOpenTaskEditor,
   onOpenMemoEditor,
 }: WeekViewProps) {
+  const { t } = useLang();
   const weekDays = getSelectedWeekDays();
   return (
     <div className="grid grid-cols-7 gap-2.5 h-full min-h-[480px] select-none">
@@ -145,8 +147,8 @@ export default function WeekView({
                 >
                   <div className="flex items-center gap-1">
                     <StickyNote size={8} className="shrink-0" />
-                    <span className="truncate" title={item.bookmark ? item.bookmark.title : "일반 메모"}>
-                      {item.bookmark ? item.bookmark.title : "일반 메모"}
+                    <span className="truncate" title={item.bookmark ? item.bookmark.title : t("generalMemo")}>
+                      {item.bookmark ? item.bookmark.title : t("generalMemo")}
                     </span>
                   </div>
                 </div>

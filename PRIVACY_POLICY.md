@@ -24,13 +24,31 @@ ClickBook uses Chrome's built-in AI (Gemini Nano via `window.ai`) for bookmark c
 
 | Permission | Purpose |
 | --- | --- |
-| `activeTab` | Read the URL and title of the current tab when the user clicks the extension icon |
-| `storage` | Store bookmarks, folders, settings, and patterns locally |
-| `tabs` | Access all open tabs for the bulk import feature |
-| `bookmarks` | Import, export, and sync with Chrome's native bookmarks |
-| `browsingData` | Provide a user-initiated browsing data cleanup tool |
+| `activeTab` | Read the URL and title of the current tab when the user saves or bookmarks a site |
+| `storage` | Store bookmarks, folders, settings, memos, and todos locally on the device |
+| `unlimitedStorage` | Store local memos, spring notes, and search indexes without quota limits |
+| `tabs` | Access open tabs for bulk import, tab management, and suspend features |
+| `topSites` | Display most visited sites in the NewTab dashboard and Buddy radial menu |
+| `bookmarks` | Import, export, and sync with Chrome's native bookmark tree |
+| `browsingData` | Provide a user-initiated browsing data (cache/cookie) cleanup tool |
+| `scripting` | Enable text clipping and highlight saving from the active web page |
+| `contextMenus` | Provide right-click context menu shortcuts to save selected text as a memo |
+| `tabGroups` | Organize and manage active tab groups |
+| `alarms` | Run periodic local maintenance (storage garbage collection) and todo reminders |
+| `notifications` | Send desktop reminder notifications for upcoming or overdue todo tasks |
+| `declarativeNetRequest` | Apply local declarative rules for ad-blocking and distraction-free reading |
 
-All permissions are used solely for the stated purposes. No data accessed through these permissions is collected, transmitted, or shared.
+### Host Permissions
+
+| Host Permission | Purpose |
+| --- | --- |
+| `<all_urls>` | Extract readability text for Reader Mode and inject local Buddy widget |
+| `https://api.github.com/*` | Fetch public GitHub trending repositories for the ranking widget |
+| `https://wikimedia.org/*`, `https://*.wikipedia.org/*` | Fetch daily Wikipedia trending articles for the ranking widget |
+| `https://huggingface.co/*` | Fetch trending HuggingFace AI models for the ranking widget |
+| `https://hacker-news.firebaseio.com/*` | Fetch top Hacker News stories for the ranking widget |
+
+All permissions and external requests are strictly used for the user-facing functionality. No personal data is collected, stored on external servers, or transferred to third parties.
 
 ## Browsing Data Cleanup
 

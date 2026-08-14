@@ -33,6 +33,7 @@ import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { useTaskQueue } from "@/shared/useTaskQueue";
+import { smartMatchFields } from "@/utils/hangulUtils";
 import { Sparkles, X } from "lucide-react";
 
 // ── メインアプリケーションコンポーネント ───────────────────
@@ -496,25 +497,20 @@ function AppContent() {
     () => {
       if (!deferredQuery) return bookmarks;
       
-      const terms = deferredQuery.toLowerCase().split(/\s+/).filter(Boolean);
+      const terms = deferredQuery.split(/\s+/).filter(Boolean);
       if (terms.length === 0) return bookmarks;
 
       return bookmarks.filter((b) => {
-        const title = b.title.toLowerCase();
-        const url = b.url.toLowerCase();
-        const summary = (b.summary || "").toLowerCase();
-        const tags = (b.tags || []).map(t => t.toLowerCase());
-        const pageContent = (pageContents[b.id] || "").toLowerCase();
-
-        // Each space-separated term must match in at least one of the fields (Title, URL, Summary, Tags, or Scraped Content)
-        return terms.every(term => {
-          if (title.includes(term)) return true;
-          if (url.includes(term)) return true;
-          if (summary.includes(term)) return true;
-          if (tags.some(tag => tag.includes(term))) return true;
-          if (pageContent.includes(term)) return true;
-          return false;
-        });
+        return smartMatchFields(
+          {
+            title: b.title,
+            url: b.url,
+            summary: b.summary,
+            tags: b.tags,
+            content: pageContents[b.id],
+          },
+          terms
+        );
       });
     },
     [bookmarks, deferredQuery, pageContents]
