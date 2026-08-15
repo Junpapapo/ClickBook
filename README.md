@@ -35,7 +35,7 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 10 | **Chrome Sync** | Import, export, and sync with native Chrome bookmarks. |
 | 11 | **Theming** | Support for Dark and Light modes, persisting via `localStorage`. |
 | 12 | **100% Offline** | Runs entirely locally using `chrome.storage.local` (No external servers). |
-| 13 | **Multi-Language** | Full localized experience for English, Korean, and Japanese. |
+| 13 | **Multi-Language** | Full localized experience for 7 languages (English, Korean, Japanese, German, Spanish, Traditional Chinese, Simplified Chinese). |
 | 14 | **AI Highlight Clipper (Premium)** | Highlight webpage text and use right-click context menu to automatically refine and save it as multi-lingual memos using on-device AI. |
 | 15 | **Smart Tab Suspender (Premium)** | Automatically suspends inactive background tabs to save up to 90% of RAM. |
 | 16 | **Chrome Tab Groups Sync (Premium)** | Back up active Chrome tab groups into folders, and instantly restore them back into native, colored Chrome tab groups. |
@@ -49,6 +49,7 @@ ClickBook is a bookmark management tool built with Chrome Manifest V3. It allows
 | 24 | **Smart Calendar Integration (Premium)** | A smart calendar seamlessly integrated with Todo lists and Memo functions. Supports real-time holiday synchronization (Nager.Date API) for multiple countries (Korea, US, Japan, etc.), Month/Week/Day view transitions, schedule/time adjustment via HTML5 Drag & Drop, and various recurring event options (daily, weekly, monthly, etc.). |
 | 25 | **Analogue Spring Note (Premium)** | An analogue-inspired rich-text notepad workspace (Tiptap-based). Offers custom visual themes (Light, Grid, Sepia, Dark). Outer panel background, leather book spine shadows, and editor separators automatically synchronize to match your selected theme. |
 | 26 | **ClickBook Buddy & Focus Timer (Premium)** | Stay focused with cute animated desk pets and a Pomodoro timer. A radial dial menu (9 actions) pops up on click: **Translate** (drag-selected text), **Bookmark** (1-click save), **AI Chat** (Gemini Nano panel), **Timer** (start Pomodoro), **Rest** (full-screen healing mode), **Memo** (sticky note), **Todo** (checklist), **Hide** (hide on current domain), **Settings** (size, opacity, themes). Also includes a Buddies Encyclopedia (Basic, Premium, Hidden) and full-screen visual completion effects (Starry Night, Zen Forest, Cozy Fireplace, Sunset Lake, Zen Yoga with Singing bowl, and 18-episode cinematic Success Stories). |
+| 27 | **Smart Consonant Search** | Ultra-fast Korean initial consonant search (e.g., 'ㅋㄹㅂ' for '클릭북') across search bars, bookmark lists, and modal filters. |
 
 ---
 
