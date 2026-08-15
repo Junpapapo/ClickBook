@@ -13,7 +13,7 @@ export default function MindMapBoard({ onRefresh: _onRefresh }: Props) {
   const { lang } = useLang();
 
   return (
-    <div className="h-full flex flex-row overflow-hidden bg-white dark:bg-surface-900">
+    <div className="h-full flex flex-row overflow-hidden bg-white dark:bg-slate-950">
       {/* Right Content Area: MindMap Editor (Takes Full Screen) */}
       <div className="flex-1 h-full min-w-0">
         <MindMapPanel

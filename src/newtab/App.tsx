@@ -763,6 +763,11 @@ function AppContent() {
             setShowWelcome(false);
             chrome.storage.local.set({ clickbook_onboarded: true });
           }}
+          onNavigate={(page) => {
+            setShowWelcome(false);
+            chrome.storage.local.set({ clickbook_onboarded: true });
+            navigate(page as any);
+          }}
         />
       )}
 

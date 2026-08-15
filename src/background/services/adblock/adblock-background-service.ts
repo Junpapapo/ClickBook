@@ -188,9 +188,17 @@ export async function setupAdBlockRulesSyncAlarm(): Promise<void> {
     console.log("[AdBlock Background] Registered adblock sync alarm.");
   }
 
-  // Also do a startup update check if no cached engine exists
+  // Also do a startup update check if no cached engine exists or if corrupted/outdated
   const cache = await chrome.storage.local.get("adblock_engine_bin");
-  if (!cache.adblock_engine_bin) {
+  if (!cache.adblock_engine_bin || !Array.isArray(cache.adblock_engine_bin)) {
     await updateEasyListRules();
+  } else {
+    try {
+      // Validate that cached binary can be successfully deserialized with current engine version
+      FiltersEngine.deserialize(new Uint8Array(cache.adblock_engine_bin));
+    } catch (deserErr) {
+      console.warn("[AdBlock Background] Outdated or mismatched engine cache detected at startup, recompiling:", deserErr);
+      await updateEasyListRules();
+    }
   }
 }

@@ -175,38 +175,38 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
     .sort((a, b) => a.order - b.order);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       {DialogEl}
       
       {/* AI Organize 브리핑 배너 */}
       {organizeResult && (
-        <div className="relative overflow-hidden bg-indigo-500/10 dark:bg-indigo-500/25 border border-indigo-500/20 dark:border-indigo-500/30 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/30 animate-pulse shrink-0">
-              <Sparkles size={24} className="text-white fill-white" />
+        <div className="relative overflow-hidden bg-indigo-50/80 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-900/40 rounded-xl p-3 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg shadow-xs shrink-0">
+              <Sparkles size={15} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-base">
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-xs">
                 {lang === "ko" ? "AI 북정리 완료 브리핑" : "AI Organize Briefing"}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-0.5">
                 {lang === "ko" 
                   ? `총 ${organizeResult.total}개의 북마크 중 ${organizeResult.movedCount}개의 위치를 정리했습니다.`
                   : `Organized ${organizeResult.movedCount} out of ${organizeResult.total} bookmarks.`}
               </p>
-              <div className="mt-2 flex flex-wrap gap-2 items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+              <div className="mt-1 flex flex-wrap gap-2 items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium">
                 {organizeResult.aiSupported === false ? (
-                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider">
                     💡 {lang === "ko" ? "로컬 규칙 적용" : "Local Rules"}
                   </span>
                 ) : organizeResult.aiSuccessCount !== undefined && organizeResult.aiTotalBatches !== undefined && organizeResult.aiTotalBatches > 0 ? (
-                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider">
                     💡 {lang === "ko" 
                       ? `AI 분석 성공률: ${organizeResult.aiSuccessCount}/${organizeResult.aiTotalBatches} 배치` 
                       : `AI Success: ${organizeResult.aiSuccessCount}/${organizeResult.aiTotalBatches}`}
                   </span>
                 ) : null}
-                <span className="truncate max-w-[400px] text-gray-550 dark:text-gray-400 text-[11px]">
+                <span className="truncate max-w-[400px] text-slate-500 dark:text-slate-400 text-[10.5px]">
                   📦 {lang === "ko" ? "백업본:" : "Backup:"} {organizeResult.backupName}
                 </span>
               </div>
@@ -215,7 +215,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
           {onClearOrganizeResult && (
             <button
               onClick={onClearOrganizeResult}
-              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-indigo-500/20 whitespace-nowrap shrink-0 cursor-pointer"
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-all shadow-xs shrink-0 cursor-pointer"
             >
               {lang === "ko" ? "확인" : "OK"}
             </button>
@@ -225,25 +225,25 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
 
       {/* Urgent TODO Banner */}
       {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
-        <div className="relative overflow-hidden bg-rose-500/10 dark:bg-rose-500/25 border border-rose-500/20 dark:border-rose-500/30 rounded-2xl p-5 backdrop-blur-md flex items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-500/30 animate-pulse shrink-0">
-              <AlertOctagon size={24} />
+        <div className="relative overflow-hidden bg-rose-50/80 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 rounded-xl p-3 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-rose-600 dark:bg-rose-500 text-white rounded-lg shadow-xs shrink-0">
+              <AlertOctagon size={15} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-base">
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-xs">
                 {t("todoBannerTitle") || "Action Required on Tasks"}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-0.5">
                 {t("todoBannerDesc", { count: todoStats.overdueCount + todoStats.dueTodayCount }) || 
                   `You have ${todoStats.overdueCount + todoStats.dueTodayCount} tasks that are due today or overdue.`}
               </p>
               {urgentTasks && urgentTasks.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5 items-center text-xs text-rose-600 dark:text-rose-450 font-medium">
-                  <span className="shrink-0 bg-rose-500/10 dark:bg-rose-500/25 px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold tracking-wider">
+                <div className="mt-1 flex flex-wrap gap-1.5 items-center text-xs text-rose-600 dark:text-rose-400 font-medium">
+                  <span className="shrink-0 bg-rose-500/10 dark:bg-rose-500/25 px-1.5 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider">
                     📍 {t("todoUrgent")}
                   </span>
-                  <span className="truncate max-w-[400px]">
+                  <span className="truncate max-w-[400px] text-[10.5px]">
                     {(() => {
                       const titles = urgentTasks.map(t => t.content);
                       if (titles.length <= 2) return titles.join(", ");
@@ -257,7 +257,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
           {onSelectTodoBoard && (
             <button
               onClick={onSelectTodoBoard}
-              className="px-4 py-2 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-rose-500/20 whitespace-nowrap shrink-0"
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-semibold rounded-lg transition-all shadow-xs shrink-0 cursor-pointer"
             >
               {t("todoBannerBtn") || "View Board"}
             </button>
@@ -267,9 +267,14 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
 
       {/* 폴더 요약 섹션 */}
       <section>
-        <h2 className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold mb-2.5">
-          {t("folders")}
-        </h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
+            {t("folders")}
+          </h2>
+          <span className="text-[10.5px] text-slate-400 font-medium">
+            {rootFolders.length} {lang === "ko" ? "개 폴더" : "folders"}
+          </span>
+        </div>
         <div className="grid grid-cols-4 xl:grid-cols-8 gap-2">
           {rootFolders.map((f) => {
             const count = countByFolder[f.id] ?? 0;
@@ -278,7 +283,7 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
             return (
               <div
                 key={f.id}
-                className="group relative flex flex-col items-center gap-1 p-2.5 bg-white dark:bg-slate-800/70 hover:bg-slate-100/80 dark:hover:bg-slate-700/80 border border-slate-200/90 dark:border-slate-700/70 hover:border-indigo-400 dark:hover:border-indigo-500/50 rounded-xl transition-all shadow-figma-sm cursor-pointer select-none"
+                className="group relative flex flex-col items-center gap-1 p-2 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/60 border border-slate-200/90 dark:border-slate-700/70 hover:border-indigo-400/80 dark:hover:border-indigo-500/50 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-figma-md cursor-pointer select-none"
                 onClick={() => { if (!isRenaming) onSelectFolder(f.id); }}
               >
                 {!isRenaming && (

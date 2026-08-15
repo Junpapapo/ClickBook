@@ -3,7 +3,7 @@ import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Data
 import type { AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
-import type { Lang } from "@/shared/i18n";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface Props {
   settings: AppSettings;
@@ -117,12 +117,6 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
   );
 }
 
-const LANG_OPTIONS: { value: Lang; label: string; native: string }[] = [
-  { value: "en", label: "English", native: "English" },
-  { value: "ja", label: "Japanese", native: "日本語" },
-  { value: "ko", label: "Korean", native: "한국어" },
-];
-
 export default function SettingsModal({
   settings, onSave, onClose, onExportJSON, onExportHTML, onImport,
   sidebarChromeOpen, onToggleSidebarChrome,
@@ -132,7 +126,7 @@ export default function SettingsModal({
   showHNRankingMenu, onToggleHNRankingMenu,
   settingsMessage
 }: Props) {
-  const { t, lang, setLang } = useLang();
+  const { t } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
   const [saving, setSaving] = useState(false);
@@ -234,7 +228,7 @@ export default function SettingsModal({
       {/* モーダル本体 */}
       <div className="fixed inset-0 z-[9001] flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-md bg-white dark:bg-surface-900 border border-gray-200 dark:border-surface-600 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          className="pointer-events-auto w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-xl flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ヘッダー */}
@@ -270,20 +264,8 @@ export default function SettingsModal({
             <div className="bg-gray-50 dark:bg-surface-800 rounded-xl px-3">
               <div className="flex items-center justify-between gap-4 py-3">
                 <p className="text-sm text-gray-700 dark:text-gray-200">{t("settingsLanguage")}</p>
-                <div className="flex gap-1 shrink-0">
-                  {LANG_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setLang(opt.value)}
-                      className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors ${
-                        lang === opt.value
-                          ? "bg-indigo-500 text-white"
-                          : "bg-gray-200 dark:bg-surface-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-surface-600"
-                      }`}
-                    >
-                      {opt.native}
-                    </button>
-                  ))}
+                <div className="w-48 shrink-0">
+                  <LanguageSelector />
                 </div>
               </div>
             </div>

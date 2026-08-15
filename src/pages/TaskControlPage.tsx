@@ -28,32 +28,42 @@ interface Props {
 
 const CATEGORY_META: Record<
   TaskCategory,
-  { icon: typeof Activity; gradient: string; badge: string }
+  { icon: typeof Activity; iconBg: string; badgeCls: string; badge: string; barColor: string }
 > = {
   "ai-organize": {
     icon: Sparkles,
-    gradient: "from-violet-600 to-indigo-600",
+    iconBg: "bg-indigo-600 dark:bg-indigo-500",
+    badgeCls: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40",
     badge: "AI 분류",
+    barColor: "bg-indigo-600 dark:bg-indigo-500",
   },
   "ai-tag": {
     icon: Tag,
-    gradient: "from-emerald-600 to-teal-600",
+    iconBg: "bg-teal-600 dark:bg-teal-500",
+    badgeCls: "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/40",
     badge: "AI 태깅",
+    barColor: "bg-teal-600 dark:bg-teal-500",
   },
   "ai-clean": {
     icon: ScanSearch,
-    gradient: "from-teal-600 to-cyan-600",
+    iconBg: "bg-sky-600 dark:bg-sky-500",
+    badgeCls: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/40",
     badge: "AI 중복검사",
+    barColor: "bg-sky-600 dark:bg-sky-500",
   },
   "chrome-sync": {
     icon: RefreshCw,
-    gradient: "from-blue-600 to-sky-600",
+    iconBg: "bg-blue-600 dark:bg-blue-500",
+    badgeCls: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40",
     badge: "Chrome 동기화",
+    barColor: "bg-blue-600 dark:bg-blue-500",
   },
   scrape: {
     icon: FileText,
-    gradient: "from-amber-600 to-orange-600",
+    iconBg: "bg-amber-600 dark:bg-amber-500",
+    badgeCls: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40",
     badge: "콘텐츠 수집",
+    barColor: "bg-amber-600 dark:bg-amber-500",
   },
 };
 
@@ -82,41 +92,41 @@ function TaskCard({
 
   const statusConfig = {
     queued: {
-      bg: "bg-gray-50 dark:bg-surface-800/50",
-      border: "border-gray-200 dark:border-surface-700",
-      statusIcon: <Clock size={12} className="text-gray-400" />,
+      bg: "bg-slate-50 dark:bg-slate-800/60",
+      border: "border-slate-200/80 dark:border-slate-700/60",
+      statusIcon: <Clock size={12} className="text-slate-400" />,
       statusText: t("taskQueued") || "대기 중...",
-      statusColor: "text-gray-500",
+      statusColor: "text-slate-500 dark:text-slate-400",
     },
     running: {
-      bg: "bg-white dark:bg-surface-800",
-      border: "border-indigo-200/50 dark:border-indigo-700/30",
+      bg: "bg-white dark:bg-slate-800/95",
+      border: "border-indigo-400 dark:border-indigo-500/60 ring-1 ring-indigo-500/20 shadow-2xs",
       statusIcon: (
         <Loader2 size={12} className="text-indigo-500 animate-spin" />
       ),
       statusText: t("taskRunning") || "진행 중",
-      statusColor: "text-indigo-600 dark:text-indigo-400",
+      statusColor: "text-indigo-600 dark:text-indigo-400 font-semibold",
     },
     completed: {
-      bg: "bg-emerald-50/50 dark:bg-emerald-900/10",
-      border: "border-emerald-200/50 dark:border-emerald-700/30",
+      bg: "bg-emerald-50/40 dark:bg-slate-800/80",
+      border: "border-emerald-200/70 dark:border-emerald-900/40",
       statusIcon: <CheckCircle2 size={12} className="text-emerald-500" />,
       statusText: t("taskCompleted") || "완료",
-      statusColor: "text-emerald-600 dark:text-emerald-400",
+      statusColor: "text-emerald-600 dark:text-emerald-400 font-semibold",
     },
     failed: {
-      bg: "bg-rose-50/50 dark:bg-rose-900/10",
-      border: "border-rose-200/50 dark:border-rose-700/30",
+      bg: "bg-rose-50/40 dark:bg-slate-800/80",
+      border: "border-rose-200/70 dark:border-rose-900/40",
       statusIcon: <XCircle size={12} className="text-rose-500" />,
       statusText: t("taskFailed") || "실패",
-      statusColor: "text-rose-600 dark:text-rose-400",
+      statusColor: "text-rose-600 dark:text-rose-400 font-semibold",
     },
     cancelled: {
-      bg: "bg-gray-50 dark:bg-surface-800/50",
-      border: "border-gray-200 dark:border-surface-700",
-      statusIcon: <X size={12} className="text-gray-400" />,
+      bg: "bg-slate-50 dark:bg-slate-800/60",
+      border: "border-slate-200/80 dark:border-slate-700/60",
+      statusIcon: <X size={12} className="text-slate-400" />,
       statusText: t("taskCancelled") || "취소됨",
-      statusColor: "text-gray-500",
+      statusColor: "text-slate-500 dark:text-slate-400",
     },
   };
 
@@ -125,32 +135,32 @@ function TaskCard({
   return (
     <div
       className={`
-        relative rounded-xl border p-4 transition-all duration-300
+        relative rounded-xl border p-3.5 transition-all duration-200
         ${cfg.bg} ${cfg.border}
-        ${task.status === "completed" ? "animate-pulse-once opacity-80" : ""}
+        ${task.status === "completed" ? "opacity-85" : ""}
       `}
     >
       {/* Header row */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-2.5 mb-2.5">
         <div
-          className={`flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br ${meta.gradient} shadow-lg`}
+          className={`flex items-center justify-center w-7 h-7 rounded-lg ${meta.iconBg} text-white shadow-2xs shrink-0`}
         >
-          <Icon size={14} className="text-white" />
+          <Icon size={14} strokeWidth={2.2} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span
-              className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r ${meta.gradient} text-white`}
+              className={`text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${meta.badgeCls}`}
             >
               {meta.badge}
             </span>
-            <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
               {task.name}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-1.5 mt-0.5">
             {cfg.statusIcon}
-            <span className={`text-[10px] font-medium ${cfg.statusColor}`}>
+            <span className={`text-[10px] ${cfg.statusColor}`}>
               {cfg.statusText}
             </span>
           </div>
@@ -168,9 +178,9 @@ function TaskCard({
               {task.progress}%
             </span>
           </div>
-          <div className="h-1.5 bg-gray-200 dark:bg-surface-700 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r ${meta.gradient}`}
+              className={`h-full rounded-full transition-all duration-300 ease-out ${meta.barColor}`}
               style={{ width: `${task.progress}%` }}
             />
           </div>

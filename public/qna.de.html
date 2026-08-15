@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook AI Q&A - Häufig gestellte Fragen</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 3rem;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.3s;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .header {
+        background-color: rgba(30, 41, 59, 0.8);
+      }
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-btn {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
+    }
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+      min-width: 145px;
+      display: none;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: block;
+      animation: fadeInDropdown 0.15s ease-out;
+    }
+
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-option.active {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .title-area {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .title-area h1 {
+      font-size: 2.3rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Q&A Accordion */
+    .qna-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    details {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    details:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    details[open] {
+      border-color: var(--primary);
+    }
+
+    summary {
+      padding: 1.25rem 1.5rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .q-text {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .q-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background-color: rgba(99, 102, 241, 0.15);
+      color: var(--primary);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .arrow-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.2s, stroke 0.2s;
+      flex-shrink: 0;
+      margin-left: 1rem;
+    }
+
+    details[open] .arrow-icon {
+      transform: rotate(180deg);
+      stroke: var(--primary);
+    }
+
+    .answer-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background-color: rgba(248, 250, 252, 0.4);
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .answer-content {
+        background-color: rgba(15, 23, 42, 0.2);
+      }
+    }
+
+    .answer-content p {
+      margin-top: 1rem;
+    }
+
+    .answer-content ul, .answer-content ol {
+      margin-top: 0.75rem;
+      padding-left: 1.5rem;
+    }
+
+    .answer-content li {
+      margin-top: 0.5rem;
+    }
+
+    .step-box {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: inherit;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .badge-premium {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      color: white;
+    }
+
+    /* Support CTA Card */
+    .support-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-top: 4rem;
+    }
+
+    .support-card h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .support-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span style="position: relative; display: inline-flex; align-items: center; gap: 0.25rem;">
+        <span>ClickBook Q&A</span>
+        <span style="font-size: 9px; background: linear-gradient(to right, #9333ea, #4f46e5); color: white; border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.15rem 0.35rem; border-radius: 4px; font-weight: 800; margin-left: 0.15rem; line-height: 1; display: inline-flex; align-items: center; gap: 0.15rem; margin-top: -6px; box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.2); user-select: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="#fde047" stroke="#fde047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 1px; color: #fde047;"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          AI
+        </span>
+      </span>
+    </div>
+    <div class="header-nav">
+      <a href="help.html" class="nav-btn">← Zurück zum Hilfe-Leitfaden</a>
+      
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇩🇪</span>
+            <span>Deutsch</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="qna.html" class="lang-option">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+          </a>
+          <a href="qna.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="qna.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="qna.zh-TW.html" class="lang-option">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+          </a>
+          <a href="qna.de.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="qna.es.html" class="lang-option">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="title-area">
+      <h1>Häufig gestellte Fragen (Q&A)</h1>
+      <p>Hier finden Sie Antworten auf die häufigsten Fragen und praktische Lösungen für ClickBook.</p>
+    </div>
+
+    <div class="qna-list">
+      
+      <!-- Q1: New Tab Page security popup -->
+      <details open>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Beim Festlegen als „Neuer Tab“ fragt Chrome „Zu Google zurückkehren?“. Kann das verhindert werden?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>Nein, dieses Sicherheits-Popup kann von Erweiterungsentwicklern nicht per Programmcode umgangen werden.</strong></p>
+          <p>Dieser Hinweis ist ein <strong>fest integrierter Sicherheitsmechanismus von Chrome</strong>, der Benutzer vor Schadsoftware (Hijackern) schützt, die unerlaubt die Startseite oder Suchmaschine manipulieren.</p>
+          <p>Um ClickBook als neue Tab-Seite zu nutzen, klicken Sie beim ersten Öffnen eines neuen Tabs bitte auf <strong>[Änderungen beibehalten (Keep changes)]</strong>.</p>
+        </div>
+      </details>
+
+      <!-- Q2: NTP settings messed up -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Ich habe versehentlich auf „Zurücksetzen“ geklickt und die neue Tab-Seite bleibt weiß.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Wenn Sie auf „Zurücksetzen“ klicken, entzieht Chrome die Berechtigung für die neue Tab-Seite. Dadurch kann die Seite vorübergehend blockiert bleiben.</p>
+          <p>Folgen Sie diesen einfachen Schritten, um die Berechtigung zurückzusetzen:</p>
+          <div class="step-box">
+            <strong>Schnelle Wiederherstellung:</strong>
+            <ol>
+              <li>Geben Sie <code>chrome://extensions/</code> in die Chrome-Adressleiste ein.</li>
+              <li>Schalten Sie den blauen <strong>Aktivierungsschalter bei ClickBook kurz aus (OFF) und wieder ein (ON)</strong>.</li>
+              <li>Öffnen Sie einen neuen leeren Tab. Chrome zeigt das Sicherheits-Popup erneut an.</li>
+              <li>Klicken Sie diesmal auf <strong>[Änderungen beibehalten (Keep changes)]</strong>.</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <!-- Q3: Chrome Bookmark import hanging -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Beim Importieren von Chrome-Lesezeichen bleibt der Status lange auf „Importiere...“ stehen.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Dies trat früher auf, wenn die <strong>lokale Chrome-AI (Gemini Nano)</strong> auf dem PC noch nicht vollständig initialisiert war. Dieses Verhalten wurde mit dem <strong>neuesten Update vollständig behoben</strong>.</p>
+          <p>ClickBook diagnostiziert die KI-Verfügbarkeit nun in unter 1ms. Falls die KI nicht aktiv ist, schaltet das System sofort auf den blitzschnellen regelbasierten Fallback-Klassifizierer um, sodass der Import ohne Verzögerung abgeschlossen wird.</p>
+          <p>KI-Zusammenfassungen und detaillierte Tags werden im Hintergrund asynchron erstellt, ohne das Dashboard zu verlangsamen.</p>
+        </div>
+      </details>
+
+      <!-- Q4: Smart Tab suspension rules -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Werden wichtige Tabs (z.B. Musikwiedergabe) vom Tab-Suspender pausiert? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Keine Sorge. Der smarte Algorithmus von ClickBook schützt Ihre aktiven Arbeitsabläufe. Folgende Tabs werden <strong>niemals automatisch pausiert</strong>:</p>
+          <ul>
+            <li><strong>Audio-Wiedergabe:</strong> Tabs mit laufender Musik oder Videos (z.B. YouTube, Spotify).</li>
+            <li><strong>Angeheftete Tabs (Pinned Tabs):</strong> Wichtige dauerhaft angepinnte Tabs.</li>
+            <li><strong>Aktiver Tab:</strong> Der Tab, den Sie gerade betrachten und bedienen.</li>
+            <li><strong>Formular-Eingaben:</strong> Seiten mit aktiven Textfeldern und Entwürfen.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q5: Secure Folder clear items -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Welche Spuren vernichtet der Automatische Session-Vernichter in sicheren Ordnern? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Wenn Sie einen sensiblen Ordner als <strong>Sicheren Ordner</strong> markieren, leuchtet beim Besuch der grüne <strong>`SEC`-Badge</strong>. Beim Schließen aller zugehörigen Tabs werden die Spuren der jeweiligen Domain (Origin) restlos vernichtet:</p>
+          <ul>
+            <li><strong>Cookies:</strong> Login-Zustände und Tracking-Session-Daten</li>
+            <li><strong>Lokaler & Session-Speicher (LocalStorage, SessionStorage)</strong></li>
+            <li><strong>Webdatenbanken:</strong> IndexedDB, WebSQL-Reste</li>
+            <li><strong>Cache & Service Workers</strong></li>
+            <li><strong>Verlauf und Dateireste</strong></li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q6: Tab Group sync method -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Wie funktioniert die Synchronisation mit Chrome-Tab-Gruppen? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook unterstützt eine vollständige bidirektionale Synchronisation mit Chrome-Tab-Gruppen:</p>
+          <ul>
+            <li><strong>Tab-Gruppe als Ordner speichern:</strong> Klicken Sie im Erweiterungs-Popup auf eine Tab-Gruppe und wählen Sie <strong>[Save Group]</strong>, um einen neuen Ordner mit allen Tabs anzulegen.</li>
+            <li><strong>Ordner als Tab-Gruppe öffnen:</strong> Klicken Sie in der Ordneransicht auf <strong>[Open as Chrome Tab Group]</strong>, um den Ordner mit seinem Namen und Farbcode direkt in der Chrome-Tab-Leiste wiederherzustellen.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q7: Backup and Reset -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Wie übertrage ich meine Daten auf einen neuen Computer oder erstelle ein Backup?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook speichert alle Daten ausschließlich lokal auf Ihrem Computer (Local-First) und bietet einen 1-Klick-Export:</p>
+          <p>Klicken Sie im Dashboard auf das Einstellungssymbol, gehen Sie zu <strong>Datenverwaltung</strong> und wählen Sie <strong>[Vollständiges Backup exportieren (JSON)]</strong>.</p>
+          <p>Auf dem neuen Rechner stellen Sie die Datei über <strong>[Backup wiederherstellen]</strong> in Sekundenschnelle vollständig wieder her.</p>
+        </div>
+      </details>
+
+      <!-- Q8: FTS Search -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Wie funktionieren der Smart Clipper und die Volltextsuche (FTS)? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Der <strong>Smart Clipper</strong> filtert beim Speichern störende Werbe- und Navigationsbereiche heraus und sichert den reinen Artikeltext in Ihrer lokalen Datenbank.</p>
+          <p>Die <strong>lokale Volltextsuche (FTS)</strong> bietet:</p>
+          <ul>
+            <li><strong>Mehrwort-Suche:</strong> Geben Sie z.B. <code>React State Management</code> ein, um blitzschnell passende Artikel zu finden.</li>
+            <li><strong>Null Latenz:</strong> Vollständig offline und in unter 10ms durchsucht das System Tausende von Artikeln.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q9: Offline Reader & Zen Reader -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Was sind der Offline-Lesemodus und der Zen-Reader? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Der <strong>Offline-Lesemodus</strong> verwandelt gespeicherte Webartikel in werbefreie, elegante digitale Bücher.</p>
+          <ul>
+            <li><strong>Themes & Typografie:</strong> Helle, dunkle und Sepia-Themes mit Serif-, Sans- und Mono-Schriftarten.</li>
+            <li><strong>Dynamisches Inhaltsverzeichnis (TOC):</strong> Automatische Kapitelübersicht am linken Rand.</li>
+            <li><strong>Markdown-Export:</strong> Text mit einem Klick formatiert kopieren.</li>
+            <li><strong>Zen-Reader:</strong> Auch lange Notizen aus dem Notizen-Board können im Zen-Reader fokussiert gelesen werden.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q10: AI Cleaner -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Wie findet der AI-Cleaner doppelte Lesezeichen?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Der <strong>AI-Cleaner</strong> analysiert Ihre gesamte Lesezeichensammlung nach URL- und Titelähnlichkeiten.</p>
+          <p>Er empfiehlt automatisch das Behalten des ältesten Lesezeichens. Mit einem Klick entfernen Sie redundante Duplikate sicher und sauber.</p>
+        </div>
+      </details>
+
+      <!-- Q11: ClickBook Buddy & Focus Timer -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Was ist der ClickBook Buddy und wie funktioniert der Fokus-Timer? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Der <strong>ClickBook Buddy</strong> ist ein animierter Begleiter auf Ihren Webseiten mit einem 9-Aktionen-Rad:</p>
+          <ul>
+            <li><strong>Übersetzen:</strong> Markierten Text sofort übersetzen.</li>
+            <li><strong>Lesezeichen & Notizen:</strong> Seiten mit 1 Klick speichern und Post-its anheften.</li>
+            <li><strong>AI-Chat & Timer:</strong> Gemini Nano-Fragen stellen und Pomodoro-Fokussitzungen starten.</li>
+            <li><strong>Erholung:</strong> Vollbild-Pausenmodus mit beruhigenden Naturgeräuschen aktivieren.</li>
+          </ul>
+          <p>Nach erreichten Zielen können Sie neue Charaktere im <strong>Buddy-Lexikon</strong> freischalten und cinematische Erfolgs-Themes genießen.</p>
+        </div>
+      </details>
+
+      <!-- Q12: Interactive Mind Map -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Welche Funktionen bietet die interaktive Mindmap? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Die <strong>Mindmap-Ansicht</strong> visualisiert Ihre Ordner und Lesezeichen auf einer dynamischen Leinwand:</p>
+          <ul>
+            <li><strong>Freie Anordnung:</strong> Positionieren Sie Knoten per Drag & Drop – die Koordinaten werden automatisch gesichert.</li>
+            <li><strong>Visuelle Anpassung:</strong> Knotenformen, HSL-Farben und Verbindungslinien frei anpassen.</li>
+            <li><strong>AI-Erweiterung & TODO:</strong> Unterthemen mit Gemini Nano generieren und Knoten direkt in Kalendertermine umwandeln.</li>
+            <li><strong>Private Notizen:</strong> Separate Notizen zu jedem Knoten in der Seitenleiste verfassen.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q13: Spring Note & Smart Calendar -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Wie arbeiten Spiral-Notizbuch und smarter Kalender zusammen? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Das <strong>digitale Spiral-Notizbuch</strong> kombiniert Tiptap-Formatierung mit einer freien Leinwand für Bilder und Notizkarten, die synchron mit 60 fps mitscrollen.</p>
+          <p>Der <strong>smarte Kalender</strong> synchronisiert Notizen, TODOs und offizielle Feiertage für Deutschland, die USA, Japan und Südkorea nahtlos per Drag & Drop.</p>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="support-card">
+      <h2>ClickBook unterstützen</h2>
+      <p>Gefällt Ihnen ClickBook? Unterstützen Sie die Weiterentwicklung mit einem virtuellen Kaffee!</p>
+      <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 ClickBook AI - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

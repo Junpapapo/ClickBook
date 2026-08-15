@@ -399,8 +399,26 @@ export const en = {
 
 
 
-  // ── Phase 3 ───────────────────────────────────────────────
+  // ── Phase 3: Onboarding & Welcome Center ─────────────────
   onboardingTitle: "Welcome to ClickBook!",
+  onboardingWelcomeSubtitle: "Smart bookmarking, AI buddy, and productivity tools all in one workspace.",
+  onboardingQuickSetup: "Quick Setup",
+  onboardingLanguage: "Language",
+  onboardingTheme: "Theme",
+  onboardingCard1Title: "Smart Bookmarks & AI",
+  onboardingCard1Desc: "1-Click capture, Gemini Nano auto-categorization, duplicate cleaner, and clean Reader Mode.",
+  onboardingCard1Action: "Explore Bookmarks",
+  onboardingCard2Title: "Productivity & Notes",
+  onboardingCard2Desc: "Kanban TODO board, Tiptap-powered Spring Notes wiki, and calendar integration.",
+  onboardingCard2Action: "Open TODO Board",
+  onboardingCard3Title: "AI Buddy & AdBlocker",
+  onboardingCard3Desc: "On-page companion mascot, on-device instant Q&A, and fast web ad-blocking.",
+  onboardingCard3Action: "Explore Buddy",
+  onboardingCard4Title: "Trends & Visual Map",
+  onboardingCard4Desc: "Live GitHub/HF rankings, 2D interactive bookmark map, and Command Palette (Ctrl+K).",
+  onboardingCard4Action: "View Trends",
+  onboardingShortcutTip: "Tip: Press Ctrl+/ (or click ? on top right) anytime for full shortcuts and user guides.",
+  onboardingGetStarted: "Get Started with ClickBook",
   onboardingStep1Title: "1-Click Save",
   onboardingStep1Desc: "Save the current tab instantly by clicking the extension icon.",
   onboardingStep2Title: "AI Organization",

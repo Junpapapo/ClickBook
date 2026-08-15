@@ -1,6 +1,7 @@
 import dagre from "dagre";
 import type { Folder, Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
 import type { Node, Edge } from "@xyflow/react";
+import type { Lang } from "@/shared/i18n";
 import { getLocalizedFolderName } from "@/shared/categories";
 
 const nodeWidth = 220;
@@ -11,7 +12,7 @@ export function getLayoutedElements(
   bookmarks: Bookmark[],
   memos: Record<string, BookmarkMemo>,
   expandedFolderIds: Set<string>,
-  lang: "en" | "ja" | "ko",
+  lang: Lang,
   onRenameBookmark?: (id: string, newTitle: string) => void,
   onDeleteBookmark?: (id: string) => void,
   onMemoChange?: (id: string, content: string, color: MemoColor) => void,

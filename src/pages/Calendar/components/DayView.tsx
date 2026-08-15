@@ -6,7 +6,7 @@ import { useLang } from "@/shared/LanguageContext";
 import {
   TASK_BG_COLORS,
   MEMO_COLORS,
-  formatDateStr
+  formatDateStr,
 } from "../calendar-utils";
 
 interface DayViewProps {
@@ -34,20 +34,22 @@ export default function DayView({
 
   // All Day: Tasks with no dueTime + Memos
   const allDayTasks = dayTasks.filter((t) => !t.dueTime);
-  
+
   // Hourly Tasks mapping (00:00 to 23:00)
   const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0") + ":00");
 
   return (
-    <div className="flex flex-col gap-4.5 h-full min-h-[480px] select-none text-xs">
+    <div className="flex flex-col gap-3.5 h-full min-h-[480px] select-none text-xs">
       {/* All Day Banner Row */}
-      <div 
+      <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => onTaskHourDrop(e, "")} // Drop to clear dueTime
-        className="p-3.5 bg-gray-50/50 dark:bg-surface-800/40 border border-gray-200/50 dark:border-surface-850 rounded-2xl flex flex-col gap-2"
+        className="p-3 bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 rounded-lg flex flex-col gap-1.5"
       >
-        <div className="font-bold text-[9px] text-gray-400 uppercase tracking-wider">All Day / Memos</div>
-        <div className="flex flex-wrap gap-2">
+        <div className="font-semibold text-[9.5px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          All Day / Memos
+        </div>
+        <div className="flex flex-wrap gap-1.5">
           {allDayTasks.map((task) => {
             const isEvent = task.type === "event";
             return (
@@ -56,10 +58,11 @@ export default function DayView({
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", task.id)}
                 onClick={() => onOpenTaskEditor(task)}
-                className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-2.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1
-                  ${(!isEvent && task.completed)
-                    ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 
-                    : TASK_BG_COLORS[task.color || "default"]
+                className={`text-[9.5px] cursor-grab active:cursor-grabbing font-medium px-2 py-1 rounded-md border shadow-2xs transition-all hover:scale-101 flex items-center gap-1
+                  ${
+                    !isEvent && task.completed
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200/50 line-through font-normal"
+                      : TASK_BG_COLORS[task.color || "default"]
                   }
                 `}
               >
@@ -72,7 +75,7 @@ export default function DayView({
             <div
               key={item.memo.bookmarkId}
               onClick={() => onOpenMemoEditor(item)}
-              className={`text-[9px] font-bold px-2.5 py-1.5 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1
+              className={`text-[9.5px] font-medium px-2 py-1 rounded-md border shadow-2xs transition-all hover:scale-101 flex items-center gap-1
                 ${MEMO_COLORS[item.memo.color || "yellow"]}
               `}
             >
@@ -81,13 +84,13 @@ export default function DayView({
             </div>
           ))}
           {allDayTasks.length === 0 && dayMemos.length === 0 && (
-            <span className="text-[9px] text-gray-400 dark:text-gray-500 italic">{t("noSchedulesToday")}</span>
+            <span className="text-[9px] text-slate-400 dark:text-slate-500 italic">{t("noSchedulesToday")}</span>
           )}
         </div>
       </div>
 
       {/* Hourly Agenda */}
-      <div className="flex-1 overflow-y-auto max-h-[360px] xl:max-h-none divide-y divide-gray-100 dark:divide-surface-800/60 border border-gray-200/50 dark:border-surface-800/60 rounded-2xl bg-white/30 dark:bg-surface-900/10 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto max-h-[360px] xl:max-h-none divide-y divide-slate-100 dark:divide-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-lg bg-white/50 dark:bg-slate-900/30 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
         {hours.map((hour) => {
           const hourPrefix = hour.split(":")[0];
           const hourlyTasks = dayTasks.filter((t) => t.dueTime && t.dueTime.startsWith(hourPrefix));
@@ -97,9 +100,11 @@ export default function DayView({
               key={hour}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => onTaskHourDrop(e, hour)}
-              className="flex items-start p-2.5 min-h-[48px] hover:bg-gray-50/30 dark:hover:bg-surface-800/20 transition-colors"
+              className="flex items-start p-2 min-h-[44px] hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
             >
-              <div className="w-12 text-[10px] font-bold text-gray-400 tabular-nums self-center">{hour}</div>
+              <div className="w-12 text-[10px] font-semibold text-slate-400 dark:text-slate-500 tabular-nums self-center">
+                {hour}
+              </div>
               <div className="flex-1 flex flex-wrap gap-1.5">
                 {hourlyTasks.map((task) => {
                   const isEvent = task.type === "event";
@@ -109,10 +114,11 @@ export default function DayView({
                       draggable
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", task.id)}
                       onClick={() => onOpenTaskEditor(task)}
-                      className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-2 py-1 rounded-lg border shadow-sm transition-all hover:scale-102 flex items-center gap-1.5
-                        ${(!isEvent && task.completed) 
-                          ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 
-                          : TASK_BG_COLORS[task.color || "default"]
+                      className={`text-[9.5px] cursor-grab active:cursor-grabbing font-medium px-2 py-1 rounded-md border shadow-2xs transition-all hover:scale-101 flex items-center gap-1.5
+                        ${
+                          !isEvent && task.completed
+                            ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200/50 line-through font-normal"
+                            : TASK_BG_COLORS[task.color || "default"]
                         }
                       `}
                     >

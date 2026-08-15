@@ -8,7 +8,7 @@ import {
   TASK_CELL_BG_COLORS,
   TASK_TEXT_COLORS,
   MEMO_COLORS,
-  formatDateStr
+  formatDateStr,
 } from "../calendar-utils";
 
 interface MonthViewProps {
@@ -40,14 +40,14 @@ export default function MonthView({
   return (
     <>
       {/* Weekday Titles */}
-      <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-bold text-gray-400 dark:text-gray-500 select-none pb-2 border-b border-gray-100 dark:border-surface-800">
+      <div className="grid grid-cols-7 gap-1 mb-1.5 text-center text-[11px] font-semibold text-slate-400 dark:text-slate-500 select-none pb-2 border-b border-slate-100 dark:border-slate-800">
         <div>MON</div>
         <div>TUE</div>
         <div>WED</div>
         <div>THU</div>
         <div>FRI</div>
         <div className="text-blue-500">SAT</div>
-        <div className="text-red-500">SUN</div>
+        <div className="text-rose-500">SUN</div>
       </div>
 
       {/* Days Grid */}
@@ -57,7 +57,7 @@ export default function MonthView({
           const dayTasks = tasksByDate[dStr] || [];
           const dayMemos = memosByDate[dStr] || [];
           const isSelected = selectedDate && formatDateStr(selectedDate) === dStr;
-          
+
           const holidayName = holidayMap[dStr];
           const manualHoliday = manualHolidays[dStr];
           const displayHolidayName = holidayName || (manualHoliday ? manualHoliday.content : undefined);
@@ -68,17 +68,17 @@ export default function MonthView({
             if (manualHoliday) {
               cellBgClass = TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default;
             } else if (holidayName) {
-              cellBgClass = "bg-rose-50/25 dark:bg-rose-950/10 border-rose-150/50 dark:border-rose-900/30";
+              cellBgClass = "bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40";
             } else {
-              cellBgClass = "bg-white/40 dark:bg-surface-900/30 border-gray-200/60 dark:border-surface-800/80";
+              cellBgClass = "bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800/80";
             }
           } else {
             if (manualHoliday) {
-              cellBgClass = `${TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default} opacity-45`;
+              cellBgClass = `${TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default} opacity-40`;
             } else if (holidayName) {
-              cellBgClass = "bg-rose-50/10 dark:bg-rose-950/5 border-rose-100/30 dark:border-rose-900/20 opacity-45";
+              cellBgClass = "bg-rose-50/15 dark:bg-rose-950/10 border-rose-100/30 dark:border-rose-900/20 opacity-40";
             } else {
-              cellBgClass = "bg-gray-100/20 dark:bg-surface-950/10 border-gray-100/50 dark:border-surface-900/20 opacity-45";
+              cellBgClass = "bg-slate-100/30 dark:bg-slate-900/30 border-slate-200/40 dark:border-slate-800/40 opacity-40";
             }
           }
 
@@ -88,42 +88,55 @@ export default function MonthView({
               onClick={() => setSelectedDate(cell.date)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => onTaskDrop(e, cell.date)}
-              className={`min-h-[85px] p-2 flex flex-col justify-between rounded-2xl border transition-all duration-150 relative cursor-pointer group/cell
+              className={`min-h-[85px] p-2 flex flex-col justify-between rounded-lg border transition-all duration-150 relative cursor-pointer group/cell
                 ${cellBgClass}
-                ${isTodayCell ? "ring-2 ring-indigo-500/60 bg-indigo-5/10 dark:bg-indigo-950/10" : ""}
-                ${isSelected 
-                  ? "border-indigo-500 dark:border-indigo-500/80 shadow-inner bg-indigo-50/5 dark:bg-indigo-950/5 ring-1 ring-indigo-500/20" 
-                  : (manualHoliday 
-                      ? "hover:border-indigo-400/50 hover:opacity-100" 
-                      : (holidayName 
-                          ? "hover:border-rose-400/50 hover:bg-rose-50/30 dark:hover:bg-rose-950/15" 
-                          : "hover:border-indigo-400/50 hover:bg-white dark:hover:bg-surface-800/40")
-                    )
+                ${isTodayCell ? "ring-2 ring-indigo-500/60 bg-indigo-50/20 dark:bg-indigo-950/20" : ""}
+                ${
+                  isSelected
+                    ? "border-indigo-500 dark:border-indigo-500 ring-1 ring-indigo-500/30 bg-indigo-50/30 dark:bg-indigo-950/25"
+                    : manualHoliday
+                    ? "hover:border-indigo-400/60 hover:opacity-100"
+                    : holidayName
+                    ? "hover:border-rose-400/60 hover:bg-rose-50/60 dark:hover:bg-rose-950/30"
+                    : "hover:border-indigo-400/60 hover:bg-white dark:hover:bg-slate-800/80"
                 }
               `}
             >
               {/* Date number */}
               <div className="flex items-center justify-between select-none">
                 <div className="flex items-center gap-1 min-w-0">
-                  <span className={`text-xs font-bold ${
-                    cell.date.getDay() === 0 || holidayName 
-                      ? "text-red-500" 
-                      : (manualHoliday 
-                          ? TASK_TEXT_COLORS[manualHoliday.color || "rose"] || "text-indigo-600 dark:text-indigo-400"
-                          : (cell.date.getDay() === 6 ? "text-blue-500" : "text-gray-700 dark:text-gray-300"))
-                  } ${isTodayCell ? "text-white bg-indigo-500 rounded-full h-5 w-5 flex items-center justify-center font-black" : ""}`}>
+                  <span
+                    className={`text-xs font-semibold ${
+                      cell.date.getDay() === 0 || holidayName
+                        ? "text-rose-500"
+                        : manualHoliday
+                        ? TASK_TEXT_COLORS[manualHoliday.color || "rose"] || "text-indigo-600 dark:text-indigo-400"
+                        : cell.date.getDay() === 6
+                        ? "text-blue-500"
+                        : "text-slate-700 dark:text-slate-300"
+                    } ${
+                      isTodayCell
+                        ? "text-white dark:text-white bg-indigo-600 dark:bg-indigo-500 rounded-full h-5 w-5 flex items-center justify-center font-bold text-[11px] shadow-2xs"
+                        : ""
+                    }`}
+                  >
                     {cell.date.getDate()}
                   </span>
                   {displayHolidayName && (
-                    <span className={`text-[9px] font-medium truncate max-w-[50px] ${manualHoliday ? TASK_TEXT_COLORS[manualHoliday.color || "rose"] : "text-red-500 dark:text-red-400"}`} title={displayHolidayName}>
+                    <span
+                      className={`text-[9.5px] font-medium truncate max-w-[55px] ${
+                        manualHoliday ? TASK_TEXT_COLORS[manualHoliday.color || "rose"] : "text-rose-600 dark:text-rose-400"
+                      }`}
+                      title={displayHolidayName}
+                    >
                       {displayHolidayName}
                     </span>
                   )}
                 </div>
-                
+
                 {/* Indicators dot */}
                 {(dayTasks.length > 0 || dayMemos.length > 0) && (
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 items-center">
                     {dayTasks.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
                     {dayMemos.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
                   </div>
@@ -143,10 +156,11 @@ export default function MonthView({
                       e.stopPropagation();
                       onOpenTaskEditor(task);
                     }}
-                    className={`text-[9px] cursor-grab active:cursor-grabbing font-bold px-1.5 py-0.5 rounded border truncate shadow-sm transition-all hover:scale-102 flex items-center gap-1
-                      ${task.completed 
-                        ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-500 border-gray-200/50 line-through font-normal" 
-                        : TASK_BG_COLORS[task.color || "default"]
+                    className={`text-[9.5px] cursor-grab active:cursor-grabbing font-medium px-1.5 py-0.5 rounded border truncate shadow-2xs transition-all hover:scale-101 flex items-center gap-1
+                      ${
+                        task.completed
+                          ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200/50 line-through font-normal"
+                          : TASK_BG_COLORS[task.color || "default"]
                       }
                     `}
                     title={task.content}
@@ -163,18 +177,18 @@ export default function MonthView({
                       e.stopPropagation();
                       onOpenMemoEditor(item);
                     }}
-                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border truncate shadow-sm transition-all hover:scale-102 flex items-center gap-0.5
+                    className={`text-[9.5px] font-medium px-1.5 py-0.5 rounded border truncate shadow-2xs transition-all hover:scale-101 flex items-center gap-0.5
                       ${MEMO_COLORS[item.memo.color || "yellow"]}
                     `}
                     title={`[${t("generalMemo")}] ${item.bookmark ? item.bookmark.title : t("generalMemo")}`}
                   >
-                    <StickyNote size={8} className="shrink-0" />
+                    <StickyNote size={9} className="shrink-0" />
                     <span className="truncate">{item.bookmark ? item.bookmark.title : t("generalMemo")}</span>
                   </div>
                 ))}
 
-                {(dayTasks.length + dayMemos.length) > 2 && (
-                  <div className="text-[8px] font-bold text-gray-400 text-right pr-1 select-none">
+                {dayTasks.length + dayMemos.length > 2 && (
+                  <div className="text-[8.5px] font-semibold text-slate-400 dark:text-slate-500 text-right pr-1 select-none">
                     +{dayTasks.length + dayMemos.length - 2}
                   </div>
                 )}

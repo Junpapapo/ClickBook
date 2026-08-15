@@ -69,7 +69,7 @@ export default function RightPanelBar({
     <div className="flex h-full shrink-0">
       {/* 展開パネル */}
       <div
-        className={`shrink-0 overflow-hidden transition-all duration-300 ease-in-out border-l border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-900 ${
+        className={`shrink-0 overflow-hidden transition-all duration-300 ease-in-out border-l border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 ${
           activePanel ? "w-72" : "w-0"
         }`}
       >
@@ -98,16 +98,16 @@ export default function RightPanelBar({
       </div>
 
       {/* アイコンレール */}
-      <div className="w-12 flex flex-col items-center gap-1 py-3 border-l border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-900 shrink-0">
+      <div className="w-12 flex flex-col items-center gap-1 py-3 border-l border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
         {RAIL_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => onToggle(item.id)}
             title={item.label}
-            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all cursor-pointer ${
               activePanel === item.id
                 ? item.activeClass
-                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800"
+                : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             {item.icon}

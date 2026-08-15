@@ -14,6 +14,7 @@ import MemoForm from "./components/MemoForm";
 import BulkImportForm from "./components/BulkImportForm";
 import { BuddySettingsPanel } from "./components/BuddySettingsPanel";
 import { BuddySelector } from "./components/BuddySelector";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import type { BuddyConfig, AppSettings } from "@/shared/types";
 import { initLang as initBuddyLang } from "@/buddy/i18n";
 
@@ -35,7 +36,7 @@ function getTodayString() {
 
 
 export default function Popup() {
-  const { t, lang, setLang } = useLang();
+  const { t, lang } = useLang();
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
@@ -629,8 +630,8 @@ export default function Popup() {
               title={aiAvailable ? t("popupAiAvailableTitle") : t("popupAiUnavailableTitle")}
               className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium cursor-pointer transition-all duration-200 ${
                 aiAvailable
-                  ? "bg-purple-900/60 text-purple-300 border border-purple-700/50 hover:bg-purple-800/60"
-                  : "bg-white dark:bg-surface-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-750 hover:bg-gray-100 dark:hover:bg-surface-700 hover:text-gray-700 dark:hover:text-gray-200"
+                  ? "bg-purple-950/60 text-purple-300 border border-purple-800/50 hover:bg-purple-900/60"
+                  : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200"
               }`}
             >
               {isTogglingAi ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
@@ -653,7 +654,7 @@ export default function Popup() {
               }
             }}
             title={t("popupManageTitle")}
-            className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 hover:text-gray-700 dark:hover:text-white transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-white transition-colors"
           >
             <ExternalLink size={14} />
           </button>
@@ -664,22 +665,22 @@ export default function Popup() {
               title={t("popupSettingsTitle")}
               className={`p-1.5 rounded-lg transition-colors border ${
                 settingsOpen
-                  ? "text-white bg-indigo-600 border-indigo-600"
-                  : "text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 hover:text-gray-700 dark:hover:text-white border-gray-200 dark:border-surface-600"
+                  ? "text-white bg-indigo-600 border-indigo-600 shadow-xs"
+                  : "text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-white border-slate-200 dark:border-slate-700"
               }`}
             >
               <Settings size={15} />
             </button>
             {settingsOpen && (
-              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-700/80 rounded-2xl shadow-xl py-1.5 text-gray-700 dark:text-gray-200 font-sans">
+              <div className="absolute right-0 top-full mt-1 z-50 w-72 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-figma-lg py-1.5 text-slate-700 dark:text-slate-200 font-sans backdrop-blur-md">
 
-              <div className="px-3 pt-2 pb-1">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">{t("popupTheme")}</p>
-                  <div className="flex gap-1">
+                <div className="px-3 pt-2 pb-1">
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-semibold">{t("popupTheme")}</p>
+                  <div className="flex gap-1.5">
                     <button
                       onClick={() => applyTheme("light")}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs transition-colors ${
-                        popupTheme === "light" ? "bg-indigo-600 text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"
+                        popupTheme === "light" ? "bg-indigo-600 text-white shadow-2xs font-semibold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                     >
                       <Sun size={11} /> {t("popupLight")}
@@ -687,31 +688,19 @@ export default function Popup() {
                     <button
                       onClick={() => applyTheme("dark")}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs transition-colors ${
-                        popupTheme === "dark" ? "bg-indigo-600 text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700"
+                        popupTheme === "dark" ? "bg-indigo-600 text-white shadow-2xs font-semibold" : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                     >
                       <Moon size={11} /> {t("popupDark")}
                     </button>
                   </div>
                 </div>
-                <div className="border-t border-gray-200 dark:border-surface-700 mx-2 my-1" />
+                <div className="border-t border-slate-200 dark:border-slate-800 mx-2 my-1" />
                 <div className="px-3 pb-2">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5">{t("settingsLanguage")}</p>
-                  <div className="flex gap-1">
-                    {(["en", "ja", "ko"] as const).map((l) => (
-                      <button
-                        key={l}
-                        onClick={() => setLang(l)}
-                        className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          lang === l ? "bg-indigo-600 text-white" : "text-gray-400 hover:bg-surface-700"
-                        }`}
-                      >
-                        {l === "en" ? "EN" : l === "ja" ? "日本語" : "한국어"}
-                      </button>
-                    ))}
-                  </div>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-semibold">{t("settingsLanguage")}</p>
+                  <LanguageSelector />
                 </div>
-                <div className="border-t border-surface-700 mx-2 my-1" />
+                <div className="border-t border-slate-200 dark:border-slate-800 mx-2 my-1" />
                 <button
                   onClick={() => { setTextImportOpen(o => !o); setSettingsOpen(false); }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"

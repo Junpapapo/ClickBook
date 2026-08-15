@@ -8,6 +8,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type { MindMapNodeData } from "./mindmap-types";
 import { getAIModel, isAIAvailable } from "@/shared/categorizer/ai-service";
 import { getHexColorByTheme } from "./mindmap-utils";
+import { AI_LANGUAGE_NAMES, type Lang } from "@/shared/i18n";
 
 // ──────────────────────────────────────────────────
 // 헬퍼: 타임아웃 래퍼
@@ -499,7 +500,7 @@ Corrected:`;
 // ──────────────────────────────────────────────────
 // 6. Translate node — 언어 번역
 // ──────────────────────────────────────────────────
-export type TranslateLang = "ko" | "en" | "ja";
+export type TranslateLang = Lang;
 
 export async function aiTranslateNode(
   nodeLabel: string,
@@ -508,10 +509,7 @@ export async function aiTranslateNode(
   const aiAvailable = await isAIAvailable();
   if (!aiAvailable) throw new Error("AI_UNAVAILABLE");
 
-  const langName =
-    targetLang === "ko" ? "Korean (한국어)" :
-    targetLang === "ja" ? "Japanese (日本語)" :
-    "English";
+  const langName = AI_LANGUAGE_NAMES[targetLang] ?? "English";
 
   const session = await createSession(
     `You are a professional translator. Translate text into ${langName}. Output ONLY the translated text with no quotes or explanation.`

@@ -648,33 +648,33 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
 
 
   return (
-    <div className="flex flex-col gap-6 w-full p-6 pb-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="flex flex-col gap-4 w-full p-3 sm:p-4 pb-8 animate-in fade-in slide-in-from-bottom-2 duration-200">
       {DialogEl}
 
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-4 sm:p-5 rounded-2xl shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-3.5 sm:p-4 rounded-xl shadow-xs">
         {/* Month/Week/Day Navigation */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={handlePrev}
-            className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 rounded-xl transition-all"
+            className="p-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors"
             title="Previous"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={16} />
           </button>
-          <div className="px-4 py-2 font-bold text-gray-800 dark:text-gray-200 min-w-[150px] text-center select-none text-sm sm:text-base bg-gray-100/50 dark:bg-surface-800/50 rounded-xl border border-gray-200/20 dark:border-white/5">
+          <div className="px-3.5 py-1.5 font-bold text-slate-800 dark:text-slate-100 min-w-[140px] text-center select-none text-xs sm:text-sm bg-slate-100/60 dark:bg-slate-800/60 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
             {getDateHeaderLabel()}
           </div>
           <button
             onClick={handleNext}
-            className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 rounded-xl transition-all"
+            className="p-1.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors"
             title="Next"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={16} />
           </button>
           <button
             onClick={setToday}
-            className="px-3.5 py-2 text-xs font-semibold bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-sm hover:shadow-indigo-500/10 transition-all ml-1.5 active:scale-95"
+            className="px-3 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg shadow-2xs hover:shadow-xs transition-all ml-1 active:scale-98"
           >
             Today
           </button>
@@ -682,15 +682,15 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
 
         {/* View Mode Switcher & Print Control */}
         <div className="flex items-center gap-2">
-          <div className="flex bg-gray-100/60 dark:bg-surface-800/60 p-0.5 rounded-xl border border-gray-200/20 dark:border-white/5">
+          <div className="flex bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
             {(["month", "week", "day"] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
                   viewMode === mode
-                    ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10"
-                    : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
                 {mode === "month" ? t("viewMonth") : mode === "week" ? t("viewWeek") : t("viewDay")}
@@ -700,18 +700,18 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-surface-800 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 rounded-xl transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors shadow-2xs active:scale-98 border border-slate-200/60 dark:border-slate-700/60"
             title={t("printCalendar") || "인쇄"}
           >
-            <Printer size={14} className="text-gray-500 dark:text-gray-400" />
+            <Printer size={13} className="text-slate-500 dark:text-slate-400" />
             <span className="hidden sm:inline">{t("printCalendar") || "인쇄"}</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-5">
         {/* Left Side: Calendar Grid */}
-        <div className="col-span-12 xl:col-span-8 flex flex-col bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-4 rounded-3xl shadow-sm overflow-hidden xl:h-[calc(100vh-250px)] xl:min-h-[500px]">
+        <div className="col-span-12 xl:col-span-8 flex flex-col bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-4 rounded-xl shadow-xs overflow-hidden xl:h-[calc(100vh-230px)] xl:min-h-[500px]">
           {viewMode === "month" ? (
             <MonthView
               gridCells={gridCells}
@@ -751,30 +751,30 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
         </div>
 
         {/* Right Side: Day Details & Event Lists */}
-        <div className="col-span-12 xl:col-span-4 flex flex-col gap-6 xl:h-[calc(100vh-250px)] xl:min-h-[500px]">
-          <div className="bg-white/70 dark:bg-surface-900/70 backdrop-blur border border-gray-200/50 dark:border-surface-700/50 p-5 rounded-3xl shadow-sm flex flex-col flex-1 min-h-[460px]">
-            <div className="pb-3 border-b border-gray-200/50 dark:border-surface-800/80 flex items-center justify-between">
-              <h2 className="font-bold text-gray-900 dark:text-gray-100 text-sm flex items-center flex-wrap gap-2">
-                <Calendar size={15} className="text-indigo-500 shrink-0" />
+        <div className="col-span-12 xl:col-span-4 flex flex-col gap-5 xl:h-[calc(100vh-230px)] xl:min-h-[500px]">
+          <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-4 rounded-xl shadow-xs flex flex-col flex-1 min-h-[460px]">
+            <div className="pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h2 className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm flex items-center flex-wrap gap-2">
+                <Calendar size={15} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>
                   {selectedDate ? selectedDate.toLocaleDateString(lang === "ko" ? "ko-KR" : lang === "ja" ? "ja-JP" : "en-US", { weekday: "long", month: "long", day: "numeric" }) : ""}
                 </span>
                 {selectedDate && (holidayMap[formatDateStr(selectedDate)] || manualHolidays[formatDateStr(selectedDate)]) && (
                   <div className="flex items-center gap-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${
                       manualHolidays[formatDateStr(selectedDate)]
-                        ? `${TASK_TEXT_COLORS[manualHolidays[formatDateStr(selectedDate)].color || "rose"]} bg-gray-50/50 dark:bg-surface-800 border-indigo-150/50 dark:border-indigo-900/30`
-                        : "text-red-500 bg-red-50 dark:bg-red-950/30 border-red-100/50 dark:border-red-900/30"
+                        ? `${TASK_TEXT_COLORS[manualHolidays[formatDateStr(selectedDate)].color || "rose"]} bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700`
+                        : "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/40"
                     }`}>
                       {holidayMap[formatDateStr(selectedDate)] || manualHolidays[formatDateStr(selectedDate)].content}
                     </span>
                     {manualHolidays[formatDateStr(selectedDate)] && (
                       <button
                         onClick={() => openTaskEditor(manualHolidays[formatDateStr(selectedDate)]!)}
-                        className="p-1 text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-800 transition-colors"
+                        className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         title={t("holidayEdit")}
                       >
-                        <Edit size={12} />
+                        <Edit size={11} />
                       </button>
                     )}
                   </div>
@@ -782,7 +782,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
               </h2>
               <button
                 onClick={() => openNewTaskEditor(selectedDate || new Date())}
-                className="p-1.5 text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 rounded-xl hover:bg-gray-150 dark:hover:bg-surface-800/50 transition-colors"
+                className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 title={t("addNewTask") || "새 일정 추가"}
               >
                 <Plus size={16} />
@@ -790,18 +790,18 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
             </div>
 
             {/* Events Scroller */}
-            <div className="flex-1 overflow-y-auto mt-4 space-y-4 pr-1 scrollbar-thin max-h-[500px] xl:max-h-none">
+            <div className="flex-1 overflow-y-auto mt-3.5 space-y-3.5 pr-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 max-h-[500px] xl:max-h-none">
               {selectedDateTasks.length === 0 && selectedDateMemos.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400 dark:text-gray-500 select-none">
-                  <AlertCircle size={28} className="opacity-40 mb-2" />
-                  <p className="text-xs font-semibold">{t("calendarNoEvents") || "이 날짜에 예정된 일정이 없습니다."}</p>
+                <div className="flex flex-col items-center justify-center py-12 text-center text-slate-400 dark:text-slate-500 select-none">
+                  <AlertCircle size={24} className="opacity-40 mb-2" />
+                  <p className="text-xs font-medium">{t("calendarNoEvents") || "이 날짜에 예정된 일정이 없습니다."}</p>
                 </div>
               ) : (
                 <>
                   {/* Tasks Section */}
                   {selectedDateTasks.length > 0 && (
                     <div>
-                      <h3 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h3 className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <CheckSquare size={12} className="text-emerald-500" />
                         {t("calendarTasks") || "일정"} ({selectedDateTasks.length})
                       </h3>
@@ -812,42 +812,37 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                             <div
                               key={task.id}
                               onClick={() => openTaskEditor(task)}
-                              className={`p-3 rounded-xl border border-gray-200/80 dark:border-white/5 cursor-pointer hover:shadow-sm hover:scale-101 active:scale-99 transition-all
-                                ${(!isEvent && task.completed) ? "bg-gray-100/60 dark:bg-surface-950/20 opacity-70" : "bg-white dark:bg-surface-800"}
+                              className={`p-3 rounded-lg border border-slate-200/90 dark:border-slate-700/60 cursor-pointer hover:shadow-xs hover:border-indigo-400/60 dark:hover:border-indigo-500/50 transition-all
+                                ${(!isEvent && task.completed) ? "bg-slate-50/60 dark:bg-slate-800/40 opacity-70" : "bg-white dark:bg-slate-800/90"}
                               `}
                             >
                               <div className="flex items-start gap-2.5">
-                                <span className="mt-[3px]">
+                                <span className="mt-0.5 shrink-0">
                                   {isEvent ? (
-                                    <span className="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0 mt-0.5 flex items-center justify-center text-[7px] text-white font-bold">E</span>
+                                    <span className="w-4 h-4 rounded bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-[8px] text-white font-bold">E</span>
                                   ) : task.completed ? (
-                                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                                    <CheckCircle2 size={15} className="text-emerald-500 dark:text-emerald-400" />
                                   ) : (
-                                    <Circle size={15} className="text-gray-400 shrink-0" />
+                                    <Circle size={15} className="text-slate-400 dark:text-slate-500" />
                                   )}
                                 </span>
-                                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                                  <div className={`flex items-start gap-1.5 ${(!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"}`}>
-                                    {task.icon && <FolderIcon iconName={task.icon} size={14} className="shrink-0 mt-[9px]" />}
-                                    <textarea
-                                      readOnly
-                                      value={task.content}
-                                      onClick={(e) => e.stopPropagation()}
-                                      className={`w-full text-xs font-semibold bg-gray-100/50 dark:bg-surface-900/50 p-2 rounded-lg border border-gray-200/10 resize-y min-h-[42px] max-h-[150px] focus:outline-none ${
-                                        (!isEvent && task.completed) ? "text-gray-400 dark:text-gray-600 line-through" : "text-gray-800 dark:text-gray-200"
-                                      }`}
-                                    />
+                                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                                  <div className={`text-xs font-medium leading-snug break-words flex items-center gap-1.5 ${
+                                    (!isEvent && task.completed) ? "text-slate-400 dark:text-slate-500 line-through" : "text-slate-800 dark:text-slate-100"
+                                  }`}>
+                                    {task.icon && <FolderIcon iconName={task.icon} size={13} className="shrink-0" />}
+                                    <span>{task.content}</span>
                                   </div>
-                                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                                  <div className="flex flex-wrap gap-x-2.5 gap-y-1 mt-0.5">
                                     {task.dueDate && (
-                                      <span className="inline-flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+                                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                         <Clock size={10} />
                                         기한: {formatDateKorean(task.dueDate)} {task.dueTime || ""}
                                       </span>
                                     )}
                                     {isEvent && task.location && (
-                                      <span className="inline-flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 font-medium">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600" />
+                                      <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
                                         장소: {task.location}
                                       </span>
                                     )}
@@ -864,7 +859,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   {/* Memos Section */}
                   {selectedDateMemos.length > 0 && (
                     <div className="pt-2">
-                      <h3 className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h3 className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <StickyNote size={12} className="text-amber-500" />
                         {t("calendarMemos") || "메모"} ({selectedDateMemos.length})
                       </h3>
@@ -873,7 +868,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                           <div
                             key={item.memo.bookmarkId}
                             onClick={() => openMemoEditor(item)}
-                            className="p-3 rounded-xl border border-gray-200/80 dark:border-white/5 bg-white dark:bg-surface-800 cursor-pointer hover:shadow-sm hover:scale-101 active:scale-99 transition-all"
+                            className="p-3 rounded-lg border border-slate-200/90 dark:border-slate-700/60 bg-white dark:bg-slate-800/90 cursor-pointer hover:shadow-xs hover:border-indigo-400/60 dark:hover:border-indigo-500/50 transition-all"
                           >
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center gap-1.5">
@@ -887,23 +882,20 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                         (e.target as HTMLElement).style.display = "none";
                                       }}
                                     />
-                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate flex-1">
+                                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate flex-1">
                                       {item.bookmark.title}
                                     </span>
                                   </>
                                 ) : (
-                                  <span className="text-xs font-bold text-amber-500 flex items-center gap-1 truncate flex-1">
+                                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 truncate flex-1">
                                     <StickyNote size={11} />
                                     일반 메모 (독립형)
                                   </span>
                                 )}
                               </div>
-                              <textarea
-                                readOnly
-                                value={item.memo.content}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-full text-xs text-gray-500 dark:text-gray-400 leading-relaxed bg-gray-100/50 dark:bg-surface-900/50 p-2 rounded-lg border border-gray-200/10 resize-y min-h-[80px] max-h-[300px] focus:outline-none"
-                              />
+                              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 bg-slate-50 dark:bg-slate-800/60 p-2 rounded border border-slate-100 dark:border-slate-700/50">
+                                {item.memo.content}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -915,16 +907,16 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
             </div>
 
             {/* Quick Add Interface Panel */}
-            <div className="pt-4 border-t border-gray-200/50 dark:border-surface-800/80 mt-auto shrink-0 space-y-3 bg-gray-50/10 dark:bg-transparent rounded-2xl">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 mt-auto shrink-0 space-y-2.5">
               {/* Type Switch Tabs */}
-              <div className="flex bg-gray-100/60 dark:bg-surface-800/60 p-0.5 rounded-xl border border-gray-200/20 dark:border-white/5">
+              <div className="flex bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
                 <button
                   type="button"
                   onClick={() => setQuickAddType("todo")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg transition-all
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "todo" 
-                      ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10" 
-                      : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
                 >
@@ -934,23 +926,23 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                 <button
                   type="button"
                   onClick={() => setQuickAddType("event")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg transition-all
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "event" 
-                      ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10" 
-                      : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
                 >
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0 flex items-center justify-center text-[7px] text-white font-bold">E</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-500 shrink-0 flex items-center justify-center text-[7px] text-white font-bold">E</span>
                   {t("taskTypeEvent")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setQuickAddType("holiday")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg transition-all
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "holiday" 
-                      ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10" 
-                      : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
                 >
@@ -960,10 +952,10 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                 <button
                   type="button"
                   onClick={() => setQuickAddType("memo")}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg transition-all
+                  className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "memo" 
-                      ? "bg-white dark:bg-surface-900 text-gray-900 dark:text-gray-100 shadow-sm border border-gray-200/10" 
-                      : "text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
                 >
@@ -973,7 +965,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
               </div>
 
               {/* Form Input */}
-              <form onSubmit={handleQuickAdd} className="flex gap-2">
+              <form onSubmit={handleQuickAdd} className="flex gap-1.5">
                 <input
                   type="text"
                   value={quickAddInput}
@@ -987,18 +979,17 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                       ? t("quickAddHolidayPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                       : t("quickAddMemoPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                   }
-                  className="flex-1 bg-white dark:bg-surface-800 text-xs border border-gray-200/60 dark:border-surface-700/65 rounded-xl px-3 py-2.5 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 shadow-sm placeholder-gray-400"
+                  className="flex-1 bg-white dark:bg-slate-800 text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-2xs placeholder-slate-400"
                 />
                 <button
                   type="submit"
                   disabled={!quickAddInput.trim()}
-                  className="px-4 py-2.5 bg-indigo-550 hover:bg-indigo-600 disabled:bg-gray-150 disabled:text-gray-400 dark:disabled:bg-surface-800 text-white rounded-xl font-bold text-xs transition-all shadow hover:shadow-indigo-500/10 disabled:cursor-not-allowed disabled:shadow-none active:scale-95 shrink-0"
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  {t("quickAddRegister")}
+                  {t("addSite") || "Add"}
                 </button>
               </form>
             </div>
-
           </div>
         </div>
       </div>

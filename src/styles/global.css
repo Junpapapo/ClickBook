@@ -64,6 +64,27 @@
   .figma-icon-btn {
     @apply text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors;
   }
+  .figma-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-md border tracking-wide transition-colors;
+  }
+  .figma-badge-indigo {
+    @apply bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-800/40;
+  }
+  .figma-badge-slate {
+    @apply bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/60;
+  }
+  .figma-badge-emerald {
+    @apply bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/40;
+  }
+  .figma-badge-amber {
+    @apply bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/40;
+  }
+  .figma-badge-rose {
+    @apply bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/40;
+  }
+  .figma-toolbar {
+    @apply flex items-center gap-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800 rounded-lg p-1 shadow-2xs;
+  }
 }
 
 /* Enforce w-full for vertical-resizable textareas to prevent inline style width overriding */

@@ -409,17 +409,17 @@ function MindMapCanvas({ taskId, taskTitle, onClose }: Props) {
       )}
 
       {/* Combined One-line Header & Controller */}
-      <div className="flex items-center justify-between gap-4 p-3 bg-white dark:bg-surface-900 border-b border-gray-200 dark:border-surface-850 shrink-0 select-none">
+      <div className="flex items-center justify-between gap-4 px-4 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 shrink-0 select-none">
         {/* Left: Brand & File Title */}
-        <div className="min-w-0 flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-[#a855f7] text-white shrink-0 shadow-md">
-            <Network size={16} strokeWidth={2.2} />
+        <div className="min-w-0 flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white shrink-0 shadow-2xs">
+            <Network size={15} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
-            <span className="text-[9px] font-extrabold text-gray-400 dark:text-gray-500 uppercase tracking-widest block leading-none" title="MIND MAP EDITOR">
+            <span className="text-[9.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block leading-none" title="MIND MAP EDITOR">
               {taskTitle || "MIND MAP EDITOR"}
             </span>
-            <h2 className="text-xs font-black text-gray-800 dark:text-gray-100 truncate mt-0.5 leading-none">
+            <h2 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate mt-1 leading-none">
               {activeFileName ? activeFileName.replace(".json", "") : "No Map Loaded"}
             </h2>
           </div>

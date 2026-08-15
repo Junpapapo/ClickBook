@@ -1,18 +1,29 @@
 import { en } from "./en";
 import { ja } from "./ja";
 import { ko } from "./ko";
+import { zhTW } from "./zh-TW";
+import { de } from "./de";
+import { es } from "./es";
+import {
+  type Lang,
+  SUPPORTED_LANGUAGES,
+  DEFAULT_LANG,
+} from "./config";
 
-export type Lang = "en" | "ja" | "ko";
+export * from "./config";
+export * from "./ai-prompts";
 
-export const DICT: Record<Lang, typeof en> = { en, ja, ko };
+export const DICT: Record<Lang, typeof en> = { en, ja, ko, "zh-TW": zhTW, de, es };
 
 // ── Browser language detection ────────────────────────────
 export function detectBrowserLang(): Lang {
-  const nav = navigator.language ?? navigator.languages?.[0] ?? "en";
-  const base = nav.split("-")[0].toLowerCase();
-  if (base === "ja") return "ja";
-  if (base === "ko") return "ko";
-  return "en";
+  const nav = (navigator.language ?? navigator.languages?.[0] ?? "en").toLowerCase();
+  for (const meta of SUPPORTED_LANGUAGES) {
+    if (meta.prefixMatch.some((prefix) => nav === prefix || nav.startsWith(`${prefix}-`))) {
+      return meta.code;
+    }
+  }
+  return DEFAULT_LANG;
 }
 
 // ── Translation function factory ──────────────────────────
@@ -33,3 +44,4 @@ export function createT(lang: Lang) {
 }
 
 export type TFunction = ReturnType<typeof createT>;
+

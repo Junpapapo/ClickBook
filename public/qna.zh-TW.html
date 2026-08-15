@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook AI Q&A - 常見問題與解答</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 3rem;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.8);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.3s;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .header {
+        background-color: rgba(30, 41, 59, 0.8);
+      }
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-btn {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
+    }
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+      min-width: 145px;
+      display: none;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: block;
+      animation: fadeInDropdown 0.15s ease-out;
+    }
+
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-option.active {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 3rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .title-area {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .title-area h1 {
+      font-size: 2.3rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Q&A Accordion */
+    .qna-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    details {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    details:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    details[open] {
+      border-color: var(--primary);
+    }
+
+    summary {
+      padding: 1.25rem 1.5rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .q-text {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .q-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background-color: rgba(99, 102, 241, 0.15);
+      color: var(--primary);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .arrow-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.2s, stroke 0.2s;
+      flex-shrink: 0;
+      margin-left: 1rem;
+    }
+
+    details[open] .arrow-icon {
+      transform: rotate(180deg);
+      stroke: var(--primary);
+    }
+
+    .answer-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      border-top: 1px solid var(--border);
+      background-color: rgba(248, 250, 252, 0.4);
+      color: var(--text);
+      font-size: 0.98rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .answer-content {
+        background-color: rgba(15, 23, 42, 0.2);
+      }
+    }
+
+    .answer-content p {
+      margin-top: 1rem;
+    }
+
+    .answer-content ul, .answer-content ol {
+      margin-top: 0.75rem;
+      padding-left: 1.5rem;
+    }
+
+    .answer-content li {
+      margin-top: 0.5rem;
+    }
+
+    .step-box {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-family: inherit;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
+    .badge-premium {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      color: white;
+    }
+
+    /* Support CTA Card */
+    .support-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-top: 4rem;
+    }
+
+    .support-card h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .support-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span style="position: relative; display: inline-flex; align-items: center; gap: 0.25rem;">
+        <span>ClickBook Q&A</span>
+        <span style="font-size: 9px; background: linear-gradient(to right, #9333ea, #4f46e5); color: white; border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.15rem 0.35rem; border-radius: 4px; font-weight: 800; margin-left: 0.15rem; line-height: 1; display: inline-flex; align-items: center; gap: 0.15rem; margin-top: -6px; box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.2); user-select: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="#fde047" stroke="#fde047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 1px; color: #fde047;"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          AI
+        </span>
+      </span>
+    </div>
+    <div class="header-nav">
+      <a href="help.html" class="nav-btn">← 返回使用說明指南</a>
+      
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇹🇼</span>
+            <span>繁體中文</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="qna.html" class="lang-option">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+          </a>
+          <a href="qna.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="qna.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="qna.zh-TW.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="qna.de.html" class="lang-option">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+          </a>
+          <a href="qna.es.html" class="lang-option">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="title-area">
+      <h1>常見問題與解答 (Q&A)</h1>
+      <p>彙整使用 ClickBook 智慧生產力擴充功能時的常見疑問與完整解決方案。</p>
+    </div>
+
+    <div class="qna-list">
+      
+      <!-- Q1: New Tab Page security popup -->
+      <details open>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            設為新分頁時，Chrome 彈出「是否復原為 Google？」提示，擴充功能無法自動關閉嗎？
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>沒錯，該安全提示視窗無法透過擴充功能程式碼強制控制或繞過。</strong></p>
+          <p>此提示是 Chrome 瀏覽器為保護使用者免受惡意軟體（分頁劫持者）暗中竄改搜尋引擎或新分頁，而內建的<strong>瀏覽器原生硬編碼安全防護機制</strong>。</p>
+          <p>若要正常將 ClickBook 設為新分頁，請在安裝後首次開啟新分頁時，務必親自點擊 <strong>[保留變更 (Keep changes)]</strong> 按鈕。</p>
+        </div>
+      </details>
+
+      <!-- Q2: NTP settings messed up -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            不小心按到了「復原設定」，導致新分頁或儀表板變成白畫面或無法開啟。
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>若不小心點擊了<strong>[復原設定]</strong>，Chrome 會單方面撤銷 ClickBook 的新分頁跳轉權限，導致內部設定與瀏覽器阻擋狀態不同步而出現空白。</p>
+          <p>只需按照以下簡單步驟重設瀏覽器安全權限即可立即修復：</p>
+          <div class="step-box">
+            <strong>最快且穩定的修復步驟：</strong>
+            <ol>
+              <li>於 Chrome 網址列輸入 <code>chrome://extensions/</code> 進入擴充功能管理頁面。</li>
+              <li>找到 ClickBook 卡片，將右下角的藍色<strong>啟用開關關閉 (OFF) 後再次開啟 (ON)</strong>。</li>
+              <li>開啟一個空白新分頁，Chrome 將重新彈出安全提示視窗。</li>
+              <li>此時點擊 <strong>[保留變更 (Keep changes)]</strong>，即可瞬間恢復所有功能。</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <!-- Q3: Chrome Bookmark import hanging -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            匯入 Chrome 書籤或批次登錄時，一直卡在「登錄中...」狀態很慢。
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>此情況通常發生於使用者電腦尚未完全配置 <strong>Chrome 本機 AI (Gemini Nano)</strong> 環境時的會話等待延遲，已於最新版本中<strong>獲得全面最佳化解決</strong>。</p>
+          <p>ClickBook 在匯入時會以小於 1ms 的極速預先診斷 AI 可用性。若 AI 尚未就緒，將自動無縫切換至超高速規則比對分類器 (Fallback)，確保批次匯入順暢不卡頓。</p>
+          <p>書籤的 AI 摘要與詳細標籤會在背景執行緒中非同步慢慢生成，完全不影響儀表板的流暢操作。</p>
+        </div>
+      </details>
+
+      <!-- Q4: Smart Tab suspension rules -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            智慧分頁休眠 (Tab Suspender) 運作時，會把正在播放音樂或重要的分頁休眠嗎？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>請完全放心。ClickBook 的智慧休眠演算法以保護使用者作業為最高優先。以下分頁<strong>絕對不會被強制休眠</strong>：</p>
+          <ul>
+            <li><strong>音訊播放分頁：</strong> YouTube、Spotify 等背景正在播放音訊或影片的分頁。</li>
+            <li><strong>已固定分頁 (Pinned Tabs)：</strong> 瀏覽器左側固定的常駐工作分頁。</li>
+            <li><strong>目前使用中的分頁：</strong> 您正在瀏覽與操作的活動分頁。</li>
+            <li><strong>正在填寫表單的頁面：</strong> 偵測到表單輸入欄位的作業頁面。</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q5: Secure Folder clear items -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            安全防護資料夾 (Secure Folder) 的自動銷毀器會清除哪些隱私痕跡？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>將機密資料或金融網域設為<strong>安全資料夾</strong>後，瀏覽該網頁時工具列圖示會亮起綠色 <strong>`SEC` 徽章</strong>。關閉相關分頁的瞬間，僅針對該網域 (Origin) 的以下資料將徹底自動銷毀：</p>
+          <ul>
+            <li><strong>Cookie：</strong> 自動登入狀態與追蹤會話紀錄</li>
+            <li><strong>本機與工作階段儲存 (LocalStorage, SessionStorage)</strong></li>
+            <li><strong>資料庫痕跡：</strong> IndexedDB、WebSQL</li>
+            <li><strong>網站快取與 Service Worker</strong></li>
+            <li><strong>瀏覽記錄與暫存檔案</strong></li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q6: Tab Group sync method -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            如何將 Chrome 原生分頁群組與 ClickBook 資料夾雙向同步？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook 支援與 Chrome 分頁群組的完美雙向同步：</p>
+          <ul>
+            <li><strong>將分頁群組儲存為 ClickBook 資料夾</strong>：點擊擴充功能彈出視窗，會列出當前開啟的分頁群組與顏色標記。選擇群組並點擊 <strong>[Save Group]</strong>，即可建立包含群組內所有分頁的新資料夾。</li>
+            <li><strong>將資料夾還原為 Chrome 分頁群組</strong>：於側邊欄資料夾點擊圖層按鈕，或於資料夾檢視頁面點擊 <strong>[Open as Chrome Tab Group]</strong>，即可依原有名稱與自訂顏色在 Chrome 分頁列上一鍵還原原生群組。</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q7: Backup and Reset -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            如何將書籤資料轉移到新電腦或完整備份？
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook 的所有資料均安全保存在您的電腦本機中 (Local-First)，並提供一鍵匯出匯入功能。</p>
+          <p>點擊儀表板右上角的設定齒輪圖示，前往<strong>資料管理</strong>分頁，點擊 <strong>[匯出完整備份 (JSON)]</strong> 即可下載包含階層結構、備忘與設定的 JSON 檔案。</p>
+          <p>在新電腦或新瀏覽器中點擊 <strong>[還原備份]</strong> 選擇該檔案，1 秒內即可無縫還原所有書籤與自訂圖示。</p>
+        </div>
+      </details>
+
+      <!-- Q8: FTS Search -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            全文檢索搜尋 (FTS) 與智慧剪輯功能有何特色？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>智慧剪輯器 (Smart Clipper)</strong> 會在儲存書籤時於背景過濾廣告與無關排版，將純淨內文擷取至本機資料庫。</p>
+          <p>搭配 <strong>本機全文檢索 (FTS)</strong> 引擎：</p>
+          <ul>
+            <li><strong>空格分隔多關鍵字搜尋：</strong> 輸入如 <code>React 狀態管理</code>，即可即時比對內文、標題、標籤與摘要。</li>
+            <li><strong>零延遲效能：</strong> 無需向任何外部伺服器發送請求，數千篇文章也能在 10ms 內極速呈現搜尋結果。</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q9: Offline Reader & Zen Reader -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            離線閱讀模式 (Offline Reader) 與 Zen 沉浸閱讀器是什麼？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>離線閱讀模式</strong>能將儲存的網頁內文轉換為無廣告、排版典雅的沉浸式數位書籍。</p>
+          <ul>
+            <li><strong>典雅主題與字型：</strong> 支援減少眼睛疲勞的淺色、深色與羊皮紙主題，並提供 Serif、Sans、Mono 三種字型與字級縮放。</li>
+            <li><strong>智慧目錄 (TOC)：</strong> 自動解析標題結構產生左側懸浮大綱，點擊即可平滑捲動跳轉。</li>
+            <li><strong>Markdown 快速匯出：</strong> 一鍵將乾淨文章複製為 Markdown 或純文字格式。</li>
+            <li><strong>Zen Reader 支援：</strong> 除了書籤文章，便條板上的長篇筆記也可一鍵切換至 Zen Reader 進行專注閱讀。</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q10: AI Cleaner -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            AI 清理工具如何找出重複的書籤？
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>AI 清理工具</strong>會智慧掃描整座書籤資料庫，依據網址正規化與標題語意將高度相似的項目分組。</p>
+          <p>系統會自動建議保留最早建立的原始書籤。檢視分組後，點擊一鍵即可安全刪除重複項目，常保資料夾整潔。</p>
+        </div>
+      </details>
+
+      <!-- Q11: ClickBook Buddy & Focus Timer -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            ClickBook 夥伴 (Buddy) 與番茄鐘專注計時器如何運作？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>ClickBook 夥伴</strong>是常駐於網頁角落的可愛動畫桌面寵物。點擊即可呼叫 9 大快捷圓形選單：</p>
+          <ul>
+            <li><strong>翻譯：</strong> 反白選取網頁文字即可瞬間翻譯。</li>
+            <li><strong>書籤：</strong> 一鍵快速儲存當前頁面。</li>
+            <li><strong>AI 對話：</strong> 開啟 Gemini Nano 聊天面板解答疑問。</li>
+            <li><strong>計時：</strong> 快速啟動番茄鐘專注計時。</li>
+            <li><strong>休息：</strong> 開啟全螢幕療癒視覺與白噪音放鬆模式。</li>
+            <li><strong>便條 & 待辦：</strong> 在頁面上貼上便利貼並管理今日檢查清單。</li>
+            <li><strong>隱藏與自訂：</strong> 細部自訂角色大小、透明度、時鐘顯示或在特定網域隱藏。</li>
+          </ul>
+          <p>達成專注目標後可在<strong>夥伴圖鑑</strong>中解鎖新角色，並享受極光星空、靜謐森林等全螢幕慶祝視覺主題。</p>
+        </div>
+      </details>
+
+      <!-- Q12: Interactive Mind Map -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            心智圖 (Mind Map) 視覺化檢視有哪些實用功能？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>互動式心智圖</strong>將您的書籤階層樹狀結構轉換為視覺化畫布：</p>
+          <ul>
+            <li><strong>自由排版：</strong> 透過拖曳自由調整節點位置，座標會自動永久儲存。</li>
+            <li><strong>外觀自訂：</strong> 可自訂八角形等節點形狀、HSL 主題色彩與連線粗細樣式。</li>
+            <li><strong>AI 發想與 TODO 轉換：</strong> 運用 Gemini Nano 延伸子主題，並可一鍵將節點轉換為行事曆行程或待辦任務。</li>
+            <li><strong>節點私密備忘：</strong> 透過側邊抽屜面板為每個節點撰寫詳細私密備忘。</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q13: Spring Note & Smart Calendar -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            數位手帳筆記 (Spring Note) 與智慧行事曆如何聯動？ <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>數位手帳筆記</strong>結合了 Tiptap 富文本排版與自由畫布，可自由拖放圖片、便利貼與書籤卡片，所有物件與內文以 60fps 流暢同步原生滾動。</p>
+          <p><strong>智慧行事曆</strong>與手帳、待辦看板及便條深度整合。支援拖放調整排程、月/週/日視圖切換，並自動連動台、港、美、日等官方國定假日。</p>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="support-card">
+      <h2>支持 ClickBook 獨立開發</h2>
+      <p>若您喜歡 ClickBook，歡迎請我們喝杯溫暖的咖啡，支持我們持續帶來更多強大功能！</p>
+      <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 ClickBook AI - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

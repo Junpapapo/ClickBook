@@ -36,22 +36,22 @@ function MapControls({ layoutDir, onToggleLayout }: { layoutDir: "LR"|"TB", onTo
   const { lang } = useLang();
   
   return (
-    <Panel position="bottom-center" className="flex items-center gap-2 bg-white/90 dark:bg-surface-800/90 backdrop-blur-md p-2 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700">
-      <button onClick={() => zoomOut({ duration: 300 })} className="px-3 py-1.5 text-sm font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors">
+    <Panel position="bottom-center" className="flex items-center gap-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-1.5 rounded-xl shadow-lg border border-slate-200/90 dark:border-slate-800 select-none">
+      <button onClick={() => zoomOut({ duration: 300 })} className="px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg transition-all shadow-2xs cursor-pointer">
         {lang === "ko" ? "축소" : lang === "ja" ? "縮小" : "Zoom Out"}
       </button>
-      <button onClick={() => zoomIn({ duration: 300 })} className="px-3 py-1.5 text-sm font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-200 rounded-lg transition-colors">
+      <button onClick={() => zoomIn({ duration: 300 })} className="px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg transition-all shadow-2xs cursor-pointer">
         {lang === "ko" ? "확대" : lang === "ja" ? "拡大" : "Zoom In"}
       </button>
-      <div className="w-px h-6 bg-gray-300 dark:bg-surface-600 mx-1"></div>
-      <button onClick={() => fitView({ duration: 800, padding: 0.2 })} className="px-3 py-1.5 text-sm font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-colors">
+      <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-0.5" />
+      <button onClick={() => fitView({ duration: 800, padding: 0.2 })} className="px-2.5 py-1 text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all shadow-2xs cursor-pointer border border-indigo-200/60 dark:border-indigo-800/40">
         {lang === "ko" ? "자동 정렬" : lang === "ja" ? "自動整列" : "Fit View"}
       </button>
-      <div className="w-px h-6 bg-gray-300 dark:bg-surface-600 mx-1"></div>
-      <button onClick={onToggleLayout} className="px-3 py-1.5 text-sm font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-colors flex items-center gap-1.5">
+      <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-0.5" />
+      <button onClick={onToggleLayout} className="px-2.5 py-1 text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all shadow-2xs flex items-center gap-1 cursor-pointer border border-indigo-200/60 dark:border-indigo-800/40">
         {layoutDir === "LR" 
-          ? (lang === "ko" ? "➡️ 수평" : lang === "ja" ? "➡️ 水平" : "➡️ Horizontal") 
-          : (lang === "ko" ? "⬇️ 수직" : lang === "ja" ? "⬇️ 垂直" : "⬇️ Vertical")}
+          ? (lang === "ko" ? "수평 ➡️" : lang === "ja" ? "水平 ➡️" : "Horizontal ➡️") 
+          : (lang === "ko" ? "수직 ⬇️" : lang === "ja" ? "垂直 ⬇️" : "Vertical ⬇️")}
       </button>
     </Panel>
   );
@@ -59,7 +59,7 @@ function MapControls({ layoutDir, onToggleLayout }: { layoutDir: "LR"|"TB", onTo
 
 function MapToolbar({ 
   onExpandDepth, 
-  bookmarkMode,
+  bookmarkMode, 
   onBookmarkModeChange,
   searchQuery,
   onSearchChange,
@@ -74,52 +74,52 @@ function MapToolbar({
 }) {
   const { lang } = useLang();
   return (
-    <Panel position="top-right" className="flex flex-col gap-2 bg-white/90 dark:bg-surface-800/90 backdrop-blur-md p-3 rounded-xl shadow-lg border border-gray-200 dark:border-surface-700 pointer-events-auto mt-4 mr-4">
+    <Panel position="top-right" className="flex flex-col gap-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-slate-200/90 dark:border-slate-800 pointer-events-auto mt-3 mr-3 select-none">
       {/* Search */}
-      <div className="flex items-center gap-2 bg-gray-100 dark:bg-surface-700 rounded-lg px-2 py-1.5">
-        <span className="text-gray-400 text-sm">🔍</span>
+      <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1.5 border border-slate-200/60 dark:border-slate-700/60">
+        <span className="text-slate-400 text-xs">🔍</span>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") onSearchCommit(); }}
           placeholder={lang === "ko" ? "폴더/북마크 검색..." : lang === "ja" ? "検索..." : "Search..."}
-          className="bg-transparent outline-none text-xs text-gray-700 dark:text-gray-200 placeholder-gray-400 w-36"
+          className="bg-transparent outline-none text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 w-36"
         />
         {searchQuery && (
-          <button onClick={() => onSearchChange("")} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs leading-none">✕</button>
+          <button onClick={() => onSearchChange("")} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs leading-none">✕</button>
         )}
       </div>
-      <div className="w-full h-px bg-gray-200 dark:bg-surface-700"></div>
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+      <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           {lang === "ko" ? "북마크 표시" : lang === "ja" ? "ブックマーク表示" : "Show Bookmarks"}
         </span>
         <div className="flex items-center gap-1">
-          <button onClick={() => onBookmarkModeChange("HIDE")} className={`px-2 py-1 text-xs font-medium rounded transition-colors ${bookmarkMode === "HIDE" ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-surface-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-600'}`}>
+          <button onClick={() => onBookmarkModeChange("HIDE")} className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all ${bookmarkMode === "HIDE" ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'}`}>
             {lang === "ko" ? "숨김" : lang === "ja" ? "非表示" : "Hide"}
           </button>
-          <button onClick={() => onBookmarkModeChange("COLLAPSED")} className={`px-2 py-1 text-xs font-medium rounded transition-colors ${bookmarkMode === "COLLAPSED" ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-surface-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-600'}`}>
-            {lang === "ko" ? "전부 닫기" : lang === "ja" ? "全て閉じる" : "Close All"}
+          <button onClick={() => onBookmarkModeChange("COLLAPSED")} className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all ${bookmarkMode === "COLLAPSED" ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'}`}>
+            {lang === "ko" ? "닫기" : lang === "ja" ? "閉じる" : "Close"}
           </button>
-          <button onClick={() => onBookmarkModeChange("EXPANDED")} className={`px-2 py-1 text-xs font-medium rounded transition-colors ${bookmarkMode === "EXPANDED" ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-gray-100 text-gray-600 dark:bg-surface-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-600'}`}>
-            {lang === "ko" ? "전부 펼치기" : lang === "ja" ? "全て展開" : "Expand All"}
+          <button onClick={() => onBookmarkModeChange("EXPANDED")} className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all ${bookmarkMode === "EXPANDED" ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'}`}>
+            {lang === "ko" ? "펼치기" : lang === "ja" ? "展開" : "Expand"}
           </button>
         </div>
       </div>
-      <div className="w-full h-px bg-gray-200 dark:bg-surface-700"></div>
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+      <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
           {lang === "ko" ? "폴더 펼침" : lang === "ja" ? "フォルダ展開" : "Expand"}
         </span>
         <div className="flex items-center gap-1">
-          <button onClick={() => onExpandDepth(1)} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded transition-colors">
-            {lang === "ko" ? "1단계" : lang === "ja" ? "1段階" : "Level 1"}
+          <button onClick={() => onExpandDepth(1)} className="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded transition-all">
+            {lang === "ko" ? "1단계" : lang === "ja" ? "1段階" : "1"}
           </button>
-          <button onClick={() => onExpandDepth(2)} className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-surface-700 hover:bg-gray-200 dark:hover:bg-surface-600 text-gray-700 dark:text-gray-300 rounded transition-colors">
-            {lang === "ko" ? "2단계" : lang === "ja" ? "2段階" : "Level 2"}
+          <button onClick={() => onExpandDepth(2)} className="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded transition-all">
+            {lang === "ko" ? "2단계" : lang === "ja" ? "2段階" : "2"}
           </button>
-          <button onClick={() => onExpandDepth(Infinity)} className="px-2 py-1 text-xs font-medium bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors">
+          <button onClick={() => onExpandDepth(Infinity)} className="px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-all border border-indigo-200/60 dark:border-indigo-800/40">
             {lang === "ko" ? "전체" : lang === "ja" ? "全展開" : "All"}
           </button>
         </div>

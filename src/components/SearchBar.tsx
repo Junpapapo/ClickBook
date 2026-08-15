@@ -184,7 +184,14 @@ export default function SearchBar({ query, onChange, onEnter, onRefresh, onOpenS
           <ShieldCheck size={18} />
         </button>
         <a
-          href={`https://junpapapo.github.io/ClickBook/public/${lang === "ko" ? "help.ko.html" : lang === "ja" ? "help.ja.html" : "help.html"}`}
+          href={`https://junpapapo.github.io/ClickBook/public/${
+            lang === "ko" ? "help.ko.html" :
+            lang === "ja" ? "help.ja.html" :
+            lang === "zh-TW" ? "help.zh-TW.html" :
+            lang === "de" ? "help.de.html" :
+            lang === "es" ? "help.es.html" :
+            "help.html"
+          }`}
           target="_blank"
           rel="noopener noreferrer"
           title={t("helpTooltip")}

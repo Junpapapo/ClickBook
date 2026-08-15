@@ -21,26 +21,27 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { TodoTask } from "@/shared/types";
+import type { Lang } from "@/shared/i18n";
 import { refineMemoDraft, isAIAvailable } from "@/shared/categorizer";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { IconPicker } from "@/components/IconPicker";
 
 const TASK_BG_COLORS: Record<string, string> = {
-  default: "bg-white dark:bg-[#2C2C2E]",
-  blue: "bg-blue-50 dark:bg-[#1C2331]",
-  emerald: "bg-emerald-50 dark:bg-[#1D2A24]",
-  amber: "bg-amber-50 dark:bg-[#2D281E]",
-  rose: "bg-rose-50 dark:bg-[#2D1E22]",
-  purple: "bg-purple-50 dark:bg-[#251E2D]",
+  default: "bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800",
+  blue: "bg-blue-50/40 dark:bg-slate-900 border border-blue-200 dark:border-blue-900/40",
+  emerald: "bg-emerald-50/40 dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/40",
+  amber: "bg-amber-50/40 dark:bg-slate-900 border border-amber-200 dark:border-amber-900/40",
+  rose: "bg-rose-50/40 dark:bg-slate-900 border border-rose-200 dark:border-rose-900/40",
+  purple: "bg-purple-50/40 dark:bg-slate-900 border border-purple-200 dark:border-purple-900/40",
 };
 
 const COLOR_BTN_BG: Record<string, string> = {
-  default: "bg-gray-300 dark:bg-gray-600",
-  blue: "bg-blue-400",
-  emerald: "bg-emerald-400",
-  amber: "bg-amber-400",
-  rose: "bg-rose-400",
-  purple: "bg-purple-400",
+  default: "bg-slate-300 dark:bg-slate-600",
+  blue: "bg-blue-500",
+  emerald: "bg-emerald-500",
+  amber: "bg-amber-500",
+  rose: "bg-rose-500",
+  purple: "bg-purple-500",
 };
 
 const REMINDER_OPTIONS = [
@@ -70,33 +71,28 @@ const formatDateStr = (date: Date) => {
   return `${y}-${m}-${d}`;
 };
 
-const formatDate = (dateStr: string, lang: string) => {
+const formatDate = (dateStr: string, lang: Lang) => {
   if (!dateStr) return "";
   const parts = dateStr.split("-");
-  if (parts.length !== 3) return dateStr;
+  if (parts.length < 3) return dateStr;
+  const y = parts[0];
   const m = parseInt(parts[1], 10);
   const d = parseInt(parts[2], 10);
 
   if (lang === "ko") {
-    return `${m}월 ${d}일`;
-  } else if (lang === "ja") {
-    return `${m}月 ${d}日`;
+    return `${y}년 ${m}월 ${d}일`;
+  } else if (lang === "ja" || lang === "zh-TW") {
+    return `${y}年${m}月${d}日`;
+  } else if (lang === "de") {
+    const months = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."];
+    return `${d}. ${months[m - 1] || m} ${y}`;
+  } else if (lang === "es") {
+    const months = ["ene.", "feb.", "mar.", "abr.", "may.", "jun.", "jul.", "ago.", "sept.", "oct.", "nov.", "dic."];
+    return `${d} ${months[m - 1] || m} ${y}`;
   } else {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return `${months[m - 1]} ${d}`;
+    // en
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[m - 1] || m} ${d}, ${y}`;
   }
 };
 
@@ -161,7 +157,7 @@ interface TaskDetailsModalProps {
   onSave: (updatedTask: TodoTask) => void;
   enableTodoNotifications?: boolean;
   t: any;
-  lang: string;
+  lang: Lang;
 }
 
 export default function TaskDetailsModal({
@@ -216,7 +212,7 @@ export default function TaskDetailsModal({
     if (!editTaskDescModal.trim()) return;
     setIsRefining(true);
     try {
-      const result = await refineMemoDraft(editTaskDescModal, lang as "en" | "ja" | "ko");
+      const result = await refineMemoDraft(editTaskDescModal, lang);
       if (result.aiUsed && result.draft) {
         setEditTaskDescModal(result.draft);
       }
@@ -293,17 +289,17 @@ export default function TaskDetailsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs p-4 animate-in fade-in duration-150"
       onMouseDown={onClose}
     >
       <div
         className={`${
           TASK_BG_COLORS[editTaskColor || "default"]
-        } transition-colors duration-300 rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden`}
+        } transition-colors duration-200 rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden`}
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="px-5 pt-4 pb-3 flex justify-between items-start gap-4 border-b border-gray-100 dark:border-white/[0.03]">
+        <div className="px-5 pt-4 pb-3 flex justify-between items-start gap-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-start gap-3 flex-1">
             <button
               onClick={() => {
@@ -415,7 +411,7 @@ export default function TaskDetailsModal({
                     <div className="flex gap-2 justify-start items-center">
                       <button
                         onClick={() => setIsDescriptionEditing(false)}
-                        className="px-4 py-2 text-xs font-semibold bg-indigo-606 hover:bg-indigo-500 text-white rounded-lg shadow-sm transition-colors"
+                        className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-xs transition-colors"
                       >
                         Save
                       </button>
@@ -424,7 +420,7 @@ export default function TaskDetailsModal({
                           setIsDescriptionEditing(false);
                           setEditTaskDescModal(task.description || "");
                         }}
-                        className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-lg transition-colors"
+                        className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                       >
                         Cancel
                       </button>
@@ -481,7 +477,7 @@ export default function TaskDetailsModal({
                           li: ({ node, ...props }) => <li className="" {...props} />,
                           a: ({ node, ...props }) => (
                             <a
-                              className="text-indigo-505 hover:text-indigo-600 hover:underline"
+                              className="text-indigo-600 dark:text-indigo-400 hover:underline"
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
@@ -490,13 +486,13 @@ export default function TaskDetailsModal({
                           ),
                           strong: ({ node, ...props }) => (
                             <strong
-                              className="font-semibold text-gray-900 dark:text-gray-100"
+                              className="font-semibold text-slate-900 dark:text-slate-100"
                               {...props}
                             />
                           ),
                           code: ({ node, ...props }) => (
                             <code
-                              className="bg-gray-200 dark:bg-surface-700 text-pink-500 px-1.5 py-0.5 rounded-md text-xs font-mono"
+                              className="bg-slate-200 dark:bg-slate-800 text-pink-500 px-1.5 py-0.5 rounded-md text-xs font-mono"
                               {...props}
                             />
                           ),
@@ -505,7 +501,7 @@ export default function TaskDetailsModal({
                         {editTaskDescModal}
                       </ReactMarkdown>
                     ) : (
-                      <span className="text-gray-400 dark:text-gray-505 font-semibold text-xs">
+                      <span className="text-slate-400 dark:text-slate-500 font-semibold text-xs">
                         Add a description... (supports markdown)
                       </span>
                     )}
@@ -514,15 +510,15 @@ export default function TaskDetailsModal({
               </div>
 
               {/* Checklist Section */}
-              <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-white/[0.03]">
-                <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <CheckSquare size={18} className="text-indigo-505" />
+              <div className="flex flex-col gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <CheckSquare size={16} className="text-indigo-500" />
                   Checklist
                 </h3>
 
                 {editTaskChecklist.length > 0 && (
-                  <div className="flex items-center gap-3 w-full bg-gray-50/50 dark:bg-surface-800/20 p-2.5 rounded-xl border border-gray-150 dark:border-white/5">
-                    <span className="text-xs font-bold text-gray-500 w-8 text-right shrink-0">
+                  <div className="flex items-center gap-3 w-full bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 w-8 text-right shrink-0">
                       {Math.round(
                         (editTaskChecklist.filter((c) => c.completed).length /
                           editTaskChecklist.length) *
@@ -530,7 +526,7 @@ export default function TaskDetailsModal({
                       )}
                       %
                     </span>
-                    <div className="flex-1 bg-gray-200 dark:bg-surface-700 rounded-full h-2 overflow-hidden shadow-inner">
+                    <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden shadow-inner">
                       <div
                         className={`h-2 rounded-full transition-all duration-500 ${
                           editTaskChecklist.every((c) => c.completed)
@@ -698,7 +694,7 @@ export default function TaskDetailsModal({
                       {showTimeDropdown && (
                         <>
                           <div className="fixed inset-0 z-[95]" onClick={() => setShowTimeDropdown(false)} />
-                          <div className="absolute left-0 right-0 top-full mt-1 z-[100] max-h-[160px] overflow-y-auto bg-white dark:bg-[#1E1E20] border border-gray-200/80 dark:border-white/10 rounded-xl shadow-xl py-1 text-xs animate-in fade-in slide-in-from-top-2 duration-150 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-surface-600">
+                          <div className="absolute left-0 right-0 top-full mt-1 z-[100] max-h-[160px] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg py-1 text-xs animate-in fade-in slide-in-from-top-1 duration-150 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
                             {timeOptions.map((timeOpt) => (
                               <button
                                 key={timeOpt}
@@ -730,15 +726,15 @@ export default function TaskDetailsModal({
                           size={14}
                           className={`absolute left-3 shrink-0 pointer-events-none ${
                             !enableTodoNotifications
-                              ? "text-gray-400 dark:text-gray-505"
-                              : "text-indigo-505"
+                              ? "text-slate-400 dark:text-slate-500"
+                              : "text-indigo-500"
                           }`}
                         />
                         <select
                           value={editTaskReminder || "none"}
                           onChange={(e) => setEditTaskReminder(e.target.value)}
                           disabled={!enableTodoNotifications}
-                          className="text-xs bg-white dark:bg-surface-900 border border-gray-200/80 dark:border-surface-700 rounded-xl pl-9 pr-8 py-2 text-gray-700 dark:text-gray-300 hover:border-indigo-400 dark:hover:border-indigo-505 transition-all focus:outline-none w-full shadow-sm disabled:bg-gray-100/50 dark:disabled:bg-surface-800/50 disabled:text-gray-400 dark:disabled:text-gray-505 disabled:cursor-not-allowed disabled:border-gray-100 dark:disabled:border-surface-800 appearance-none font-semibold"
+                          className="text-xs bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 rounded-xl pl-9 pr-8 py-2 text-slate-700 dark:text-slate-300 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all focus:outline-none w-full shadow-xs disabled:bg-slate-100/50 dark:disabled:bg-slate-800/50 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-200 dark:disabled:border-slate-800 appearance-none font-semibold"
                         >
                           {REMINDER_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -1057,24 +1053,24 @@ export default function TaskDetailsModal({
                       </button>
                     </span>
                   ))}
-                  <div className="flex items-center gap-1.5 px-2 py-1.5 bg-white dark:bg-surface-900 rounded-xl border border-gray-200 dark:border-surface-700 focus-within:border-indigo-400 dark:focus-within:border-indigo-505 transition-all w-full mt-1">
-                    <FolderIcon iconName="tag" size={12} className="text-gray-400" />
+                  <div className="flex items-center gap-1.5 px-2 py-1.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 focus-within:border-indigo-400 dark:focus-within:border-indigo-500 transition-all w-full mt-1">
+                    <FolderIcon iconName="tag" size={12} className="text-slate-400" />
                     <input
                       type="text"
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={handleAddTag}
                       placeholder="Add tag..."
-                      className="w-full bg-transparent text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none"
+                      className="w-full bg-transparent text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Progress Section */}
-              <div className="flex flex-col gap-2 pt-3 border-t border-gray-200/50 dark:border-white/[0.03]">
+              <div className="flex flex-col gap-2 pt-3 border-t border-slate-200/60 dark:border-slate-800">
                 <div className="flex justify-between items-center">
-                  <h4 className="text-[11px] font-bold text-gray-400 dark:text-gray-505 uppercase tracking-wider">
+                  <h4 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                     Progress
                   </h4>
                   <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
@@ -1094,9 +1090,9 @@ export default function TaskDetailsModal({
                       if (val === 100) setEditTaskCompleted(true);
                       else if (val < 100 && editTaskCompleted) setEditTaskCompleted(false);
                     }}
-                    className="w-full h-1.5 bg-gray-200 dark:bg-surface-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
-                  <div className="flex justify-between text-[9px] font-bold text-gray-400 mt-1.5 px-0.5">
+                  <div className="flex justify-between text-[9px] font-bold text-slate-400 mt-1.5 px-0.5">
                     <span>0%</span>
                     <span>25%</span>
                     <span>50%</span>
@@ -1110,10 +1106,10 @@ export default function TaskDetailsModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-5 py-3 border-t border-gray-100 dark:border-surface-800 flex justify-end gap-3 bg-gray-50/30 dark:bg-surface-800/30">
+        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50/50 dark:bg-slate-900/50">
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-500/20 transition-all active:scale-95 hover:shadow-lg hover:shadow-indigo-500/30"
+            className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg shadow-figma-sm transition-all duration-150 cursor-pointer"
           >
             Save Changes
           </button>

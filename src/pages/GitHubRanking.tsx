@@ -222,36 +222,34 @@ export default function GitHubRankingPage() {
               </span>
             )}
           </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-3 items-end">
+        </div>        <div className="flex flex-col md:flex-row gap-2.5 items-end">
           {/* 결과 내 필터 */}
-          <div className="relative w-full md:w-48">
+          <div className="relative w-full md:w-44">
              <input
                type="text"
                value={filterQuery}
                onChange={e => setFilterQuery(e.target.value)}
                placeholder="Filter results..."
-               className="w-full pl-8 pr-3 py-2 border border-gray-150 dark:border-surface-700 bg-gray-50 dark:bg-surface-800/50 rounded-lg text-[11px] outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-gray-800 dark:text-gray-100"
+               className="w-full pl-8 pr-2.5 py-1.5 border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 rounded-lg text-xs outline-none focus:border-indigo-500 transition-all text-slate-800 dark:text-slate-100 placeholder-slate-400"
              />
-             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           </div>
 
           {/* 검색 바 */}
-          <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-80 relative">
+          <form onSubmit={handleSearch} className="flex gap-1.5 w-full md:w-72 relative">
             <div className="relative flex-1">
               <input
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder={t("githubSearchPlaceholder")}
-                className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 rounded-lg text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition-all text-gray-800 dark:text-gray-100"
+                className="w-full pl-8 pr-2.5 py-1.5 border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800/90 rounded-lg text-xs outline-none focus:border-indigo-500 transition-all text-slate-800 dark:text-slate-100 placeholder-slate-400"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             </div>
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold text-xs shadow-sm hover:shadow-indigo-500/20 active:scale-95 transition-all shrink-0"
+              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg font-semibold text-xs shadow-2xs transition-all shrink-0 cursor-pointer"
             >
               {t("searchBtn")}
             </button>
@@ -260,42 +258,42 @@ export default function GitHubRankingPage() {
       </div>
 
       {/* 실시간 검색 제약 안내 */}
-      <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/30 rounded-lg overflow-hidden transition-all duration-300">
+      <div className="bg-indigo-50/70 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-900/40 rounded-xl overflow-hidden transition-all duration-200">
         <button
           onClick={() => setShowLimits(s => !s)}
-          className="w-full flex items-center justify-between p-3 text-left focus:outline-none"
+          className="w-full flex items-center justify-between p-2.5 text-left focus:outline-none cursor-pointer"
         >
           <div className="flex items-center gap-2 text-indigo-800 dark:text-indigo-300 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400" />
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-indigo-600 dark:text-indigo-400" />
             <span className="font-semibold text-indigo-900 dark:text-indigo-200">{t("apiLimitTitle")}</span>
           </div>
-          {showLimits ? <ChevronUp size={14} className="text-indigo-600 dark:text-indigo-400" /> : <ChevronDown size={14} className="text-indigo-600 dark:text-indigo-400" />}
+          {showLimits ? <ChevronUp size={13} className="text-indigo-600 dark:text-indigo-400" /> : <ChevronDown size={13} className="text-indigo-600 dark:text-indigo-400" />}
         </button>
         {showLimits && (
-          <div className="px-3 pb-3 pt-0 text-xs text-indigo-800 dark:text-indigo-300">
-            <p className="opacity-90 leading-relaxed pl-6">{t("apiLimitDesc")}</p>
+          <div className="px-2.5 pb-2.5 pt-0 text-xs text-indigo-800 dark:text-indigo-300">
+            <p className="opacity-90 leading-relaxed pl-5 text-[11px]">{t("apiLimitDesc")}</p>
           </div>
         )}
       </div>
 
       {/* 필터 영역 */}
-      <div className="flex flex-col xl:flex-row gap-5 xl:items-end justify-between border-b border-gray-150 dark:border-surface-800 pb-5">
-        <div className="space-y-2 overflow-hidden">
-          <label className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase flex items-center gap-1.5">
-            <Globe className="w-3.5 h-3.5" />
+      <div className="flex flex-col xl:flex-row gap-4 xl:items-end justify-between border-b border-slate-200/80 dark:border-slate-800 pb-4">
+        <div className="space-y-1.5 overflow-hidden">
+          <label className="text-[9.5px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+            <Globe className="w-3 h-3" />
             {t("langRankingLabel")}
           </label>
-          <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 max-w-full">
+          <div className="flex flex-wrap gap-1.5 overflow-x-auto pb-0.5 max-w-full">
             {LANGUAGES.map(lang => {
               const isActive = selectedLang === lang.id;
               return (
                 <button
                   key={lang.id}
                   onClick={() => handleLanguageChange(lang.id)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-all duration-150 active:scale-95 shrink-0 ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all duration-150 active:scale-98 shrink-0 cursor-pointer ${
                     isActive
-                      ? "bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-600/15"
-                      : "bg-white dark:bg-surface-800 hover:bg-gray-50 dark:hover:bg-surface-700 border-gray-200 dark:border-surface-700 text-gray-600 dark:text-gray-300"
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-2xs"
+                      : "bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200/90 dark:border-slate-700/70 text-slate-600 dark:text-slate-300"
                   }`}
                 >
                   {lang.name}
@@ -305,27 +303,27 @@ export default function GitHubRankingPage() {
           </div>
         </div>
 
-        <div className="space-y-2 shrink-0">
-          <label className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
+        <div className="space-y-1.5 shrink-0">
+          <label className="text-[9.5px] font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+            <Calendar className="w-3 h-3" />
             {t("dateFilterLabel")}
           </label>
-          <div className="flex bg-gray-100 dark:bg-surface-800 p-1 rounded-lg border border-gray-200 dark:border-surface-700">
+          <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
             {[
-              { id: "all", name: t("dateAll") },
-              { id: "week", name: t("dateWeek") },
-              { id: "month", name: t("dateMonth") },
-            ].map(f => (
+              { id: "week", label: t("dateWeek") },
+              { id: "month", label: t("dateMonth") },
+              { id: "all", label: t("dateAll") }
+            ].map(tf => (
               <button
-                key={f.id}
-                onClick={() => handleDateFilterChange(f.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all active:scale-95 ${
-                  dateFilter === f.id
-                    ? "bg-white dark:bg-surface-600 shadow-sm text-indigo-600 dark:text-indigo-400 font-semibold"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                key={tf.id}
+                onClick={() => handleDateFilterChange(tf.id)}
+                className={`px-2.5 py-1 text-xs font-semibold rounded transition-all cursor-pointer ${
+                  dateFilter === tf.id
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                {f.name}
+                {tf.label}
               </button>
             ))}
           </div>

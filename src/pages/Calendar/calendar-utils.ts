@@ -1,12 +1,13 @@
 import type { MemoColor } from "@/shared/types";
+import type { TFunction } from "@/shared/i18n";
 
 export const TASK_BG_COLORS: Record<string, string> = {
-  default: "bg-indigo-50/40 border-indigo-200 dark:bg-[#1C2331] dark:border-indigo-900/40 text-indigo-700 dark:text-indigo-300",
-  blue: "bg-blue-50/40 border-blue-200 dark:bg-[#1C2331] dark:border-blue-900/40 text-blue-700 dark:text-blue-300",
-  emerald: "bg-emerald-50/40 border-emerald-200 dark:bg-[#1D2A24] dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-300",
-  amber: "bg-amber-50/40 border-amber-200 dark:bg-[#2D281E] dark:border-amber-900/40 text-amber-700 dark:text-amber-300",
-  rose: "bg-rose-50/40 border-rose-200 dark:bg-[#2D1E22] dark:border-rose-900/40 text-rose-700 dark:text-rose-300",
-  purple: "bg-purple-50/40 border-purple-200 dark:bg-[#251E2D] dark:border-purple-900/40 text-purple-700 dark:text-purple-300",
+  default: "bg-indigo-50/70 border-indigo-200/80 dark:bg-slate-800/90 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300",
+  blue: "bg-blue-50/70 border-blue-200/80 dark:bg-slate-800/90 dark:border-blue-900/50 text-blue-700 dark:text-blue-300",
+  emerald: "bg-emerald-50/70 border-emerald-200/80 dark:bg-slate-800/90 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300",
+  amber: "bg-amber-50/70 border-amber-200/80 dark:bg-slate-800/90 dark:border-amber-900/50 text-amber-700 dark:text-amber-300",
+  rose: "bg-rose-50/70 border-rose-200/80 dark:bg-slate-800/90 dark:border-rose-900/50 text-rose-700 dark:text-rose-300",
+  purple: "bg-purple-50/70 border-purple-200/80 dark:bg-slate-800/90 dark:border-purple-900/50 text-purple-700 dark:text-purple-300",
 };
 
 export const TASK_SOLID_COLORS: Record<string, string> = {
@@ -19,21 +20,21 @@ export const TASK_SOLID_COLORS: Record<string, string> = {
 };
 
 export const MEMO_COLORS: Record<MemoColor, string> = {
-  default: "bg-slate-50/40 border-slate-200 dark:bg-slate-900/40 dark:border-slate-800 text-slate-700 dark:text-slate-300",
-  yellow: "bg-amber-50/40 border-amber-200 dark:bg-[#2D281E] dark:border-amber-900/40 text-amber-700 dark:text-amber-300",
-  pink: "bg-rose-50/40 border-rose-200 dark:bg-[#2D1E22] dark:border-rose-900/40 text-rose-700 dark:text-rose-300",
-  blue: "bg-blue-50/40 border-blue-200 dark:bg-[#1C2331] dark:border-blue-900/40 text-blue-700 dark:text-blue-300",
-  green: "bg-emerald-50/40 border-emerald-200 dark:bg-[#1D2A24] dark:border-emerald-900/40 text-emerald-700 dark:text-emerald-300",
-  purple: "bg-purple-50/40 border-purple-200 dark:bg-[#251E2D] dark:border-purple-900/40 text-purple-700 dark:text-purple-300",
+  default: "bg-slate-50 border-slate-200/80 dark:bg-slate-800/90 dark:border-slate-700/60 text-slate-700 dark:text-slate-200",
+  yellow: "bg-amber-50/70 border-amber-200/80 dark:bg-slate-800/90 dark:border-amber-900/50 text-amber-700 dark:text-amber-300",
+  pink: "bg-rose-50/70 border-rose-200/80 dark:bg-slate-800/90 dark:border-rose-900/50 text-rose-700 dark:text-rose-300",
+  blue: "bg-blue-50/70 border-blue-200/80 dark:bg-slate-800/90 dark:border-blue-900/50 text-blue-700 dark:text-blue-300",
+  green: "bg-emerald-50/70 border-emerald-200/80 dark:bg-slate-800/90 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300",
+  purple: "bg-purple-50/70 border-purple-200/80 dark:bg-slate-800/90 dark:border-purple-900/50 text-purple-700 dark:text-purple-300",
 };
 
 export const TASK_CELL_BG_COLORS: Record<string, string> = {
-  default: "bg-indigo-50/15 dark:bg-indigo-950/5 border-indigo-200/40 dark:border-indigo-900/20",
-  blue: "bg-blue-50/15 dark:bg-blue-950/5 border-blue-200/40 dark:border-blue-900/20",
-  emerald: "bg-emerald-50/15 dark:bg-emerald-950/5 border-emerald-200/40 dark:border-emerald-900/20",
-  amber: "bg-amber-50/15 dark:bg-amber-950/5 border-amber-200/40 dark:border-amber-900/20",
-  rose: "bg-rose-50/15 dark:bg-rose-950/5 border-rose-200/40 dark:border-rose-900/20",
-  purple: "bg-purple-50/15 dark:bg-purple-950/5 border-purple-200/40 dark:border-purple-900/20",
+  default: "bg-indigo-50/20 dark:bg-indigo-950/15 border-indigo-200/50 dark:border-indigo-900/30",
+  blue: "bg-blue-50/20 dark:bg-blue-950/15 border-blue-200/50 dark:border-blue-900/30",
+  emerald: "bg-emerald-50/20 dark:bg-emerald-950/15 border-emerald-200/50 dark:border-emerald-900/30",
+  amber: "bg-amber-50/20 dark:bg-amber-950/15 border-amber-200/50 dark:border-amber-900/30",
+  rose: "bg-rose-50/20 dark:bg-rose-950/15 border-rose-200/50 dark:border-rose-900/30",
+  purple: "bg-purple-50/20 dark:bg-purple-950/15 border-purple-200/50 dark:border-purple-900/30",
 };
 
 export const TASK_TEXT_COLORS: Record<string, string> = {
@@ -44,8 +45,6 @@ export const TASK_TEXT_COLORS: Record<string, string> = {
   rose: "text-rose-600 dark:text-rose-400",
   purple: "text-purple-600 dark:text-purple-400",
 };
-
-import type { TFunction } from "@/shared/i18n";
 
 export const getReminderOptions = (t: TFunction) => [
   { value: "none", label: t("reminderNone") },

@@ -161,9 +161,9 @@ export default function HNRankingPage() {
               value={filterQuery}
               onChange={e => setFilterQuery(e.target.value)}
               placeholder={lang === "ko" ? "기사 제목 또는 도메인 필터..." : lang === "ja" ? "記事タイトル・ドメインフィルター..." : "Filter stories or domains..."}
-              className="w-full pl-9 pr-3 py-1.5 border border-gray-200 dark:border-surface-700 bg-white dark:bg-surface-800 rounded-lg text-xs outline-none focus:ring-1 focus:ring-orange-500 transition-all text-gray-800 dark:text-gray-100"
+              className="w-full pl-9 pr-3 py-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg text-xs outline-none focus:ring-1 focus:ring-amber-500 transition-all text-slate-800 dark:text-slate-100 placeholder-slate-400"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           </div>
         </div>
       </div>
@@ -178,31 +178,31 @@ export default function HNRankingPage() {
       {loading ? (
         <RankingSkeleton rows={15} cols={7} />
       ) : (
-        <div className="bg-white dark:bg-surface-900 border border-gray-150 dark:border-surface-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="min-w-full text-xs">
               <thead>
-                <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-20 whitespace-nowrap cursor-pointer text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" onClick={() => handleSort("rank")}>
+                <tr className="bg-slate-50 dark:bg-slate-850 border-b border-slate-200/80 dark:border-slate-800 text-slate-500 uppercase tracking-wider font-semibold">
+                  <th className="px-4 py-3 text-center w-20 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("rank")}>
                     {t("thRank")} <SortIcon columnKey="rank" />
                   </th>
-                  <th className="px-4 py-3 text-left whitespace-nowrap cursor-pointer text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" onClick={() => handleSort("title")}>
+                  <th className="px-4 py-3 text-left whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("title")}>
                     Title <SortIcon columnKey="title" />
                   </th>
-                  <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" onClick={() => handleSort("score")}>
+                  <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("score")}>
                     Points <SortIcon columnKey="score" />
                   </th>
-                  <th className="px-4 py-3 text-right w-32 whitespace-nowrap cursor-pointer text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" onClick={() => handleSort("descendants")}>
+                  <th className="px-4 py-3 text-right w-32 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("descendants")}>
                     Comments <SortIcon columnKey="descendants" />
                   </th>
-                  <th className="px-4 py-3 text-center w-32 whitespace-nowrap cursor-pointer text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors" onClick={() => handleSort("by")}>
+                  <th className="px-4 py-3 text-center w-32 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("by")}>
                     Author <SortIcon columnKey="by" />
                   </th>
                   <th className="px-4 py-3 text-center w-24">Link</th>
                   <th className="px-4 py-3 text-center w-20">Save</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filtered.map((s, i) => {
                   const isSaved = savedIds.has(s.id);
                   const getRankBadge = (rank: number) => {

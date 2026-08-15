@@ -66,7 +66,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
         bookmark.title,
         bookmark.summary,
         bookmark.tags,
-        lang as "en" | "ja" | "ko"
+        lang
       );
       setDraft(result.draft);
       setDraftAiUsed(result.aiUsed);
@@ -388,47 +388,47 @@ const BookmarkCard = React.memo(function BookmarkCard({ bookmark, memo, folderNa
         </div>
 
         {/* ホバー時アクション */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm p-1 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-xs">
           {/* Info 버튼 */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               window.dispatchEvent(new CustomEvent("OPEN_BOOKMARK_INFO", { detail: bookmark }));
             }}
-            className="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-surface-700 dark:hover:bg-surface-600 rounded-lg transition-colors"
+            className="p-1 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
             title={t("infoTooltip") || "Site Info"}
           >
-            <Info size={12} className="text-indigo-500 dark:text-indigo-400" />
+            <Info size={13} />
           </button>
           {/* メモボタン */}
           <button
             ref={stickyBtnRef}
             onClick={(e) => { e.stopPropagation(); setShowPopover((v) => !v); }}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1 rounded transition-colors ${
               memo
-                ? "bg-yellow-400/20 hover:bg-yellow-400/30"
-                : "bg-gray-100 hover:bg-gray-200 dark:bg-surface-700 dark:hover:bg-surface-600"
+                ? "bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400"
+                : "text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
             title={memo ? t("editMemoTooltip") : t("addMemoTooltip")}
           >
-            <StickyNote size={12} className={memo ? "text-yellow-400" : "text-gray-500 dark:text-gray-400"} />
+            <StickyNote size={13} />
           </button>
 
           <button
             onClick={handleOpen}
-            className="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-surface-700 dark:hover:bg-surface-600 rounded-lg transition-colors"
+            className="p-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
             title={t("openTooltip")}
           >
-            <ExternalLink size={12} className="text-gray-500 dark:text-gray-400" />
+            <ExternalLink size={13} />
           </button>
 
           {onDelete && (
             <button
               onClick={() => onDelete(bookmark.id)}
-              className="p-1.5 bg-gray-100 hover:bg-red-100 dark:bg-surface-700 dark:hover:bg-red-900/60 rounded-lg transition-colors"
+              className="p-1 text-slate-400 hover:text-rose-600 dark:text-slate-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
               title={t("deleteBookmarkTooltip")}
             >
-              <Trash2 size={12} className="text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400" />
+              <Trash2 size={13} />
             </button>
           )}
         </div>

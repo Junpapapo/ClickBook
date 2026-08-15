@@ -120,25 +120,25 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
       <div className="h-full flex font-sans overflow-hidden p-6">
         {/* Left Area - Kanban Board */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          <div className="mb-6 shrink-0 flex items-center justify-between">
-          <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
-            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white shadow-md shadow-emerald-500/25">
-              <ListTodo size={16} strokeWidth={2.2} />
-            </span>
-            <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 text-transparent bg-clip-text">
-              {t("todoBoardTitle") || "TODO Board"}
-            </span>
-          </h1>
-          <button
-            onClick={addColumn}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95"
-          >
-            <Plus size={12} />
-            {t("addTodoColumn") || "Add List"}
-          </button>
-        </div>
+          <div className="mb-5 shrink-0 flex items-center justify-between">
+            <h1 className="text-lg font-bold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20">
+                <ListTodo size={16} strokeWidth={2.2} />
+              </span>
+              <span>
+                {t("todoBoardTitle") || "TODO Board"}
+              </span>
+            </h1>
+            <button
+              onClick={addColumn}
+              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs hover:shadow-sm transition-all active:scale-98"
+            >
+              <Plus size={13} strokeWidth={2.5} />
+              {t("addTodoColumn") || "Add List"}
+            </button>
+          </div>
 
-        <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-surface-600">
+          <div className="flex-1 overflow-x-auto overflow-y-hidden pb-3 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
               {(provided: DroppableProvided) => (

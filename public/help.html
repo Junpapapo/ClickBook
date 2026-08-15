@@ -72,27 +72,10 @@
       color: var(--primary);
     }
 
-    .lang-switcher {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .lang-link {
-      color: var(--text-muted);
-      transition: color 0.2s;
-    }
-
-    .lang-link:hover, .lang-link.active {
-      color: var(--primary);
-      text-decoration: none;
-    }
-
     .header-nav {
       display: flex;
       align-items: center;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
 
     .qna-btn {
@@ -109,6 +92,109 @@
       background-color: var(--primary);
       color: white;
       text-decoration: none;
+    }
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
+    }
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+      min-width: 145px;
+      display: none;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: block;
+      animation: fadeInDropdown 0.15s ease-out;
+    }
+
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-option.active {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .nav-item-qna {
@@ -310,10 +396,37 @@
     </div>
     <div class="header-nav">
       <a href="qna.html" class="qna-btn">FAQ & Q&A</a>
-      <div class="lang-switcher">
-        <a href="help.html" class="lang-link active">English</a>
-        <a href="help.ja.html" class="lang-link">日本語</a>
-        <a href="help.ko.html" class="lang-link">한국어</a>
+      
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇺🇸</span>
+            <span>English</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="help.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="help.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="help.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="help.zh-TW.html" class="lang-option">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+          </a>
+          <a href="help.de.html" class="lang-option">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+          </a>
+          <a href="help.es.html" class="lang-option">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+          </a>
+        </div>
       </div>
     </div>
   </header>
@@ -668,6 +781,20 @@
   </footer>
 
   <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-link');
 

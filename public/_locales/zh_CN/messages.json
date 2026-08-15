@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook AI - AI 書籤與任務管理工具",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "一鍵快速儲存分頁，運用 Chrome 本地端 Gemini Nano AI 自動歸類整理書籤，並深度整合待辦事項 (TODO) 與行事曆的個人高效工作區。",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "將目前分頁儲存為書籤",
+    "description": "Command description for saving current tab"
+  }
+}

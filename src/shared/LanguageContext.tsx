@@ -5,7 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { type Lang, type TFunction, createT, detectBrowserLang } from "./i18n";
+import { type Lang, type TFunction, createT, detectBrowserLang, isValidLang, DEFAULT_LANG } from "./i18n";
 
 interface LangContextValue {
   lang: Lang;
@@ -16,15 +16,15 @@ interface LangContextValue {
 const STORAGE_KEY = "clickbook_lang";
 
 function readLang(): Lang {
-  const stored = localStorage.getItem(STORAGE_KEY) as Lang | null;
-  if (stored === "en" || stored === "ja" || stored === "ko") return stored;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (isValidLang(stored)) return stored;
   return detectBrowserLang();
 }
 
 const LangContext = createContext<LangContextValue>({
-  lang: "en",
+  lang: DEFAULT_LANG,
   setLang: () => {},
-  t: createT("en"),
+  t: createT(DEFAULT_LANG),
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -48,8 +48,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       areaName: string
     ) => {
       if (areaName === "local" && changes[STORAGE_KEY]) {
-        const nextLang = changes[STORAGE_KEY].newValue as Lang;
-        if (nextLang === "ko" || nextLang === "en" || nextLang === "ja") {
+        const nextLang = changes[STORAGE_KEY].newValue;
+        if (isValidLang(nextLang)) {
           localStorage.setItem(STORAGE_KEY, nextLang);
           setLangState(nextLang);
         }

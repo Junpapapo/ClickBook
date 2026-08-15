@@ -60,7 +60,7 @@ export default function SpringNoteBook({
             <div className="absolute right-0.5 w-1.5 h-2.5 bg-black/75 dark:bg-black/90 rounded-full shadow-inner" />
             
             {/* 금속 스프링 링 */}
-            <div className="absolute left-0.5 w-5 h-2.5 bg-gradient-to-b from-gray-300 via-gray-100 to-gray-450 dark:from-surface-700 dark:via-surface-500 dark:to-surface-850 rounded-full shadow border-t border-white/20 dark:border-white/5 transform -rotate-12" />
+            <div className="absolute left-0.5 w-5 h-2.5 bg-gradient-to-b from-slate-300 via-slate-100 to-slate-400 dark:from-slate-600 dark:via-slate-500 dark:to-slate-700 rounded-full shadow border-t border-white/30 dark:border-white/10 transform -rotate-12" />
           </div>
         ))}
       </div>

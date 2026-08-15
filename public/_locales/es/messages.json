@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook AI - Administrador de Marcadores y Tareas con AI",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "Guarda pestañas en 1 clic, organiza marcadores con Gemini Nano AI local y gestiona TODOs y calendario con total privacidad.",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "Guardar pestaña actual como marcador",
+    "description": "Command description for saving current tab"
+  }
+}

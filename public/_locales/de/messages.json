@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook AI - AI Lesezeichen & Aufgaben-Manager",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "Speichern Sie Tabs mit 1 Klick, organisieren Sie Lesezeichen mit lokaler Gemini Nano AI und verwalten Sie TODOs und Kalender.",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "Aktuellen Tab als Lesezeichen speichern",
+    "description": "Command description for saving current tab"
+  }
+}

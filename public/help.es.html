@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook AI Ayuda - Gestión inteligente de marcadores y productividad</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Layout */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .qna-btn {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      background-color: #6366f115;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .qna-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      text-decoration: none;
+    }
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
+    }
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+      min-width: 145px;
+      display: none;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: block;
+      animation: fadeInDropdown 0.15s ease-out;
+    }
+
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-option.active {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-item-qna {
+      margin-top: 1.5rem;
+      border-top: 1px dashed var(--border);
+      padding-top: 1rem;
+    }
+
+    .nav-link-qna {
+      color: var(--primary) !important;
+      font-weight: 700 !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-link-qna:hover {
+      background-color: #6366f115 !important;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 5rem;
+      height: calc(100vh - 7rem);
+      overflow-y: auto;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: var(--border);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-link.active {
+      background-color: #6366f115;
+      color: var(--primary);
+    }
+
+    /* Content */
+    .content section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 6rem;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .card-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .shortcut {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background-color: var(--border);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin: 0 0.2rem;
+      color: var(--text);
+    }
+
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .alert-info {
+      background-color: #6366f110;
+      border: 1px solid #6366f130;
+      color: var(--text);
+    }
+
+    .alert-warning {
+      background-color: #f59e0b10;
+      border: 1px solid #f59e0b30;
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background-color: var(--primary);
+      color: white;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span style="position: relative; display: inline-flex; align-items: center; gap: 0.25rem;">
+        <span>ClickBook</span>
+        <span style="font-size: 9px; background: linear-gradient(to right, #9333ea, #4f46e5); color: white; border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.15rem 0.35rem; border-radius: 4px; font-weight: 800; margin-left: 0.15rem; line-height: 1; display: inline-flex; align-items: center; gap: 0.15rem; margin-top: -6px; box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.2); user-select: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="#fde047" stroke="#fde047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 1px; color: #fde047;"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          AI
+        </span>
+      </span>
+    </div>
+    <div class="header-nav">
+      <a href="qna.es.html" class="qna-btn">Preguntas frecuentes & Q&A</a>
+      
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇪🇸</span>
+            <span>Español</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="help.html" class="lang-option">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+          </a>
+          <a href="help.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="help.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="help.zh-TW.html" class="lang-option">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+          </a>
+          <a href="help.de.html" class="lang-option">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+          </a>
+          <a href="help.es.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#intro" class="nav-link active">Introducción e instalación</a></li>
+          <li class="nav-item"><a href="#getting-started" class="nav-link">Primeros pasos</a></li>
+          <li class="nav-item"><a href="#ai-features" class="nav-link">Funciones inteligentes con AI</a></li>
+          <li class="nav-item"><a href="#productivity" class="nav-link">Herramientas de productividad</a></li>
+          <li class="nav-item"><a href="#buddy-timer" class="nav-link">ClickBook Buddy y temporizador</a></li>
+          <li class="nav-item"><a href="#rankings" class="nav-link">Tendencias y rankings en tiempo real</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">Gestión de carpetas y marcadores</a></li>
+          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Sincronización con Chrome</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">Ajustes y gestión de datos</a></li>
+          <li class="nav-item"><a href="#privacy" class="nav-link">Privacidad y seguridad</a></li>
+          <li class="nav-item nav-item-qna">
+            <a href="qna.es.html" class="nav-link nav-link-qna">
+              <span>Preguntas frecuentes (Q&A)</span>
+              <span class="badge">QNA</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="alert" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.6;">
+        <strong>⭐ Aviso sobre funciones Premium:</strong> Todas las funciones Premium se ofrecen actualmente de forma gratuita como parte de una versión beta abierta por tiempo limitado.
+      </div>
+      <section id="intro">
+        <h1 class="section-title">Introducción e instalación</h1>
+        <div class="alert alert-warning">
+          <strong>⚠️ Aviso:</strong> Esta guía de ayuda puede incluir funciones que se encuentran actualmente en desarrollo activo.
+        </div>
+        <p>ClickBook es una innovadora herramienta que utiliza la AI local integrada de Chrome (Gemini Nano) para clasificar y gestionar tus marcadores de forma automática e inteligente. Guarda sitios web en un clic sin esfuerzo.</p>
+        
+        <div class="alert alert-info">
+          <strong>💡 Consejo:</strong> <strong>Fija (Pin)</strong> el icono de la extensión en tu barra de herramientas para acceder al instante desde cualquier página.
+        </div>
+      </section>
+
+      <section id="getting-started">
+        <h2 class="section-title">Primeros pasos</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Guardado instantáneo en 1 clic</div>
+            <div class="card-desc">Haz clic en el icono de ClickBook en la página que desees guardar. La AI analiza el contenido y lo ubica en la carpeta más adecuada.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Atajos de teclado</div>
+            <div class="card-desc">Sin mover el ratón: presiona <span class="shortcut">Alt + S</span> para guardar la pestaña activa al instante.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Panel de control integral</div>
+            <div class="card-desc">Accede a un panel completo en tu nueva pestaña con búsqueda en tiempo real, edición por lotes y arrastrar y soltar.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ai-features">
+        <h2 class="section-title">Funciones inteligentes con AI <span class="badge">Core</span></h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Clasificación automática por AI</div>
+            <div class="card-desc">Organiza automáticamente los marcadores en categorías como Tecnología, Diseño o Negocios mediante el análisis semántico del título y el texto.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Reorganización automática por AI</div>
+            <div class="card-desc">¿Quieres estructurar todos tus marcadores acumulados de una sola vez? Haz clic en «Reorganización AI» en la barra lateral.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Limpieza de duplicados con AI</div>
+            <div class="card-desc">Detecta marcadores redundantes mediante comparación inteligente de URLs y títulos para eliminarlos de forma segura.</div>
+          </div>
+
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Clipper de texto destacado con AI <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Selecciona cualquier texto en una web y guárdalo desde el menú contextual. La AI local detecta el idioma y genera resúmenes estructurados.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Smart Clipper y búsqueda de texto completo (FTS) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Limpia el texto del artículo eliminando publicidad y lo guarda de forma 100% local en menos de 10 ms. Busca múltiples términos separados por espacios con respuesta inmediata.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="productivity">
+        <h2 class="section-title">Herramientas de productividad</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Tablero de notas (Memo Board)</div>
+            <div class="card-desc">Añade notas importantes a cada marcador y revísalas todas juntas en el tablero de notas.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Tablero de tareas (Todo Board)</div>
+            <div class="card-desc">Crea listas de tareas vinculadas a tus marcadores para organizar lecturas y proyectos sistemáticamente.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Tablero de etiquetas (Tag Board)</div>
+            <div class="card-desc">Asigna etiquetas libres sin restricción de carpetas y filtra marcadores por tus áreas de interés.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Mapa de marcadores (Bookmark Map)</div>
+            <div class="card-desc">Visualiza las relaciones entre carpetas y marcadores en un mapa gráfico intuitivo.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Mapa mental interactivo <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Organiza ideas dinámicamente con nodos arrastrables cuyas posiciones se guardan de forma permanente y expansión asistida por Gemini Nano.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Cuaderno digital con espiral <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Combina formato enriquecido con Tiptap y un lienzo libre donde imágenes y notas se desplazan con tu texto a 60 fps.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Suspensor inteligente de pestañas <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Pausa pestañas inactivas ahorrando hasta un 90% de memoria RAM. Pestañas con audio o fijadas quedan siempre protegidas.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Modo lectura sin conexión y Zen Reader <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Convierte artículos web en libros digitales sin distracciones ni anuncios, con temas de color, fuentes y exportación a Markdown.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Calendario inteligente integrado <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Sincronizado con tus listas de tareas. Incluye vistas de mes, semana y día, programación arrastrando elementos y festivos oficiales (ES, EE.UU., JP, KR).</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Impresión prémium de calendario <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Diversos formatos de impresión: escritorio horizontal, mini vertical y anual de 12 meses en una hoja A4 con 8 paletas de colores pastel.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="buddy-timer">
+        <h2 class="section-title">ClickBook Buddy y temporizador Pomodoro <span class="badge" style="background-color: #8b5cf6;">Premium</span></h2>
+        <p>Potencia tu concentración con mascotas digitales animadas y efectos visuales cinemáticos al completar tus sesiones.</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">32 encantadores personajes Buddy</div>
+            <div class="card-desc">Elige entre personajes Básicos, Prémium (con borde dorado brillante y corona) y Ocultos para que te acompañen en tus páginas web.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Subida de nivel y Buddies secretos <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Gana experiencia ejecutando acciones o completando sesiones de enfoque para desbloquear progresivamente 10 personajes secretos del nivel 1 al 10.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Temporizador de enfoque Pomodoro</div>
+            <div class="card-desc">Establece minutos de enfoque y registra tu productividad para consolidar hábitos de trabajo profundo y estructurado.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Temas interactivos de finalización <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">
+              Al finalizar el temporizador, disfruta de efectos atmosféricos a pantalla completa con sonido relajante:
+              <ul style="margin-top: 0.5rem; margin-left: 1.25rem; list-style-type: disc; font-size: 0.8rem; text-align: left;">
+                <li><strong>Noche estrellada:</strong> Constelaciones con estrellas brillantes.</li>
+                <li><strong>Bosque Zen:</strong> Hojas cayendo suavemente sobre un bosque verde.</li>
+                <li><strong>Chimenea acogedora:</strong> Fuego crepitante con ascuas flotantes.</li>
+                <li><strong>Lago al atardecer:</strong> Aves sobre un cielo cálido crepuscular.</li>
+                <li><strong>Yoga Zen:</strong> Respiración guiada con aura lunar, luciérnagas y cuenco tibetano.</li>
+                <li><strong>Historias de éxito:</strong> 18 postales ilustradas con movimiento de cámara Ken Burns.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column: span 2; border: 1px solid rgba(99, 102, 241, 0.25); background: rgba(99, 102, 241, 0.02);">
+            <div class="card-title">🎡 Guía rápida del menú circular de 9 herramientas del Buddy</div>
+            <div class="card-desc">
+              Haz clic en tu Buddy para desplegar el menú de accesos directos:
+              <ul style="margin-top: 0.5rem; margin-left: 1.25rem; list-style-type: disc; font-size: 0.85rem; text-align: left;">
+                <li><strong>Traducir (Translate):</strong> Traduce texto seleccionado de la página web al instante.</li>
+                <li><strong>Marcador (Bookmark):</strong> Guarda la página actual en ClickBook con 1 clic.</li>
+                <li><strong>Chat AI (AI Chat):</strong> Abre el panel de Gemini Nano para hacer preguntas y resumir.</li>
+                <li><strong>Temporizador (Timer):</strong> Inicia una sesión de enfoque Pomodoro.</li>
+                <li><strong>Descanso (Rest):</strong> Modo de relajación en pantalla completa con sonidos naturales (doble clic para salir).</li>
+                <li><strong>Notas adhesivas (Memo):</strong> Pega notas rápidas en la página web.</li>
+                <li><strong>Tareas (Todo):</strong> Gestiona tu lista de verificación del día.</li>
+                <li><strong>Ocultar (Hide):</strong> Oculta el Buddy temporalmente en el dominio actual.</li>
+                <li><strong>Ajustes (Settings):</strong> Personaliza tamaño, opacidad, animaciones y reloj.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rankings">
+        <h2 class="section-title">Tendencias y rankings en tiempo real</h2>
+        <p>Mantente al día con las tendencias tecnológicas globales gracias a rankings en vivo integrados.</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">GitHub Trending</div>
+            <div class="card-desc">Descubre y guarda al instante los repositorios de código abierto más populares.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Rankings de Hugging Face</div>
+            <div class="card-desc">Explora las últimas tendencias en modelos de AI y conjuntos de datos.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hacker News y Wikipedia</div>
+            <div class="card-desc">Lee noticias de la industria informática y artículos destacados directamente.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="folders">
+        <h2 class="section-title">Gestión de carpetas y marcadores</h2>
+        <ul>
+          <li><strong>Jerarquía ilimitada:</strong> Crea tantas subcarpetas como necesites para una organización impecable.</li>
+          <li><strong>Arrastrar y soltar:</strong> Reordena carpetas y enlaces con total fluidez.</li>
+          <li><strong>Bloqueo de carpetas:</strong> Protege carpetas seleccionadas para que la AI no altere su contenido.</li>
+          <li><strong>Iconos personalizados:</strong> Asigna emojis o iconos a tus carpetas para identificarlas al instante.</li>
+          <li><strong>Sincronización con grupos de pestañas <span class="badge" style="background-color: #8b5cf6;">Premium</span>:</strong> Guarda grupos de pestañas de Chrome en carpetas de ClickBook y restáuralos en la barra con sus nombres y colores originales.</li>
+        </ul>
+      </section>
+
+      <section id="chrome-sync">
+        <h2 class="section-title">Sincronización con Chrome</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Importar marcadores</div>
+            <div class="card-desc">Importa tus marcadores existentes de Chrome con opción de clasificación automática por AI.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Exportar a Chrome</div>
+            <div class="card-desc">Exporta tu estructura organizada al gestor nativo de Chrome para sincronizar con otros dispositivos.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings">
+        <h2 class="section-title">Ajustes y gestión de datos</h2>
+        <ul>
+          <li><strong>Temas visuales:</strong> Modo Claro, Oscuro o automático según las preferencias del sistema.</li>
+          <li><strong>Copia de seguridad y restauración:</strong> Exporta todos tus datos a un archivo JSON seguro y restáuralos cuando quieras.</li>
+          <li><strong>Restablecimiento de datos:</strong> Borra los datos locales para empezar desde cero si lo deseas.</li>
+        </ul>
+      </section>
+
+      <section id="privacy">
+        <h2 class="section-title" style="color: #10b981;">Privacidad y seguridad</h2>
+        <div class="card" style="border-left: 4px solid #10b981;">
+          <div class="card-title">Funcionamiento 100% local (Local-First)</div>
+          <div class="card-desc">ClickBook no envía tus datos personales a ningún servidor externo. Todo permanece únicamente en tu ordenador.</div>
+        </div>
+        <div class="card" style="border-left: 4px solid #10b981; border: 1px dashed #10b981; margin-top: 1rem;">
+          <div class="card-title">Carpetas seguras y destructor de sesiones <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+          <div class="card-desc">Asigna carpetas para sitios confidenciales o bancarios:
+            <ul style="margin-top: 0.5rem;">
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>Insignia de protección activa:</strong> Al navegar en un sitio seguro se enciende la insignia verde <strong>`SEC`</strong>.</li>
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>Destrucción automática al cerrar:</strong> Al cerrar las pestañas, se eliminan por completo cookies, almacenamiento local, caché e historial de ese dominio.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <section id="support" style="text-align: center; padding: 1.5rem; background-color: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin: 0 auto 2rem auto; max-width: 1200px;">
+    <h2 class="section-title" style="justify-content: center; font-size: 1.4rem; margin-bottom: 0.75rem;">Apoyar el proyecto ClickBook</h2>
+    <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.95rem;">Si ClickBook te ayuda en tu día a día, ¡invítanos a un café para apoyar su desarrollo!</p>
+    <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+      <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+    </a>
+  </section>
+
+  <footer>
+    <p>© 2026 ClickBook AI - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        if (pageYOffset >= section.offsetTop - 150) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) link.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

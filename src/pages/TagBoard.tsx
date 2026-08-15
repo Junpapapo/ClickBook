@@ -215,7 +215,7 @@ export default function TagBoard({
           <div
             role="alert"
             aria-live="assertive"
-            className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl border animate-in fade-in slide-in-from-bottom-5 duration-300 bg-white dark:bg-surface-900 border-gray-100 dark:border-surface-800"
+            className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-figma-md border animate-in fade-in slide-in-from-bottom-5 duration-200 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-slate-200/90 dark:border-slate-800"
           >
             {toastMessage.type === "success" && (
               <CheckCircleIcon size={18} className="text-emerald-500 shrink-0" />
@@ -233,17 +233,17 @@ export default function TagBoard({
         )}
 
         {/* Dashboard Title & Quick Actions */}
-        <div className="mb-6 shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="mb-5 shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
-                <TagIcon size={16} />
+            <h1 className="text-lg font-bold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20">
+                <TagIcon size={15} strokeWidth={2.5} />
               </span>
-              <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 text-transparent bg-clip-text">
+              <span>
                 {t("tagBoardTitle") || "AI Tag Cloud & Management"}
               </span>
             </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-450 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Browse interactive tag analytics, filter dynamically, and resolve duplicate or redundant tags.
             </p>
           </div>
@@ -254,17 +254,17 @@ export default function TagBoard({
               <button
                 disabled={isAutoTagging}
                 onClick={onAutoTag}
-                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shrink-0
+                className={`flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs shrink-0 border
                   ${
                     isAutoTagging
-                      ? "bg-gray-200 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed shadow-none hover:shadow-none hover:translate-y-0"
-                      : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/20 hover:shadow-emerald-500/30"
+                      ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-200 dark:border-slate-700 cursor-not-allowed"
+                      : "bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700"
                   }`}
               >
                 {isAutoTagging ? (
-                  <Loader2Icon size={14} className="animate-spin" />
+                  <Loader2Icon size={13} className="animate-spin" />
                 ) : (
-                  <TagsIcon size={14} />
+                  <TagsIcon size={13} />
                 )}
                 {t("autoTagTooltip") || "Auto Tag"}
               </button>
@@ -273,81 +273,81 @@ export default function TagBoard({
             {/* Merge Tags Button */}
             <button
               onClick={() => setShowMergeModal(true)}
-              className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:scale-95 shrink-0"
+              className="flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs active:scale-98 shrink-0"
             >
-              <MergeIcon size={14} />
+              <MergeIcon size={13} />
               {t("tagMergeBtn") || "Merge Tags"}
             </button>
           </div>
         </div>
 
         {/* Analytics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 shrink-0">
-          <div className="bg-white dark:bg-surface-900/60 backdrop-blur border border-gray-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5 shrink-0">
+          <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-3.5 rounded-xl shadow-xs transition-all group">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 {t("tagStatsUnique") || "Unique Tags"}
               </span>
-              <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-550 dark:text-indigo-400 group-hover:scale-115 transition-transform duration-300">
-                <TagIcon size={14} />
+              <div className="p-1 rounded-md bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                <TagIcon size={13} />
               </div>
             </div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 text-transparent bg-clip-text tracking-tight">
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {metrics.totalUnique}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-900/60 backdrop-blur border border-gray-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-gray-400 dark:text-gray-550 uppercase tracking-wider">
+          <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-3.5 rounded-xl shadow-xs transition-all group">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 {t("tagStatsTagged") || "Tagged Bookmarks"}
               </span>
-              <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-555 dark:text-emerald-450 group-hover:scale-115 transition-transform duration-300">
-                <FilterIcon size={14} />
+              <div className="p-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                <FilterIcon size={13} />
               </div>
             </div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 text-transparent bg-clip-text tracking-tight">
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {metrics.taggedBookmarksCount}{" "}
-              <span className="text-xs text-gray-450 dark:text-gray-500 font-medium">
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">
                 / {bookmarks.length}
               </span>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-900/60 backdrop-blur border border-gray-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+          <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-3.5 rounded-xl shadow-xs transition-all group">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 {t("tagStatsTotal") || "Total Assignments"}
               </span>
-              <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-550 dark:text-purple-400 group-hover:scale-115 transition-transform duration-300">
-                <TagsIcon size={14} />
+              <div className="p-1 rounded-md bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400">
+                <TagsIcon size={13} />
               </div>
             </div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 text-transparent bg-clip-text tracking-tight">
+            <div className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {metrics.totalAssignments}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-surface-900/60 backdrop-blur border border-gray-200/50 dark:border-white/[0.05] p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-gray-400 dark:text-gray-550 uppercase tracking-wider">
+          <div className="bg-white dark:bg-slate-900/80 backdrop-blur-xs border border-slate-200/90 dark:border-slate-800 p-3.5 rounded-xl shadow-xs transition-all group">
+            <div className="flex justify-between items-center mb-1.5">
+              <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                 Top Popular Tag
               </span>
-              <div className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-555 dark:text-rose-455 group-hover:scale-115 transition-transform duration-300">
-                <MergeIcon size={14} />
+              <div className="p-1 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">
+                <MergeIcon size={13} />
               </div>
             </div>
             {metrics.mostPopular ? (
               <div className="flex items-baseline gap-2 truncate">
-                <span className="text-lg font-bold text-gray-800 dark:text-gray-100 truncate">
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">
                   #{metrics.mostPopular.name}
                 </span>
-                <span className="text-xs font-bold text-rose-500 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded-md border border-rose-100 dark:border-rose-900/25 shrink-0">
+                <span className="text-[10px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 px-1.5 py-0.5 rounded border border-rose-200/50 dark:border-rose-900/30 shrink-0">
                   {metrics.mostPopular.count}×
                 </span>
               </div>
             ) : (
-              <div className="text-sm font-medium text-gray-400 dark:text-gray-500 italic">
+              <div className="text-xs font-normal text-slate-400 dark:text-slate-500 italic">
                 None
               </div>
             )}

@@ -397,8 +397,26 @@ export const ja = {
   feedbackRate: "Chrome ウェブストアで評価",
 
 
-  // ── Phase 3 ───────────────────────────────────────────────
+  // ── Phase 3: Onboarding & Welcome Center ─────────────────
   onboardingTitle: "ClickBook へようこそ！",
+  onboardingWelcomeSubtitle: "スマートなブックマーク整理からAIバディ、生産性ツールまでを一つに。",
+  onboardingQuickSetup: "クイック環境設定",
+  onboardingLanguage: "言語",
+  onboardingTheme: "テーマ",
+  onboardingCard1Title: "スマートブックマーク ＆ AI",
+  onboardingCard1Desc: "1クリック保存、Gemini Nano AIによる自動分類、重複クリーン、リーダーモードに対応。",
+  onboardingCard1Action: "ブックマーク探索",
+  onboardingCard2Title: "生産性 ＆ ナレッジハブ",
+  onboardingCard2Desc: "カンバンTODOボード、Tiptapスプリングノート、期限連動カレンダーを提供します。",
+  onboardingCard2Action: "TODOを開く",
+  onboardingCard3Title: "AIバディ ＆ 広告ブロック",
+  onboardingCard3Desc: "ブラウジングを支援するAIバディ、オンデバイスQ&A、Web広告ブロックを搭載。",
+  onboardingCard3Action: "バディを見る",
+  onboardingCard4Title: "トレンド ＆ ビジュアルマップ",
+  onboardingCard4Desc: "GitHub/HFのリアルタイムランキング、2Dブックマークマップ、コマンドパレット(Ctrl+K)。",
+  onboardingCard4Action: "トレンドを見る",
+  onboardingShortcutTip: "Tip: いつでも Ctrl+/ (または右上の?) を押すことで全ショートカットとガイドを確認できます。",
+  onboardingGetStarted: "ClickBook をはじめる",
   onboardingStep1Title: "1クリック保存",
   onboardingStep1Desc: "拡張機能アイコンをクリックするだけで、現在のタブを即座に保存できます。",
   onboardingStep2Title: "AI 自動整理",

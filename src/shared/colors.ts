@@ -14,32 +14,32 @@ export const MEMO_DOT: Record<MemoColor, string> = {
 
 /** メモカードの背景・ボーダー */
 export const MEMO_CARD_BG: Record<MemoColor, string> = {
-  default: "bg-slate-50 dark:bg-slate-900/20 border-slate-200 dark:border-slate-700/40",
-  yellow: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/40",
-  pink:   "bg-pink-50   dark:bg-pink-900/20   border-pink-200   dark:border-pink-700/40",
-  blue:   "bg-sky-50    dark:bg-sky-900/20    border-sky-200    dark:border-sky-700/40",
-  green:  "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700/40",
-  purple: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700/40",
+  default: "bg-white dark:bg-slate-800/95 border-slate-200/90 dark:border-slate-700/70",
+  yellow: "bg-amber-50/50 dark:bg-slate-800/95 border-amber-200/80 dark:border-amber-800/50",
+  pink:   "bg-rose-50/50   dark:bg-slate-800/95   border-rose-200/80   dark:border-rose-800/50",
+  blue:   "bg-sky-50/50    dark:bg-slate-800/95    border-sky-200/80    dark:border-sky-800/50",
+  green:  "bg-emerald-50/50 dark:bg-slate-800/95 border-emerald-200/80 dark:border-emerald-800/50",
+  purple: "bg-purple-50/50 dark:bg-slate-800/95 border-purple-200/80 dark:border-purple-800/50",
 };
 
 /** メモカードのアクセントバー */
 export const MEMO_ACCENT: Record<MemoColor, string> = {
-  default: "bg-slate-300 dark:bg-slate-500/70",
-  yellow: "bg-yellow-300 dark:bg-yellow-500/70",
-  pink:   "bg-pink-300   dark:bg-pink-500/70",
-  blue:   "bg-sky-300    dark:bg-sky-500/70",
-  green:  "bg-emerald-300 dark:bg-emerald-500/70",
-  purple: "bg-purple-300 dark:bg-purple-500/70",
+  default: "bg-slate-400 dark:bg-slate-500",
+  yellow: "bg-amber-400 dark:bg-amber-500",
+  pink:   "bg-rose-400   dark:bg-rose-500",
+  blue:   "bg-sky-400    dark:bg-sky-500",
+  green:  "bg-emerald-400 dark:bg-emerald-500",
+  purple: "bg-purple-400 dark:bg-purple-500",
 };
 
 /** テキストエリア背景 */
 export const MEMO_TEXTAREA_BG: Record<MemoColor, string> = {
-  default: "bg-slate-100 dark:bg-slate-900/40",
-  yellow: "bg-yellow-100 dark:bg-yellow-900/40",
-  pink:   "bg-pink-100   dark:bg-pink-900/40",
-  blue:   "bg-sky-100    dark:bg-sky-900/40",
-  green:  "bg-emerald-100 dark:bg-emerald-900/40",
-  purple: "bg-purple-100 dark:bg-purple-900/40",
+  default: "bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800",
+  yellow: "bg-amber-50/40 dark:bg-slate-900/60 border border-amber-200/40 dark:border-slate-800",
+  pink:   "bg-rose-50/40   dark:bg-slate-900/60 border border-rose-200/40   dark:border-slate-800",
+  blue:   "bg-sky-50/40    dark:bg-slate-900/60 border border-sky-200/40    dark:border-slate-800",
+  green:  "bg-emerald-50/40 dark:bg-slate-900/60 border border-emerald-200/40 dark:border-slate-800",
+  purple: "bg-purple-50/40 dark:bg-slate-900/60 border border-purple-200/40 dark:border-slate-800",
 };
 
 export const ALL_MEMO_COLORS: MemoColor[] = ["yellow", "pink", "blue", "green", "purple"];

@@ -111,19 +111,78 @@ export const DEFAULT_FOLDERS: Folder[] = [
   },
 ];
 
-const KO_NAMES: Record<string, string> = {
-  technology: "테크놀로지",
-  design: "디자인",
-  business: "비즈니스",
-  entertainment: "엔터테인먼트",
-  science: "과학",
-  sports: "스포츠",
-  travel: "여행",
-  other: "기타",
+import type { Lang } from "./i18n";
+
+export const LOCALIZED_DEFAULT_FOLDERS: Partial<Record<Lang, Record<string, string>>> = {
+  ko: {
+    technology: "테크놀로지",
+    design: "디자인",
+    business: "비즈니스",
+    entertainment: "엔터테인먼트",
+    science: "과학",
+    sports: "스포츠",
+    travel: "여행",
+    other: "기타",
+  },
+  ja: {
+    technology: "テクノロジー",
+    design: "デザイン",
+    business: "ビジネス",
+    entertainment: "エンタメ",
+    science: "サイエンス",
+    sports: "スポーツ",
+    travel: "トラベル",
+    other: "その他",
+  },
+  en: {
+    technology: "Technology",
+    design: "Design",
+    business: "Business",
+    entertainment: "Entertainment",
+    science: "Science",
+    sports: "Sports",
+    travel: "Travel",
+    other: "Other",
+  },
+  "zh-TW": {
+    technology: "科技",
+    design: "設計",
+    business: "商業",
+    entertainment: "娛樂",
+    science: "科學",
+    sports: "運動",
+    travel: "旅遊",
+    other: "其他",
+  },
+  de: {
+    technology: "Technologie",
+    design: "Design",
+    business: "Wirtschaft",
+    entertainment: "Unterhaltung",
+    science: "Wissenschaft",
+    sports: "Sport",
+    travel: "Reisen",
+    other: "Sonstiges",
+  },
+  es: {
+    technology: "Tecnología",
+    design: "Diseño",
+    business: "Negocios",
+    entertainment: "Entretenimiento",
+    science: "Ciencia",
+    sports: "Deportes",
+    travel: "Viajes",
+    other: "Otros",
+  },
 };
 
 export function getLocalizedFolderName(folder: Folder, lang: string): string {
-  if (lang === "ko") return folder.nameKo || KO_NAMES[folder.id] || folder.name;
+  const currentLang = lang as Lang;
+  const dict = LOCALIZED_DEFAULT_FOLDERS[currentLang];
+  if (dict && dict[folder.id]) {
+    return dict[folder.id];
+  }
+  if (lang === "ko") return folder.nameKo || folder.name;
   if (lang === "ja") return folder.nameJa || folder.name;
   return folder.name;
 }

@@ -8,12 +8,12 @@ import { useLang } from "@/shared/LanguageContext";
 import type { TFunction, Lang } from "@/shared/i18n";
 
 const TASK_BG_COLORS: Record<string, string> = {
-  default: "bg-white dark:bg-[#2C2C2E]",
-  blue: "bg-blue-50 dark:bg-[#1C2331]",
-  emerald: "bg-emerald-50 dark:bg-[#1D2A24]",
-  amber: "bg-amber-50 dark:bg-[#2D281E]",
-  rose: "bg-rose-50 dark:bg-[#2D1E22]",
-  purple: "bg-purple-50 dark:bg-[#251E2D]",
+  default: "bg-white dark:bg-slate-800/95 border-slate-200/90 dark:border-slate-700/70",
+  blue: "bg-blue-50/50 dark:bg-slate-800/95 border-blue-200/90 dark:border-blue-800/60 border-l-[3px] border-l-blue-500",
+  emerald: "bg-emerald-50/50 dark:bg-slate-800/95 border-emerald-200/90 dark:border-emerald-800/60 border-l-[3px] border-l-emerald-500",
+  amber: "bg-amber-50/50 dark:bg-slate-800/95 border-amber-200/90 dark:border-amber-800/60 border-l-[3px] border-l-amber-500",
+  rose: "bg-rose-50/50 dark:bg-slate-800/95 border-rose-200/90 dark:border-rose-800/60 border-l-[3px] border-l-rose-500",
+  purple: "bg-purple-50/50 dark:bg-slate-800/95 border-purple-200/90 dark:border-purple-800/60 border-l-[3px] border-l-purple-500",
 };
 
 const formatDateByLang = (dateStr?: string, lang: Lang = "en") => {
@@ -39,7 +39,7 @@ const getDueBadgeInfo = (task: TodoTask, lang: Lang, t: TFunction) => {
   if (!task.dueDate) return null;
 
   const todayStr = formatDateStr(new Date());
-  
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = formatDateStr(tomorrow);
@@ -53,27 +53,27 @@ const getDueBadgeInfo = (task: TodoTask, lang: Lang, t: TFunction) => {
   const timeFormatted = task.dueTime ? ` ${task.dueTime}` : "";
   const displayLabel = `${dateFormatted}${timeFormatted}`;
 
-  let bgClass = "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border-gray-200/50 dark:border-surface-700/50";
+  let bgClass = "bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 border-slate-200/70 dark:border-slate-700/60";
   let statusText = "";
 
   if (isCompleted) {
-    bgClass = "bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30";
+    bgClass = "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/40";
     statusText = t("statusCompleted");
   } else if (isOverdue) {
-    bgClass = "bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-900/30 font-semibold animate-pulse";
+    bgClass = "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/50 font-semibold";
     statusText = t("statusOverdue");
   } else if (isDueToday) {
-    bgClass = "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30 font-semibold";
+    bgClass = "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200/70 dark:border-amber-800/40 font-medium";
     statusText = t("statusToday");
   } else if (isDueTomorrow) {
-    bgClass = "bg-amber-50/60 dark:bg-amber-950/10 text-amber-600/90 dark:text-amber-400/90 border-amber-100/50 dark:border-amber-900/20";
+    bgClass = "bg-amber-50/60 dark:bg-amber-950/20 text-amber-600/90 dark:text-amber-400/90 border-amber-200/50 dark:border-amber-800/30";
     statusText = t("statusTomorrow");
   }
 
   return {
     label: displayLabel,
     bgClass,
-    statusText
+    statusText,
   };
 };
 
@@ -86,8 +86,6 @@ interface TodoTaskCardProps {
   onDeleteTask: (taskId: string, colId: string, e?: React.MouseEvent) => void;
   onOpenSpringNote: (taskId: string, e: React.MouseEvent) => void;
 }
-
-
 
 export default React.memo(function TodoCard({
   task,
@@ -104,6 +102,9 @@ export default React.memo(function TodoCard({
   React.useEffect(() => {
     checkSpringNoteExists(task.id).then(setHasNote);
   }, [task.id]);
+
+  const cardColorClass = TASK_BG_COLORS[task.color || "default"] || TASK_BG_COLORS.default;
+
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
       {(provided: DraggableProvided, snapshot) => (
@@ -112,43 +113,67 @@ export default React.memo(function TodoCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onOpenModal(task)}
-          className={`group/task relative ${TASK_BG_COLORS[task.color || "default"]} p-4 rounded-xl shadow-sm mb-3 border border-gray-200/80 dark:border-white/10
-            ${snapshot.isDragging ? "shadow-2xl ring-2 ring-indigo-500/50 rotate-3 z-50 cursor-grabbing scale-105" : "hover:border-indigo-400/80 dark:hover:border-indigo-500/60 hover:shadow-md hover:-translate-y-0.5 cursor-pointer dark:hover:brightness-110"}
-            transition-all duration-200
+          className={`group/task relative ${cardColorClass} p-3 rounded-lg shadow-2xs border
+            ${snapshot.isDragging
+              ? "shadow-lg ring-2 ring-indigo-500/40 rotate-1 scale-[1.01] z-50 cursor-grabbing bg-white dark:bg-slate-800"
+              : "hover:border-indigo-400/70 dark:hover:border-indigo-500/60 hover:shadow-xs cursor-pointer transition-all duration-150"
+            }
           `}
         >
           <div className="flex items-start gap-2 relative">
-            <div className="mt-[5px] shrink-0 text-gray-400 dark:text-gray-500 opacity-30 group-hover/task:opacity-100 transition-opacity cursor-grab">
-              <GripVertical size={14} />
+            {/* Drag Handle Indicator */}
+            <div className="mt-0.5 -ml-1 shrink-0 text-slate-400 dark:text-slate-500 opacity-0 group-hover/task:opacity-60 hover:!opacity-100 transition-opacity cursor-grab">
+              <GripVertical size={13} />
             </div>
 
             <div className="flex-1 min-w-0 pr-4">
-              <div className="flex items-start gap-2.5">
-                <button 
-                  onClick={(e) => onToggleComplete(task.id, e)}
-                  className="mt-[3px] text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors shrink-0"
+              <div className="flex items-start gap-2">
+                {/* Complete Toggle Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleComplete(task.id, e);
+                  }}
+                  className="mt-0.5 text-slate-400 hover:text-indigo-600 dark:text-slate-500 dark:hover:text-indigo-400 transition-colors shrink-0"
                 >
-                  {task.completed ? <CheckCircle2 size={16} className="text-emerald-500 animate-in zoom-in duration-200" /> : <Circle size={16} />}
+                  {task.completed ? (
+                    <CheckCircle2 size={15} className="text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
+                  ) : (
+                    <Circle size={15} />
+                  )}
                 </button>
-                <div className={`text-[15px] font-medium break-words leading-tight flex items-center gap-1.5 ${task.completed ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-800 dark:text-gray-100"}`}>
-                  {task.icon && <FolderIcon iconName={task.icon} size={14} className="shrink-0" />}
+
+                {/* Task Title */}
+                <div
+                  className={`text-xs sm:text-[13px] font-medium leading-snug break-words flex items-center gap-1.5 flex-1 min-w-0 ${
+                    task.completed ? "text-slate-400 dark:text-slate-500 line-through font-normal" : "text-slate-800 dark:text-slate-100"
+                  }`}
+                >
+                  {task.icon && <FolderIcon iconName={task.icon} size={13} className="shrink-0" />}
                   <span>{task.content}</span>
                 </div>
               </div>
 
-              {(task.description || (task.checklist && task.checklist.length > 0) || (task.progress !== undefined && task.progress > 0) || (task.tags && task.tags.length > 0) || task.dueDate) && (
-                <div className="mt-3 flex flex-col gap-2.5">
-                  {(task.description || (task.checklist && task.checklist.length > 0) || task.dueDate) && (
-                    <div className="flex flex-wrap items-center gap-2">
+              {/* Badges & Meta Info */}
+              {(task.description ||
+                (task.checklist && task.checklist.length > 0) ||
+                (task.progress !== undefined && task.progress > 0) ||
+                (task.tags && task.tags.length > 0) ||
+                task.dueDate) && (
+                <div className="mt-2.5 flex flex-col gap-2">
+                  {(task.description || (task.checklist && task.checklist.length > 0) || task.dueDate || hasNote) && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {/* Due Date Badge */}
                       {task.dueDate && (() => {
                         const badge = getDueBadgeInfo(task, lang, t);
                         if (!badge) return null;
                         return (
-                          <div className={`flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-lg border ${badge.bgClass}`}>
-                            <Calendar size={12} />
-                            <span>{badge.label}</span>
+                          <div className={`h-5 flex items-center gap-1 text-[10.5px] px-1.5 rounded-md border ${badge.bgClass}`}>
+                            <Calendar size={11} className="shrink-0" />
+                            <span className="truncate max-w-[120px]">{badge.label}</span>
                             {badge.statusText && (
-                              <span className="text-[9px] font-bold uppercase tracking-wider bg-black/5 dark:bg-white/10 px-1 rounded">
+                              <span className="text-[9px] font-semibold uppercase tracking-wider bg-black/5 dark:bg-white/10 px-1 rounded">
                                 {badge.statusText}
                               </span>
                             )}
@@ -156,72 +181,99 @@ export default React.memo(function TodoCard({
                         );
                       })()}
 
+                      {/* Description Icon */}
                       {task.description && (
-                        <div className="flex items-center text-gray-400 dark:text-gray-500 py-0.5" title="Has description">
-                          <AlignLeft size={14} />
-                        </div>
-                      )}
-                      
-                      {task.checklist && task.checklist.length > 0 && (
-                        <div className={`flex items-center gap-1.5 text-[11px] font-bold ${task.checklist.every(c => c.completed) ? "bg-emerald-100/50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-lg border border-emerald-250/20 dark:border-emerald-800/20" : "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-lg border border-gray-200/50 dark:border-surface-700/50"}`}>
-                          <CheckSquare size={12} />
-                          <span>{task.checklist.filter(c => c.completed).length}/{task.checklist.length}</span>
+                        <div className="h-5 flex items-center text-slate-400 dark:text-slate-500 px-0.5" title="Has description">
+                          <AlignLeft size={12} />
                         </div>
                       )}
 
+                      {/* Checklist Badge */}
+                      {task.checklist && task.checklist.length > 0 && (
+                        <div
+                          className={`h-5 flex items-center gap-1 text-[10.5px] font-medium px-1.5 rounded-md border ${
+                            task.checklist.every((c) => c.completed)
+                              ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/40"
+                              : "bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-400 border-slate-200/60 dark:border-slate-700/60"
+                          }`}
+                        >
+                          <CheckSquare size={11} className="shrink-0" />
+                          <span>
+                            {task.checklist.filter((c) => c.completed).length}/{task.checklist.length}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Spring Note Badge */}
                       {hasNote && (
-                        <div className="flex items-center gap-1 text-[11px] font-bold bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-100/30 dark:border-indigo-900/30" title={t("springNoteWritten")}>
-                          <BookOpen size={12} />
+                        <div
+                          className="h-5 flex items-center gap-1 text-[10.5px] font-medium bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-1.5 rounded-md border border-indigo-200/60 dark:border-indigo-800/40"
+                          title={t("springNoteWritten")}
+                        >
+                          <BookOpen size={11} className="shrink-0" />
                           <span>Note</span>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {task.progress !== undefined && task.progress > 0 && (
-                    <div className="mt-0.5">
-                      <div className="flex justify-between items-center mb-1 text-[9px] font-bold tracking-wider text-gray-400 dark:text-gray-500">
-                        <span>PROGRESS</span>
-                        <span className="text-indigo-600 dark:text-indigo-400">{task.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200/50 dark:bg-surface-800 rounded-full h-1.5 overflow-hidden border border-gray-200/20 dark:border-white/5">
-                        <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full transition-all duration-300" style={{ width: `${task.progress}%` }} />
-                      </div>
-                    </div>
-                  )}
-
+                  {/* Tags */}
                   {task.tags && task.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-0.5">
+                    <div className="flex flex-wrap gap-1">
                       {task.tags.map((tag, i) => (
-                        <span key={i} className="px-2 py-0.5 bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider rounded-md border border-indigo-100/30 dark:border-indigo-900/30">
+                        <span
+                          key={i}
+                          className="h-4.5 px-1.5 bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 text-[10px] font-medium uppercase tracking-wider rounded border border-slate-200/60 dark:border-slate-700/60 flex items-center"
+                        >
                           {tag}
                         </span>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Progress Bar */}
+                  {task.progress !== undefined && task.progress > 0 && (
+                    <div className="pt-1">
+                      <div className="flex justify-between items-center mb-1 text-[9.5px] font-semibold tracking-wider text-slate-400 dark:text-slate-500">
+                        <span>PROGRESS</span>
+                        <span className="text-indigo-600 dark:text-indigo-400">{task.progress}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-700/60 rounded-full h-1 overflow-hidden border border-slate-200/40 dark:border-slate-700/40">
+                        <div
+                          className="bg-indigo-600 dark:bg-indigo-500 h-full rounded-full transition-all duration-300"
+                          style={{ width: `${task.progress}%` }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
               )}
             </div>
           </div>
-          
-          <div className="absolute top-2.5 right-2.5 opacity-0 group-hover/task:opacity-100 transition-opacity flex gap-1">
+
+          {/* Hover Quick Actions */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover/task:opacity-100 transition-opacity duration-150 flex items-center gap-0.5">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenSpringNote(task.id, e);
               }}
-              className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-indigo-500 hover:text-indigo-600 hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-colors"
+              className="p-1 bg-white/95 dark:bg-slate-700/95 backdrop-blur-xs border border-slate-200 dark:border-slate-600 rounded-md shadow-2xs text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
               title={t("springNoteTooltipShort")}
             >
-              <BookOpen size={13} />
+              <BookOpen size={12} />
             </button>
             <button
-              onClick={(e) => onDeleteTask(task.id, columnId, e)}
-              className="p-1.5 bg-white/90 dark:bg-[#3A3A3C]/90 backdrop-blur-sm shadow-sm border border-gray-200 dark:border-white/10 rounded-lg text-gray-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-900/50 transition-colors"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteTask(task.id, columnId, e);
+              }}
+              className="p-1 bg-white/95 dark:bg-slate-700/95 backdrop-blur-xs border border-slate-200 dark:border-slate-600 rounded-md shadow-2xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
               title={t("deleteTooltip")}
             >
-              <Trash2 size={13} />
+              <Trash2 size={12} />
             </button>
           </div>
         </div>

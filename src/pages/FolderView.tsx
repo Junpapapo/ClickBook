@@ -275,7 +275,7 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
   const isEmpty = directBookmarks.length === 0 && childFolders.length === 0;
 
   return (
-    <div className="bg-white dark:bg-surface-800 rounded-2xl border border-gray-100 dark:border-surface-700 shadow-sm dark:shadow-none p-6 pb-8">
+    <div className="bg-white/95 dark:bg-slate-900/80 backdrop-blur-xs rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-xs p-4 sm:p-5 pb-8">
       {DialogEl}
       {showAddModal && (
         <EditModal
@@ -298,23 +298,23 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
         />
       )}
       {/* ヘッダー */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-2.5 mb-4 flex-wrap select-none">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 text-gray-400 hover:text-indigo-400 transition-colors text-sm"
+          className="flex items-center gap-1 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors text-xs font-semibold"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={16} />
           <span>{t("back")}</span>
         </button>
-        <span className="text-gray-400 dark:text-gray-600">/</span>
+        <span className="text-slate-300 dark:text-slate-700">/</span>
         <div className="relative flex items-center">
           <button
             onMouseDown={(e) => e.stopPropagation()}
             onClick={() => setShowIconPicker(!showIconPicker)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-surface-700 rounded transition-colors"
+            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             title="Change Icon"
           >
-            <FolderIcon iconName={folder.icon || "📁"} size={22} className="text-[22px] text-gray-700 dark:text-gray-200" />
+            <FolderIcon iconName={folder.icon || "📁"} size={20} className="text-[20px] text-slate-700 dark:text-slate-200" />
           </button>
           {showIconPicker && (
             <IconPicker onSelect={handleIconChange} onClose={() => setShowIconPicker(false)} className="left-0 mt-2" />
@@ -331,19 +331,19 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
                 if (e.key === "Escape") setEditingName(false);
               }}
               onBlur={commitEditName}
-              className="text-xl font-bold bg-transparent border-b-2 border-indigo-500 text-gray-800 dark:text-gray-100 outline-none min-w-0 w-48"
+              className="text-lg font-bold bg-transparent border-b-2 border-indigo-500 text-slate-800 dark:text-slate-100 outline-none min-w-0 w-48"
             />
             <button onMouseDown={e => { e.preventDefault(); commitEditName(); }} className="text-emerald-500 hover:text-emerald-400">
-              <Check size={16} />
+              <Check size={15} />
             </button>
-            <button onMouseDown={e => { e.preventDefault(); setEditingName(false); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-              <X size={16} />
+            <button onMouseDown={e => { e.preventDefault(); setEditingName(false); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+              <X size={15} />
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
             <h2
-              className="text-xl font-bold text-gray-800 dark:text-gray-100 cursor-text select-none"
+              className="text-lg font-bold text-slate-800 dark:text-slate-100 cursor-text select-none tracking-tight"
               onDoubleClick={startEditName}
               title={t("doubleClickEditName")}
             >
@@ -351,30 +351,30 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
             </h2>
             {folder?.secure && (
               <div 
-                className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/30 shadow-sm animate-pulse cursor-help"
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 shadow-2xs cursor-help"
                 title={t("secureFolderTooltip")}
               >
-                <Shield size={11} className="fill-emerald-500/15" />
+                <Shield size={10} className="fill-emerald-500/15" />
                 <span>{t("secureFolder")}</span>
               </div>
             )}
           </div>
         )}
-        <span className="text-sm text-gray-500">{t("itemCount", { n: directBookmarks.length })}</span>
+        <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">{t("itemCount", { n: directBookmarks.length })}</span>
 
         {/* 右側コントロール群 */}
         <div className="ml-auto flex items-center gap-2">
           {/* ソートコントロール */}
           {bookmarks.length > 1 && (
-            <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-surface-700 rounded-lg p-0.5">
+            <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200/60 dark:border-slate-700/60">
               {(["savedAt", "title", "visitCount"] as const).map((key) => (
                 <button
                   key={key}
                   onClick={() => setSortKey(key)}
-                  className={`text-[10px] px-2 py-1 rounded-md font-medium transition-colors ${
+                  className={`text-[10.5px] px-2 py-1 rounded font-medium transition-all ${
                     sortKey === key
-                      ? "bg-white dark:bg-surface-600 text-indigo-600 dark:text-indigo-300 shadow-sm"
-                      : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                      ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-semibold"
+                      : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                   }`}
                 >
                   {key === "savedAt" ? t("sortDate") : key === "title" ? t("sortName") : t("sortVisits")}
@@ -387,24 +387,24 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
           <button
             onClick={() => chrome.runtime.sendMessage({ type: "OPEN_FOLDER_AS_TAB_GROUP", folderId })}
             title={t("openAsTabGroup")}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border bg-white text-gray-700 border-gray-200 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-600 dark:bg-surface-800 dark:text-gray-300 dark:border-surface-700 dark:hover:bg-indigo-500/10 dark:hover:border-indigo-500/30 dark:hover:text-indigo-400 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/70 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all shadow-2xs cursor-pointer"
           >
-            <Layers size={14} className="text-indigo-500" />
+            <Layers size={13} className="text-indigo-500" />
             <span>{t("openAsTabGroup")}</span>
           </button>
 
-          {/* [개인정보 보호 극대화] 보안 세션 파쇄기(Secure Session Shredder) 활성화 버튼: 브라우징 흔적 및 세션 실시간 완전 파쇄 */}
+          {/* 보안 세션 파쇄기 활성화 버튼 */}
           {folderId !== DEFAULT_FOLDER_ID && (
             <button
               onClick={() => chrome.runtime.sendMessage({ type: "TOGGLE_FOLDER_SECURE", id: folderId }).then(() => onRefresh())}
               title={folder?.secure ? t("secureToggleOff") : t("secureToggleOn")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-sm ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all shadow-2xs cursor-pointer ${
                 folder?.secure
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30 hover:bg-emerald-100/50"
-                  : "bg-white text-gray-700 border-gray-200 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-600 dark:bg-surface-800 dark:text-gray-300 dark:border-surface-700 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 dark:hover:text-emerald-400"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50 hover:bg-emerald-100/50"
+                  : "bg-white text-slate-700 border-slate-200/90 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-600 dark:bg-slate-800/90 dark:text-slate-300 dark:border-slate-700/70 dark:hover:bg-emerald-950/20 dark:hover:border-emerald-800/40 dark:hover:text-emerald-400"
               }`}
             >
-              <Shield size={14} className={folder?.secure ? "text-emerald-500 fill-emerald-500/15" : "text-emerald-500"} />
+              <Shield size={13} className={folder?.secure ? "text-emerald-500 fill-emerald-500/15" : "text-emerald-500"} />
               <span>{t("secureFolder")}</span>
             </button>
           )}
@@ -415,15 +415,15 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
               onClick={handleAIOrganizeOther}
               disabled={isOrganizingOther || directBookmarks.length === 0}
               title={t("aiOrganizeTooltip")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border shadow-2xs cursor-pointer ${
                 isOrganizingOther
-                  ? "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30"
+                  ? "bg-purple-50 text-purple-600 border-purple-200 dark:bg-purple-950/30 dark:text-purple-400 dark:border-purple-800/50"
                   : directBookmarks.length === 0
-                  ? "opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200 dark:bg-surface-800 dark:text-gray-500 dark:border-surface-700"
-                  : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-surface-800 dark:text-gray-300 dark:border-surface-700 dark:hover:bg-surface-700"
+                  ? "opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200 dark:bg-slate-800 dark:text-slate-500 dark:border-slate-700"
+                  : "bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:border-slate-300 dark:bg-slate-800/90 dark:text-slate-300 dark:border-slate-700/70 dark:hover:bg-slate-800"
               }`}
             >
-              <Sparkles size={14} className={isOrganizingOther ? "animate-pulse" : ""} />
+              <Sparkles size={13} className={isOrganizingOther ? "animate-pulse text-indigo-500" : "text-indigo-500"} />
               {isOrganizingOther ? t("aiOrganizing") : t("aiOrganize")}
             </button>
           )}
@@ -434,13 +434,13 @@ export default function FolderView({ bookmarks, folders, folderId, memos, onBack
               setShowSubFolderInput(v => !v);
             }}
             title={t("createSubfolderTooltip")}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1.5 rounded-lg transition-all border shadow-2xs cursor-pointer ${
               showSubFolderInput
-                ? "text-indigo-500 bg-indigo-50 dark:bg-indigo-500/15"
-                : "text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-surface-700"
+                ? "text-indigo-600 bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-400"
+                : "text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800/90 border-slate-200/90 dark:border-slate-700/70 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300"
             }`}
           >
-            <FolderPlus size={17} />
+            <FolderPlus size={15} />
           </button>
         </div>
       </div>

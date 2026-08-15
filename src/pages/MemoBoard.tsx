@@ -437,30 +437,30 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center gap-3 mb-2 flex-wrap select-none">
-        <h1 className="text-xl font-bold flex items-center gap-2 tracking-tight">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30">
-            <StickyNote size={16} strokeWidth={3} />
+    <div className="flex flex-col gap-4 p-4 sm:p-5 pb-8">
+      <div className="flex items-center gap-2.5 mb-1 flex-wrap select-none">
+        <h1 className="text-lg font-bold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500 text-white shadow-sm shadow-amber-500/20">
+            <StickyNote size={15} strokeWidth={2.5} />
           </span>
-          <span className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 text-transparent bg-clip-text font-black">
-            MEMO
+          <span>
+            {t("memo") || "MEMO"}
           </span>
         </h1>
-        <span className="text-sm font-bold bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-400 px-2.5 py-0.5 rounded-full shadow-sm ml-1">
+        <span className="text-xs font-semibold bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">
           {memoList.length}
         </span>
 
         {/* 반응형 프리셋 카드 크기 (S / M / L) */}
-        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-surface-800 rounded-lg p-0.5 ml-2 border border-gray-200/80 dark:border-surface-700">
+        <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 ml-1 border border-slate-200/60 dark:border-slate-700/60">
           {(["s", "m", "l"] as CardSize[]).map((s) => (
             <button
               key={s}
               onClick={() => handleSizeChange(s)}
-              className={`text-[10px] font-bold w-6 h-6 rounded-md transition-all cursor-pointer ${
+              className={`text-[10px] font-semibold w-6 h-5 rounded transition-all cursor-pointer ${
                 cardSize === s && customCols === "auto"
-                  ? "bg-white dark:bg-surface-700 text-indigo-600 dark:text-indigo-300 shadow-sm"
-                  : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                  : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
               }`}
               title={`Preset Size ${SIZE_LABEL[s]}`}
             >
@@ -470,18 +470,18 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
         </div>
 
         {/* 한 열당 메모 개수 지정 옵션 피커 (2 ~ 8개 / Auto) */}
-        <div className="flex items-center gap-1 bg-gray-100 dark:bg-surface-800 rounded-lg p-0.5 text-[11px] border border-gray-200/80 dark:border-surface-700">
-          <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-1.5 select-none">
-            {isKo ? "열 개수" : "Cols"}:
+        <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 text-[11px] border border-slate-200/60 dark:border-slate-700/60">
+          <span className="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500 px-1.5 select-none">
+            {isKo ? "열" : "Cols"}:
           </span>
           {(["auto", 2, 3, 4, 5, 6, 7, 8] as ColumnOption[]).map((c) => (
             <button
               key={c}
               onClick={() => handleColsChange(c)}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
                 customCols === c
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200/60 dark:hover:bg-surface-700"
+                  ? "bg-indigo-600 text-white shadow-2xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700"
               }`}
               title={c === "auto" ? "Responsive Auto Layout" : `${c} Columns per Row`}
             >
@@ -492,9 +492,9 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
 
         <button
           onClick={() => setShowNew(true)}
-          className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm cursor-pointer"
+          className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-all shadow-xs active:scale-98 cursor-pointer"
         >
-          <Plus size={14} />
+          <Plus size={13} strokeWidth={2.5} />
           {t("addMemo")}
         </button>
       </div>

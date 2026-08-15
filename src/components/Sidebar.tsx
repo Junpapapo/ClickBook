@@ -637,10 +637,10 @@ export default function Sidebar({
                     transition-all duration-200 overflow-hidden
                     ${
                       isOrganizing
-                        ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                        ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                         : aiAvailable
-                        ? "bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-500 dark:to-cyan-600 text-white hover:from-teal-500 hover:to-cyan-500 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 cursor-pointer"
-                        : "bg-gray-100 dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-700 cursor-pointer"
+                        ? "bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-500 dark:to-cyan-600 text-white hover:from-teal-500 hover:to-cyan-500 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 cursor-pointer"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
                     }
                   `}
                 >
@@ -651,7 +651,7 @@ export default function Sidebar({
                       className={`text-[9px] rounded px-1.5 py-0.5 shrink-0 font-semibold tracking-wide ${
                         aiAvailable
                           ? "bg-white/25 text-white"
-                          : "bg-gray-200 dark:bg-surface-700 text-gray-400 dark:text-gray-500"
+                          : "bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       {aiAvailable ? "AI" : "Rule"}
@@ -667,7 +667,7 @@ export default function Sidebar({
                   className={`relative group flex items-center justify-center gap-1.5 px-2 py-2 text-xs rounded-lg transition-all duration-150
                     ${
                       activePage === "tagboard"
-                        ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-semibold"
+                        ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20 font-semibold"
                         : "bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/25"
                     }`}
                 >
@@ -680,7 +680,7 @@ export default function Sidebar({
                   className={`relative group flex items-center justify-center gap-1.5 px-2 py-2 text-xs rounded-lg transition-all duration-150
                     ${
                       activePage === "map"
-                        ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 font-semibold"
+                        ? "bg-blue-500 text-white shadow-md shadow-blue-500/20 font-semibold"
                         : "bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 dark:hover:bg-blue-500/25 font-medium"
                     }`}
                 >
@@ -695,8 +695,8 @@ export default function Sidebar({
         {/* 📅 TASK Section */}
         <div
           onClick={!isCollapsed ? handleToggleTask : undefined}
-          className={`px-3 pt-3 pb-1.5 border-t border-gray-200/50 dark:border-surface-800/50 mt-1 flex justify-center shrink-0
-            ${!isCollapsed ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-surface-800/30 select-none" : ""}`}
+          className={`px-3 pt-3 pb-1.5 border-t border-slate-200/60 dark:border-slate-800/60 mt-1 flex justify-center shrink-0
+            ${!isCollapsed ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 select-none" : ""}`}
         >
           {!isCollapsed && (
             <div className="flex items-center justify-between w-full text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold">

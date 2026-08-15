@@ -397,8 +397,26 @@ export const ko = {
   feedbackRate: "Chrome 웹스토어 평점 남기기",
 
 
-  // ── Phase 3 ───────────────────────────────────────────────
+  // ── Phase 3: Onboarding & Welcome Center ─────────────────
   onboardingTitle: "ClickBook에 오신 것을 환영합니다!",
+  onboardingWelcomeSubtitle: "스마트한 북마크 정리부터 AI 버디, 생산성 도구까지 한곳에서 관리하세요.",
+  onboardingQuickSetup: "기본 환경 설정",
+  onboardingLanguage: "언어",
+  onboardingTheme: "테마",
+  onboardingCard1Title: "스마트 북마크 & AI",
+  onboardingCard1Desc: "1클릭 캡처, Gemini Nano AI 자동 분류, 중복 청소 및 클린 리더 뷰를 지원합니다.",
+  onboardingCard1Action: "북마크 탐색",
+  onboardingCard2Title: "생산성 & 지식 허브",
+  onboardingCard2Desc: "칸반 TODO 보드, Tiptap 기반 스프링 노트 다이어리, 기한 연동 캘린더를 제공합니다.",
+  onboardingCard2Action: "TODO 보드 열기",
+  onboardingCard3Title: "AI 버디 & 애드블록",
+  onboardingCard3Desc: "웹 브라우징 도우미 버디, 온디바이스 실시간 질의응답 및 웹 광고 차단을 지원합니다.",
+  onboardingCard3Action: "버디 둘러보기",
+  onboardingCard4Title: "트렌드 & 비주얼 맵",
+  onboardingCard4Desc: "GitHub/HF 실시간 테크 랭킹, 2D 인터랙티브 북마크 맵, 커맨드 팔레트(Ctrl+K)를 지원합니다.",
+  onboardingCard4Action: "트렌드 랭킹",
+  onboardingShortcutTip: "Tip: 언제든지 Ctrl+/ (또는 우측 상단 ?)를 눌러 전체 단축키와 가이드를 확인할 수 있습니다.",
+  onboardingGetStarted: "ClickBook 시작하기",
   onboardingStep1Title: "1클릭 저장",
   onboardingStep1Desc: "확장 프로그램 아이콘을 클릭하여 현재 탭을 즉시 저장합니다.",
   onboardingStep2Title: "AI 자동 정리",

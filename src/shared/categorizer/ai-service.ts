@@ -1,4 +1,5 @@
 import type { Bookmark, Folder } from "../types";
+import type { Lang } from "../i18n";
 import { CATEGORY_IDS, isValidCategoryId } from "./rules";
 import type { SimilarTagGroup, FindSimilarTagsResult } from "./rules";
 import { ruleBasedTagGroups } from "./rules";
@@ -452,7 +453,7 @@ export async function generateMemoDraft(
   title: string,
   summary: string | undefined,
   tags: string[] | undefined,
-  lang: "en" | "ja" | "ko"
+  lang: Lang
 ): Promise<{ draft: string; aiUsed: boolean }> {
   let detectedLang = lang;
   const textToAnalyze = `${title || ""} ${summary || ""}`;
@@ -474,6 +475,9 @@ export async function generateMemoDraft(
     const langInstruction =
       detectedLang === "ko" ? "반드시 한국어로 작성하세요." :
       detectedLang === "ja" ? "必ず日本語で記述してください。" :
+      detectedLang === "zh-TW" ? "請務必使用繁體中文撰寫。" :
+      detectedLang === "de" ? "Bitte schreiben Sie auf Deutsch." :
+      detectedLang === "es" ? "Por favor, escribe en español." :
       "Write in English.";
 
     const context = [
@@ -514,7 +518,7 @@ Memo draft:`;
 
 export async function refineMemoDraft(
   originalMemo: string,
-  lang: "en" | "ja" | "ko"
+  lang: Lang
 ): Promise<{ draft: string; aiUsed: boolean }> {
   try {
     const aiAvailable = await isAIAvailable();
@@ -557,7 +561,7 @@ ${originalMemo}
       prompt = `以下のメモ内容を改善し、構造化して整理してください。
 
 ルール：
-- 必ず日本語で記述してください。다른 언어(영어 등)를 절대 사용하지 마세요.
+- 必ず日本語で記述してください。他の言語（英語など）は絶対に使用しないでください。
 - 内容を明確かつ非常に簡潔な箇条書き（• ）で整理してください。
 - メモの意図を分析し、トピックに関連する短い専門家の意見、戦略的なアイデア、または実用的なコンテキストを追加してください。
 - 不要に冗長にしないでください。専門的な洞察は最大1〜2文の短く効果的な文章にしてください。
@@ -565,12 +569,67 @@ ${originalMemo}
 - 会話的な前置き（例：「以下は整理されたメモです」、「理解しました」など）は絶対に出力しないでください。
 - 改善されたメモのテキストのみを出力し、余計な解説は除外してください。
 
-元のメモ 내용:
+元のメモ 内容:
 """
 ${originalMemo}
 """
 
 改善されたメモ:`;
+    } else if (detectedLang === "zh-TW") {
+      systemPrompt = "您是一位具有敏銳洞察力且言簡意賅的專業筆記助理。請使用項目符號 (•) 組織備忘錄，並以專業觀點、創意靈感與實用脈絡進行補充。";
+      prompt = `請改善並結構化整理以下備忘錄內容。
+
+規則：
+- 請務必使用繁體中文（台灣/香港習慣用語）撰寫。
+- 請將內容整理為清晰且極度精簡的項目符號 (• ) 清單。
+- 分析筆記的意圖，補充與主題相關的簡短專家觀點、策略性點子或實用脈絡。
+- 切勿冗長囉唆。專家洞察請限制在最多 1~2 句精闢有力的短句。
+- 整體輸出請維持在 3~6 個項目符號以內。
+- 嚴禁輸出任何對話式開場白（例如：「好的，為您整理如下」）。
+- 僅輸出改善後的備忘錄內容，不要有任何多餘解釋。
+
+原始備忘錄內容：
+"""
+${originalMemo}
+"""
+
+改善後的備忘錄：`;
+    } else if (detectedLang === "de") {
+      systemPrompt = "Sie sind ein scharfsinniger und äußerst prägnanter Experte für Notizen. Organisieren Sie Memos mit kurzen, aussagekräftigen Aufzählungspunkten (•) und ergänzen Sie sie mit professionellen Einblicken und nützlichem Kontext.";
+      prompt = `Bitte verbessern und strukturieren Sie den folgenden Notizinhalt.
+
+Regeln:
+- Schreiben Sie auf Deutsch.
+- In klare, prägnante Aufzählungspunkte (• ) gliedern.
+- Ergänzen Sie 1–2 kurze, treffende Experten-Einblicke oder praktische Tipps.
+- Insgesamt 3–6 Aufzählungspunkte.
+- Keine Höflichkeitsfloskeln oder Einleitungen.
+- Nur den verbesserten Notiztext ausgeben.
+
+Original-Notiz:
+"""
+${originalMemo}
+"""
+
+Verbesserte Notiz:`;
+    } else if (detectedLang === "es") {
+      systemPrompt = "Eres un asistente experto en tomar notas, perspicaz y extremadamente conciso. Organiza las notas con viñetas (•) breves e impactantes y compleméntalas con opiniones profesionales e información útil.";
+      prompt = `Por favor, mejora y estructura el siguiente contenido de la nota.
+
+Reglas:
+- Escribe en español.
+- Organiza en viñetas (• ) claras y muy concisas.
+- Añade 1–2 frases breves con ideas estratégicas o consejos prácticos.
+- Mantén la salida total en 3–6 viñetas.
+- No uses fórmulas de cortesía ni introducciones conversacionales.
+- Salida ÚNICAMENTE el texto de la nota mejorada.
+
+Nota original:
+"""
+${originalMemo}
+"""
+
+Nota mejorada:`;
     } else {
       prompt = `Please enhance and organize the following memo.
 
@@ -607,7 +666,7 @@ function buildFallbackDraft(
   url: string,
   summary: string | undefined,
   tags: string[] | undefined,
-  lang: "en" | "ja" | "ko"
+  lang: Lang
 ): string {
   const lines: string[] = [];
   if (summary) {
@@ -618,6 +677,9 @@ function buildFallbackDraft(
       const domainLine =
         lang === "ko" ? `• ${domain} 에서 저장한 북마크입니다.` :
         lang === "ja" ? `• ${domain} からブックマークしたページです。` :
+        lang === "zh-TW" ? `• 從 ${domain} 儲存的書籤。` :
+        lang === "de" ? `• Lesezeichen von ${domain} gespeichert.` :
+        lang === "es" ? `• Marcador guardado desde ${domain}.` :
         `• Bookmarked from ${domain}.`;
       lines.push(domainLine);
     } catch {
@@ -628,12 +690,18 @@ function buildFallbackDraft(
     const tagLine =
       lang === "ko" ? `• 관련 주제: ${tags.join(", ")}` :
       lang === "ja" ? `• 関連トピック: ${tags.join(", ")}` :
+      lang === "zh-TW" ? `• 相關主題: ${tags.join(", ")}` :
+      lang === "de" ? `• Verwandte Themen: ${tags.join(", ")}` :
+      lang === "es" ? `• Temas relacionados: ${tags.join(", ")}` :
       `• Topics: ${tags.join(", ")}`;
     lines.push(tagLine);
   }
   const todoLine =
     lang === "ko" ? "📌 TODO: 나중에 다시 확인할 것" :
     lang === "ja" ? "📌 TODO: あとで確認する" :
+    lang === "zh-TW" ? "📌 TODO: 稍後再次確認" :
+    lang === "de" ? "📌 TODO: Später noch einmal prüfen" :
+    lang === "es" ? "📌 TODO: Revisar esto más tarde" :
     "📌 TODO: Review this later";
   lines.push(todoLine);
   return lines.join("\n");
@@ -654,6 +722,9 @@ export async function findSimilarTagGroups(
         const langHint =
           lang === "ko" ? "유사성 이유(reason)는 반드시 한국어로 작성하세요." :
           lang === "ja" ? "類似の理由(reason)は必ず日本語で記述してください。" :
+          lang === "zh-TW" ? "相似原因 (reason) 請務必使用繁體中文撰寫。" :
+          lang === "de" ? "Der Grund für die Ähnlichkeit (reason) muss auf Deutsch verfasst werden." :
+          lang === "es" ? "El motivo de la similitud (reason) debe redactarse en español." :
           "Write the similarity reason in English.";
 
         const prompt = `System: You are a tag consolidation assistant.

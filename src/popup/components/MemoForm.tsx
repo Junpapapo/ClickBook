@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { StickyNote, Loader2, Sparkles, X, Check } from "lucide-react";
 import type { MemoColor, MessageResponse } from "@/shared/types";
+import type { Lang } from "@/shared/i18n";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { generateMemoDraft } from "@/shared/categorizer";
 
@@ -11,7 +12,7 @@ interface MemoFormProps {
   tabTitle: string;
   tabSummary?: string;
   tabTags?: string[];
-  lang: string;
+  lang: Lang;
   t: any;
   onClose: () => void;
 }
@@ -68,7 +69,7 @@ export default function MemoForm({
         tabTitle,
         tabSummary,
         tabTags,
-        lang as "en" | "ja" | "ko"
+        lang
       );
       setDraft(result.draft);
       setDraftAiUsed(result.aiUsed);

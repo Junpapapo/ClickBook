@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClickBook AI 使用說明 - 智慧書籤與高效率工作管理</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Layout */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(8px);
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .qna-btn {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      background-color: #6366f115;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .qna-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      text-decoration: none;
+    }
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
+    }
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+      min-width: 145px;
+      display: none;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: block;
+      animation: fadeInDropdown 0.15s ease-out;
+    }
+
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-option.active {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-item-qna {
+      margin-top: 1.5rem;
+      border-top: 1px dashed var(--border);
+      padding-top: 1rem;
+    }
+
+    .nav-link-qna {
+      color: var(--primary) !important;
+      font-weight: 700 !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-link-qna:hover {
+      background-color: #6366f115 !important;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 5rem;
+      height: calc(100vh - 7rem);
+      overflow-y: auto;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: var(--border);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-link.active {
+      background-color: #6366f115;
+      color: var(--primary);
+    }
+
+    /* Content */
+    .content section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 6rem;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .card-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .shortcut {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background-color: var(--border);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin: 0 0.2rem;
+      color: var(--text);
+    }
+
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .alert-info {
+      background-color: #6366f110;
+      border: 1px solid #6366f130;
+      color: var(--text);
+    }
+
+    .alert-warning {
+      background-color: #f59e0b10;
+      border: 1px solid #f59e0b30;
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background-color: var(--primary);
+      color: white;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-logo">
+      <img src="icons/icon48.png" width="28" height="28" alt="Logo">
+      <span style="position: relative; display: inline-flex; align-items: center; gap: 0.25rem;">
+        <span>ClickBook</span>
+        <span style="font-size: 9px; background: linear-gradient(to right, #9333ea, #4f46e5); color: white; border: 1px solid rgba(99, 102, 241, 0.3); padding: 0.15rem 0.35rem; border-radius: 4px; font-weight: 800; margin-left: 0.15rem; line-height: 1; display: inline-flex; align-items: center; gap: 0.15rem; margin-top: -6px; box-shadow: 0 1px 2px 0 rgba(99, 102, 241, 0.2); user-select: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="#fde047" stroke="#fde047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 1px; color: #fde047;"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+          AI
+        </span>
+      </span>
+    </div>
+    <div class="header-nav">
+      <a href="qna.zh-TW.html" class="qna-btn">常見問題與解答 & Q&A</a>
+      
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇹🇼</span>
+            <span>繁體中文</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="help.html" class="lang-option">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+          </a>
+          <a href="help.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="help.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="help.zh-TW.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a href="help.de.html" class="lang-option">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+          </a>
+          <a href="help.es.html" class="lang-option">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#intro" class="nav-link active">簡介與安裝</a></li>
+          <li class="nav-item"><a href="#getting-started" class="nav-link">快速開始</a></li>
+          <li class="nav-item"><a href="#ai-features" class="nav-link">AI 智慧功能</a></li>
+          <li class="nav-item"><a href="#productivity" class="nav-link">高效率生產力工具</a></li>
+          <li class="nav-item"><a href="#buddy-timer" class="nav-link">ClickBook 夥伴 & 計時器</a></li>
+          <li class="nav-item"><a href="#rankings" class="nav-link">即時趨勢與排行榜</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">資料夾與書籤管理</a></li>
+          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Chrome 書籤同步</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">設定與資料管理</a></li>
+          <li class="nav-item"><a href="#privacy" class="nav-link">隱私防護與安全</a></li>
+          <li class="nav-item nav-item-qna">
+            <a href="qna.zh-TW.html" class="nav-link nav-link-qna">
+              <span>常見問題與解答 (Q&A)</span>
+              <span class="badge">QNA</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="alert" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.6;">
+        <strong>⭐ 高級功能說明：</strong> 目前所有進階功能皆處於限時公開測試階段，供使用者免費體驗。未來將依服務政策調整部分功能的存取權限。
+      </div>
+      <section id="intro">
+        <h1 class="section-title">簡介與安裝</h1>
+        <div class="alert alert-warning">
+          <strong>⚠️ 說明：</strong> 本使用指南可能包含部分正在開發中的最新功能，實際 Chrome 線上應用程式商店發布版本可能存在微小更新差異。
+        </div>
+        <p>ClickBook 是一款結合 Chrome 內建 AI (Gemini Nano) 的全方位智慧書籤與高效率生產力管理工具。無需手動整理，點擊一下即可自動分類儲存，隨時輕鬆尋找。</p>
+        
+        <div class="alert alert-info">
+          <strong>💡 小技巧：</strong> 將擴充功能圖示<strong>固定 (Pin)</strong> 至瀏覽器工具列，隨時隨地一鍵儲存。
+        </div>
+      </section>
+
+      <section id="getting-started">
+        <h2 class="section-title">快速開始</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">1 秒即時儲存</div>
+            <div class="card-desc">在任何想儲存的網頁上點擊 ClickBook 圖示，AI 將自動分析內文並放入最適當的資料夾。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">快捷鍵操作</div>
+            <div class="card-desc">無需移動滑鼠，按下 <span class="shortcut">Alt + S</span> 快捷鍵即可瞬間儲存當前分頁。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">全方位管理儀表板</div>
+            <div class="card-desc">在新分頁專屬儀表板中一覽所有書籤，提供即時搜尋、批次編輯、拖曳移動等多種強大工具。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ai-features">
+        <h2 class="section-title">AI 智慧功能 <span class="badge">Core</span></h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">AI 自動智慧分類</div>
+            <div class="card-desc">藉由分析網頁標題與內文語意，自動歸類至科技、設計、商業等最貼切的資料夾分類中。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">AI 批次自動重整</div>
+            <div class="card-desc">想要一次重構現有的所有雜亂書籤嗎？點擊側邊欄的「AI 自動重整」即可瞬間完成。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">AI 重複項目清理器</div>
+            <div class="card-desc">透過網址標準化與標題相似度比對，智慧找出重複書籤並一鍵安全清理。</div>
+          </div>
+
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">AI 畫重點剪輯器 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">在網頁上反白選取文字，透過右鍵選單儲存。本機 AI 會自動判別語言，依據自訂規則產生精簡乾淨的摘要筆記。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">智慧剪輯 & 全文檢索 (FTS) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">儲存書籤時在背景過濾廣告與無關排版，將乾淨內文存入本機資料庫。在搜尋列輸入以空格分隔的多個關鍵字，即可在 10ms 內極速比對內文。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="productivity">
+        <h2 class="section-title">高效率生產力工具</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">備忘便條板 (Memo Board)</div>
+            <div class="card-desc">為各個書籤附加重要備忘，並在專屬便條板中集中檢視與管理。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">待辦清單 (Todo Board)</div>
+            <div class="card-desc">建立與書籤關聯的待辦清單，有條不紊地規劃閱讀排程與任務。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">標籤看板 (Tag Board)</div>
+            <div class="card-desc">不受資料夾層級限制，自由為書籤設定自訂標籤，依興趣快速篩選。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">視覺化書籤地圖 (Bookmark Map)</div>
+            <div class="card-desc">以視覺化地圖形式一目了然地掌握書籤與資料夾之間的關聯。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">互動式心智圖 (Mind Map) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">將知識體系動態視覺化。支援節點座標自動永久儲存、Gemini Nano 自動延伸子概念，以及專屬表情符號選擇器。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">數位手帳筆記 (Spring Note) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">結合 Tiptap 富文本與自由排版畫布，圖片與便條紙隨內文以 60fps 滑順捲動，並支援多種復古主題色彩。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">智慧分頁休眠 (Tab Suspender) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">自動休眠背景閒置分頁，最高節省 90% 的 Chrome 記憶體。智慧排除音樂播放中與固定分頁，滑鼠懸停即可瞬間喚醒。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">離線閱讀模式 & Zen Reader <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">移除所有干擾元素與廣告，將文章轉化為沉浸式數位書籍。支援字型調整、自動章節目錄 (TOC) 與 Markdown 快速複製。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">智慧行事曆整合 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">與待辦清單深度連動，支援月/週/日檢視切換、拖曳排程與台/港/美/日官方國定假日即時快取顯示。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">行事曆精美列印 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">提供橫向桌曆、縱向便攜與全年 12 個月單頁網格版型，可自訂打孔邊距與 8 款粉彩配色，一鍵列印或匯出為 PDF。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="buddy-timer">
+        <h2 class="section-title">ClickBook 夥伴 & 專注計時器 <span class="badge" style="background-color: #8b5cf6;">Premium</span></h2>
+        <p>透過可愛的動畫桌面寵物與沉浸式計時完賽視覺特效，提升您的專注生產力。</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">32 種可愛夥伴角色</div>
+            <div class="card-desc">包含基礎款、金框皇冠高級款與神祕隱藏款等多樣角色，隨時常駐在網頁角落陪伴您工作。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">遊戲化升級與隱藏夥伴 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">透過執行選單功能或完成專注階段獲得經驗值，從等級 1 至 10 陸續解鎖仙人掌、甜點師、雪熊、魔法貓等 10 款隱藏夥伴。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">番茄鐘專注計時器</div>
+            <div class="card-desc">設定專注分鐘數並啟動計時，記錄每次高效產出，養成結構化的深度工作習慣。</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">全螢幕完賽互動主題 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">
+              計時結束時呈現沉浸式全螢幕動態視覺與音效：
+              <ul style="margin-top: 0.5rem; margin-left: 1.25rem; list-style-type: disc; font-size: 0.8rem; text-align: left;">
+                <li><strong>星空之夜：</strong> 連接星圖與璀璨星光。</li>
+                <li><strong>靜謐森林：</strong> 翠綠林間落葉緩緩飄落。</li>
+                <li><strong>溫暖壁爐：</strong> 劈啪作響的逼真火花與餘燼。</li>
+                <li><strong>日落湖畔：</strong> 飛鳥掠過溫暖落日霞光。</li>
+                <li><strong>禪意瑜珈：</strong> 呼吸引導脈動搭配月暈螢火蟲與頌缽音效。</li>
+                <li><strong>成功故事：</strong> 18 張具備 Ken Burns 鏡頭動態的寬螢幕手繪卡片。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column: span 2; border: 1px solid rgba(99, 102, 241, 0.25); background: rgba(99, 102, 241, 0.02);">
+            <div class="card-title">🎡 夥伴 9 大圓形快捷選單說明</div>
+            <div class="card-desc">
+              點擊夥伴角色即可開啟圓形快捷轉盤：
+              <ul style="margin-top: 0.5rem; margin-left: 1.25rem; list-style-type: disc; font-size: 0.85rem; text-align: left;">
+                <li><strong>翻譯 (Translate)：</strong> 反白選取網頁文字即可瞬間翻譯。</li>
+                <li><strong>書籤 (Bookmark)：</strong> 一鍵將當前頁面加入 ClickBook。</li>
+                <li><strong>AI 對話 (AI Chat)：</strong> 開啟 Gemini Nano 聊天面板解答疑問。</li>
+                <li><strong>計時器 (Timer)：</strong> 立即展開番茄鐘專注任務。</li>
+                <li><strong>休息模式 (Rest)：</strong> 開啟全螢幕放鬆視覺與白噪音（雙擊任意處退出）。</li>
+                <li><strong>便條紙 (Memo)：</strong> 在網頁上貼上便利貼筆記。</li>
+                <li><strong>待辦清單 (Todo)：</strong> 勾選管理今日各項任務。</li>
+                <li><strong>隱藏夥伴 (Hide)：</strong> 在當前網域暫時隱藏夥伴圖示。</li>
+                <li><strong>設定 (Settings)：</strong> 細部微調角色大小、透明度、動畫頻率與時鐘顯示。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rankings">
+        <h2 class="section-title">即時趨勢與排行榜</h2>
+        <p>掌握全球科技脈動，ClickBook 提供各大平台的即時熱門榜單。</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">GitHub Trending</div>
+            <div class="card-desc">即時追蹤最熱門的開源專案，一鍵收藏關注。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hugging Face 排名</div>
+            <div class="card-desc">一覽最新 AI 模型與熱門資料集排行榜。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hacker News & Wiki</div>
+            <div class="card-desc">隨時探索國際 IT 產業頭條與維基百科熱門知識。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="folders">
+        <h2 class="section-title">資料夾與書籤管理</h2>
+        <ul>
+          <li><strong>無限階層：</strong> 支援在資料夾內建立無限制的子資料夾，有條理地組織龐大知識。</li>
+          <li><strong>直覺拖曳：</strong> 自由拖曳書籤與資料夾重新排序或歸類。</li>
+          <li><strong>資料夾鎖定：</strong> 鎖定特定資料夾，避免在 AI 自動重整時被移動。</li>
+          <li><strong>自訂圖示：</strong> 為資料夾設定專屬 Emoji 或圖示，提升視覺辨識度。</li>
+          <li><strong>分頁群組雙向同步 <span class="badge" style="background-color: #8b5cf6;">Premium</span>：</strong> 一鍵將 Chrome 原生分頁群組儲存為 ClickBook 資料夾，或將資料夾依原有名稱與顏色還原至 Chrome 分頁列。</li>
+        </ul>
+      </section>
+
+      <section id="chrome-sync">
+        <h2 class="section-title">Chrome 書籤同步</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">匯入 Chrome 書籤</div>
+            <div class="card-desc">將現有 Chrome 書籤一鍵匯入 ClickBook，匯入過程中亦可啟用 AI 自動分類。</div>
+          </div>
+          <div class="card">
+            <div class="card-title">匯出至 Chrome</div>
+            <div class="card-desc">將整理完畢的結構匯出回 Chrome 原生書籤管理員，方便跨裝置同步。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings">
+        <h2 class="section-title">設定與資料管理</h2>
+        <ul>
+          <li><strong>主題外觀：</strong> 自由切換淺色、深色或隨系統偏好自動變換。</li>
+          <li><strong>完整備份與還原：</strong> 將所有資料匯出為 JSON 檔案安全保存，隨時一鍵還原。</li>
+          <li><strong>資料重設：</strong> 清除本機所有資料重新開始。（請注意：清除後資料無法復原）</li>
+        </ul>
+      </section>
+
+      <section id="privacy">
+        <h2 class="section-title" style="color: #10b981;">隱私防護與安全</h2>
+        <div class="card" style="border-left: 4px solid #10b981;">
+          <div class="card-title">100% 本機離線運作 (Local-First)</div>
+          <div class="card-desc">ClickBook 不會將您的個人資料傳送至任何外部伺服器，所有書籤皆僅儲存在您的電腦本機中。</div>
+        </div>
+        <div class="card" style="border-left: 4px solid #10b981; border: 1px dashed #10b981; margin-top: 1rem;">
+          <div class="card-title">安全資料夾 & 自動銷毀器 <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+          <div class="card-desc">將機密網頁設定為「安全資料夾」：
+            <ul style="margin-top: 0.5rem;">
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>即時防護徽章：</strong> 進入安全網站時，工具列圖示亮起綠色 <strong>`SEC` 徽章</strong>。</li>
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>關閉分頁自動銷毀：</strong> 關閉相關分頁後，自動徹底清除該網域的 Cookie、快取、LocalStorage、IndexedDB 與歷史紀錄。</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <section id="support" style="text-align: center; padding: 1.5rem; background-color: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin: 0 auto 2rem auto; max-width: 1200px;">
+    <h2 class="section-title" style="justify-content: center; font-size: 1.4rem; margin-bottom: 0.75rem;">支持 ClickBook 開發</h2>
+    <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.95rem;">若 ClickBook 增進了您的工作效率，歡迎請我們喝杯溫暖的咖啡！</p>
+    <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+      <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+    </a>
+  </section>
+
+  <footer>
+    <p>© 2026 ClickBook AI - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        if (pageYOffset >= section.offsetTop - 150) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) link.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
