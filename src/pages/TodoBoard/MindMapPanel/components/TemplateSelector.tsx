@@ -132,7 +132,7 @@ export default function TemplateSelector({ onSelect, onClose }: Props) {
                   return (
                     <span 
                       className={`absolute top-2.5 right-2.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold border flex items-center gap-0.5 shadow-sm ${dirInfo.color}`}
-                      title={`기본 정렬: ${dirInfo.label}`}
+                      title={`${t("mindmapDefaultLayout")}: ${dirInfo.label}`}
                     >
                       <DirIcon size={9} />
                       <span>{dirInfo.label}</span>

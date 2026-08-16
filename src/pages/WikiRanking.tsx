@@ -198,10 +198,10 @@ export default function WikiRankingPage() {
                     {t("thRank")} <SortIcon columnKey="rank" />
                   </th>
                   <th className="px-4 py-3 text-left whitespace-nowrap cursor-pointer text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" onClick={() => handleSort("article")}>
-                    {lang === "ko" ? "문서 제목" : lang === "ja" ? "記事タイトル" : "Article Title"} <SortIcon columnKey="article" />
+                    {t("thArticleTitle")} <SortIcon columnKey="article" />
                   </th>
                   <th className="px-4 py-3 text-right w-40 whitespace-nowrap cursor-pointer text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" onClick={() => handleSort("views")}>
-                    {lang === "ko" ? "조회수" : lang === "ja" ? "閲覧数" : "Page Views"} <SortIcon columnKey="views" />
+                    {t("thPageViews")} <SortIcon columnKey="views" />
                   </th>
                   <th className="px-4 py-3 text-center w-24">Link</th>
                   <th className="px-4 py-3 text-center w-20">Save</th>

@@ -21,7 +21,7 @@ import {
   TASK_BG_COLORS,
   TASK_SOLID_COLORS,
   timeOptions,
-  REMINDER_OPTIONS,
+  getReminderOptions,
   formatDateStr
 } from "../calendar-utils";
 
@@ -382,14 +382,9 @@ export default function TaskEditModal({
                   onChange={(e) => setReminder(e.target.value)}
                   className="w-full bg-gray-100 dark:bg-surface-800 text-sm border border-gray-200 dark:border-surface-700/65 rounded-xl px-3 py-2 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
-                  {REMINDER_OPTIONS.map((opt) => (
+                  {getReminderOptions(t as any).map((opt) => (
                     <option key={opt.value} value={opt.value}>
-                      {opt.value === "none" ? t("reminderNone")
-                        : opt.value === "at_due" ? t("reminderAtDue")
-                        : opt.value === "15m_before" ? t("reminder15m")
-                        : opt.value === "1h_before" ? t("reminder1h")
-                        : opt.value === "3h_before" ? t("reminder3h")
-                        : t("reminder1d")}
+                      {opt.label}
                     </option>
                   ))}
                 </select>

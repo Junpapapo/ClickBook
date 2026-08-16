@@ -32,7 +32,7 @@ const getMonthRange = (startYear: number, startMonth: number, endYear: number, e
 };
 
 export default function PrintCalendar({ settings: appSettings, bookmarks, memos, onRefresh: _onRefresh }: Props) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   
   // URL 쿼리 파라미터에서 초기 연월 파싱
   const params = new URLSearchParams(window.location.search);
@@ -245,8 +245,8 @@ export default function PrintCalendar({ settings: appSettings, bookmarks, memos,
           </div>
         ) : monthsToPrint.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 text-gray-500">
-            <span className="text-sm font-semibold">인쇄 기간 설정이 올바르지 않습니다.</span>
-            <span className="text-xs text-gray-400 mt-1">시작 월을 종료 월보다 이전으로 설정해 주세요.</span>
+            <span className="text-sm font-semibold">{t("printCalendarInvalidRange")}</span>
+            <span className="text-xs text-gray-400 mt-1">{t("printCalendarInvalidRangeDesc")}</span>
           </div>
         ) : (
           <div className="space-y-8 print:space-y-0 w-full flex flex-col items-center print:w-auto print:block">

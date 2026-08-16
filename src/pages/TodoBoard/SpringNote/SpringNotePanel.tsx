@@ -529,8 +529,8 @@ export default function SpringNotePanel({
           const newNote: SpringNote = {
             id: taskId,
             title: isGlobal
-              ? lang === "ko" ? "나의 종합 필기장" : lang === "ja" ? "私の総合メモ帳" : "My Global Scratchpad"
-              : lang === "ko" ? "연동 태스크 노트" : lang === "ja" ? "タスク連動メモ" : "Task Linked Notebook",
+              ? t("springNoteDefaultTitle")
+              : t("springNoteLinkedTaskTitle"),
             pages: [
               {
                 id: `page-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
@@ -832,7 +832,7 @@ export default function SpringNotePanel({
     const newObj: NoteObject = {
       id: `obj-${Date.now()}`,
       type: "bookmark-memo",
-      content: "메모 내용을 입력하세요.",
+      content: t("springNoteMemoContentPlaceholder"),
       x,
       y,
       width: defaultWidth,
@@ -841,7 +841,7 @@ export default function SpringNotePanel({
       metadata: {
         title: "Saved Memo",
         memoColor: "yellow", // 기본 배경색: 노란색
-        bookmarkTitle: "메모", // 디폴트 제목
+        bookmarkTitle: t("memo"), // 디폴트 제목
         favicon: "📝",
       },
     };

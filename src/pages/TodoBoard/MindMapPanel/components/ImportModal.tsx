@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { X, Upload, FileJson } from "lucide-react";
+import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
   onImport: (fileName: string, content: string) => void;
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function ImportModal({ onImport, onClose }: Props) {
+  const { t } = useLang();
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,9 +53,10 @@ export default function ImportModal({ onImport, onClose }: Props) {
     if (!selectedFile) return;
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target?.result as string;
-      if (text) {
-        onImport(selectedFile.name, text);
+      const content = e.target?.result as string;
+      if (content) {
+        onImport(selectedFile.name, content);
+        onClose();
       }
     };
     reader.readAsText(selectedFile);
@@ -70,7 +73,7 @@ export default function ImportModal({ onImport, onClose }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-lg">📥</span>
             <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">
-              마인드맵 파일 가져오기 (JSON Import)
+              {t("mindmapImportTitle")}
             </h3>
           </div>
           <button 
@@ -83,8 +86,7 @@ export default function ImportModal({ onImport, onClose }: Props) {
 
         {/* Info */}
         <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed mb-4">
-          기존에 백업한 마인드맵 `.json` 파일을 업로드하여 저장소 목록에 등재합니다. 
-          가져온 파일은 퀵로드 셀렉터에서 즉시 선택해 열 수 있습니다.
+          {t("mindmapImportDesc")}
         </p>
 
         {/* Drag Zone */}
@@ -131,10 +133,10 @@ export default function ImportModal({ onImport, onClose }: Props) {
               </div>
               <div className="text-center select-none">
                 <p className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                  마인드맵 파일(.json)을 여기에 끌어놓으세요
+                  {t("mindmapImportDropHint")}
                 </p>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                  또는 이곳을 클릭하여 로컬 파일 선택
+                  {t("mindmapImportClickHint")}
                 </p>
               </div>
             </>
@@ -147,14 +149,14 @@ export default function ImportModal({ onImport, onClose }: Props) {
             onClick={onClose}
             className="px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-surface-850 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
           >
-            취소
+            {t("cancel")}
           </button>
           <button
             onClick={handleSubmit}
             disabled={!selectedFile}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-200 disabled:dark:bg-surface-800 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
           >
-            가져오기 실행
+            {t("mindmapExecuteImport")}
           </button>
         </div>
       </div>

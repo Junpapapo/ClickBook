@@ -25,6 +25,7 @@ import type { Lang } from "@/shared/i18n";
 import { refineMemoDraft, isAIAvailable } from "@/shared/categorizer";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { IconPicker } from "@/components/IconPicker";
+import { getReminderOptions } from "@/pages/Calendar/calendar-utils";
 
 const TASK_BG_COLORS: Record<string, string> = {
   default: "bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800",
@@ -43,15 +44,6 @@ const COLOR_BTN_BG: Record<string, string> = {
   rose: "bg-rose-500",
   purple: "bg-purple-500",
 };
-
-const REMINDER_OPTIONS = [
-  { value: "none", label: "없음" },
-  { value: "at_due", label: "기한 정시" },
-  { value: "15m_before", label: "15분 전" },
-  { value: "1h_before", label: "1시간 전" },
-  { value: "3h_before", label: "3시간 전" },
-  { value: "1d_before", label: "1일 전" },
-];
 
 const generateTimeOptions = () => {
   const options = [];
@@ -736,21 +728,9 @@ export default function TaskDetailsModal({
                           disabled={!enableTodoNotifications}
                           className="text-xs bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 rounded-xl pl-9 pr-8 py-2 text-slate-700 dark:text-slate-300 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all focus:outline-none w-full shadow-xs disabled:bg-slate-100/50 dark:disabled:bg-slate-800/50 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed disabled:border-slate-200 dark:disabled:border-slate-800 appearance-none font-semibold"
                         >
-                          {REMINDER_OPTIONS.map((opt) => (
+                          {getReminderOptions(t).map((opt) => (
                             <option key={opt.value} value={opt.value}>
-                              {opt.value === "none"
-                                ? t("reminderNone")
-                                : opt.value === "at_due"
-                                ? t("reminderAtDue")
-                                : opt.value === "15m_before"
-                                ? t("reminder15m")
-                                : opt.value === "1h_before"
-                                ? t("reminder1h")
-                                : opt.value === "3h_before"
-                                ? t("reminder3h")
-                                : opt.value === "1d_before"
-                                ? t("reminder1d")
-                                : opt.label}
+                              {opt.label}
                             </option>
                           ))}
                         </select>

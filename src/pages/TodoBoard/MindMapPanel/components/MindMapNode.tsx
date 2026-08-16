@@ -74,28 +74,32 @@ function getShapeStyle(shape: string): CSSProperties {
   return {};
 }
 
-const AI_MENU_ITEMS = [
-  { action: "expand",    icon: Sparkles,    label: "Expand node",        desc: "하위 아이디어 자동 생성" },
-  { action: "summarize", icon: ChevronDown, label: "Summarize branch",   desc: "브랜치 전체 AI 요약" },
-  { action: "generate",  icon: Plus,        label: "Generate from text", desc: "텍스트로 노드 생성" },
-  { action: "rewrite",   icon: RotateCcw,   label: "Rewrite node",       desc: "노드 내용 AI 재작성" },
-  { action: "proofread", icon: Search,      label: "Proofread node",     desc: "맞춤법 문법 교정" },
-  { action: "translate", icon: Languages,   label: "Translate",          desc: "다른 언어로 번역" },
+const AI_MENU_CONFIG = [
+  { action: "expand",    icon: Sparkles,    labelKey: "mindmapAiExpand",    descKey: "mindmapAiExpandDesc" },
+  { action: "summarize", icon: ChevronDown, labelKey: "mindmapAiSummarize", descKey: "mindmapAiSummarizeDesc" },
+  { action: "generate",  icon: Plus,        labelKey: "mindmapAiGenerate",  descKey: "mindmapAiGenerateDesc" },
+  { action: "rewrite",   icon: RotateCcw,   labelKey: "mindmapAiRewrite",   descKey: "mindmapAiRewriteDesc" },
+  { action: "proofread", icon: Search,      labelKey: "mindmapAiProofread", descKey: "mindmapAiProofreadDesc" },
+  { action: "translate", icon: Languages,   labelKey: "mindmapAiTranslate", descKey: "mindmapAiTranslateDesc" },
 ] as const;
 
-type AiMenuAction = typeof AI_MENU_ITEMS[number]["action"];
+type AiMenuAction = typeof AI_MENU_CONFIG[number]["action"];
 
 const TRANSLATE_LANGS = [
   { lang: "ko" as const, label: "KR 한국어" },
   { lang: "en" as const, label: "US English" },
   { lang: "ja" as const, label: "JP 日本語" },
+  { lang: "zh-TW" as const, label: "TW 繁體中文" },
+  { lang: "de" as const, label: "DE Deutsch" },
+  { lang: "es" as const, label: "ES Español" },
 ];
 
-const EXPAND_MODES = [
-  { mode: "general" as const, label: "💡 일반 확장 (General)" },
-  { mode: "pros_cons" as const, label: "⚖️ 장단점 분석 (Pros & Cons)" },
-  { mode: "actions" as const, label: "✅ 실행 계획 (Actions)" },
-];
+const EXPAND_MODE_CONFIG = [
+  { mode: "general" as const, labelKey: "mindmapAiExpandGeneral" },
+  { mode: "pros_cons" as const, labelKey: "mindmapAiExpandProsCons" },
+  { mode: "actions" as const, labelKey: "mindmapAiExpandActions" },
+] as const;
+
 
 export default function MindMapNode({ id, data, selected }: { id: string; data: any; selected?: boolean }) {
   const { t, lang } = useLang();
@@ -400,7 +404,9 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                   </span>
                 </div>
                 <div className="py-1.5">
-                  {AI_MENU_ITEMS.map(({ action, icon: Icon, label: itemLabel, desc }) => {
+                  {AI_MENU_CONFIG.map(({ action, icon: Icon, labelKey, descKey }) => {
+                    const itemLabel = t(labelKey);
+                    const desc = t(descKey);
                     if (action === "expand") {
                       return (
                         <div key={action} className="relative">
@@ -419,13 +425,13 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                           </button>
                           {showExpandSub && (
                             <div className="bg-gray-50 dark:bg-surface-950 border-t border-gray-100 dark:border-surface-800">
-                              {EXPAND_MODES.map(({ mode, label: modeLabel }) => (
+                              {EXPAND_MODE_CONFIG.map(({ mode, labelKey: mLabelKey }) => (
                                 <button
                                   key={mode}
                                   onClick={() => handleAiMenuClick("expand", mode)}
                                   className="w-full text-left px-8 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-700 dark:hover:text-amber-400 transition-colors font-medium"
                                 >
-                                  {modeLabel}
+                                  {t(mLabelKey)}
                                 </button>
                               ))}
                             </div>
@@ -451,10 +457,10 @@ export default function MindMapNode({ id, data, selected }: { id: string; data: 
                           </button>
                           {showTranslateSub && (
                             <div className="bg-gray-50 dark:bg-surface-950 border-t border-gray-100 dark:border-surface-800">
-                              {TRANSLATE_LANGS.map(({ lang, label: langLabel }) => (
+                              {TRANSLATE_LANGS.map(({ lang: tLang, label: langLabel }) => (
                                 <button
-                                  key={lang}
-                                  onClick={() => handleAiMenuClick("translate", lang)}
+                                  key={tLang}
+                                  onClick={() => handleAiMenuClick("translate", tLang)}
                                   className="w-full text-left px-8 py-1.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-700 dark:hover:text-amber-400 transition-colors font-medium"
                                 >
                                   {langLabel}

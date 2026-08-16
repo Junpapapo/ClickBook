@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Pencil } from "lucide-react";
+import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
   fileName: string;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
+  const { t } = useLang();
   const cleanOldName = fileName.replace(".json", "");
   const [newName, setNewName] = useState(cleanOldName);
 
@@ -29,7 +31,7 @@ export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-lg">✏️</span>
             <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">
-              마인드맵 이름 변경
+              {t("mindmapRenameTitle")}
             </h3>
           </div>
           <button 
@@ -43,7 +45,7 @@ export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
         {/* Content */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 py-1">
           <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-            선택된 마인드맵의 새로운 이름을 입력해 주세요.
+            {t("mindmapRenameDesc")}
           </p>
           
           <input
@@ -61,7 +63,7 @@ export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
               onClick={onClose}
               className="px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
             >
-              취소
+              {t("cancel")}
             </button>
             <button
               type="submit"
@@ -69,7 +71,7 @@ export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
               className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
             >
               <Pencil size={13} />
-              <span>변경 적용</span>
+              <span>{t("mindmapApplyRename")}</span>
             </button>
           </div>
         </form>
@@ -77,3 +79,4 @@ export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
     </div>
   );
 }
+

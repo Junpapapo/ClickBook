@@ -1,4 +1,5 @@
 import { X, Trash2 } from "lucide-react";
+import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
   fileName: string;
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function ConfirmDeleteModal({ fileName, onConfirm, onClose }: Props) {
+  const { t } = useLang();
   const cleanName = fileName.replace(".json", "");
 
   return (
@@ -20,7 +22,7 @@ export default function ConfirmDeleteModal({ fileName, onConfirm, onClose }: Pro
           <div className="flex items-center gap-2">
             <span className="text-lg">⚠️</span>
             <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">
-              마인드맵 삭제 확인
+              {t("mindmapDeleteConfirmTitle")}
             </h3>
           </div>
           <button 
@@ -34,10 +36,10 @@ export default function ConfirmDeleteModal({ fileName, onConfirm, onClose }: Pro
         {/* Content */}
         <div className="flex flex-col gap-3 py-1">
           <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-            정말로 <span className="text-rose-500 font-bold">'{cleanName}'</span> 마인드맵을 가상 저장소에서 영구 삭제하시겠습니까?
+            {t("mindmapDeleteConfirmMsg", { name: cleanName })}
           </p>
           <div className="bg-rose-50/50 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-950/30 p-2.5 rounded-xl text-[10.5px] text-rose-600 dark:text-rose-400 leading-relaxed select-none">
-            🛑 이 작업은 복구할 수 없으며 해당 마인드맵 내의 모든 노드와 연결선 정보가 완전히 파쇄됩니다.
+            {t("mindmapDeleteWarning")}
           </div>
         </div>
 
@@ -47,7 +49,7 @@ export default function ConfirmDeleteModal({ fileName, onConfirm, onClose }: Pro
             onClick={onClose}
             className="px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-surface-850 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
           >
-            취소
+            {t("cancel")}
           </button>
           <button
             onClick={() => {
@@ -57,10 +59,11 @@ export default function ConfirmDeleteModal({ fileName, onConfirm, onClose }: Pro
             className="flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
           >
             <Trash2 size={13} />
-            <span>삭제 실행</span>
+            <span>{t("mindmapExecuteDelete")}</span>
           </button>
         </div>
       </div>
     </div>
   );
 }
+

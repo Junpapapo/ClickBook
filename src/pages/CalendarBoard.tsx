@@ -837,13 +837,13 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                     {task.dueDate && (
                                       <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                         <Clock size={10} />
-                                        기한: {formatDateKorean(task.dueDate)} {task.dueTime || ""}
+                                        {t("datepickerDueDate")}: {formatDateLocale(task.dueDate, lang)} {task.dueTime || ""}
                                       </span>
                                     )}
                                     {isEvent && task.location && (
                                       <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-                                        장소: {task.location}
+                                        {t("locationLabel")}: {task.location}
                                       </span>
                                     )}
                                   </div>
@@ -889,7 +889,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                 ) : (
                                   <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1 truncate flex-1">
                                     <StickyNote size={11} />
-                                    일반 메모 (독립형)
+                                    {t("standaloneMemo")}
                                   </span>
                                 )}
                               </div>
@@ -1023,12 +1023,16 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
   );
 }
 
-// Custom Date Format Helper for Korea
-const formatDateKorean = (dateStr?: string) => {
+// Custom Date Format Helper by Language
+const formatDateLocale = (dateStr?: string, lang: string = "ko") => {
   if (!dateStr) return "";
   const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
   const m = parseInt(parts[1], 10);
   const d = parseInt(parts[2], 10);
-  return `${m}월 ${d}일`;
+  if (lang === "ko") return `${m}월 ${d}일`;
+  if (lang === "ja") return `${m}月 ${d}日`;
+  if (lang === "zh-TW") return `${m}月${d}日`;
+  return `${m}/${d}`;
 };
+
