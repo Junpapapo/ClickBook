@@ -1,7 +1,7 @@
 import type { WikiArticle, HFModel, HNStory } from "./types";
 
 const CACHE_DURATION = 4 * 60 * 60 * 1000; // 4 hours
-const API_USER_AGENT = "ClickBookExtension/1.6.8 (https://github.com/Junpapapo/ClickBook; support@clickbook.local)";
+const API_USER_AGENT = "ClickBookExtension/1.7.0 (https://github.com/Junpapapo/ClickBook; support@clickbook.local)";
 
 async function getCachedData<T>(key: string, allowStale: boolean = false): Promise<{ data: T; timestamp: number } | null> {
   return new Promise((resolve) => {
