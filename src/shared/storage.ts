@@ -15,6 +15,7 @@ export async function setGitHubRankingCache(cache: GitHubRankingCache): Promise<
 }
 import type { Bookmark, Folder, StorageData, ClickBookBackupData, AppSettings } from "./types";
 import { DEFAULT_FOLDERS, DEFAULT_FOLDER_ID } from "./categories";
+import { getAllSpringNotes, saveAllSpringNotes } from "@/utils/springNoteDb";
 
 const STORAGE_KEY = "clickbook_data";
 
@@ -39,12 +40,29 @@ async function writeStorage(data: StorageData): Promise<void> {
 }
 
 async function withStorageLock<T>(fn: (data: StorageData) => Promise<T>): Promise<T> {
-  return navigator.locks.request("clickbook_storage", async () => {
-    const data = await readStorage();
-    const result = await fn(data);
-    await writeStorage(data);
-    return result;
-  });
+  if (typeof navigator !== "undefined" && navigator.locks && typeof navigator.locks.request === "function") {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const result = await navigator.locks.request("clickbook_storage", { signal: controller.signal }, async () => {
+        clearTimeout(timeoutId);
+        const data = await readStorage();
+        const res = await fn(data);
+        await writeStorage(data);
+        return res;
+      });
+      return result;
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        // 일반 예외는 그대로 전파
+      }
+    }
+  }
+  // Fallback (locks 미지원 또는 타임아웃 시)
+  const data = await readStorage();
+  const res = await fn(data);
+  await writeStorage(data);
+  return res;
 }
 
 // ── Bookmarks ─────────────────────────────────────────────
@@ -138,11 +156,14 @@ export async function saveBookmarkTransaction(
 let visitBatchQueue: Record<string, { count: number; lastVisitedAt: number }> = {};
 let visitBatchTimer: any = null;
 
-async function flushVisitBatch(): Promise<void> {
+export async function flushVisitBatch(): Promise<void> {
   if (Object.keys(visitBatchQueue).length === 0) return;
   const currentBatch = { ...visitBatchQueue };
   visitBatchQueue = {};
-  visitBatchTimer = null;
+  if (visitBatchTimer) {
+    clearTimeout(visitBatchTimer);
+    visitBatchTimer = null;
+  }
 
   try {
     await withStorageLock(async (data) => {
@@ -161,6 +182,18 @@ async function flushVisitBatch(): Promise<void> {
   } catch (err) {
     console.warn("[Storage] Failed to flush visit batch:", err);
   }
+}
+
+// 브라우저 탭/창 종료 시 잔여 방문 카운트 즉시 플러시
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    flushVisitBatch();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushVisitBatch();
+    }
+  });
 }
 
 export async function incrementVisitCount(id: string): Promise<void> {
@@ -338,17 +371,19 @@ export async function toggleFolderSecure(id: string): Promise<void> {
 // ── Export / Import ────────────────────────────────────────
 
 export async function exportData(): Promise<ClickBookBackupData> {
-  const [mainData, memos, todoBoard, settings, patterns, chromePatterns] = await Promise.all([
+  const [mainData, memos, todoBoard, settings, patterns, chromePatterns, springNotes, pageContents] = await Promise.all([
     readStorage(),
     readMemos(),
     getTodoBoard(),
     getSettings(),
     readPatterns(),
     readChromePatterns(),
+    getAllSpringNotes().catch(() => []),
+    getPageContents().catch(() => ({})),
   ]);
 
   return {
-    version: "2.0.0",
+    version: "2.1.0",
     exportedAt: Date.now(),
     bookmarks: mainData.bookmarks,
     folders: mainData.folders,
@@ -357,6 +392,8 @@ export async function exportData(): Promise<ClickBookBackupData> {
     settings,
     patterns,
     chromePatterns,
+    springNotes,
+    pageContents,
   };
 }
 
@@ -401,7 +438,7 @@ export async function importData(incoming: ClickBookBackupData): Promise<{ count
       }
     }
 
-    await Promise.all([
+    const restorePromises: Promise<any>[] = [
       chrome.storage.local.set({ [MEMOS_KEY]: cleanedMemos }),
       incoming.todoBoard && typeof incoming.todoBoard === "object"
         ? saveTodoBoard(incoming.todoBoard)
@@ -427,7 +464,27 @@ export async function importData(incoming: ClickBookBackupData): Promise<{ count
               : Promise.resolve();
           })
         : Promise.resolve(),
-    ]);
+    ];
+
+    // ── Spring Notes Restore ──
+    if (incoming.springNotes && Array.isArray(incoming.springNotes) && incoming.springNotes.length > 0) {
+      restorePromises.push(saveAllSpringNotes(incoming.springNotes).catch(e => console.warn("Failed to restore spring notes:", e)));
+    }
+
+    // ── Page Contents (Reader Cache) Restore ──
+    if (incoming.pageContents && typeof incoming.pageContents === "object") {
+      const pageContentsObj: Record<string, string> = {};
+      for (const [id, content] of Object.entries(incoming.pageContents)) {
+        if (typeof content === "string") {
+          pageContentsObj[`page_content_${id}`] = content;
+        }
+      }
+      if (Object.keys(pageContentsObj).length > 0) {
+        restorePromises.push(chrome.storage.local.set(pageContentsObj).catch(e => console.warn("Failed to restore page contents:", e)));
+      }
+    }
+
+    await Promise.all(restorePromises);
 
     return { count: newBookmarks.length };
   });
@@ -1022,7 +1079,7 @@ export async function getTodayTimerStats(): Promise<DailyTimerStats> {
   return { date: todayStr, totalMinutes: 0, cycles: 0, goals: {} };
 }
 
-export async function addTimerStats(minutes: number, addCycle: boolean, goal?: string): Promise<DailyTimerStats> {
+export async function addTimerStats(minutes: number, addCycle: boolean, goal?: string, taskId?: string): Promise<DailyTimerStats> {
   const stats = await getTodayTimerStats();
   stats.totalMinutes += minutes;
   if (addCycle) {
@@ -1042,6 +1099,24 @@ export async function addTimerStats(minutes: number, addCycle: boolean, goal?: s
   }
   
   await chrome.storage.local.set({ [TIMER_STATS_KEY]: stats });
+
+  // taskId가 연동된 경우 TodoBoard의 태스크 집중 시간도 누적 업데이트
+  if (taskId) {
+    try {
+      const todoBoard = await getTodoBoard();
+      if (todoBoard && todoBoard.tasks && todoBoard.tasks[taskId]) {
+        const task = todoBoard.tasks[taskId];
+        task.focusMinutes = (task.focusMinutes || 0) + minutes;
+        if (addCycle) {
+          task.focusCycles = (task.focusCycles || 0) + 1;
+        }
+        await saveTodoBoard(todoBoard);
+      }
+    } catch (err) {
+      console.warn("Failed to update task focus stats:", err);
+    }
+  }
+
   return stats;
 }
 

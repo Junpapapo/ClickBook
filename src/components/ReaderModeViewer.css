@@ -619,3 +619,135 @@
 .reader-theme-dark .reader-markdown-content th {
   background-color: #27272a;
 }
+
+/* ============================================================
+   TTS (Text-to-Speech) Mini Audio Player Bar & Highlights
+   ============================================================ */
+
+.reader-tts-floating-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.25);
+  backdrop-filter: blur(20px);
+  z-index: 10002;
+  animation: ttsSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #f1f5f9;
+}
+
+@keyframes ttsSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.reader-theme-light .reader-tts-floating-bar {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.15), 0 0 16px rgba(139, 92, 246, 0.15);
+  color: #0f172a;
+}
+
+.reader-theme-sepia .reader-tts-floating-bar {
+  background: rgba(253, 246, 227, 0.95);
+  border: 1px solid rgba(180, 130, 90, 0.35);
+  box-shadow: 0 12px 32px -4px rgba(91, 70, 54, 0.2);
+  color: #433422;
+}
+
+.reader-tts-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(120, 119, 198, 0.12);
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reader-tts-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  transform: scale(1.08);
+}
+
+.reader-tts-btn-primary {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.reader-tts-btn-primary:hover {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5);
+  transform: scale(1.1);
+}
+
+.reader-tts-speed-btn {
+  padding: 4px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(120, 119, 198, 0.2);
+  background: rgba(120, 119, 198, 0.08);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reader-tts-speed-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.reader-tts-progress-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.75;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.reader-tts-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+  padding: 0 4px;
+}
+
+.reader-tts-wave-bar {
+  width: 3px;
+  height: 100%;
+  background: #8b5cf6;
+  border-radius: 2px;
+  animation: ttsWave 1s ease-in-out infinite alternate;
+}
+
+.reader-tts-wave-bar:nth-child(2) { animation-delay: 0.2s; height: 60%; }
+.reader-tts-wave-bar:nth-child(3) { animation-delay: 0.4s; height: 80%; }
+.reader-tts-wave-bar:nth-child(4) { animation-delay: 0.1s; height: 40%; }
+
+@keyframes ttsWave {
+  0% { transform: scaleY(0.3); }
+  100% { transform: scaleY(1); }
+}
+

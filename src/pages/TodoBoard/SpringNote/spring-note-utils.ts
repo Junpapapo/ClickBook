@@ -129,63 +129,168 @@ export function parseMarkdownTables(text: string): string {
   return resultLines.join("\n");
 }
 
+// 안전한 HTML 이스케이프 헬퍼
+function escapeHtmlTags(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 // 공통 Markdown -> HTML 파서
 export function markdownToHtml(md: string): string {
   if (!md) return "";
 
-  // 1. 마크다운 표(Table) 파싱 (이미 <table> 태그가 완벽히 들어있지 않은 경우 수행)
-  let html = md.includes("<table") ? md : parseMarkdownTables(md);
+  // 1. 코드 블록(```...```) 임시 치환 보존
+  const codeBlocks: string[] = [];
+  let processed = md.replace(/```([\w-]*)\n([\s\S]*?)```/g, (_match, lang, code) => {
+    const idx = codeBlocks.length;
+    const escapedCode = escapeHtmlTags(code.trimEnd());
+    const langLabel = lang ? `<span class="buddy-code-lang">${escapeHtmlTags(lang)}</span>` : "";
+    codeBlocks.push(`<pre class="buddy-code-block">${langLabel}<code>${escapedCode}</code></pre>`);
+    return `%%CODEBLOCK_${idx}%%`;
+  });
 
-  // 2. table 태그 가로 스크롤 & MD 표 래퍼 자동 감싸기
+  // 2. 인라인 코드(`` `...` ``) 임시 치환 보존
+  const inlineCodes: string[] = [];
+  processed = processed.replace(/`([^`\n]+)`/g, (_match, code) => {
+    const idx = inlineCodes.length;
+    inlineCodes.push(`<code class="buddy-inline-code">${escapeHtmlTags(code)}</code>`);
+    return `%%INLINECODE_${idx}%%`;
+  });
+
+  // 3. 마크다운 표(Table) 파싱
+  let html = processed.includes("<table") ? processed : parseMarkdownTables(processed);
+
+  // 4. Table 태그 가로 스크롤 & MD 표 래퍼 자동 감싸기
   if (html.includes("<table") && !html.includes("buddy-table-wrapper")) {
     html = html.replace(/(<table[\s\S]*?<\/table>)/gi, '<div class="buddy-table-wrapper">$1</div>');
   }
 
-  // 2. 인라인 마크다운 요소(링크, 볼드, 이탤릭, 인라인 코드) 치환
-  // Link: [text](url)
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="spring-note-link">$1</a>');
-  
-  // Bold: **text** -> <strong>text</strong>
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  
-  // Italic: *text* -> <em>text</em>
-  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  // 5. 마크다운 링크: [text](url)
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="buddy-md-link">$1</a>');
 
-  // Code: `code` -> <code>code</code>
-  html = html.replace(/`(.*?)`/g, "<code>$1</code>");
+  // 6. 독립된 Raw URL 자동 하이퍼링크 변환 (이미 a 태그 내부나 placeholder가 아닌 경우)
+  html = html.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer" class="buddy-md-link">$2</a>');
 
-  // 3. 블록 단위 마크다운(리스트, 제목) 변환
+  // 7. 인라인 텍스트 서식 (Bold, Italic, Strikethrough)
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+  html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  html = html.replace(/_([^_]+)_/g, "<em>$1</em>");
+  html = html.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+
+  // 8. 블록 단위 마크다운 (인용구, 리스트, 제목, 수평선)
   const lines = html.split("\n");
-  let inList = false;
-  const processedLines = lines.map(line => {
+  let inUl = false;
+  let inOl = false;
+  let inBlockquote = false;
+
+  const resultLines: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
     const trimmed = line.trim();
-    if (trimmed.startsWith("* ") || trimmed.startsWith("- ")) {
-      const itemContent = trimmed.slice(2);
-      let prefix = "";
-      if (!inList) {
-        inList = true;
-        prefix = "<ul>";
-      }
-      return `${prefix}<li>${itemContent}</li>`;
-    } else {
-      let suffix = "";
-      if (inList) {
-        inList = false;
-        suffix = "</ul>";
-      }
-      return `${suffix}${line}`;
+
+    // 수평선 (--- 또는 ***)
+    if (/^(\*{3,}|-{3,}|_{3,})$/.test(trimmed)) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (inBlockquote) { resultLines.push("</blockquote>"); inBlockquote = false; }
+      resultLines.push("<hr class='buddy-md-hr' />");
+      continue;
     }
-  });
-  if (inList) {
-    processedLines.push("</ul>");
+
+    // 제목 (Headers)
+    if (trimmed.startsWith("#### ")) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (inBlockquote) { resultLines.push("</blockquote>"); inBlockquote = false; }
+      resultLines.push(`<h4 class="buddy-md-h4">${trimmed.slice(5)}</h4>`);
+      continue;
+    }
+    if (trimmed.startsWith("### ")) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (inBlockquote) { resultLines.push("</blockquote>"); inBlockquote = false; }
+      resultLines.push(`<h3 class="buddy-md-h3">${trimmed.slice(4)}</h3>`);
+      continue;
+    }
+    if (trimmed.startsWith("## ")) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (inBlockquote) { resultLines.push("</blockquote>"); inBlockquote = false; }
+      resultLines.push(`<h2 class="buddy-md-h2">${trimmed.slice(3)}</h2>`);
+      continue;
+    }
+    if (trimmed.startsWith("# ")) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (inBlockquote) { resultLines.push("</blockquote>"); inBlockquote = false; }
+      resultLines.push(`<h1 class="buddy-md-h1">${trimmed.slice(2)}</h1>`);
+      continue;
+    }
+
+    // 인용구 (> text)
+    if (trimmed.startsWith("> ")) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (!inBlockquote) {
+        resultLines.push("<blockquote class='buddy-md-quote'>");
+        inBlockquote = true;
+      }
+      resultLines.push(`<p>${trimmed.slice(2)}</p>`);
+      continue;
+    } else if (inBlockquote) {
+      resultLines.push("</blockquote>");
+      inBlockquote = false;
+    }
+
+    // 순서 없는 리스트 (- 또는 * 또는 •)
+    if (/^[-*•]\s+/.test(trimmed) || /^•\s*/.test(trimmed)) {
+      if (inOl) { resultLines.push("</ol>"); inOl = false; }
+      if (!inUl) {
+        resultLines.push("<ul class='buddy-md-ul'>");
+        inUl = true;
+      }
+      resultLines.push(`<li>${trimmed.replace(/^[-*•]\s*/, "")}</li>`);
+      continue;
+    } else if (inUl) {
+      resultLines.push("</ul>");
+      inUl = false;
+    }
+
+    // 순서 있는 리스트 (1. 2. 등)
+    if (/^\d+\.\s+/.test(trimmed)) {
+      if (inUl) { resultLines.push("</ul>"); inUl = false; }
+      if (!inOl) {
+        resultLines.push("<ol class='buddy-md-ol'>");
+        inOl = true;
+      }
+      resultLines.push(`<li>${trimmed.replace(/^\d+\.\s+/, "")}</li>`);
+      continue;
+    } else if (inOl) {
+      resultLines.push("</ol>");
+      inOl = false;
+    }
+
+    // 일반 문장 라인
+    resultLines.push(line);
   }
-  
-  html = processedLines.join("\n");
-  
-  // Headers
-  html = html.replace(/^### (.*?)$/gm, "<h3>$1</h3>");
-  html = html.replace(/^## (.*?)$/gm, "<h2>$1</h2>");
-  html = html.replace(/^# (.*?)$/gm, "<h1>$1</h1>");
+
+  if (inUl) resultLines.push("</ul>");
+  if (inOl) resultLines.push("</ol>");
+  if (inBlockquote) resultLines.push("</blockquote>");
+
+  html = resultLines.join("\n");
+
+  // 9. 임시 치환된 코드 블록 및 인라인 코드 복원
+  codeBlocks.forEach((block, idx) => {
+    html = html.replace(`%%CODEBLOCK_${idx}%%`, block);
+  });
+  inlineCodes.forEach((code, idx) => {
+    html = html.replace(`%%INLINECODE_${idx}%%`, code);
+  });
 
   return html;
 }

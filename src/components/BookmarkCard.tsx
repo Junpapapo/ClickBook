@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot, Copy } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot, Copy, History } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
 import { MEMO_DOT, MEMO_TEXTAREA_BG, ALL_MEMO_COLORS as ALL_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -400,6 +400,19 @@ const BookmarkCard = React.memo(function BookmarkCard({ bookmark, memo, folderNa
           >
             <Info size={13} />
           </button>
+
+          {/* Web Archive 버튼 */}
+          <a
+            href={`https://web.archive.org/web/*/${encodeURIComponent(bookmark.url)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="p-1 text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+            title={t("viewWebArchive" as any) || "Wayback Machine Archive"}
+          >
+            <History size={13} />
+          </a>
+
           {/* メモボタン */}
           <button
             ref={stickyBtnRef}

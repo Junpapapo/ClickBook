@@ -161,3 +161,25 @@ export async function checkSpringNoteExists(noteId: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * 복원/임포트 시 스프링 노트를 일괄 저장합니다.
+ */
+export async function saveAllSpringNotes(notes: SpringNote[]): Promise<void> {
+  if (!notes || notes.length === 0) return;
+  const db = await getDb();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([NOTES_STORE_NAME], "readwrite");
+    const store = transaction.objectStore(NOTES_STORE_NAME);
+    
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+
+    for (const note of notes) {
+      if (note && note.id) {
+        store.put(note, note.id);
+      }
+    }
+  });
+}
+

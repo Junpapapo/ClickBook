@@ -1,0 +1,242 @@
+# 🧠 Two-Beat Thinking — 사고 정리 스프린트 구현 계획서 (v2 확정)
+
+**플로팅 버디에서 실행하는 5단계 구조화된 사고 정리 도구**
+Think · Sort · Act — 머리를 비우고, 프레임으로 정리하고, 행동으로 옮긴다.
+
+---
+
+## 확정 사항 요약
+
+| 항목 | 결정 |
+|:--|:--|
+| 정리 프레임 | 6종 전부 (Now/Next/Later, 아이젠하워, 감정/사실, 통계 가능성, 원인/중심/대응, MoSCoW) |
+| 데이터 저장 | **IndexedDB** (설정/요약은 `chrome.storage.local` 캐싱) |
+| Dump 타이머 | 기본 5분, **단계별 커스텀 가능** (설정 항목) |
+| Dump 입력 방식 | **Enter = 1 아이템** 즉시 추가 (`Shift+Enter` = 줄바꿈) |
+| Stage 0 배경 | 파스텔 스카이 + 홀로그램 버블 에셋 (사용자 준비) |
+| 1차 구현 범위 | **AI 제외**, Extended 목업 우선 제작 → 검토 → 구현 |
+| UI 방식 | **Progressive Wizard Panel** (단일 패널, 단계별 크기 전환) |
+
+---
+
+## UI 아키텍처: Progressive Wizard Panel
+
+각 단계를 **단일 패널 내에서 전환**하며, 단계별로 패널 크기가 자연스럽게 변환됩니다.
+
+### 단계별 타이머 & 패널 크기
+
+| 단계 | 이름 | 기본 시간 | 타이머 | 패널 너비 |
+|:--:|:--|:--:|:--:|:--:|
+| 0 | Framing (프레이밍) | — | ❌ 자유 | 420px |
+| 1 | Dump (배출) | 5분 | ✅ | 480px |
+| 1.5 | Frame Select (프레임 선택) | — | ❌ 선택만 | 480px |
+| 2 | Distill (정리) | 4분 | ✅ | 520px |
+| 3 | Decide (결론) | 2분 | ✅ | 520px |
+| 4 | Reflect (점검) | 2분 | ✅ | 420px |
+
+### 단계별 타이머 설정 구조
+
+```typescript
+interface ThinkingTimerSettings {
+  dumpMinutes: number;      // 기본 5
+  distillMinutes: number;   // 기본 4
+  decideMinutes: number;    // 기본 2
+  reflectMinutes: number;   // 기본 2
+}
+```
+
+설정은 기존 **Settings Card** 내에 "사고 정리" 아코디언 섹션으로 추가하거나, Thinking Card 자체 내부에 ⚙️ 기어 아이콘으로 인라인 설정 제공.
+
+---
+
+## 에셋 폴더 구조
+
+```
+public/
+  assets/
+    thinking/                          ← Two-Beat Thinking 전용 에셋 루트
+      frames/                          ← 정리 프레임 일러스트 카드 에셋
+        now_next_later.webp
+        eisenhower_matrix.webp
+        emotion_fact.webp
+        statistical_check.webp
+        cause_core_response.webp
+        moscow.webp
+      stages/                          ← 단계별 배경/아이콘 에셋
+        bg_framing.webp                ← Stage 0 파스텔 스카이+버블 배경
+        stage_framing.webp
+        stage_dump.webp
+        stage_distill.webp
+        stage_decide.webp
+        stage_reflect.webp
+      moods/                           ← 회고 이모지/무드 에셋
+        mood_great.webp
+        mood_good.webp
+        mood_neutral.webp
+        mood_tough.webp
+      ui/                              ← UI 장식 에셋
+        thinking_icon.webp             ← 라디얼 메뉴용 아이콘
+        sprint_badge.webp              ← 세션 완료 뱃지
+```
+
+---
+
+## 소스 코드 아키텍처
+
+### Content Script (Vanilla TS)
+
+```
+src/buddy/
+  thinking/                            ← Two-Beat Thinking 피처 모듈
+    ├── index.ts                       ← Public API (re-exports)
+    ├── thinking-types.ts              ← 인터페이스, 타입 (~100줄)
+    ├── thinking-constants.ts          ← 프레임 메타, 단계 정의, 기본값 (~120줄)
+    ├── thinking-state.ts              ← 세션 상태 싱글톤 + subscribe (~130줄)
+    ├── thinking-storage.ts            ← IndexedDB CRUD (~160줄)
+    ├── thinking-utils.ts              ← 순수 함수 (시간, ID, 통계) (~80줄)
+    ├── thinking-card.ts               ← 메인 컨테이너 + 단계 라우터 (~200줄)
+    └── components/
+        ├── thinking-progress.ts       ← Step Indicator (~80줄)
+        ├── thinking-nav.ts            ← 하단 네비게이션 바 (~80줄)
+        ├── stage-framing.ts           ← Stage 0 (~150줄)
+        ├── stage-dump.ts              ← Stage 1 (~200줄)
+        ├── stage-frame-select.ts      ← Stage 1.5 (~180줄)
+        ├── stage-distill.ts           ← Stage 2 (~250줄)
+        ├── stage-decide.ts            ← Stage 3 (~200줄)
+        └── stage-reflect.ts           ← Stage 4 (~150줄)
+```
+
+### Dashboard (React TSX)
+
+```
+src/dashboard/pages/
+  thinking-sprint/
+    ├── index.ts
+    ├── thinking-sprint-types.ts
+    ├── thinking-sprint-view.tsx       ← 메인 뷰
+    └── components/
+        ├── session-history.tsx         ← 세션 카드 목록
+        ├── session-detail-modal.tsx    ← 세션 상세
+        ├── stats-overview.tsx          ← 통계 위젯
+        ├── frame-library.tsx           ← 프레임 라이브러리
+        ├── action-board.tsx            ← 행동 To-Do 보드
+        └── frame-usage-chart.tsx       ← 프레임 사용 비율
+```
+
+---
+
+## 데이터 모델
+
+```typescript
+// thinking-types.ts
+
+type ThinkingStage = "framing" | "dump" | "frame-select" | "distill" | "decide" | "reflect";
+
+type DistillFrameType = 
+  | "now-next-later" | "eisenhower-matrix" | "emotion-fact"
+  | "statistical-check" | "cause-core-response" | "moscow";
+
+interface DumpItem {
+  id: string;
+  text: string;
+  createdAt: number;
+}
+
+interface DistilledItem {
+  id: string;
+  text: string;
+  slot: string;
+  sourceId?: string;
+}
+
+interface ActionItem {
+  id: string;
+  text: string;
+  emoji?: string;
+  scheduledTime?: string;
+  completed: boolean;
+}
+
+interface SessionReflection {
+  mood: "great" | "good" | "neutral" | "tough";
+  comment?: string;
+}
+
+interface ThinkingSession {
+  id: string;
+  createdAt: number;
+  completedAt?: number;
+  framingText: string;
+  tags: string[];
+  dumpItems: DumpItem[];
+  dumpDurationSecs: number;
+  selectedFrame: DistillFrameType;
+  distilledItems: DistilledItem[];
+  actionItems: ActionItem[];
+  reviewTime?: string;
+  reflection?: SessionReflection;
+  totalDurationSecs: number;
+  completionRate: number;
+  stageReached: ThinkingStage;
+}
+```
+
+---
+
+## 기존 코드 수정
+
+| 파일 | 변경 내용 |
+|:--|:--|
+| [buddy-types.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/buddy-types.ts) | `CardType`에 `"thinking"` 추가 |
+| [buddy-constants.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/buddy-constants.ts) | `ICONS.thinking` + `RADIAL_ITEMS`에 thinking 항목 추가 |
+| [buddy-panel.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/components/buddy-panel.ts) | `"thinking"` 분기 추가, `thinking-layout-active` 클래스 |
+| [buddy-styles.css](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/buddy-styles.css) | Thinking 전용 CSS (단계 전환, 프레임 그리드 등) |
+| [dashboard.tsx](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/dashboard/dashboard.tsx) | `ThinkingSprintView` 라우팅 추가 |
+| [pages/index.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/dashboard/pages/index.ts) | export 추가 |
+| [DashboardSidebar.tsx](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/dashboard/components/DashboardSidebar.tsx) | "사고 정리" 네비 항목 추가 |
+
+---
+
+## 구현 순서
+
+```
+Phase 0: 목업 제작 & 검토         ← 현재 단계
+  0-1. thinking-preview.html (전 단계 UI 목업)
+  0-2. 사용자 검토 & 피드백 반영
+
+Phase 1: 기반 구축
+  1-1. 에셋 폴더 + 프레임 이미지 생성
+  1-2. thinking-types → thinking-constants → thinking-utils
+  1-3. thinking-state → thinking-storage (IndexedDB)
+
+Phase 2: Content Script UI
+  2-1. thinking-progress + thinking-nav
+  2-2. stage-framing → stage-dump → stage-frame-select
+  2-3. stage-distill → stage-decide → stage-reflect
+  2-4. thinking-card (메인 라우터)
+  2-5. 기존 파일 수정 + buddy-styles.css
+
+Phase 3: Dashboard
+  3-1. thinking-sprint-types
+  3-2. 하위 컴포넌트 (session-history, stats-overview 등)
+  3-3. thinking-sprint-view.tsx
+  3-4. dashboard.tsx / pages/index.ts / DashboardSidebar 수정
+```
+
+---
+
+## Verification Plan
+
+### Automated
+```bash
+npm run build
+```
+
+### Manual
+1. 라디얼 메뉴 🧠 아이콘 → Wizard Panel 오픈
+2. 5단계 전체 플로우 완주
+3. 단계별 패널 크기 CSS 트랜지션
+4. 일시정지 & 재개 (패널 닫았다 다시 열기)
+5. IndexedDB 세션 기록 확인
+6. 대시보드 세션 목록/통계 렌더링
+7. 프레임 에셋 카드 정상 로드

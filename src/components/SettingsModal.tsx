@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar } from "lucide-react";
+import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket } from "lucide-react";
 import type { AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -23,6 +23,7 @@ interface Props {
   showHNRankingMenu: boolean;
   onToggleHNRankingMenu: (v: boolean) => void;
   settingsMessage?: { text: string; type: "info" | "warn" } | null;
+  onOpenOnboarding?: () => void;
 }
 
 function NumInput({
@@ -124,7 +125,8 @@ export default function SettingsModal({
   showWikiRankingMenu, onToggleWikiRankingMenu,
   showHFRankingMenu, onToggleHFRankingMenu,
   showHNRankingMenu, onToggleHNRankingMenu,
-  settingsMessage
+  settingsMessage,
+  onOpenOnboarding
 }: Props) {
   const { t } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
@@ -266,6 +268,31 @@ export default function SettingsModal({
                 <p className="text-sm text-gray-700 dark:text-gray-200">{t("settingsLanguage")}</p>
                 <div className="w-48 shrink-0">
                   <LanguageSelector />
+                </div>
+              </div>
+            </div>
+
+            {/* Onboarding Guide */}
+            <div className="mt-4">
+              <SectionHeader icon={<Rocket size={13} />} title={t("settingsOnboardingGuide")} />
+              <div className="bg-gray-50 dark:bg-surface-800 rounded-xl px-3 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{t("settingsOnboardingGuide")}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-relaxed">
+                      {t("settingsOnboardingGuideDesc")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenOnboarding?.();
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 text-xs font-semibold rounded-lg border border-indigo-200/60 dark:border-indigo-800/60 transition-all shrink-0 hover:shadow-2xs active:scale-95 cursor-pointer"
+                  >
+                    <Sparkles size={12} className="text-indigo-500 shrink-0" />
+                    <span>{t("settingsOnboardingGuideBtn")}</span>
+                  </button>
                 </div>
               </div>
             </div>

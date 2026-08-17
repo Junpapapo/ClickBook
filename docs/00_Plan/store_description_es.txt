@@ -1,0 +1,68 @@
+🚀 ClickBook AI - Administrador de Marcadores y Tareas con AI
+
+Cierra la brecha entre la información web y la ejecución diaria.
+ClickBook AI es un centro de productividad de doble potencia, local primero (Local-First), construido sobre Chrome Manifest V3. Transforma tu navegador en un espacio de trabajo inteligente donde tus marcadores guardados y tus tareas diarias se unifican bajo inteligencia artificial en el dispositivo (Gemini Nano), con absoluta privacidad local.
+
+Guarda pestañas con 1 clic, deja que la AI las organice y convierte al instante los recursos web en TODOs accionables en tu tablero Kanban y calendario inteligente integrados.
+
+🌟 CARACTERÍSTICAS DEL ESPACIO DE TRABAJO UNIFICADO
+
+1. Organizador inteligente de marcadores con AI (Privado y Local)
+- Clasificación con AI en el dispositivo: Utiliza Gemini Nano (window.ai) para analizar URLs y títulos al instante, organizándolos en 8 carpetas predeterminadas inteligentes.
+- Reorganización masiva con AI y copia de seguridad: Reclasifica toda tu biblioteca digital con un solo clic, con un sistema de respaldo automático que mantiene tu colección siempre ordenada.
+- Etiquetado automático y Nube de etiquetas: Genera etiquetas contextuales automáticamente y gestiónalas a través de una nube de etiquetas de colores HSL interactiva y plegable.
+- Sistema de respaldo híbrido robusto: Si Gemini Nano no está disponible en tu dispositivo, ClickBook cambia al instante a un motor inteligente de reglas por dominio y palabras clave.
+
+2. Control avanzado de tareas y calendario (El centro de ejecución)
+- Calendario inteligente de tareas: Un calendario profundamente integrado con vistas de Mes, Semana y Día. Ajusta horarios arrastrando y soltando, configura tareas recurrentes y sincroniza automáticamente los días festivos oficiales de países como España, Estados Unidos, Japón y Corea del Sur.
+- Tablero de productividad Kanban: Gestiona tareas y notas visualmente. Haz seguimiento de las fechas límite mediante indicadores en el icono del navegador y notificaciones del sistema.
+- Centro de control de tareas AI: Monitorea la organización en segundo plano y el auto-etiquetado con barras de progreso en tiempo real. Incluye guardia de concurrencia (máx. 1 tarea en segundo plano) para garantizar la fluidez del navegador.
+
+3. ClickBook Buddy y Modo Enfoque (Premium)
+- Mascota animada de escritorio: Un adorable compañero animado que vive en cada página web, siempre al alcance y sin interferir en tu trabajo.
+- Menú radial de 9 acciones rápidas: Haz clic en el Buddy para acceder al instante a un menú circular con 9 herramientas:
+  * Traducir — Traduce al instante cualquier texto seleccionado en la página.
+  * Marcador — Guarda la página actual en ClickBook con 1 clic.
+  * Chat AI — Abre un panel de chat con Gemini Nano para resolver dudas en tiempo real.
+  * Temporizador — Inicia un temporizador Pomodoro en segundos.
+  * Descanso — Activa un modo de relajación en pantalla completa con sonido ambiental y visuales relajantes.
+  * Nota — Pega una nota adhesiva en la página actual.
+  * TODO — Añade y gestiona rápidamente los elementos de tu lista de hoy.
+  * Ocultar — Oculta el Buddy en el dominio actual (restáuralo cuando quieras desde la ventana emergente o el menú contextual).
+  * Configuración — Personaliza el tamaño, la opacidad, la velocidad de animación y el reloj.
+- Temporizador Pomodoro: Configura una duración de enfoque personalizada en minutos y sumérgete en el trabajo profundo.
+- Enciclopedia de Buddies: Explora todos los personajes en niveles Básico, Premium y Oculto, desbloqueándolos a medida que cumples metas de enfoque.
+- Temas de finalización inmersivos: Celebra cada sesión de enfoque con impresionantes efectos visuales en pantalla completa: Noche estrellada con auroras, Bosque zen, Chimenea acogedora, Atardecer junto al lago, Meditación yoga con síntesis de cuencos tibetanos y 18 historias de éxito cinematográficas al estilo Ken Burns.
+
+4. Sinergia Información a Acción (Premium)
+- Cuaderno digital con espiral (Editor enriquecido y Lienzo libre):
+  * Editor WYSIWYG moderno: Basado en Tiptap, compatible con encabezados, tablas, listas de tareas, formato enriquecido y fuentes personalizadas.
+  * Lienzo interactivo de forma libre: Coloca imágenes, notas adhesivas y tarjetas de marcadores libremente arrastrando y soltando sobre tus notas.
+  * Desplazamiento fluido en línea: Los elementos del lienzo se desplazan de forma nativa e integrada con tu texto a 60 fps.
+  * Sincronización adaptativa de temas: La interfaz se adapta automáticamente a temas claro, cuadrícula, sepia y oscuro, con sincronización directa con el tema del sistema de Chrome.
+
+- Centro de mapas mentales (Lluvia de ideas visual):
+  * Motor de diseño automático: Genera mapas mentales visuales e instantáneos a partir de tus estructuras de marcadores y carpetas.
+  * Personalización visual a medida: Personaliza formas de nodos (incluyendo nodos octogonales), colores HSL y líneas de conexión (grosor, estilos de trazo y colores).
+  * Panel lateral multifunción: Edita notas privadas de nodos directamente en el panel deslizante y consulta atajos de teclado en la guía flotante.
+  * Expansión de temas con AI y sincronización TODO: Amplía ideas con Gemini Nano y convierte cualquier rama del mapa en un evento de calendario o tarea TODO con un clic.
+- Copiloto de notas AI y Clipper web: Resalta texto en cualquier página web para guardarlo como una nota multilingüe pulida por AI.
+
+5. Suite para usuarios avanzados (Premium)
+- Búsqueda de texto completo (FTS): Indexa el contenido web en segundo plano para buscar a velocidad ultrarrápida en títulos, URLs, etiquetas, resúmenes y texto completo.
+- Suspensor inteligente de pestañas: Pausa automáticamente las pestañas inactivas en segundo plano para ahorrar hasta un 90% de RAM, manteniendo tu navegador siempre rápido.
+- Sincronización de grupos de pestañas: Guarda grupos activos de pestañas de Chrome en carpetas y restáuralos al instante con sus colores nativos.
+- Destructor de sesiones privadas: Asigna 'Carpetas seguras' para destruir cookies, almacenamiento local e historial de forma automática al cerrar las pestañas protegidas.
+- Modo Zen Reader: Elimina anuncios y elementos distractores para una lectura limpia con temas sepia/oscuro e índice dinámico (TOC).
+- Bloqueador de anuncios integrado: Bloquea anuncios y rastreadores en todos los sitios con reglas basadas en EasyList (actualizadas periódicamente). Permite excepciones por dominio con un solo clic; todo el filtrado se realiza nativamente mediante declarativeNetRequest.
+
+🔒 PRIVACIDAD Y RENDIMIENTO PRIMERO
+- Almacenamiento 100% local: Todos tus marcadores, índices de búsqueda y cálculos de AI se ejecutan localmente en tu equipo (chrome.storage.local). Tus datos personales nunca salen de tu dispositivo.
+- Cero recolección de datos de usuario: ClickBook no recopila ni envía información personal o historial de navegación a servidores externos. Algunas funciones opcionales (actualización de listas de filtros, tendencias de GitHub, vistas previas de Wikipedia, feeds de Hacker News) solo envían solicitudes públicas a APIs abiertas sin datos personales.
+
+⚙️ CÓMO HABILITAR LA AI LOCAL DE CHROME (GEMINI NANO)
+Pasos para desbloquear la AI local en Google Chrome (v127 o superior):
+1. Ve a chrome://flags/#optimization-guide-on-device-model → Selecciona "Enabled (BypassPrefRequirement)".
+2. Ve a chrome://flags/#prompt-api-for-gemini-nano → Selecciona "Enabled".
+3. Reinicia Chrome. El navegador descargará automáticamente el modelo en segundo plano.
+(Nota: Si Gemini Nano aún no está listo, el sistema de reglas inteligentes de ClickBook se encargará automáticamente de la clasificación y el etiquetado.)

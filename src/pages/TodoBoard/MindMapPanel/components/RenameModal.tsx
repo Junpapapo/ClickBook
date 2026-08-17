@@ -63,7 +63,7 @@ export default function RenameModal({ fileName, onConfirm, onClose }: Props) {
               onClick={onClose}
               className="px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
             >
-              {t("cancel")}
+              {t("cancelBtn")}
             </button>
             <button
               type="submit"

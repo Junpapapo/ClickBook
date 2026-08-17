@@ -356,6 +356,16 @@ export async function handleMessage(message: Message, sender?: chrome.runtime.Me
     case "BUDDY_GET_TOP_SITES":
     case "BUDDY_OPEN_DASHBOARD":
       return await handleBuddyMessage(message, sender!);
+    case "GET_ALL_SPRING_NOTES": {
+      const { getAllSpringNotes } = await import("@/utils/springNoteDb");
+      const notes = await getAllSpringNotes();
+      return { success: true, data: notes };
+    }
+    case "SAVE_ALL_SPRING_NOTES": {
+      const { saveAllSpringNotes } = await import("@/utils/springNoteDb");
+      await saveAllSpringNotes(message.notes);
+      return { success: true };
+    }
     default:
       return { success: false, error: "Unknown message type" };
   }

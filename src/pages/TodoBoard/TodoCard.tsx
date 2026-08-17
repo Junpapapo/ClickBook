@@ -1,6 +1,6 @@
 import React from "react";
 import { Draggable, DraggableProvided } from "@hello-pangea/dnd";
-import { GripVertical, CheckCircle2, Circle, Calendar, AlignLeft, CheckSquare, Trash2, BookOpen } from "lucide-react";
+import { GripVertical, CheckCircle2, Circle, Calendar, AlignLeft, CheckSquare, Trash2, BookOpen, Timer } from "lucide-react";
 import type { TodoTask } from "@/shared/types";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { checkSpringNoteExists } from "@/utils/springNoteDb";
@@ -212,6 +212,17 @@ export default React.memo(function TodoCard({
                         >
                           <BookOpen size={11} className="shrink-0" />
                           <span>Note</span>
+                        </div>
+                      )}
+
+                      {/* Focus Time Badge */}
+                      {((task.focusMinutes !== undefined && task.focusMinutes > 0) || (task.focusCycles !== undefined && task.focusCycles > 0)) && (
+                        <div
+                          className="h-5 flex items-center gap-1 text-[10.5px] font-medium bg-amber-50/80 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 px-1.5 rounded-md border border-amber-200/60 dark:border-amber-800/40"
+                          title={t("timerFocusBadgeTitle" as any) || `Focus Time: ${task.focusMinutes || 0}m (${task.focusCycles || 0} cycles)`}
+                        >
+                          <Timer size={11} className="shrink-0 text-amber-600 dark:text-amber-400" />
+                          <span>{task.focusMinutes ? `${task.focusMinutes}m` : `${task.focusCycles}🍅`}</span>
                         </div>
                       )}
                     </div>

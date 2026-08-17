@@ -1,0 +1,50 @@
+【 Nome dell'estensione 】
+Pomogochi: Timer Pomodoro, Gamification e Gestione Attività con Compagno Virtuale
+
+【 Breve descrizione (Entro 132 caratteri) 】
+Un adorabile compagno virtuale che cresce insieme alla tua concentrazione! Timer Pomodoro, To-Do, ASMR e sprint di riflessione.
+
+【 Descrizione dettagliata 】
+Pomogochi non è un semplice timer: è uno spazio di lavoro all-in-one per la produttività che trasforma ogni sessione di studio e lavoro in un'avventura gratificante e divertente.
+
+Dotato di un compagno pixel art che reagisce in tempo reale al tuo stato di concentrazione, Pomogochi unisce la celebre Tecnica Pomodoro, la gamification con missioni e ricompense, suoni ambientali ASMR rilassanti e lo sprint di pensiero Two-Beat Thinking™ per organizzare le idee senza stress.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ CARATTERISTICHE PRINCIPALI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ Timer Pomodoro Intelligente & Tracciamento del Tempo
+- Timer Pomodoro personalizzabile (lavoro, pausa breve, pausa lunga)
+- Modalità Deep Focus a schermo intero con sfondi immersivi e controlli rapidi
+- Tracciamento dettagliato del tempo per categoria con statistiche visive giornaliere e settimanali
+
+2️⃣ Compagno Virtuale Interattivo & Gamification
+- Compagni pixel art unici (Owly, Pomi, Bunbun e altri) che salgono di livello con la tua concentrazione
+- Guadagna monete e semi di concentrazione per ogni sessione completata
+- Negozio di adesivi, mobili per la stanza del compagno e decorazioni sbloccabili
+
+3️⃣ Gestione Attività & Lavagna Kanban
+- Lista di cose da fare (To-Do) integrata con supporto Kanban
+- Calendario con rilevamento automatico delle festività nazionali (Italia, Europa, USA, Asia)
+- Collegamento immediato tra attività pianificate e timer di concentrazione
+
+4️⃣ ASMR Immersivo & Paesaggi Sonori
+- Suoni rilassanti della natura, pioggia, onde, rumore bianco e biblioteca
+- Equalizzatore audio visivo integrato nella modalità Focus
+
+5️⃣ Two-Beat Thinking™: Sprint di Riflessione & Strutturazione Idee
+- Organizza pensieri complessi e brainstorming in 3 passaggi guidati
+- 6 matrici di pensiero professionali (Matrice di Eisenhower, Now/Next/Later, Fatti vs Emozioni, MoSCoW, ecc.)
+- Esportazione rapida dei riepiloghi in formato Markdown con firma di sicurezza
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔒 PRIVACY E SICUREZZA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Nessun tracciamento invasivo: tutti i dati sono salvati localmente sul tuo browser
+- Backup e ripristino sicuro in formato JSON protetto da crittografia SHA-256
+- Supporto multilingue completo (9 lingue: Italiano, Inglese, Coreano, Giapponese, Cinese, Spagnolo, Tedesco, Francese, Portoghese)
+
+Rendi il tuo tempo prezioso e goditi ogni minuto di concentrazione con il tuo nuovo amico Pomogochi! 🍅✨
+
+【 Tag di ricerca / Parole chiave 】
+Pomodoro, Timer concentrazione, Studio, Produttività, Compagno virtuale, Gamification, To-Do list, ASMR, Kanban, Blocco distrazioni

@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Layers,
   Cpu,
+  History,
 } from "lucide-react";
 import type { Bookmark, Folder } from "@/shared/types";
 import { findDuplicateGroups } from "@/shared/categorizer";
@@ -355,7 +356,7 @@ export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh 
                                   </div>
 
                                   {/* Card actions */}
-                                  <div className="flex items-center gap-1.5 px-3 pb-3 mt-auto">
+                                  <div className="flex items-center gap-1.5 px-3 pb-3 mt-auto flex-wrap">
                                     <a
                                       href={bm.url}
                                       target="_blank"
@@ -365,6 +366,17 @@ export default function AICleanerModal({ bookmarks, folders, onClose, onRefresh 
                                     >
                                       <ExternalLink size={9} />
                                       Open
+                                    </a>
+                                    <a
+                                      href={`https://web.archive.org/web/*/${encodeURIComponent(bm.url)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1 px-2 py-1 text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-50/80 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-950/50 rounded-md transition-colors"
+                                      title={t("viewWebArchive" as any) || "Wayback Machine"}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <History size={9} />
+                                      Archive
                                     </a>
                                     <button
                                       onClick={() => toggleDelete(bm.id)}

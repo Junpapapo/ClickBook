@@ -1,0 +1,58 @@
+🐣 Pomogochi: Mascote Flutuante Fofo & Temporizador Pomodoro de Produtividade
+
+Aumente sua produtividade com um sorriso! O Pomogochi é seu adorável mascote flutuante de mesa e uma poderosa ferramenta de produtividade gamificada. Ele transforma seu trabalho diário e sessões de estudo em uma experiência gratificante, ultra-focada e motivadora — com temporizador Pomodoro, sprints de organização mental Two-Beat Thinking™, decoração de quartos personalizados, roleta da sorte e análises completas.
+
+---
+
+🌟 VISÃO GERAL DOS PRINCIPAIS RECURSOS
+
+1. 🐣 Mascote Flutuante Interativo (Buddy de Mesa)
+- Mascote animado na área de trabalho: Um companheiro carinhoso vive discretamente em qualquer página web para incentivar seu foco e estudos.
+- Menu radial de acesso rápido com 9 ações:
+  * Temporizador de Foco — Inicie uma sessão Pomodoro em apenas um segundo.
+  * Sprint de Reflexão — Organize sua mente com a metodologia Two-Beat Thinking™.
+  * Roleta da Sorte — Tome decisões rápidas e divirta-se.
+  * Notas Rápidas — Fixe lembretes e memorandos diretamente na página.
+  * Briefing do Buddy — Resumo diário, previsão do tempo e palavras calorosas de incentivo.
+  * Favoritos & Sites Frequentes — Acesso instantâneo aos seus sites preferidos.
+  * Bloqueador de Anúncios & Modo Privado — Navegação limpa, sem distrações nem histórico.
+  * Temas & Configurações — Personalize aparência, tamanho, opacidade e efeitos sonoros.
+
+2. ⏱️ Temporizador Pomodoro & Modo Não Perturbe (DND) Imersivo
+- Temporizador flexível: Suporte a Pomodoro clássico (25 min de foco + 5 min de pausa), Pomodoro reverso e ajuste livre de minutos.
+- Modo de foco imersivo: Desfoque de fundo durante o trabalho e temas relaxantes em tela cheia (Noite Estrelada, Floresta Zen, Lareira Aconchegante, Ondas Suaves, Ondas Cerebrais Theta).
+- Animação Co-Working & Sons ASMR: Digitação mecânica, chuva suave, metrônomo e ruído branco com equalizador de áudio em tempo real.
+- Rastreador de Tempo (Time Tracker): Medição ultra-precisa do tempo investido por tarefa e categoria.
+
+3. 🧠 Two-Beat Thinking™ Sprint de Reflexão (Organização Mental)
+- Metodologia estruturada em 4 etapas:
+  1) Descarga Mental (Dump) — Anote tudo o que vier à mente sem nenhum filtro.
+  2) Destilação (Distill) — Organize suas ideias com matrizes consagradas (Now/Next/Later, Matriz de Eisenhower, Fatos vs Emoções, Controlabilidade, Causa & Reação, MoSCoW).
+  3) Decisão (Decide) — Selecione de 1 a 2 ações prioritárias e práticas para o dia de hoje.
+  4) Retrospectiva (Reflect) — Avalie sua sessão, registre seus aprendizados e ganhe XP!
+
+4. 🏡 Quarto do Buddy, Gacha & Decoração
+- Crie seu quarto dos sonhos: Posicione livremente móveis, tapetes, plantas e papéis de parede estéticos.
+- Caixa da Sorte Estrelada & Sistema Gacha: Ganhe moedas de ouro e sementes de foco para desbloquear itens raros e colecionáveis.
+- Tela Livre & Diário Pessoal: Escreva suas reflexões diárias e decore suas páginas com adesivos incríveis.
+- Livro de Visitas: Compartilhe seu humor do dia e receba respostas acolhedoras do seu Buddy.
+
+5. 🎡 Roleta da Sorte & Tomada de Decisão
+- Decisão instantânea: Perfeito para escolher o almoço, definir a ordem das tarefas, reuniões ou se divertir com colegas.
+- Modelos Prontos & Personalização: Salve seus próprios modelos, personalize cores, ícones e velocidades de rotação.
+
+6. 📊 Painel & Estatísticas de Foco
+- Gráficos detalhados: Acompanhe suas horas de foco diárias, semanais e mensais, taxa de conclusão e sequências de dias (streaks).
+- Arquivo de sprints de pensamento: Consulte sessões anteriores e exporte relatórios em formato Markdown com um clique.
+- Calendário inteligente: Sincronização automática de tarefas e feriados nacionais oficiais.
+
+---
+
+🔒 PRIVACIDADE & DESEMPENHO GARANTIDOS
+- Armazenamento 100% local: Todas as tarefas, notas, históricos do temporizador e dados permanecem seguros no seu dispositivo (chrome.storage.local).
+- Sem rastreamento, sem servidores externos: Respeito absoluto à sua privacidade.
+- Compatibilidade universal com múltiplos navegadores: 100% compatível com Chrome, Edge, Whale, Brave e todos os navegadores baseados em Chromium.
+
+---
+
+🚀 Evolua todos os dias com alegria — ao lado do seu Buddy Pomogochi!

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -12,7 +12,13 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   FileText,
-  CheckCheck
+  CheckCheck,
+  Headphones,
+  Play,
+  Pause,
+  Square,
+  SkipBack,
+  SkipForward,
 } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import "./ReaderModeViewer.css";
@@ -70,7 +76,138 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
   const [copiedText, setCopiedText] = useState(false);
   const [isTOCVisible, setIsTOCVisible] = useState(true);
 
+  // ── TTS (Text-to-Speech) State ──────────────────────────────
+  const [isTtsOpen, setIsTtsOpen] = useState(false);
+  const [ttsState, setTtsState] = useState<"idle" | "playing" | "paused">("idle");
+  const [ttsIndex, setTtsIndex] = useState(0);
+  const [ttsSpeed, setTtsSpeed] = useState<number>(1.0);
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const ttsUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Clean paragraphs for TTS reading
+  const ttsParagraphs = useMemo(() => {
+    if (!initialContent) return [];
+    return initialContent
+      .split(/\n\s*\n/)
+      .map((p) =>
+        p
+          .replace(/#{1,6}\s+/g, "")
+          .replace(/[*`~_-]/g, "")
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+          .trim()
+      )
+      .filter((p) => p.length > 2);
+  }, [initialContent]);
+
+  // Clean TTS upon closing or unmounting
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const getVoiceLang = useCallback((currentLang: string): string => {
+    switch (currentLang) {
+      case "ko": return "ko-KR";
+      case "ja": return "ja-JP";
+      case "zh-CN": return "zh-CN";
+      case "zh-TW": return "zh-TW";
+      case "de": return "de-DE";
+      case "es": return "es-ES";
+      default: return "en-US";
+    }
+  }, []);
+
+  const playTtsParagraph = useCallback((index: number) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+
+    if (index >= ttsParagraphs.length || index < 0) {
+      setTtsState("idle");
+      setTtsIndex(0);
+      return;
+    }
+
+    const textToRead = ttsParagraphs[index];
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = getVoiceLang(lang);
+    utterance.rate = ttsSpeed;
+
+    utterance.onend = () => {
+      if (index + 1 < ttsParagraphs.length) {
+        setTtsIndex(index + 1);
+        playTtsParagraph(index + 1);
+      } else {
+        setTtsState("idle");
+        setTtsIndex(0);
+      }
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== "canceled" && e.error !== "interrupted") {
+        console.warn("[Reader TTS Error]:", e);
+      }
+      setTtsState("idle");
+    };
+
+    ttsUtteranceRef.current = utterance;
+    setTtsIndex(index);
+    setTtsState("playing");
+    window.speechSynthesis.speak(utterance);
+  }, [ttsParagraphs, lang, ttsSpeed, getVoiceLang]);
+
+  const handleToggleTts = useCallback(() => {
+    if (!isTtsOpen) {
+      setIsTtsOpen(true);
+      playTtsParagraph(ttsIndex);
+    } else {
+      if (ttsState === "playing") {
+        if (window.speechSynthesis) window.speechSynthesis.pause();
+        setTtsState("paused");
+      } else if (ttsState === "paused") {
+        if (window.speechSynthesis) window.speechSynthesis.resume();
+        setTtsState("playing");
+      } else {
+        playTtsParagraph(ttsIndex);
+      }
+    }
+  }, [isTtsOpen, ttsState, ttsIndex, playTtsParagraph]);
+
+  const handleStopTts = useCallback(() => {
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setTtsState("idle");
+    setTtsIndex(0);
+  }, []);
+
+  const handleCloseTtsBar = useCallback(() => {
+    handleStopTts();
+    setIsTtsOpen(false);
+  }, [handleStopTts]);
+
+  const handleNextParagraph = useCallback(() => {
+    const nextIdx = Math.min(ttsParagraphs.length - 1, ttsIndex + 1);
+    playTtsParagraph(nextIdx);
+  }, [ttsParagraphs.length, ttsIndex, playTtsParagraph]);
+
+  const handlePrevParagraph = useCallback(() => {
+    const prevIdx = Math.max(0, ttsIndex - 1);
+    playTtsParagraph(prevIdx);
+  }, [ttsIndex, playTtsParagraph]);
+
+  const cycleTtsSpeed = useCallback(() => {
+    const speeds = [0.75, 1.0, 1.25, 1.5, 2.0];
+    const currIdx = speeds.indexOf(ttsSpeed);
+    const nextSpeed = speeds[(currIdx + 1) % speeds.length];
+    setTtsSpeed(nextSpeed);
+    if (ttsState === "playing") {
+      playTtsParagraph(ttsIndex);
+    }
+  }, [ttsSpeed, ttsState, ttsIndex, playTtsParagraph]);
 
   // Save layout configurations locally
   useEffect(() => {
@@ -427,6 +564,16 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
             </div>
 
             <div className="reader-controls-actions">
+              {/* TTS Listen Button */}
+              <button
+                onClick={handleToggleTts}
+                className={`reader-action-btn ${isTtsOpen ? "reader-action-btn-active text-purple-400" : ""}`}
+                title={isTtsOpen ? t("ttsStop") : t("ttsPlay")}
+                style={isTtsOpen ? { color: "#a78bfa", borderColor: "rgba(139, 92, 246, 0.5)" } : {}}
+              >
+                <Headphones size={16} />
+              </button>
+
               {/* Utility Actions */}
               <button
                 onClick={handleCopyMarkdown}
@@ -486,6 +633,87 @@ export const ReaderModeViewer: React.FC<ReaderModeViewerProps> = ({
             </article>
           </div>
         </div>
+
+        {/* Floating Mini TTS Audio Player Bar */}
+        {isTtsOpen && (
+          <div className="reader-tts-floating-bar">
+            {/* Wave animation indicator */}
+            {ttsState === "playing" && (
+              <div className="reader-tts-wave" title={t("ttsListening")}>
+                <span className="reader-tts-wave-bar" />
+                <span className="reader-tts-wave-bar" />
+                <span className="reader-tts-wave-bar" />
+                <span className="reader-tts-wave-bar" />
+              </div>
+            )}
+
+            {/* Prev Paragraph */}
+            <button
+              onClick={handlePrevParagraph}
+              disabled={ttsIndex <= 0}
+              className="reader-tts-btn"
+              title={t("ttsPrevParagraph")}
+              style={{ opacity: ttsIndex <= 0 ? 0.4 : 1 }}
+            >
+              <SkipBack size={15} />
+            </button>
+
+            {/* Play / Pause Toggle */}
+            <button
+              onClick={handleToggleTts}
+              className="reader-tts-btn reader-tts-btn-primary"
+              title={ttsState === "playing" ? t("ttsPause") : t("ttsPlay")}
+            >
+              {ttsState === "playing" ? <Pause size={18} /> : <Play size={18} style={{ marginLeft: 2 }} />}
+            </button>
+
+            {/* Next Paragraph */}
+            <button
+              onClick={handleNextParagraph}
+              disabled={ttsIndex >= ttsParagraphs.length - 1}
+              className="reader-tts-btn"
+              title={t("ttsNextParagraph")}
+              style={{ opacity: ttsIndex >= ttsParagraphs.length - 1 ? 0.4 : 1 }}
+            >
+              <SkipForward size={15} />
+            </button>
+
+            {/* Stop */}
+            <button
+              onClick={handleStopTts}
+              className="reader-tts-btn"
+              title={t("ttsStop")}
+            >
+              <Square size={14} />
+            </button>
+
+            {/* Speed Control Button */}
+            <button
+              onClick={cycleTtsSpeed}
+              className="reader-tts-speed-btn"
+              title={t("ttsSpeed")}
+            >
+              {ttsSpeed}x
+            </button>
+
+            {/* Paragraph Progress */}
+            {ttsParagraphs.length > 0 && (
+              <span className="reader-tts-progress-text">
+                {ttsIndex + 1} / {ttsParagraphs.length}
+              </span>
+            )}
+
+            {/* Close TTS Bar */}
+            <button
+              onClick={handleCloseTtsBar}
+              className="reader-tts-btn"
+              title={t("closeBtn")}
+              style={{ marginLeft: 4 }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

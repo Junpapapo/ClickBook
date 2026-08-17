@@ -1,0 +1,60 @@
+🚀 ClickBook AI - Gerenciador de Favoritos & Tarefas com Inteligência Artificial
+
+Conecte a informação da web com a ação diária.
+O ClickBook AI é um hub de produtividade local e poderoso, desenvolvido no padrão Chrome Manifest V3. Ele transforma seu navegador em um espaço de trabalho inteligente onde seus favoritos salvos e suas tarefas diárias são unificados perfeitamente pela IA local (Gemini Nano) — com privacidade absoluta no seu dispositivo.
+
+Salve abas com 1 clique, deixe a IA organizá-las e converta instantaneamente seus recursos web em tarefas práticas no quadro Kanban e no calendário inteligente.
+
+🌟 RECURSOS DO ESPAÇO DE TRABALHO UNIFICADO
+
+1. Organização Inteligente de Favoritos por IA (Privado & Local)
+- Categorização por IA no Dispositivo: Utilize o Gemini Nano (window.ai) para analisar instantaneamente URLs e títulos, organizando-os em 8 pastas inteligentes padrão.
+- Reorganização em Massa & Backup por IA: Reorganize toda a sua biblioteca digital com um clique e conte com sistema de backup automático.
+- Marcação Automática & Nuvem de Tags: Gere tags contextuais automaticamente e gerencie-as através de uma nuvem de tags interativa e retrátil com paleta de cores HSL.
+- Sistema Híbrido de Contingência: Se o Gemini Nano não estiver ativo no dispositivo, o ClickBook alterna instantaneamente para um algoritmo inteligente baseado em domínios e palavras-chave.
+
+2. Gestão Avançada de Tarefas & Calendário (Centro de Execução)
+- Calendário Todo Inteligente: Calendário completo com visualizações por Mês/Semana/Dia. Ajuste tarefas com arrastar e soltar, defina tarefas recorrentes e sincronize feriados oficiais automaticamente (Brasil, Portugal, EUA, etc.).
+- Quadro Kanban de Produtividade: Gerencie suas tarefas e notas de forma visual. Acompanhe prazos com notificações de badge no navegador e alertas do sistema.
+- Centro de Controle de Tarefas IA: Acompanhe a organização em segundo plano com barras de progresso em tempo real. Inclui Concurrency Guard para garantir total fluidez ao navegar.
+
+3. ClickBook Buddy & Modo Foco (Premium)
+- Mascote Flutuante Animado: Um companheiro encantador vive em cada página web, sempre ao seu alcance sem atrapalhar a leitura.
+- Menu Radial com 9 Ações: Clique no Buddy para abrir instantaneamente 9 ferramentas:
+  * Tradução — Traduza qualquer texto selecionado na página em tempo real.
+  * Favorito — Salve a página atual no ClickBook com 1 clique.
+  * Chat IA — Abra um painel de conversa Gemini Nano para tirar dúvidas instantaneamente.
+  * Temporizador — Inicie um temporizador Pomodoro em poucos segundos.
+  * Descanso — Ative um modo de descanso em tela cheia com imagens relaxantes e sons suaves.
+  * Memorando — Fixe notas adesivas na página atual.
+  * TODO — Adicione e gerencie suas tarefas do dia rapidamente.
+  * Ocultar — Oculte temporariamente o Buddy no domínio atual.
+  * Configurações — Personalize tamanho, opacidade, velocidade e exibição do relógio.
+- Temporizador Pomodoro: Defina durações personalizadas e mergulhe em trabalho focado.
+- Enciclopédia de Buddies: Descubra todos os personagens (Básicos, Premium e Secretos) e desbloqueie-os com suas conquistas.
+- Temas Imersivos de Conquista: Celebre cada sessão concluída com efeitos espetaculares em tela cheia (Aurora Boreal, Floresta Zen, Lareira, Pôr do Sol e histórias cinematográficas).
+
+4. Sinergia Informação-Ação (Premium)
+- Bloco de Notas Espiral (Editor Rico & Tela Livre):
+  * Editor WYSIWYG Moderno: Desenvolvido com Tiptap, suporta títulos, tabelas, listas de tarefas e formatação completa.
+  * Tela Interativa Livre: Arraste e solte imagens, post-its e cartões de favoritos diretamente na sua anotação.
+  * Rolagem Fluida a 60 fps: Elementos da tela rolam de forma perfeitamente sincronizada com o texto.
+  * Sincronização Adaptativa de Temas: Adapta-se automaticamente aos modos Claro, Grade, Sépia, Escuro e tema do sistema.
+- Hub de Mapas Mentais (Brainstorming Visual):
+  * Layout Automático: Gere mapas mentais claros e visuais a partir de suas pastas de favoritos.
+  * Personalização Visual Completa: Altere formas de nós, cores HSL e linhas de conexão.
+  * Painel Lateral Completo: Edite anotações dos nós e consulte atalhos de teclado.
+  * Expansão por IA & Sincronização TODO: Expanda tópicos com IA e transforme ramos em tarefas ou eventos do calendário.
+- Assistente de Notas IA & Web Clipper: Selecione textos em qualquer site para salvar como resumos multilíngues inteligentes.
+
+5. Suíte para Usuários Avançados (Premium)
+- Pesquisa em Texto Completo (FTS): Indexe páginas em segundo plano para busca instantânea em títulos, URLs, tags, resumos e conteúdos completos.
+- Suspensão Inteligente de Abas: Congele abas inativas para economizar até 90% de memória RAM e manter o navegador ágil.
+- Sincronização de Grupos de Abas: Salve seus grupos de abas do Chrome em pastas e restaure-os com as cores originais.
+- Destruidor de Sessão Privada: Defina pastas seguras que apagam cookies, armazenamento e histórico ao fechar abas confidenciais.
+- Modo Leitura Zen: Remova anúncios e distrações para uma leitura limpa com temas sépia/escuro e sumário dinâmico.
+- Bloqueador de Anúncios Integrado: Bloqueie anúncios e rastreadores com listas EasyList usando declarativeNetRequest nativo.
+
+🔒 PRIVACIDADE E DESEMPENHO EM PRIMEIRO LUGAR
+- Armazenamento 100% Local: Todos os favoritos, índices de busca e cálculos de IA rodam localmente no seu computador (chrome.storage.local). Seus dados nunca saem do seu aparelho.
+- Sem servidores externos, sem rastreamento de dados: Garantia de total segurança e sigilo.

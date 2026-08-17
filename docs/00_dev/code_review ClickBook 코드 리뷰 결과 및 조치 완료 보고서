@@ -1,0 +1,45 @@
+# ClickBook 코드 리뷰 결과 및 조치 완료 보고서
+
+이전 코드 리뷰에서 발견된 모든 문제들이 해결되었습니다.
+
+---
+
+## 🔴 버그 / 잠재적 오류 (조치 완료)
+
+### 1. `timer-effect.ts` — Canvas RAF ID 갱신 누락 (해결)
+- **현황**: 매 프레임 `requestAnimationFrame`의 ID를 `overlay` 객체에 실시간 업데이트하여 `cancelAnimationFrame`이 최신 애니메이션을 완벽하게 해제하도록 수정했습니다.
+
+### 2. `buddy-state.ts` — `config.size` 보정 타이밍 버그 (해결)
+- **현황**: `Object.assign`으로 상태를 덮어쓰기 전에 `updates.config` 데이터를 먼저 검증 및 클램핑하도록 로직 순서를 수정했습니다.
+
+### 3. `timer-card.ts` — AudioContext 자원 해수 누락 (해결)
+- **현황**: 일회성 사운드 재생(`playChimeSound`, `playMetronomeTick`) 시, 사운드가 끝난 직후 `ctx.close()`를 비동기적으로 호출하여 브라우저의 오디오 채널 리소스를 해제했습니다.
+
+### 4. `drag-actions.ts` — `window` scroll/resize 리스너 누수 (해결)
+- **현황**: 말풍선의 `closeBtn` 핸들러 및 스크롤 이벤트 내부에서 공통 리스너 해제 함수를 호출하도록 변경하여 말풍선 제거 시 리스너가 누수되는 현상을 정리했습니다.
+
+---
+
+## 🟡 성능 저하 요소 (조치 완료)
+
+### 5. `buddy-character.ts` — `setInterval` 기반 이미지 애니메이션 (해결)
+- **현황**: 기존 `setInterval` 기반 프레임 교체를 `requestAnimationFrame` 기반 루프로 마이그레이션했습니다. 이제 브라우저 탭이 활성화되어 있지 않거나 비활성 상태일 때 애니메이션 루프가 자동으로 일시 정지되어 CPU와 배터리 소모를 극적으로 줄입니다.
+
+### 6. `buddy-state.ts` — `addBuddyXp` 루프 제어 (해결)
+- **현황**: 레벨 해금 계산 시 `newLevel < MAX_LEVEL` 제한 조건을 걸어 무한 루프 가능성을 사전에 차단했습니다.
+
+### 7. `buddy-utils.ts` — `checkResourceExists` HEAD 요청
+- **현황**: 메모리 맵 캐시가 존재하여 중복 방지가 되고 있습니다. 런타임에 문제가 없는 정상 코드로 분류됩니다.
+
+---
+
+## 🟢 코드 스타일 및 구조 개선 (조치 완료)
+
+### 8. `buddy-state.ts` — 캐릭터 목록 중복 정의 제거 (해결)
+- **현황**: `DEFAULT_OPEN_BUDDIES` 상수를 최상단에 선언하여 두 곳의 하드코딩 중복을 일원화했습니다.
+
+### 9. `buddy-state.ts` — 레벨 해금 17단계 if-else 문 리팩토링 (해결)
+- **현황**: `LEVEL_UNLOCK_MAP` 객체를 도입하여 간결한 Map 조회 로직으로 대폭 단순화했습니다.
+
+### 10. `timer-effect.ts` — 2,400+ 라인 거대 단일 파일 모듈화 (해결)
+- **현황**: 각 테마를 독립 모듈로 쪼개어 `src/buddy/components/timer-effect/` 디렉토리 아래의 별도 파일로 분리했습니다. `timer-effect.ts`는 이를 취합하는 진입점 역할로 압축되어 파일 유지보수성이 크게 향상되었습니다.

@@ -1,0 +1,80 @@
+# [사고 정리 스프린트 고도화 (1~3번 제안 & 대시보드 점검 브리핑 위젯)]
+
+사고 정리 스프린트를 **실제로 행동(Action)하게 만들고**, **드래그앤드롭 몰입감을 극대화**하며, **과거 세션을 감성 다이어리로 보관**하는 통합 고도화 계획 문서입니다.
+
+---
+
+## 💡 사용자 승인 완료 사항 (Design Decisions)
+
+1. **오늘의 행동 ➔ 투두(Todo) 자동 연동 & 양방향 동기화**:
+   - 4단계 완료 시, 도출된 실천 행동이 메인 투두 리스트에 `[사고정리 💡]` 뱃지와 함께 즉시 자동 등록됩니다.
+   - 투두에서 체크 완료 시 사고 정리 기록의 실행률(%)도 실시간 양방향 업데이터됩니다.
+2. **대시보드 [오늘의 사고 정리 점검 브리핑] 신규 위젯**:
+   - 대시보드 메인에 전용 브리핑 위젯 카드를 추가하여, 설정된 점검 시간 전후로 생각 정리 요약 및 행동 항목을 영롱한 파스텔 카드로 노출합니다.
+3. **버디 예약 점검 시간 알림 (말풍선 & 효과음)**:
+   - 점검 시간(예: 18:00)이 도래하면, 플로팅 버디가 *"오늘 약속하신 [행동 제목]을 점검할 시간이에요! 🎯"* 말풍선과 알림음을 발동합니다.
+4. **2단계 정리(Distill) D&D 마이크로 인터랙션**:
+   - 드래그 타겟 박스 영롱한 3D 아우라 하이라이트 + 드롭 시 쫀득한 바운시 안착 애니메이션.
+5. **사고 정리 히스토리 다이어리 (`ThinkingHistoryDiary`)**:
+   - 대시보드 및 버디 사이드바에 사고 정리 다이어리 전용 탭/뷰를 신규 배치합니다.
+
+---
+
+## Proposed Changes
+
+### Component 1: Core Thinking State & Todo Sync Layer
+
+#### [MODIFY] [thinking-types.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/thinking/thinking-types.ts)
+- `ThinkingSessionRecord`에 투두 연동 ID(`linkedTodoId`) 및 동기화 상태 필드 정의.
+
+#### [MODIFY] [thinking-storage.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/thinking/thinking-storage.ts)
+- 세션 저장 시 메인 투두 스토리지(`pomogochi_todos` / `buddyState.todos`)로 행동 항목 자동 push 및 `linkedTodoId` 바인딩.
+
+#### [MODIFY] [stage-reflect.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/thinking/components/stage-reflect.ts)
+- 세션 완료 처리 시 메인 투두 리스트로 `[사고정리 💡]` 뱃지 투두 자동 생성 호출.
+
+---
+
+### Component 2: Dashboard Widget & Review Time Notification Layer
+
+#### [NEW] [ThinkingBriefingWidget.tsx](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/dashboard/components/ThinkingBriefingWidget.tsx)
+- 대시보드 전용 사고 정리 점검 브리핑 위젯 컴포넌트 신규 구현.
+- 오늘의 사고 정리 요약, 점검 시간 카운트다운, 실천 행동 체크리스트 카드 표시.
+
+#### [MODIFY] [dashboard-main-view.tsx](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/dashboard/pages/dashboard-main/dashboard-main-view.tsx)
+- `ThinkingBriefingWidget`을 대시보드 메인 위젯 레지스트리 및 그리드에 추가.
+
+#### [MODIFY] [buddy-character.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/components/buddy-character.ts)
+- 점검 시간 주기적 타이머 체크 및 점검 시간 도래 시 버디 말풍선(*"오늘 약속하신 [행동]을 점검할 시간이에요! 🎯"*) 및 탭 이동 알림 트리거.
+
+---
+
+### Component 3: Stage 2 Distill Drag & Drop Micro-Interactions
+
+#### [MODIFY] [stage-distill.ts](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/thinking/components/stage-distill.ts)
+- dragover 시 프레임 컬럼에 `drag-hover-aura` 클래스 토글.
+- drop 시 쫀득한 바운시 에니메이션 효과(`bouncy-drop-anim`) 및 가벼운 팝 효과음 연동.
+
+#### [MODIFY] [stage-distill.css](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/buddy/styles/stage-distill.css)
+- `drag-hover-aura` 3D 그라데이션 하이라이트 및 `bouncy-drop-anim` 키프레임 정의.
+
+---
+
+### Component 4: Thinking History Diary Component
+
+#### [NEW] [ThinkingDiaryView.tsx](file:///c:/00_Workspace/00_Module_Dev/Pomogochi/src/dashboard/pages/thinking-diary/ThinkingDiaryView.tsx)
+- 대시보드 및 사이드바 통합 사고 정리 다이어리 페이지/뷰 컴포넌트 신규 구현.
+- 과거 세션 타임라인 앨범 카드, 사용 프레임 뱃지, 실천 행동 체크 관리 UI 제공.
+
+---
+
+## Verification Plan
+
+### Automated Build Verification
+- `npm run build`를 실행하여 모든 TypeScript 타입 및 Vite 번들링이 오류 없이 깔끔하게 빌드되는지 synchronously 검증.
+
+### Manual Verification
+1. 3단계 행동 작성 후 4단계 세션 완료 ➔ 메인 투두 리스트에 `[사고정리 💡]` 항목 자동 생성 여부 확인.
+2. 대시보드 메인 화면에서 `ThinkingBriefingWidget`이 파스텔 카드로 정교하게 노출되는지 확인.
+3. 2단계(Distill) 드래그앤드롭 시 3D 아우라 하이라이트 및 안착 바운싱 애니메이션 동작 확인.
+4. 다이어리 보관함 뷰에서 과거 세션 기록이 감성 타임라인으로 표시되는지 확인.

@@ -699,6 +699,7 @@ function AppContent() {
             infoBookmark={infoBookmark}
             infoMemo={infoBookmark ? memos[infoBookmark.id] : undefined}
             onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+            onOpenOnboarding={() => setShowWelcome(true)}
           />
         </div>
       </div>
@@ -710,6 +711,7 @@ function AppContent() {
         onNavigate={navigate}
         onOpenSettings={() => setSettingsModalOpen(true)}
         onOpenGuide={() => setActivePanel("guide")}
+        onOpenOnboarding={() => setShowWelcome(true)}
         onAiOrganize={handleAiOrganize}
         onAutoTag={handleAutoTag}
         bookmarks={bookmarks}
@@ -752,6 +754,10 @@ function AppContent() {
               if (!v && activePage === "hn") navigate("dashboard");
             }}
             settingsMessage={settingsMessage}
+            onOpenOnboarding={() => {
+              setSettingsModalOpen(false);
+              setShowWelcome(true);
+            }}
           />
         )}
       </Suspense>

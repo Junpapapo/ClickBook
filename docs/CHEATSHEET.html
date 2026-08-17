@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClickBook — テスト用チートシート</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --card: #1e1e2a;
+      --border: #2a2a3a;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --dim: #6b7280;
+      --indigo: #818cf8;
+      --indigo-dark: #6366f1;
+      --green: #34d399;
+      --amber: #fbbf24;
+      --red: #f87171;
+      --cyan: #67e8f9;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 32px 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--indigo);
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      color: var(--dim);
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+    h2 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--dim);
+      margin: 32px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 500;
+    }
+    .badge-green  { background: #052e16; color: var(--green); }
+    .badge-amber  { background: #1c1004; color: var(--amber); }
+    .badge-red    { background: #1e0a0a; color: var(--red); }
+    .badge-indigo { background: #1e1b4b; color: var(--indigo); }
+    .badge-cyan   { background: #082f32; color: var(--cyan); }
+    code {
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 12px;
+      color: var(--indigo);
+      margin: 6px 0;
+      word-break: break-all;
+    }
+    code.inline {
+      display: inline;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .step {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--indigo-dark);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-title { font-weight: 600; font-size: 13px; color: var(--text); }
+    .step-desc { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .check-list { list-style: none; margin-top: 6px; }
+    .check-list li {
+      color: var(--muted);
+      font-size: 12px;
+      padding: 3px 0;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .check-list li::before { content: "□"; color: var(--dim); flex-shrink: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th {
+      text-align: left;
+      font-size: 11px;
+      color: var(--dim);
+      font-weight: 600;
+      padding: 6px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    td {
+      font-size: 12px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      vertical-align: top;
+    }
+    td:first-child { color: var(--text); font-weight: 500; }
+    .url { color: var(--cyan); font-size: 11px; font-family: monospace; }
+    .expected { color: var(--green); }
+    .warn { color: var(--amber); }
+    .sep { margin: 40px 0; border: none; border-top: 1px solid var(--border); }
+    .tip {
+      background: #1e1b4b;
+      border: 1px solid #3730a3;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #a5b4fc;
+      margin-top: 8px;
+    }
+    .tip strong { color: var(--indigo); }
+  </style>
+</head>
+<body>
+
+  <h1>📎 ClickBook — テスト用チートシート</h1>
+  <p class="subtitle">拡張機能をChromeに読み込んで動作確認するための手順書</p>
+
+  <!-- ==================== STEP 1: ビルド ==================== -->
+  <h2>Phase 1 — ビルド &amp; 読み込み</h2>
+  <div class="card">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">依存関係をインストール &amp; ビルド</div>
+        <code>cd /Users/A451QL/Workspace/ClickBook</code>
+        <code>npm install</code>
+        <code>npm run build</code>
+        <div class="step-desc">成功すると <code class="inline">dist/</code> フォルダーが生成される</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Chrome の拡張機能ページを開く</div>
+        <code>chrome://extensions</code>
+        <div class="step-desc">アドレスバーに入力して移動</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">デベロッパーモードをオン</div>
+        <div class="step-desc">右上の「デベロッパー モード」トグルを ON にする</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">dist フォルダーを読み込む</div>
+        <div class="step-desc">「パッケージ化されていない拡張機能を読み込む」をクリック</div>
+        <code>/Users/A451QL/Workspace/ClickBook/dist</code>
+        <div class="step-desc">↑ このフォルダーを選択する</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">ピン留め（任意）</div>
+        <div class="step-desc">Chrome ツールバーのパズルアイコン → ClickBook の 📌 をクリック</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>ソース変更後の反映方法：</strong>
+    <code style="margin-top:6px">npm run build</code>
+    その後 <code class="inline">chrome://extensions</code> の ClickBook カードの 🔄 ボタンをクリック
+  </div>
+
+  <!-- ==================== STEP 2: Popup ==================== -->
+  <h2>Phase 2 — Popup の動作確認</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">✅ 正常保存 <span class="badge badge-green">PASS</span></div>
+      <ul class="check-list">
+        <li>任意の http/https サイト（例: github.com）を開く</li>
+        <li>拡張アイコンをクリック → Popup が開く</li>
+        <li>「このページを保存」ボタンをクリック</li>
+        <li>緑の ✅「保存しました！」が表示される</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ 重複保存 <span class="badge badge-amber">WARN</span></div>
+      <ul class="check-list">
+        <li>同じページで再度 Popup を開く</li>
+        <li>「このページを保存」をクリック</li>
+        <li>黄色の ⚠️「このURLはすでに保存済みです」が出る</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">❌ 内部URL拒否 <span class="badge badge-red">BLOCK</span></div>
+      <ul class="check-list">
+        <li><span class="url">chrome://extensions</span> などで Popup を開く</li>
+        <li>「このページを保存」をクリック</li>
+        <li>赤の ❌ エラーメッセージが表示される</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🔗 管理ページへ遷移</div>
+      <ul class="check-list">
+        <li>Popup の「ブックマークを管理」をクリック</li>
+        <li>新しいタブで管理ページが開く</li>
+        <li>URL が <code class="inline">chrome-extension://…/src/newtab/index.html</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 3: AI 分類 ==================== -->
+  <h2>Phase 3 — 自動カテゴリ分類の確認</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>保存するURL</th>
+        <th>期待フォルダー</th>
+        <th>判定元</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="url">https://github.com/facebook/react</td>
+        <td class="expected">テクノロジー</td>
+        <td>ルールベース</td>
+      </tr>
+      <tr>
+        <td class="url">https://www.youtube.com/watch?v=xxx</td>
+        <td class="expected">エンタメ</td>
+        <td>ルールベース (www. 除去)</td>
+      </tr>
+      <tr>
+        <td class="url">https://figma.com</td>
+        <td class="expected">デザイン</td>
+        <td>ルールベース</td>
+      </tr>
+      <tr>
+        <td class="url">https://arxiv.org/abs/2301.00001</td>
+        <td class="expected">サイエンス</td>
+        <td>ルールベース</td>
+      </tr>
+      <tr>
+        <td class="url">https://booking.com</td>
+        <td class="expected">トラベル</td>
+        <td>ルールベース</td>
+      </tr>
+      <tr>
+        <td class="url">https://my-unknown-blog.example.com/post</td>
+        <td class="expected">その他</td>
+        <td>Nano → フォールバック</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== STEP 3.5: Gemini Nano ==================== -->
+  <h2>Phase 3.5 — Gemini Nano（Chrome AI）の有効化</h2>
+  <div class="tip">
+    <strong>Gemini Nano とは：</strong> Chrome に内蔵されたオンデバイス AI モデル。外部サーバーへの通信なし・API キー不要でローカル推論が可能。ClickBook は <code class="inline">window.ai.languageModel</code> を通じてアクセスし、利用不可の場合はルールベース分類に自動フォールバックする。
+  </div>
+  <div class="card" style="margin-top: 12px;">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Chrome Canary を使用する（推奨）</div>
+        <div class="step-desc">Gemini Nano は現在 Chrome Canary（実験的ビルド）での利用を推奨。通常版 Chrome でも有効化できる場合がある。</div>
+        <code>https://www.google.com/chrome/canary/</code>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">フラグ ① — オンデバイスモデルを有効化</div>
+        <code>chrome://flags/#optimization-guide-on-device-model</code>
+        <div class="step-desc"><span class="expected">Enabled BypassPerfRequirement</span> に設定 → Chrome を再起動</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">フラグ ② — Prompt API を有効化</div>
+        <code>chrome://flags/#prompt-api-for-gemini-nano</code>
+        <div class="step-desc"><span class="expected">Enabled</span> に設定 → Chrome を再起動</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">モデルのダウンロード確認</div>
+        <code>chrome://components</code>
+        <div class="step-desc">「Optimization Guide On Device Model」のバージョンが <span class="warn">0.0.0.0</span> の場合は「アップデートを確認」をクリック。モデルは数百 MB あるためダウンロードに時間がかかることがある。</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">DevTools で利用可否を確認</div>
+        <div class="step-desc">任意のページで F12 → Console タブに以下を貼り付けて実行：</div>
+        <code>(await window.ai.languageModel.capabilities()).available</code>
+        <div class="step-desc">
+          <span class="expected">"readily"</span> → Nano 利用可能（ClickBook の AI ボタンが有効になる）<br>
+          <span class="warn">"after-download"</span> → モデルダウンロード中。しばらく待つ<br>
+          <span class="red">"no"</span> → フラグが未設定または非対応バージョン
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 12px;">
+    <div class="card-title">🤖 AI 自動整理 のテスト <span class="badge badge-cyan">NEW</span></div>
+    <ul class="check-list">
+      <li>管理ページを開き、複数のブックマークが登録されていることを確認</li>
+      <li>左サイドバーの「AI自動整理」ボタン（紫グラデーション ✦ アイコン）が<strong>有効</strong>になっていることを確認</li>
+      <li>ボタンをクリック → 確認ダイアログが表示される</li>
+      <li>「AI整理を実行」をクリック → スピナーが表示され処理が始まる</li>
+      <li>完了後、サイドバーに <span class="expected">「✓ AI整理完了 〇件中△件を移動しました」</span> が 6 秒間表示される</li>
+      <li>パターン一覧（PatternBar）に <code class="inline">AI整理バックアップ YYYY/MM/DD HH:mm</code> が自動保存されていることを確認</li>
+      <li>パターンを復元するとバックアップ時点の状態に戻せることを確認</li>
+    </ul>
+    <div class="tip" style="margin-top: 10px;">
+      <strong>Nano 利用不可の場合：</strong> 「AI自動整理」ボタンは自動的に無効化され「利用不可」バッジが表示される。上記フラグを有効にした後、Chrome と拡張機能を再読み込みすること。
+    </div>
+  </div>
+
+  <!-- ==================== STEP 4: 管理ページ ==================== -->
+  <h2>Phase 4 — 管理ページ（Dashboard）の確認</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">🏠 ダッシュボード表示</div>
+      <ul class="check-list">
+        <li>8つのフォルダーカードが表示される</li>
+        <li>各カードにブックマーク件数が表示される</li>
+        <li>「最近追加」に最新4件が表示される</li>
+        <li>「よく見るサイト」に訪問回数順 TOP5 が表示される</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">📂 フォルダービュー</div>
+      <ul class="check-list">
+        <li>フォルダーカードをクリック → そのフォルダーのブックマーク一覧</li>
+        <li>左サイドバーのフォルダー名をクリックでも同様</li>
+        <li>空フォルダーは 📭 メッセージが表示される</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 検索</div>
+      <ul class="check-list">
+        <li>上部の検索バーにキーワードを入力</li>
+        <li>タイトル・URL で即時フィルタリングされる</li>
+        <li>検索をクリアすると全件に戻る</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🌙 テーマ切替</div>
+      <ul class="check-list">
+        <li>右上の ☀️/🌙 ボタンをクリック</li>
+        <li>ライト / ダークが即時切り替わる</li>
+        <li>ページリロード後も設定が維持される</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 5: フォルダー ==================== -->
+  <h2>Phase 5 — フォルダー CRUD の確認</h2>
+  <div class="card">
+    <div class="step">
+      <div class="step-num">①</div>
+      <div class="step-body">
+        <div class="step-title">サブフォルダー作成</div>
+        <div class="step-desc">サイドバーのフォルダー行にホバー → <strong>FolderPlus</strong> アイコン → 名前を入力 → Enter で確定</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">②</div>
+      <div class="step-body">
+        <div class="step-title">リネーム</div>
+        <div class="step-desc">フォルダー行にホバー → ✏️ アイコン → 新しい名前を入力 → Enter</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">③</div>
+      <div class="step-body">
+        <div class="step-title">折り畳み</div>
+        <div class="step-desc">▶ / ▼ アイコンをクリック → 子フォルダーの表示/非表示が切り替わる</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">④</div>
+      <div class="step-body">
+        <div class="step-title">削除（ユーザー作成フォルダーのみ）</div>
+        <div class="step-desc">フォルダー行にホバー → 🗑️ アイコン → 中のブックマークが「その他」へ移動する</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">⑤</div>
+      <div class="step-body">
+        <div class="step-title">デフォルトフォルダーの削除不可を確認</div>
+        <div class="step-desc">テクノロジー / デザイン 等のデフォルトフォルダーには 🗑️ アイコンが<strong>表示されない</strong>こと</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 6: D&D ==================== -->
+  <h2>Phase 6 — Drag &amp; Drop の確認</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">📌 ブックマーク → フォルダー</div>
+      <ul class="check-list">
+        <li>ブックマークカードをドラッグ</li>
+        <li>サイドバーのフォルダーの上にホバー → 青いリング表示</li>
+        <li>ドロップ → フォルダー変更がリアルタイムに反映</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">📂 フォルダー → フォルダー</div>
+      <ul class="check-list">
+        <li>サイドバーのユーザー作成フォルダーをドラッグ</li>
+        <li>別のフォルダーの上にドロップ → サブフォルダーになる</li>
+        <li>デフォルトフォルダーはドラッグ不可であることを確認</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 7: Export/Import ==================== -->
+  <h2>Phase 7 — エクスポート / インポートの確認</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">⬇️ JSON エクスポート</div>
+      <ul class="check-list">
+        <li>右上の「JSON」ボタンをクリック</li>
+        <li><code class="inline">clickbook-export-YYYY-MM-DD.json</code> がダウンロードされる</li>
+        <li>中身に <code class="inline">bookmarks</code> と <code class="inline">folders</code> が含まれる</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">⬇️ HTML エクスポート</div>
+      <ul class="check-list">
+        <li>右上の「HTML」ボタンをクリック</li>
+        <li><code class="inline">clickbook-export-YYYY-MM-DD.html</code> がダウンロードされる</li>
+        <li>Netscape Bookmark File 形式で開ける</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">⬆️ JSON インポート</div>
+      <ul class="check-list">
+        <li>「インポート」ボタン → エクスポートした JSON を選択</li>
+        <li>全データが復元される</li>
+        <li>壊れた JSON はアラートでエラー表示</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="sep" />
+
+  <!-- ==================== 開発コマンド集 ==================== -->
+  <h2>開発コマンド集</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">🔨 ビルド（本番）</div>
+      <code>npm run build</code>
+      <p>dist/ を生成。Chrome に読み込む際はこちら。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">👀 ウォッチビルド（開発）</div>
+      <code>npm run dev</code>
+      <p>ファイル保存のたびに自動ビルド。Chrome で 🔄 更新が必要。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">✅ TypeScript チェック</div>
+      <code>npx tsc --noEmit</code>
+      <p>型エラーのみ確認。ビルドは行わない。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🧹 dist クリーン &amp; 再ビルド</div>
+      <code>rm -rf dist && npm run build</code>
+      <p>キャッシュ起因の問題が疑われる場合に使用。</p>
+    </div>
+  </div>
+
+  <!-- ==================== デバッグ ==================== -->
+  <h2>デバッグ方法</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">🐛 Service Worker のログ確認</div>
+      <div class="step-desc" style="font-size:12px; color:var(--muted); margin-bottom:8px">
+        Service Worker の console.log はここで確認する
+      </div>
+      <ul class="check-list">
+        <li><code class="inline">chrome://extensions</code> を開く</li>
+        <li>ClickBook カードの「Service Worker」リンクをクリック</li>
+        <li>DevTools の Console タブで確認</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🔍 Popup の DevTools</div>
+      <ul class="check-list">
+        <li>Popup を右クリック → 「検証」</li>
+        <li>または Popup を開いた状態で F12</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">💾 ストレージの確認</div>
+      <ul class="check-list">
+        <li>管理ページ（newtab）で F12 → Application タブ</li>
+        <li>Storage → Extension storage → Local Storage</li>
+        <li>キー <code class="inline">clickbook_data</code> を確認</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">🗑️ ストレージのリセット</div>
+      <ul class="check-list">
+        <li>DevTools Console で以下を実行：</li>
+      </ul>
+      <code>chrome.storage.local.clear()</code>
+      <p>再度ページを開くとデフォルト8フォルダーが復元される</p>
+    </div>
+  </div>
+
+  <div class="tip" style="margin-top: 24px;">
+    <strong>拡張機能を更新した後：</strong> <code class="inline">chrome://extensions</code> の ClickBook の 🔄 ボタンをクリックし、管理ページのタブも閉じて再度開くこと。
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+# ClickBook 광고 차단(Ad Blocker) 기능 구현 완료 보고서
+
+가독성 높은 브라우징 환경을 제공하기 위해, EasyList 규칙과 MV3 `declarativeNetRequest` 사양을 조합한 고성능 광고 차단 기능의 구현을 성공적으로 완료하였습니다.
+
+---
+
+## 1. 아키텍처 및 구현 변경점
+
+### 1) 파일 크기 및 단일 책임 격리 (Proactive Code Architect 준수)
+기존 버디 및 서비스워커 파일들의 복잡성 증가(모놀리스식 성장)를 원천 차단하기 위해 모든 광고 차단 로직을 **adblock 전용 폴더로 이원화**하여 격리했습니다:
+- **백그라운드 영역**: `src/background/services/adblock/`
+  - [adblock-background-service.ts](file:///c:/00_Workspace/ClickBook/src/background/services/adblock/adblock-background-service.ts): DNR 선언적 규칙 활성화, 특정 도메인 우회 동적 룰셋 업데이트, 3일 간격의 EasyList 온라인 다운로드 크론 알람 및 로컬 Fallback 업데이트 스케줄링 담당.
+  - [index.ts](file:///c:/00_Workspace/ClickBook/src/background/services/adblock/index.ts): 백그라운드용 Barrel 파일 (Re-export 전용).
+- **버디 컨텐츠 스크립트 영역**: `src/buddy/adblock/`
+  - [adblock-types.ts](file:///c:/00_Workspace/ClickBook/src/buddy/adblock/adblock-types.ts): 광고 차단 상태값 데이터 스키마 타입 정의.
+  - [adblock-state.ts](file:///c:/00_Workspace/ClickBook/src/buddy/adblock/adblock-state.ts): 백그라운드 서비스워커와 메시지 통신을 통한 활성 상태 조회 및 우회 도메인 온오프 토글.
+  - [adblock-engine.ts](file:///c:/00_Workspace/ClickBook/src/buddy/adblock/adblock-engine.ts): 로컬 스토리지에 캐싱된 Ghostery Adblocker 직렬화 버퍼를 로드 및 1ms 내로 고속 복원하여 현재 웹사이트 도메인에 적용되는 CSS Element Hiding 규칙을 `<style>` 태그로 헤드에 주입.
+  - [index.ts](file:///c:/00_Workspace/ClickBook/src/buddy/adblock/index.ts): 버디용 Barrel 파일 (Re-export 전용).
+
+### 2) 심사 안정성 극대화 및 권한 최적화
+- `declarativeNetRequestFeedback` 같이 유저 트래픽 감시 성격을 가져 구글 개인정보 심사를 어렵게 만드는 권한을 배제하고, 순수 차단을 위한 **`declarativeNetRequest` 권한만 사용**하도록 [manifest.json](file:///c:/00_Workspace/ClickBook/manifest.json)을 수정했습니다.
+- Chrome의 정적 파일 로딩 에러를 방지하기 위해 빈 규칙 리스트인 [rules.json](file:///c:/00_Workspace/ClickBook/public/rules.json)을 빌드 대상에 추가했습니다.
+- 첫 구동 및 오프라인 상태에서도 핵심 광고 도메인 및 스크립트를 강력히 차단해줄 기본 Fallback 규칙 리스트인 [easylist.txt](file:///c:/00_Workspace/ClickBook/public/easylist.txt)를 public 폴더에 배치했습니다.
+
+### 3) 다국어 로컬라이징 반영
+- [ko.ts](file:///c:/00_Workspace/ClickBook/src/buddy/i18n/ko.ts) / [en.ts](file:///c:/00_Workspace/ClickBook/src/buddy/i18n/en.ts) / [ja.ts](file:///c:/00_Workspace/ClickBook/src/buddy/i18n/ja.ts)에 메뉴 번역, 토글 성공 시 안내 토스트, 마우스오버 시 온오프 제어용 툴팁 텍스트를 성실히 정의 및 적용했습니다.
+
+### 4) 기존 시스템 연동
+- [message-router.ts](file:///c:/00_Workspace/ClickBook/src/background/services/message-router.ts) 및 [buddy-service.ts](file:///c:/00_Workspace/ClickBook/src/buddy/services/buddy-service.ts)에서 `BUDDY_GET_ADBLOCK_STATE` / `BUDDY_TOGGLE_ADBLOCK` 백그라운드 메시지 핸들러 분기를 연결하여 상태를 제어합니다.
+- [buddy-constants.ts](file:///c:/00_Workspace/ClickBook/src/buddy/buddy-constants.ts)에 사선이 그어진 AD 모양의 미니멀 `adblock` SVG 아이콘을 제작 및 등록하고 다이얼 항목(`RADIAL_ITEMS`)으로 배정했습니다.
+- [radial-menu.ts](file:///c:/00_Workspace/ClickBook/src/buddy/components/radial-menu.ts)에서 다이얼 메뉴를 그릴 때 광고 차단 여부에 따라 아이콘 투명도(차단 중: 정상 표시, 차단 해제/허용 중: opacity 0.45 반투명) 및 툴팁을 변경하고 클릭 시 Toast 가이드 노출과 함께 1초 후 자동으로 페이지가 새로고침되는 인터랙션을 구현했습니다.
+- [content-entry.ts](file:///c:/00_Workspace/ClickBook/src/buddy/content-entry.ts)의 로딩 시작점(0단계)에서 버디 캐릭터의 활성화 여부나 예외 도메인 숨김 여부와 관계없이 광고 Element Hiding 주입 엔진을 즉시 실행시켜 사이트 가독성을 높입니다.
+
+---
+
+## 2. 수동 검증 가이드
+
+새로 빌드된 확장 프로그램을 크롬에 로드하여 다음과 같이 테스트를 수행할 수 있습니다.
+
+### Step 1: 익스텐션 언팩 로드
+1. Chrome 브라우저에서 `chrome://extensions/` 주소로 이동합니다.
+2. 우측 상단의 **개발자 모드(Developer mode)** 토글 스위치를 활성화합니다.
+3. 좌측 상단의 **압축해제된 확장 프로그램을 로드합니다(Load unpacked)** 버튼을 클릭합니다.
+4. ClickBook 프로젝트의 빌드 결과물 폴더인 `c:\00_Workspace\ClickBook\dist` (또는 `dist` 폴더 내부에 빌드된 폴더)를 선택하여 등록합니다.
+
+### Step 2: 광고 사이트 테스트 및 다이얼 토글 검증
+1. 광고 레이아웃이 잦은 대표적인 웹사이트(예: 티스토리 블로그 혹은 주요 인터넷 언론사 뉴스 페이지)에 접속합니다.
+2. 페이지 내의 주요 광고 영역들이 Element Hiding에 의해 깨짐 없이 숨겨지고 텍스트 중심의 깔끔한 독서 환경이 구성되었는지 확인합니다.
+3. 버디 캐릭터를 클릭하여 퀵 다이얼(Radial Menu)을 오픈합니다.
+4. 새로 추가된 **`AD\` (ad-slash)** 아이콘 버튼을 찾습니다. 마우스오버 시 로컬라이징된 상태 툴팁이 잘 나오는지 확인합니다.
+5. 버튼을 클릭하면 화면에 `"이 사이트에서 광고 차단이 해제되었습니다. 페이지를 새로고침합니다."` 토스트가 뜨고, 1.2초 뒤 자동으로 페이지가 리로드되는지 확인합니다.
+6. 새로고침 후 숨겨졌던 광고들이 다시 정상적으로 출력되는지 검증합니다.
+7. 다시 다이얼을 열었을 때 `AD\` 버튼이 **반투명(opacity 0.45)**으로 변경되어 비활성화 상태임을 피드백하고 있는지 확인합니다.
+8. 버튼을 재클릭하여 광고 차단을 다시 켜면 `"광고 차단이 활성화되었습니다. 페이지를 새로고침합니다."` 토스트와 함께 다시 광고가 감춰지는지 최종 교차 검증합니다.

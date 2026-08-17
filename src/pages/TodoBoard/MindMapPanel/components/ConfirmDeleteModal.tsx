@@ -49,7 +49,7 @@ export default function ConfirmDeleteModal({ fileName, onConfirm, onClose }: Pro
             onClick={onClose}
             className="px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-surface-850 rounded-xl text-xs font-semibold text-gray-500 dark:text-gray-400 transition-colors cursor-pointer"
           >
-            {t("cancel")}
+            {t("cancelBtn")}
           </button>
           <button
             onClick={() => {

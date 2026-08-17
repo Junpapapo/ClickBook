@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ChevronsRight,
   Check,
+  Timer,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { TodoTask } from "@/shared/types";
@@ -1080,6 +1081,24 @@ export default function TaskDetailsModal({
                     <span>100%</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Focus Time Stats Section */}
+              <div className="flex flex-col gap-2 pt-3 border-t border-slate-200/60 dark:border-slate-800">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                    <Timer size={12} className="text-amber-500" />
+                    Focus Time
+                  </h4>
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                    {task.focusMinutes || 0}m ({task.focusCycles || 0}🍅)
+                  </span>
+                </div>
+                <p className="text-[10.5px] text-slate-500 dark:text-slate-400 leading-tight">
+                  {task.focusMinutes
+                    ? `Total accumulated focus duration from Buddy Timer.`
+                    : `Link this task from Buddy Timer to track focus time.`}
+                </p>
               </div>
             </div>
           </div>

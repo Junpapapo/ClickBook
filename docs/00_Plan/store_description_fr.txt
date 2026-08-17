@@ -1,0 +1,60 @@
+🚀 ClickBook AI - Gestionnaire de Favoris & Tâches par IA
+
+Faites le pont entre l'information web et l'action quotidienne.
+ClickBook AI est un hub de productivité local et puissant, conçu sur Chrome Manifest V3. Il transforme votre navigateur en un espace de travail intelligent où vos favoris enregistrés et vos tâches quotidiennes sont unifiés de manière fluide grâce à l'IA embarquée (Gemini Nano) — avec une confidentialité locale absolue.
+
+Enregistrez des onglets en 1 clic, laissez l'IA les organiser et convertissez instantanément vos ressources web en tâches concrètes sur votre tableau Kanban et votre calendrier intelligent.
+
+🌟 FONCTIONNALITÉS DE L'ESPACE DE TRAVAIL UNIFIÉ
+
+1. Organisation Intelligente des Favoris par IA (Privé & Local)
+- Catégorisation par IA sur l'appareil : Utilisez Gemini Nano (window.ai) pour analyser instantanément les URL et les titres, et les classer dans 8 dossiers intelligents par défaut.
+- Réorganisation en masse & Sauvegarde par IA : Reclassez l'ensemble de votre bibliothèque numérique en un clic avec un système de sauvegarde automatique.
+- Étiquetage automatique & Nuage de tags : Générez automatiquement des tags contextuels et gérez-les via un nuage de tags interactif et rétractable aux couleurs HSL.
+- Système hybride de secours : Si Gemini Nano n'est pas actif sur votre appareil, ClickBook bascule instantanément vers un système intelligent basé sur les domaines et les mots-clés.
+
+2. Gestion Avancée des Tâches & Calendrier (Le Centre d'Exécution)
+- Calendrier Todo Intelligent : Un calendrier complet prenant en charge les vues Mois/Semaine/Jour. Ajustez vos plannings par glisser-déposer, définissez des tâches récurrentes et synchronisez automatiquement les jours fériés officiels (France, États-Unis, Corée du Sud, Japon, etc.).
+- Tableau Kanban de Productivité : Gérez vos tâches et notes de façon visuelle. Suivez les échéances grâce aux badges de notification du navigateur et aux alertes système.
+- Centre de Contrôle des Tâches IA : Surveillez l'organisation IA en arrière-plan avec des barres de progression en direct. Dispose d'un Concurrency Guard (1 tâche simultanée max) pour une fluidité totale du navigateur.
+
+3. ClickBook Buddy & Mode Focus (Premium)
+- Animal de Bureau Animé : Un charmant compagnon vit sur chaque page web, toujours à portée de main sans jamais gêner votre navigation.
+- Menu Radial à 9 Actions : Cliquez sur le Buddy pour accéder instantanément à 9 outils :
+  * Traduction — Traduisez instantanément tout texte sélectionné sur la page.
+  * Favori — Enregistrez la page actuelle dans ClickBook en 1 clic.
+  * Chat IA — Ouvrez un panneau de discussion Gemini Nano pour poser des questions en temps réel.
+  * Minuteur — Lancez un minuteur Pomodoro en quelques secondes.
+  * Pause — Activez un mode de repos plein écran avec visuels apaisants et sons d'ambiance.
+  * Mémo — Épinglez un pense-bête sur la page en cours.
+  * TODO — Ajoutez et gérez rapidement vos tâches du jour.
+  * Masquer — Masquez temporairement le Buddy sur le domaine actuel (restauration facile via le popup ou le clic droit).
+  * Paramètres — Personnalisez la taille, l'opacité, la vitesse d'animation et l'affichage de l'horloge.
+- Minuteur Pomodoro : Définissez une durée personnalisée et plongez dans un travail profond.
+- Encyclopédie des Buddies : Découvrez tous les personnages (Basiques, Premium et Secrets) et débloquez-les au fil de vos réussites.
+- Thèmes Immersifs d'Accomplissement : Célébrez chaque session de focus terminée avec des effets plein écran spectaculaires (Aurore boréale, Forêt zen, Feu de bois, Coucher de soleil, Yoga méditatif et 18 histoires cinématographiques au style Ken Burns).
+
+4. Synergie Information-Action (Premium)
+- Assistant Notes Spirales (Éditeur Riche & Toile Libre) :
+  * Éditeur WYSIWYG Moderne : Éditeur propulsé par Tiptap gérant les titres, tableaux, listes de tâches, mises en forme et polices personnalisées.
+  * Toile Interactive Libre : Glissez-déposez des images, des post-its et des cartes de favoris directement sur votre note.
+  * Défilement fluide à 60 fps : Les éléments de la toile défilent de manière native et parfaitement synchronisée avec votre texte.
+  * Synchronisation adaptative des thèmes : L'interface s'adapte automatiquement aux thèmes Clair, Grille, Sépia et Sombre, ainsi qu'au thème système de Chrome.
+
+- Hub de Mind Mapping (Brainstorming Visuel) :
+  * Moteur de Disposition Automatique : Générez des cartes mentales visuelles et claires à partir de vos dossiers de favoris.
+  * Personnalisation Visuelle Complète : Modifiez la forme des nœuds (dont les nœuds octogonaux), les couleurs HSL et les lignes de liaison (épaisseur, style et couleurs).
+  * Panneau Latéral Complet : Modifiez les notes de nœuds dans la barre latérale et consultez les raccourcis clavier via le guide superposé.
+  * Expansion de Sujets par IA & Sync TODO : Développez des sujets avec Gemini Nano et convertissez n'importe quelle branche en tâche ou événement de calendrier en 1 clic.
+- Copilote de Notes IA & Web Clipper : Sélectionnez du texte sur n'importe quel site web pour l'enregistrer sous forme de mémo multilingue optimisé par IA.
+
+5. Suite pour Utilisateurs Avancés (Premium)
+- Recherche Plein Texte (FTS) : Indexe le contenu des pages en arrière-plan pour une recherche instantanée dans les titres, URL, tags, résumés et textes complets.
+- Mise en Veille Intelligente des Onglets : Mettez en pause les onglets inactifs pour économiser jusqu'à 90 % de RAM et garder votre navigateur rapide.
+- Synchronisation des Groupes d'Onglets : Enregistrez vos groupes d'onglets Chrome dans des dossiers et restaurez-les avec leurs couleurs d'origine.
+- Destructeur de Session Privée : Attribuez des « Dossiers Sécurisés » pour supprimer instantanément cookies, stockage et historique à la fermeture des onglets sensibles.
+- Mode Lecture Zen : Supprimez les publicités et distractions pour une lecture propre avec thèmes sépia/sombre et table des matières dynamique.
+- Bloqueur de Publicités Intégré : Bloquez publicités et traceurs sur tous les sites via les listes EasyList (mises à jour régulièrement). Autorisez n'importe quel domaine d'un simple clic grâce à declarativeNetRequest natif.
+
+🔒 CONFIDENTIALITÉ ET PERFORMANCE D'ABORD
+- Stockage 100 % Local : Toutes les données de favoris, les index plein texte et les calculs IA s'exécutent localement sur votre ordinateur (chrome.storage.local). Vos données personnelles ne quittent jamais votre appareil.

@@ -1,0 +1,68 @@
+🚀 ClickBook AI - AI Bookmark & Task Manager
+
+Bridge the gap between web information and daily execution.
+ClickBook AI is a local-first, dual-power productivity hub built on Chrome Manifest V3. It transforms your browser into an intelligent workspace where your saved bookmarks and daily tasks are seamlessly unified under on-device AI (Gemini Nano)—with absolute local privacy.
+
+Save tabs with 1-click, let AI organize them, and instantly turn web resources into actionable TODOs on your integrated Kanban board and smart calendar.
+
+🌟 UNIFIED WORKSPACE FEATURES
+
+1. Smart AI Bookmark Organizer (Private & Local)
+- On-Device AI Categorization: Harness Gemini Nano (window.ai) to instantly analyze URLs and titles, organizing them into 8 smart default folders.
+- AI Bulk Reorganize & Backup: Re-classify your entire digital library in one click with an automatic backup system to keep your library tidy.
+- Auto Tagging & Tag Cloud: Generate contextual tags automatically and manage them via an interactive, collapsible HSL-colored tag cloud.
+- Robust Hybrid Fallback: If Gemini Nano is not active or supported on your device, ClickBook instantly switches to a smart domain/keyword pattern matching system.
+
+2. Advanced Task & Calendar Control (The Execution Hub)
+- Smart Todo Calendar: A fully integrated calendar supporting Month/Week/Day transitions. Drag and drop to adjust schedules, set various recurring tasks, and automatically sync official holidays for countries like the US, South Korea, and Japan.
+- Kanban Productivity Board: Manage tasks and memos visually. Track deadlines with browser badge indicators and system notification alerts.
+- AI Task Control Center: Monitor background AI organization and auto-tagging with live progress bars. Features a Concurrency Guard (1-concurrent task limit) to ensure smooth browser performance.
+
+3. ClickBook Buddy & Focus Mode (Premium)
+- Animated Desk Pet: A cute animated character lives on every webpage, always within reach and never in the way.
+- 9-Action Radial Dial Menu: Click the Buddy to instantly access a circular quick-action menu with 9 tools:
+  * Translate — Instantly translate any drag-selected text on the page.
+  * Bookmark — Save the current page to ClickBook in 1 click.
+  * AI Chat — Open a Gemini Nano chat panel for real-time Q&A.
+  * Timer — Start a Pomodoro focus timer in seconds.
+  * Rest — Launch a full-screen healing break mode with visuals and ambient sound.
+  * Memo — Attach a sticky note to the current page.
+  * Todo — Quickly add and manage today's checklist items.
+  * Hide — Instantly hide the Buddy on the current domain (restore anytime from the popup or right-click).
+  * Settings — Customize the Buddy's size, opacity, animation speed, and clock display.
+- Pomodoro Focus Timer: Set a custom focus duration in minutes and jump straight into deep work.
+- Buddies Encyclopedia: Browse the full cast of characters across Basic, Premium, and Hidden tiers and unlock them as you achieve focus milestones.
+- Immersive Completion Themes: Celebrate every focus session with breathtaking full-screen visual effects — Starry Night Aurora, Zen Forest, Cozy Fireplace, Sunset Lake, Zen Yoga with Singing Bowl synthesis, and 18-episode cinematic Ken Burns Success Story cards.
+
+4. Info-to-Action Synergy (Premium)
+- Spring Note Assistant (Rich Editor & Free Canvas):
+  * Modern WYSIWYG Editor: Tiptap-powered editor supporting headers, tables, task lists, formatting, and custom fonts.
+  * Freeform Interactive Canvas: Attach and drag-and-drop objects like images, custom post-it memos, and rich bookmark cards onto your note.
+  * Smooth Inline Scroll: Canvas elements scroll natively and inline with your rich-text content at a flawless 60fps.
+  * Adaptive Color Theme Sync: Note interface automatically shifts layout styles to match Light, Grid, Sepia, and Dark themes. Supports direct synchronization with Google Chrome's system theme.
+
+- Mind Map Execution Hub (Visual Brainstorming):
+  * Automatic Layout Engine: Generate instant visual mind maps out of your bookmark hierarchies and folders.
+  * Bespoke Visual Customization: Fully personalize node shapes (including Octagonal nodes), HSL colors, connection lines (thickness, stroke styles, and customized connection colors).
+  * Feature-Rich Sidebar Panel: Edit inline private node memos via the slide-out sidebar, and view keyboard navigation shortcuts through the overlay guide.
+  * AI Topic Expansion & TODO Sync: Expand topics using Gemini Nano and convert any map node branch into a calendar event or TODO task in a single click.
+- AI Memo Copilot & Clipper: Highlight any webpage text to save it as an AI-refined multilingual memo.
+
+5. Power User Suite (Premium)
+- FTS Body Search: Scrapes webpage content in the background so you can perform ultra-fast search across title, URL, tags, summaries, and full body text.
+- Smart Tab Suspender: Freeze inactive background tabs automatically to save up to 90% of RAM, keeping your browser fast.
+- Tab Groups Sync: Save active Chrome Tab Groups into folders and restore them instantly with native, color-coded Chrome Tab Groups.
+- Privacy Session Sweeper: Assign "Secure Folders" to instantly shred cookies, storage, and browsing history upon closing secure tabs.
+- Zen Reader Mode: Strip away ads and clutter with a clean reader mode featuring sepia/dark themes and a dynamic Table of Contents.
+- Built-in Ad Blocker: Block ads and trackers across all sites using a bundled EasyList-based ruleset (updated periodically). Whitelist any domain with a single toggle — all filtering runs natively in the browser via declarativeNetRequest, so no request data is ever read by the extension.
+
+🔒 PRIVACY & PERFORMANCE FIRST
+- 100% Local Storage: All bookmark data, full-text indexes, and AI calculations run locally on your machine (chrome.storage.local). Your personal data never leaves your device.
+- No User Data Collection: ClickBook does not collect, store, or transmit any personal information or browsing history to external servers. Some features (Ad Blocker rule updates, GitHub Trending, Wikipedia previews, Hacker News feed) make outbound requests to public APIs solely to fetch content for display — no user data is included in these requests.
+
+⚙️ HOW TO ENABLE CHROME BUILT-IN AI (GEMINI NANO)
+Configure your Google Chrome (v127+) to unlock local AI features:
+1. Go to chrome://flags/#optimization-guide-on-device-model -> Set to "Enabled (BypassPrefRequirement)".
+2. Go to chrome://flags/#prompt-api-for-gemini-nano -> Set to "Enabled".
+3. Relaunch Chrome. The browser will download the model automatically.
+(Note: A rule-based fallback system handles sorting and tagging if Gemini Nano is not yet ready.)

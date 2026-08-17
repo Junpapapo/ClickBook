@@ -19,6 +19,7 @@ interface Props {
   infoBookmark?: Bookmark | null;
   infoMemo?: BookmarkMemo;
   onOpenCommandPalette?: () => void;
+  onOpenOnboarding?: () => void;
 }
 
 export default function RightPanelBar({
@@ -31,6 +32,7 @@ export default function RightPanelBar({
   infoBookmark,
   infoMemo,
   onOpenCommandPalette,
+  onOpenOnboarding,
 }: Props) {
   const { t, lang } = useLang();
   const RAIL_ITEMS: { id: RightPanelId; icon: React.ReactNode; label: string; activeClass: string }[] = [
@@ -92,7 +94,7 @@ export default function RightPanelBar({
             <BookmarkInfoPanel bookmark={infoBookmark || null} memo={infoMemo} folders={folders} onClose={onClose} onRefresh={onRefresh} />
           )}
           {activePanel === "guide" && (
-            <GuidePanel onClose={onClose} onOpenCommandPalette={onOpenCommandPalette} />
+            <GuidePanel onClose={onClose} onOpenCommandPalette={onOpenCommandPalette} onOpenOnboarding={onOpenOnboarding} />
           )}
         </div>
       </div>

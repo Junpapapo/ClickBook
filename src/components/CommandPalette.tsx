@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Bookmark as BookmarkIcon,
   X,
+  Rocket,
 } from "lucide-react";
 import type { PageId, Bookmark } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
@@ -32,6 +33,7 @@ interface Props {
   onToggleTheme?: () => void;
   onOpenSettings?: () => void;
   onOpenGuide?: () => void;
+  onOpenOnboarding?: () => void;
   onAiOrganize?: () => void;
   onAutoTag?: () => void;
   bookmarks?: Bookmark[];
@@ -56,11 +58,12 @@ export default function CommandPalette({
   onToggleTheme,
   onOpenSettings,
   onOpenGuide,
+  onOpenOnboarding,
   onAiOrganize,
   onAutoTag,
   bookmarks = [],
 }: Props) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
   const isKo = lang === "ko";
@@ -205,6 +208,16 @@ export default function CommandPalette({
             action: () => {
               if (onToggleTheme) onToggleTheme();
               else toggle();
+              onClose();
+            },
+          },
+          {
+            id: "act-open-onboarding",
+            icon: <Rocket size={16} className="text-indigo-400" />,
+            title: t("cmdRelaunchOnboarding"),
+            description: t("cmdRelaunchOnboardingDesc"),
+            action: () => {
+              onOpenOnboarding?.();
               onClose();
             },
           },

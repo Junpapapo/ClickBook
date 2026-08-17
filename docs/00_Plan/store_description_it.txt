@@ -1,0 +1,33 @@
+【 Nome dell'estensione 】
+ClickBook: Gestore Segnalibri Smart & Assistente di Lettura AI
+
+【 Breve descrizione (Entro 132 caratteri) 】
+Organizza i tuoi segnalibri in un clic con l'AI! Riassunti intelligenti, tag automatici e gestione visiva dei preferiti.
+
+【 Descrizione dettagliata 】
+ClickBook rivoluziona il modo in cui salvi, organizzi e consulti i tuoi contenuti preferiti sul web.
+
+Basta cartelle disordinate e link dimenticati: ClickBook analizza le tue pagine salvate, genera riassunti automatici tramite intelligenza artificiale, suggerisce categorie e tag intelligenti e ti permette di ritrovare qualsiasi articolo o risorsa in un istante.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ CARATTERISTICHE PRINCIPALI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣ Salvataggio Istantaneo in 1 Clic
+- Salva link, articoli, video e post con un solo clic o scorciatoia da tastiera
+- Acquisizione automatica di favicon, titolo, descrizione e anteprima visiva
+
+2️⃣ Riassunto AI & Tag Automatici
+- Sintesi intelligente del contenuto della pagina senza doverla leggere per intero
+- Generazione automatica di parole chiave e categorie tematiche
+
+3️⃣ Dashboard Visiva & Ricerca Istantanea
+- Visualizzazione a schede, elenco o griglia compatta
+- Ricerca full-text rapida per titolo, contenuto del riassunto o tag
+
+4️⃣ Sincronizzazione & Backup Sicuro
+- Dati archiviati in modo sicuro e privato
+- Esportazione e importazione rapida in formato JSON/HTML compatibile con tutti i browser
+
+【 Tag di ricerca / Parole chiave 】
+Segnalibri, AI, Riassunto, Produttività, Lettura, Gestione link, Ricerca, Note, Bookmark Manager

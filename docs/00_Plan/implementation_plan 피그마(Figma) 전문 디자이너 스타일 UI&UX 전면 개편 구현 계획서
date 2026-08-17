@@ -1,0 +1,90 @@
+# 피그마(Figma) 전문 디자이너 스타일 UI/UX 전면 개편 구현 계획서
+
+깃허브(GitHub) 동기화 상태 점검 완료 후, ClickBook 프로젝트 전체(Popup, Floating Buddy, Dashboard/Newtab)를 피그마(Figma) 스튜디오 감성의 정교하고 컴팩트한 전문 디자이너 스타일로 전면 개편하는 계획서입니다.
+
+---
+
+## 1. 개요 및 디자인 원칙
+
+### 🎯 핵심 디자인 요구사항 준수
+1. **라이트 테마 색상 감조 (No Harsh Black/Charcoal)**
+   - 둔탁하고 쨍한 검은색(`text-black`, `#000000`, 짙은 차콜 `#111827` 등)을 배제합니다.
+   - 피그마 캔버스/인스펙터처럼 고급스러운 Slate 계열(`slate-900`, `slate-800`, `slate-700`)의 톤온톤 텍스트와 세련된 무채색-슬레이트 톤을 적용합니다.
+2. **세련되고 촘촘한 여백 밀도 (Compact Spacing System)**
+   - 불필요하게 뻥 뚫린 넓은 여백(과도한 `padding/margin`)을 제거하고, 피그마 툴바 및 인스펙터 패널처럼 밀도 있고 정교한 레이아웃을 구축합니다.
+3. **피그마 스튜디오 비주얼 감성 (Figma Studio Look & Feel)**
+   - 얇고 깔끔한 1px 슬레이트 보더 (`border-slate-200/80` / 다크: `border-slate-800/80`)
+   - 세련된 반투명 글래스모피즘 (`backdrop-blur-md`, `bg-white/80` / 다크: `bg-slate-900/80`)
+   - 정밀한 마이크로 인터랙션 및 은은한 포커스/호버 효과 (`hover:bg-slate-100/80`, `shadow-sm`)
+
+---
+
+## 2. 개편 진행 3단계 추진 로드맵
+
+```mermaid
+graph TD
+    A["1단계: 글로벌 Figma 디자인 시스템 정립"] --> B["2단계: Popup & Floating Buddy UI 개편"]
+    B --> C["3단계: Dashboard & Newtab 전체 화면 개편"]
+    C --> D["4단계: 빌드 및 테이스팅 검증"]
+```
+
+### [Phase 1] 글로벌 디자인 토큰 & CSS 정립
+- `tailwind.config.js` 내 Figma 슬레이트/진크 테마 색상 및 컴팩트 섀도우 정의
+- `src/styles/global.css` 내 피그마 패널(`figma-panel`), 툴바(`figma-toolbar`), 컴팩트 버튼/입력 폼 공통 스타일 클래스 구축
+
+### [Phase 2] Popup 및 Floating Buddy UI 개편
+- **Popup (`src/popup/*`)**: 컴팩트 툴바, 탭 메뉴, 빠른 메모 및 룰렛 모달 피그마 패널 룩으로 통합
+- **Floating Buddy (`src/buddy/*`)**: 캐릭터 말풍선, 미니 룰렛 팝업, 상단 톱사이트/위젯을 피그마 디자이너 스튜디오 감성으로 정교하게 단장
+
+### [Phase 3] Dashboard / Newtab 전면 개편
+- **Dashboard (`src/pages/DashboardPage.tsx`, `src/pages/Newtab.tsx`)**:
+  - 사이드바/상단 툴바: 피그마 아키텍처 캔버스/네비게이션 툴바 스타일로 변경
+  - 스프링 노트, 핀보드, 룰렛 팝업/역사 패널: 정교한 1px 슬레이트 보더 및 컴팩트 카드 적용
+  - 대시보드 그리드 여백 최적화 (여백 낭비 제거)
+
+---
+
+## 3. 사용자 검토 항목 (User Review Required)
+
+> [!IMPORTANT]
+> **라이트 테마 텍스트 배색 변경 안내**
+> 기존 코드에 산재해 있던 `text-gray-900`, `text-black` 등의 투박한 어두운 색상들이 모두 세련된 `text-slate-800`, `text-slate-700`으로 일괄 교체됩니다. 혹시 특정 요소(예: 가독성이 최우선인 특정 타이틀)에 포인트 컬러를 주고 싶으신 부분이 있으시다면 말씀해 주세요.
+
+> [!NOTE]
+> **로컬 파일 보호 준수**
+> `.gitignore`에 등록된 `backup_sounds_temp/` 및 기타 로컬 미디어 리소스(`public/buddies/` 등)는 일절 건드리지 않고 안전하게 보존됩니다.
+
+---
+
+## 4. 변경 예정 파일 목록 (Proposed Changes)
+
+### [Component 1] Global Design System & Configuration
+#### [MODIFY] [tailwind.config.js](file:///c:/00_Workspace/ClickBook/tailwind.config.js)
+#### [MODIFY] [global.css](file:///c:/00_Workspace/ClickBook/src/styles/global.css)
+
+### [Component 2] Popup & Floating Buddy UI
+#### [MODIFY] [src/popup/Popup.tsx](file:///c:/00_Workspace/ClickBook/src/popup/Popup.tsx)
+#### [MODIFY] [src/buddy/BuddyWindow.tsx](file:///c:/00_Workspace/ClickBook/src/buddy/BuddyWindow.tsx)
+#### [MODIFY] [src/buddy/components/RouletteModal.tsx](file:///c:/00_Workspace/ClickBook/src/buddy/components/RouletteModal.tsx)
+
+### [Component 3] Dashboard & Newtab Pages
+#### [MODIFY] [src/pages/DashboardPage.tsx](file:///c:/00_Workspace/ClickBook/src/pages/DashboardPage.tsx)
+#### [MODIFY] [src/pages/Newtab.tsx](file:///c:/00_Workspace/ClickBook/src/pages/Newtab.tsx)
+#### [MODIFY] [src/components/SpringNoteEditor.tsx](file:///c:/00_Workspace/ClickBook/src/components/SpringNoteEditor.tsx)
+
+---
+
+## 5. 검증 계획 (Verification Plan)
+
+### 빌드 및 검증 커맨드
+```bash
+# 1. 린트 및 구문 검사
+npm run build
+
+# 2. 빌드 결과물 패키징 확인
+build_and_zip.bat
+```
+
+### 마이너스 여백 및 라이트 테마 배색 시각 검증
+- 라이트 테마 적용 시 짙은 차콜/검정이 드러나는 부분이 없는지 점검
+- 요소 간 쓸데없이 넓은 여백(Large Gap)이 제거되고 피그마 특유의 밀도 높은 콤팩트 패널로 전환되었는지 확인

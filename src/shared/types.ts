@@ -107,6 +107,8 @@ export interface ClickBookBackupData {
   settings?: AppSettings;
   patterns?: Pattern[];
   chromePatterns?: ChromePattern[];
+  springNotes?: SpringNote[];
+  pageContents?: Record<string, string>;
 }
 
 export interface Pattern {
@@ -297,12 +299,14 @@ export type Message =
   | { type: "BUDDY_UPDATE_ADBLOCK_RULES" }
   | { type: "PRELOAD_AI" }
   | { type: "BUDDY_GET_TIMER_STATS" }
-  | { type: "BUDDY_ADD_TIMER_STATS"; minutes: number; addCycle: boolean; goal: string }
+  | { type: "BUDDY_ADD_TIMER_STATS"; minutes: number; addCycle: boolean; goal: string; taskId?: string }
   | { type: "BUDDY_SAVE_ANCHORED_MEMO"; url: string; anchorText: string; content: string; color: MemoColor }
   | { type: "BUDDY_DELETE_ANCHORED_MEMO"; url: string; memoId: string }
   | { type: "BUDDY_GET_ANCHORED_MEMOS"; url: string }
   | { type: "BUDDY_GET_TOP_SITES" }
-  | { type: "BUDDY_OPEN_DASHBOARD" };
+  | { type: "BUDDY_OPEN_DASHBOARD" }
+  | { type: "GET_ALL_SPRING_NOTES" }
+  | { type: "SAVE_ALL_SPRING_NOTES"; notes: SpringNote[] };
 
 
 export type MessageResponse<T = any> =
@@ -373,6 +377,8 @@ export interface TodoTask {
   isHoliday?: boolean; // 사용자가 수동 설정한 휴일 여부
   type?: "todo" | "event" | "holiday"; // 일정 종류 (할 일, 이벤트, 휴일)
   location?: string; // 장소 (이벤트 타입용)
+  focusMinutes?: number; // 누적 집중 시간 (분)
+  focusCycles?: number;  // 뽀모도로 완료 사이클 수
   createdAt: number;
 }
 
