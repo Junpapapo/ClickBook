@@ -11,6 +11,8 @@ import {
   ALL_MEMO_COLORS as ALL_COLORS,
 } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 
 // ── サイズ設定 ─────────────────────────────────────────────
 
@@ -390,7 +392,8 @@ interface Props {
 
 export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
   const { t, lang } = useLang();
-  const isKo = lang === "ko";
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const [showNew, setShowNew] = useState(false);
   const [cardSize, setCardSize] = useState<CardSize>(() => {
     return (localStorage.getItem(SIZE_STORAGE_KEY) as CardSize | null) ?? "m";
@@ -417,112 +420,114 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
   const memoList = Object.values(memos).sort((a, b) => b.updatedAt - a.updatedAt);
   const bookmarkMap = new Map(bookmarks.map((b) => [b.id, b]));
 
-  if (memoList.length === 0 && !showNew) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 text-gray-400 dark:text-gray-600 select-none">
-        <StickyNote size={52} className="mb-4 opacity-20" />
-        <p className="text-sm font-medium mb-1.5">{t("memoEmpty")}</p>
-        <p className="text-xs text-center leading-relaxed max-w-xs mb-6">
-          {t("memoEmptyDesc")}
-        </p>
-        <button
-          onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors shadow-sm"
-        >
-          <Plus size={13} />
-          {t("addMemo")}
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-4 p-4 sm:p-5 pb-8">
-      <div className="flex items-center gap-2.5 mb-1 flex-wrap select-none">
-        <h1 className="text-lg font-bold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500 text-white shadow-sm shadow-amber-500/20">
-            <StickyNote size={15} strokeWidth={2.5} />
+    <WallpaperBackground isDarkMode={isDarkMode}>
+      <div className="max-w-[1440px] w-full mx-auto pb-12 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
+        {/* ── 타이틀 & 컨트롤 헤더 (박스 없이 시원하게 노출) ── */}
+        <div className="flex items-center gap-2.5 flex-wrap select-none px-1">
+          <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500 text-white shadow-sm shadow-amber-500/20">
+              <StickyNote size={15} strokeWidth={2.5} />
+            </span>
+            <span>
+              {t("memo") || "MEMO"}
+            </span>
+          </h1>
+          <span className="text-xs font-semibold bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full shadow-figma-xs">
+            {memoList.length}
           </span>
-          <span>
-            {t("memo") || "MEMO"}
-          </span>
-        </h1>
-        <span className="text-xs font-semibold bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">
-          {memoList.length}
-        </span>
 
-        {/* 반응형 프리셋 카드 크기 (S / M / L) */}
-        <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 ml-1 border border-slate-200/60 dark:border-slate-700/60">
-          {(["s", "m", "l"] as CardSize[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => handleSizeChange(s)}
-              className={`text-[10px] font-semibold w-6 h-5 rounded transition-all cursor-pointer ${
-                cardSize === s && customCols === "auto"
-                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs"
-                  : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              }`}
-              title={`Preset Size ${SIZE_LABEL[s]}`}
-            >
-              {SIZE_LABEL[s]}
-            </button>
-          ))}
+          {/* 반응형 프리셋 카드 크기 (S / M / L) */}
+          <div className="flex items-center gap-0.5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-0.5 ml-1 border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
+            {(["s", "m", "l"] as CardSize[]).map((s) => (
+              <button
+                key={s}
+                onClick={() => handleSizeChange(s)}
+                className={`text-[10.5px] font-bold w-6 h-5 rounded-lg transition-all cursor-pointer ${
+                  cardSize === s && customCols === "auto"
+                    ? "bg-amber-500 text-white shadow-2xs"
+                    : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                }`}
+                title={`Preset Size ${SIZE_LABEL[s]}`}
+              >
+                {SIZE_LABEL[s]}
+              </button>
+            ))}
+          </div>
+
+          {/* 한 열당 메모 개수 지정 옵션 피커 (2 ~ 8개 / Auto) */}
+          <div className="flex items-center gap-0.5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-0.5 text-[11px] border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
+            <span className="text-[9.5px] font-bold text-slate-400 dark:text-slate-500 px-1.5 select-none">
+              {t("memoColsLabel")}:
+            </span>
+            {(["auto", 2, 3, 4, 5, 6, 7, 8] as ColumnOption[]).map((c) => (
+              <button
+                key={c}
+                onClick={() => handleColsChange(c)}
+                className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                  customCols === c
+                    ? "bg-indigo-600 text-white shadow-2xs"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
+                }`}
+                title={c === "auto" ? "Responsive Auto Layout" : `${c} Columns per Row`}
+              >
+                {c === "auto" ? t("memoColsAuto") : c}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setShowNew(true)}
+            className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-xl transition-all shadow-figma-xs active:scale-98 cursor-pointer"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            {t("addMemo")}
+          </button>
         </div>
 
-        {/* 한 열당 메모 개수 지정 옵션 피커 (2 ~ 8개 / Auto) */}
-        <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 text-[11px] border border-slate-200/60 dark:border-slate-700/60">
-          <span className="text-[9.5px] font-semibold text-slate-400 dark:text-slate-500 px-1.5 select-none">
-            {isKo ? "열" : "Cols"}:
-          </span>
-          {(["auto", 2, 3, 4, 5, 6, 7, 8] as ColumnOption[]).map((c) => (
+        {/* ── 메모 카드 그리드 ── */}
+        {memoList.length === 0 && !showNew ? (
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-500 select-none">
+            <StickyNote size={48} className="mb-3 opacity-20" />
+            <p className="text-sm font-semibold mb-1">{t("memoEmpty")}</p>
+            <p className="text-xs text-center leading-relaxed max-w-xs mb-4 text-slate-400 dark:text-slate-500">
+              {t("memoEmptyDesc")}
+            </p>
             <button
-              key={c}
-              onClick={() => handleColsChange(c)}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold transition-all cursor-pointer ${
-                customCols === c
-                  ? "bg-indigo-600 text-white shadow-2xs"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700"
-              }`}
-              title={c === "auto" ? "Responsive Auto Layout" : `${c} Columns per Row`}
+              onClick={() => setShowNew(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer"
             >
-              {c === "auto" ? (isKo ? "자동" : "Auto") : c}
+              <Plus size={13} />
+              {t("addMemo")}
             </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => setShowNew(true)}
-          className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-all shadow-xs active:scale-98 cursor-pointer"
-        >
-          <Plus size={13} strokeWidth={2.5} />
-          {t("addMemo")}
-        </button>
-      </div>
-
-      <div
-        className={`grid gap-4 items-start ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
-        style={
-          customCols !== "auto"
-            ? { gridTemplateColumns: `repeat(${customCols}, minmax(0, 1fr))` }
-            : undefined
-        }
-      >
-        {/* 新規入力カード（先頭に表示） */}
-        {showNew && (
-          <NewMemoCard
-            onSave={() => { setShowNew(false); onRefresh(); }}
-            onCancel={() => setShowNew(false)}
-          />
+          </div>
+        ) : (
+          <div
+            className={`grid gap-4 items-start ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
+            style={
+              customCols !== "auto"
+                ? { gridTemplateColumns: `repeat(${customCols}, minmax(0, 1fr))` }
+                : undefined
+            }
+          >
+            {/* 新規入力カード（先頭に表示） */}
+            {showNew && (
+              <NewMemoCard
+                onSave={() => { setShowNew(false); onRefresh(); }}
+                onCancel={() => setShowNew(false)}
+              />
+            )}
+            {memoList.map((memo) => (
+              <MemoCard
+                key={memo.bookmarkId}
+                memo={memo}
+                bookmark={bookmarkMap.get(memo.bookmarkId)}
+                onRefresh={onRefresh}
+              />
+            ))}
+          </div>
         )}
-        {memoList.map((memo) => (
-          <MemoCard
-            key={memo.bookmarkId}
-            memo={memo}
-            bookmark={bookmarkMap.get(memo.bookmarkId)}
-            onRefresh={onRefresh}
-          />
-        ))}
       </div>
-    </div>
+    </WallpaperBackground>
   );
 }

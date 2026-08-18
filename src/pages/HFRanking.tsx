@@ -1,22 +1,26 @@
 import { useEffect, useState, useMemo } from "react";
 import { fetchHFTrending } from "@/shared/rankingApi";
 import type { HFModel } from "@/shared/types";
-import { Sparkles, Heart, Download, ExternalLink, AlertCircle, BookmarkPlus, Check, Search, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
+import { Heart, Download, ExternalLink, AlertCircle, BookmarkPlus, Check, Search, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
 import RankingSkeleton from "@/components/RankingSkeleton";
 import { formatLastUpdated } from "@/shared/utils";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 
 export default function HFRankingPage() {
   const { t, lang } = useLang();
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const [models, setModels] = useState<HFModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [filterQuery, setFilterQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("week");
+  const [dateFilter] = useState("week");
   const [lastUpdated, setLastUpdated] = useState<number>(0);
-
-
+  const [sortKey, setSortKey] = useState<string>("rank");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const handleQuickSave = async (model: HFModel) => {
     try {
@@ -38,9 +42,6 @@ export default function HFRankingPage() {
       console.error("Failed to quick save:", err);
     }
   };
-
-  const [sortKey, setSortKey] = useState<string>("rank");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const filtered = useMemo(() => {
     let result = models
@@ -102,174 +103,155 @@ export default function HFRankingPage() {
     }
   };
 
-  const handleDateFilterChange = (filterId: string) => {
-    setDateFilter(filterId);
-    loadData(false, filterId);
-  };
-
   useEffect(() => {
     loadData(false, dateFilter);
   }, []);
 
   return (
-    <div className="w-full space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-surface-800 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800 dark:text-gray-100 group">
-            <Sparkles className="text-yellow-500 shrink-0 w-6 h-6" />
-            {t("hfRanking")}
-            <button
-              onClick={() => loadData(true)}
-              disabled={loading}
-              title="Refresh"
-              className="ml-2 p-1.5 text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-full transition-colors disabled:opacity-50"
-            >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-            </button>
-          </h1>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-xs text-gray-400 dark:text-gray-500">
-              {lang === "ko" ? "Hugging Face에서 지금 가장 주목받는 AI 모델들입니다." : 
-               lang === "ja" ? "Hugging Faceで現在注目されているAIモデルのランキングです。" : 
-               "Trending AI models on Hugging Face right now."}
-            </p>
-            {lastUpdated > 0 && (
-              <span className="text-[10px] text-gray-300 dark:text-gray-600 bg-gray-100 dark:bg-surface-800 px-1.5 py-0.5 rounded">
-                Updated: {formatLastUpdated(lastUpdated)}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col md:flex-row gap-3 items-end md:items-center">
-          <div className="flex bg-gray-100 dark:bg-surface-800 p-1 rounded-lg border border-gray-200 dark:border-surface-700">
-            {[
-              { id: "all", name: t("dateAll") || "All Time" },
-              { id: "week", name: t("dateWeek") || "This Week" },
-              { id: "month", name: t("dateMonth") || "This Month" },
-            ].map(f => (
+    <WallpaperBackground isDarkMode={isDarkMode}>
+      <div className="max-w-[1440px] w-full mx-auto pb-12 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
+        {/* ── 타이틀 & 컨트롤 헤더 (박스 없이 시원하게 노출) ── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-extrabold flex items-center gap-2.5 text-slate-800 dark:text-slate-100 tracking-tight">
+              <span className="text-2xl">🤗</span>
+              {t("hfRanking")}
               <button
-                key={f.id}
-                onClick={() => handleDateFilterChange(f.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all active:scale-95 ${
-                  dateFilter === f.id
-                    ? "bg-white dark:bg-surface-600 shadow-sm text-yellow-600 dark:text-yellow-400 font-semibold"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                }`}
+                onClick={() => loadData(true)}
+                disabled={loading}
+                title="Refresh"
+                className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50/80 dark:hover:bg-amber-950/40 rounded-full transition-colors disabled:opacity-50 cursor-pointer"
               >
-                {f.name}
+                <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
               </button>
-            ))}
+            </h1>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {lang === "ko" ? "Hugging Face에서 실시간으로 가장 주목받고 있는 AI 모델 트렌드입니다." : 
+                 lang === "ja" ? "Hugging Faceで今最も注目されているAIモデルのトレンドです。" : 
+                 "Trending open-source AI models on Hugging Face."}
+              </p>
+              {lastUpdated > 0 && (
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xs border border-slate-200/50 dark:border-white/5 px-1.5 py-0.5 rounded-md">
+                  Updated: {formatLastUpdated(lastUpdated)}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="relative w-full md:w-64">
-            <input
-              type="text"
-              value={filterQuery}
-              onChange={e => setFilterQuery(e.target.value)}
-              placeholder={lang === "ko" ? "모델 또는 작성자 필터..." : lang === "ja" ? "モデル・作成者フィルター..." : "Filter models or authors..."}
-              className="w-full pl-9 pr-3 py-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg text-xs outline-none focus:ring-1 focus:ring-amber-500 transition-all text-slate-800 dark:text-slate-100 placeholder-slate-400"
-            />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-3">
+            <div className="relative w-full md:w-64">
+              <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder={lang === "ko" ? "모델명 / 작성자 필터..." : lang === "ja" ? "モデル名 / 作成者フィルター..." : "Filter models..."}
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/70 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 text-slate-800 dark:text-slate-100 shadow-figma-xs"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {error && (
-        <div className="p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-lg flex items-center gap-2 text-xs text-rose-600 dark:text-rose-400">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {loading ? (
-        <RankingSkeleton rows={15} cols={7} />
-      ) : (
-        <div className="bg-white dark:bg-surface-900 border border-gray-150 dark:border-surface-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-xs">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-surface-800/50 border-b border-gray-150 dark:border-surface-800 text-gray-500 uppercase tracking-wider font-semibold">
-                  <th className="px-4 py-3 text-center w-20 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("rank")}>
-                    {t("thRank")} <SortIcon columnKey="rank" />
-                  </th>
-                  <th className="px-4 py-3 text-left whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("repo_name")}>
-                    Model Name <SortIcon columnKey="repo_name" />
-                  </th>
-                  <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("likes")}>
-                    Likes <SortIcon columnKey="likes" />
-                  </th>
-                  <th className="px-4 py-3 text-right w-32 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" onClick={() => handleSort("downloads")}>
-                    Downloads <SortIcon columnKey="downloads" />
-                  </th>
-                  <th className="px-4 py-3 text-center w-24">Pipeline</th>
-                  <th className="px-4 py-3 text-center w-24">Link</th>
-                  <th className="px-4 py-3 text-center w-20">Save</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-surface-800">
-                {filtered.map((m, i) => {
-                  const isSaved = savedIds.has(m.id);
-                  const getRankBadge = (rank: number) => {
-                    if (rank === 1) return <span className="text-lg">🥇</span>;
-                    if (rank === 2) return <span className="text-lg">🥈</span>;
-                    if (rank === 3) return <span className="text-lg">🥉</span>;
-                    return <span className="font-bold text-gray-400 dark:text-gray-600">{rank}</span>;
-                  };
-                  return (
-                    <tr key={m.id} className="hover:bg-amber-500/5 dark:hover:bg-surface-800/40 transition-colors">
-                      <td className="px-4 py-3.5 text-center font-bold text-gray-400 dark:text-gray-600">{getRankBadge(m._originalRank ?? i + 1)}</td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-col">
-                          <a href={m.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-800 dark:text-gray-100 hover:text-yellow-600 dark:hover:text-yellow-400 hover:underline transition-colors">{m.repo_name}</a>
-                          <span className="text-[10px] text-gray-400 dark:text-gray-500">{m.author}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1 text-rose-500">
-                          <Heart size={12} fill="currentColor" />
-                          <span className="font-semibold">{m.likes.toLocaleString()}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1 text-blue-500">
-                          <Download size={12} />
-                          <span className="font-semibold">{m.downloads.toLocaleString()}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-center text-gray-400 dark:text-gray-500">
-                        {new Date(m.lastModified).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3.5 text-center">
-                        <a href={m.url} target="_blank" rel="noopener noreferrer" className="inline-block p-1 text-gray-400 hover:text-yellow-600 transition-colors">
-                          <ExternalLink size={14} />
-                        </a>
-                      </td>
-                      <td className="px-4 py-3.5 text-center">
-                        <button
-                          onClick={() => handleQuickSave(m)}
-                          className={`p-1.5 rounded-lg transition-all ${
-                            isSaved 
-                              ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" 
-                              : "text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
-                          }`}
-                          title="Quick Save to ClickBook"
-                        >
-                          {isSaved ? <Check size={16} /> : <BookmarkPlus size={16} />}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {error && (
+          <div className="p-4 bg-rose-50/90 dark:bg-rose-950/40 backdrop-blur-md border border-rose-200 dark:border-rose-800/60 rounded-2xl flex items-center gap-3 text-rose-600 dark:text-rose-400 text-xs">
+            <AlertCircle size={16} />
+            <span>{error}</span>
           </div>
+        )}
+
+        {/* ── 랭킹 테이블 글래스 카드 ── */}
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg p-3 sm:p-4 overflow-hidden">
+          {loading ? (
+            <RankingSkeleton rows={15} cols={6} />
+          ) : (
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="min-w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100/90 dark:bg-slate-950/60 border-b border-slate-200/80 dark:border-white/10 text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center w-20 whitespace-nowrap cursor-pointer text-amber-600 dark:text-amber-400 first:rounded-l-xl" onClick={() => handleSort("rank")}>
+                      {t("thRank")} <SortIcon columnKey="rank" />
+                    </th>
+                    <th className="px-4 py-3 text-left whitespace-nowrap cursor-pointer text-slate-700 dark:text-slate-300" onClick={() => handleSort("repo_name")}>
+                      Model Name <SortIcon columnKey="repo_name" />
+                    </th>
+                    <th className="px-4 py-3 text-right w-28 whitespace-nowrap cursor-pointer text-slate-700 dark:text-slate-300" onClick={() => handleSort("likes")}>
+                      Likes <SortIcon columnKey="likes" />
+                    </th>
+                    <th className="px-4 py-3 text-right w-32 whitespace-nowrap cursor-pointer text-slate-700 dark:text-slate-300" onClick={() => handleSort("downloads")}>
+                      Downloads <SortIcon columnKey="downloads" />
+                    </th>
+                    <th className="px-4 py-3 text-center w-28">Pipeline</th>
+                    <th className="px-4 py-3 text-center w-20">Link</th>
+                    <th className="px-4 py-3 text-center w-20 last:rounded-r-xl">Save</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100/80 dark:divide-white/[0.04]">
+                  {filtered.map((m, i) => {
+                    const isSaved = savedIds.has(m.id);
+                    const rankNum = m._originalRank ?? i + 1;
+                    const getRankBadge = (rank: number) => {
+                      if (rank === 1) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-slate-900 font-extrabold shadow-sm text-xs">1</span>;
+                      if (rank === 2) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-tr from-slate-300 to-slate-200 text-slate-900 font-extrabold shadow-sm text-xs">2</span>;
+                      if (rank === 3) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-tr from-amber-600 to-amber-500 text-white font-extrabold shadow-sm text-xs">3</span>;
+                      return <span className="font-semibold text-slate-400 dark:text-slate-500">{rank}</span>;
+                    };
+                    return (
+                      <tr key={m.id} className="hover:bg-amber-500/[0.04] dark:hover:bg-white/[0.03] transition-colors group">
+                        <td className="px-4 py-3 text-center">{getRankBadge(rankNum)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col">
+                            <a href={m.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-slate-800 dark:text-slate-100 hover:text-amber-600 dark:hover:text-amber-400 hover:underline transition-colors">{m.repo_name}</a>
+                            <span className="text-[10.5px] text-slate-400 dark:text-slate-500">{m.author}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-rose-50/80 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-900/30 font-semibold text-[11px]">
+                            <Heart size={11} fill="currentColor" />
+                            <span>{m.likes.toLocaleString()}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-sky-50/80 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200/50 dark:border-sky-900/30 font-semibold text-[11px]">
+                            <Download size={11} />
+                            <span>{m.downloads.toLocaleString()}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400 text-[11px]">
+                          {new Date(m.lastModified).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <a href={m.url} target="_blank" rel="noopener noreferrer" className="inline-block p-1 text-slate-400 hover:text-amber-500 transition-colors">
+                            <ExternalLink size={13} />
+                          </a>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleQuickSave(m)}
+                            className={`p-1.5 rounded-xl transition-all cursor-pointer ${
+                              isSaved 
+                                ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30" 
+                                : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                            }`}
+                            title="Quick Save to ClickBook"
+                          >
+                            {isSaved ? <Check size={14} /> : <BookmarkPlus size={14} />}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
           {!loading && filtered.length === 0 && (
-            <div className="py-20 text-center text-gray-400 dark:text-gray-600 flex flex-col items-center justify-center gap-2">
+            <div className="py-20 text-center text-slate-400 dark:text-slate-600 flex flex-col items-center justify-center gap-2">
               <AlertCircle className="w-8 h-8 opacity-30" />
               <p className="text-xs font-semibold">{t("noResult")}</p>
             </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </WallpaperBackground>
   );
 }

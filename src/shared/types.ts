@@ -169,6 +169,14 @@ export interface BuddyConfig {
   timerBellSound?: string;           // 타이머 완료 벨소리 ("default", "none", "bell01"~"bell10")
 }
 
+export interface WeatherConfig {
+  unit: "celsius" | "fahrenheit"; // "celsius"(°C) | "fahrenheit"(°F)
+  cacheExpiry: number;            // 분 단위 (30, 60, 180, 360, 720, 1440)
+  lat: number;                    // 위도 (기본 37.5665)
+  lon: number;                    // 경도 (기본 126.9780)
+  displayName?: string;           // 위치 표시명 (예: "서울특별시", "강남구", "Tokyo")
+}
+
 export interface AppSettings {
   recentCount: number;          // 最近追加の表示数 default: 8
   rankingCount: number;         // よく見るサイト表示数 default: 5
@@ -183,6 +191,7 @@ export interface AppSettings {
   customPresets?: CustomSearchConfig[]; // 사용자 정의 커스텀 검색 프리셋
   holidayCountry?: "auto" | "KR" | "JP" | "US" | "off"; // 공휴일 표시 국가 설정
   buddyConfig?: BuddyConfig;   // 버디 설정 추가
+  weatherConfig?: WeatherConfig; // 날씨 위젯 커스텀 설정
 }
 
 

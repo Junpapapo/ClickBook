@@ -83,3 +83,42 @@ export function formatLastUpdated(timestamp: number): string {
   const mm = String(d.getMinutes()).padStart(2, "0");
   return `${MM}-${DD} ${HH}:${mm}`;
 }
+
+import { lazy, type ComponentType } from "react";
+
+export function lazyWithRetry<T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+  retries = 2,
+  interval = 400
+): React.LazyExoticComponent<T> {
+  return lazy(() =>
+    new Promise<{ default: T }>((resolve, reject) => {
+      function attempt(remaining: number) {
+        factory()
+          .then(resolve)
+          .catch((error) => {
+            if (remaining > 0) {
+              setTimeout(() => {
+                attempt(remaining - 1);
+              }, interval);
+            } else {
+              const isChunkLoadFailed =
+                error?.name === "ChunkLoadError" ||
+                /Failed to fetch dynamically imported module/i.test(error?.message || "");
+              if (isChunkLoadFailed && typeof window !== "undefined") {
+                const reloadKey = "cb_lazy_reload_ts";
+                const lastReload = parseInt(sessionStorage.getItem(reloadKey) || "0", 10);
+                if (Date.now() - lastReload > 10000) {
+                  sessionStorage.setItem(reloadKey, Date.now().toString());
+                  window.location.reload();
+                  return;
+                }
+              }
+              reject(error);
+            }
+          });
+      }
+      attempt(retries);
+    })
+  );
+}

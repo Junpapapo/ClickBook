@@ -19,72 +19,70 @@ interface Props {
 }
 
 export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboarding }: Props) {
-  const { lang, t } = useLang();
-  const isKo = lang === "ko";
-  const isJa = lang === "ja";
+  const { t } = useLang();
   const [activeTab, setActiveTab] = useState<"shortcuts" | "springnote" | "mindmap" | "export">("shortcuts");
 
   const globalShortcuts = [
     {
       keys: ["Ctrl", "K"],
       macKeys: ["Cmd", "K"],
-      label: isKo ? "커맨드 팔레트 열기" : isJa ? "コマンドパレットを開く" : "Open Command Palette",
-      desc: isKo ? "대시보드 전체 기능 & 검색에 신속하게 접근합니다." : isJa ? "ダッシュボードの全機能と検索に素早くアクセスします。" : "Quick access to all features and search."
+      label: t("guideCmdPaletteLabel"),
+      desc: t("guideCmdPaletteDesc"),
     },
     {
       keys: ["Alt", "S"],
       macKeys: ["Option", "S"],
-      label: isKo ? "현재 탭 저장" : isJa ? "現在のタブを保存" : "Save Current Tab",
-      desc: isKo ? "활성 탭을 1클릭으로 저장하고 AI 분류를 수행합니다." : isJa ? "アクティブなタブを1クリックで保存し、AI自動分類を実行します。" : "Instantly save active tab with AI auto-categorization."
+      label: t("guideSaveTabLabel"),
+      desc: t("guideSaveTabDesc"),
     },
     {
       keys: ["Ctrl", "/"],
       macKeys: ["Cmd", "/"],
-      label: isKo ? "단축키 가이드 열기" : isJa ? "ショートカットガイドを開く" : "Open Shortcuts Guide",
-      desc: isKo ? "오른쪽 가이드 패널을 빠르게 토글합니다." : isJa ? "右側のガイドパネルを素早く切り替えます。" : "Toggle this right guide panel."
+      label: t("guideShortcutsGuideLabel"),
+      desc: t("guideShortcutsGuideDesc"),
     },
     {
       keys: ["Esc"],
       macKeys: ["Esc"],
-      label: isKo ? "모달 / 팝업 닫기" : isJa ? "モーダル / ポップアップを閉じる" : "Close Modal / Popup",
-      desc: isKo ? "열려있는 설정, 뷰어, 팔레트 모달을 닫습니다." : isJa ? "開いている設定やビューア、パレットモーダルを閉じます。" : "Dismiss any open modal or viewer overlay."
+      label: t("guideDismissModalLabel"),
+      desc: t("guideDismissModalDesc"),
     },
   ];
 
   const springNoteTips = [
     {
-      title: isKo ? "슬래시 메뉴 (`/` 입력)" : isJa ? "スラッシュメニュー (`/` 入力)" : "Slash Menu (Type `/`)",
-      desc: isKo ? "본문에 / 키를 입력해 표, 체크리스트, H1/H2 포맷, AI 도우미를 호출하세요." : isJa ? "本文に「/」を入力して表、チェックリスト、見出し、AIアシスタントを呼び出します。" : "Type `/` to insert tables, checklists, headings, or call AI.",
+      title: t("guideTipSlashTitle"),
+      desc: t("guideTipSlashDesc"),
     },
     {
-      title: isKo ? "이미지 클립보드 붙여넣기 & D&D" : isJa ? "画像貼り付け＆D&D" : "Instant Image Paste & Drop",
-      desc: isKo ? "Ctrl + V 붙여넣기 또는 이미지를 에디터 시트로 드래그 앤 드롭하세요." : isJa ? "Ctrl + Vでの貼り付け、または画像をエディタに直接ドラッグ＆ドロップできます。" : "Paste images via Ctrl+V or drag & drop files into editor.",
+      title: t("guideTipPasteTitle"),
+      desc: t("guideTipPasteDesc"),
     },
     {
-      title: isKo ? "캔버스 드로잉 메모 노드" : isJa ? "キャンバス描画メモノード" : "Drawing Memo Canvas Node",
-      desc: isKo ? "노트 바깥쪽 빈 모눈 공간을 더블 클릭하면 드로잉 노드가 생성됩니다." : isJa ? "ノートの外側の空きグリッド領域をダブルクリックすると手書き描画ノードが作成されます。" : "Double-click empty grid space to spawn a drawing canvas node.",
+      title: t("guideTipDrawingTitle"),
+      desc: t("guideTipDrawingDesc"),
     },
   ];
 
   const mindMapTips = [
     {
-      title: isKo ? "노드 생성 & 마우스 조작" : isJa ? "ノード作成＆マウス操作" : "Node Creation & Navigation",
-      desc: isKo ? "루트 노드 클릭 후 + 버튼으로 하위 노드를 생성하고 휠/드래그로 캔버스를 탐색하세요." : isJa ? "ルートノードをクリックして「+」で子ノードを作成し、ホイールやドラッグでキャンバスを操作します。" : "Click root node and hit + to add child nodes. Drag/wheel to navigate.",
+      title: t("guideTipNodeTitle"),
+      desc: t("guideTipNodeDesc"),
     },
     {
-      title: isKo ? "AI 하위 아이디어 확장" : isJa ? "AI アイデア拡張" : "AI Idea Expansion",
-      desc: isKo ? "노드 우클릭 후 'AI 하위 아이디어 생성'을 누르면 Gemini Nano가 아이디어를 확장해 줍니다." : isJa ? "ノードメニューから「AIアイデア拡張」を選択すると、Gemini Nanoが自動でアイデアを展開します。" : "Right click node and select AI Expand to get auto-generated sub-ideas.",
+      title: t("guideTipAiExpandTitle"),
+      desc: t("guideTipAiExpandDesc"),
     },
   ];
 
   const exportTips = [
     {
-      title: isKo ? "스프링노트 내보내기" : isJa ? "スプリングノート エクスポート" : "Spring Note Export",
-      desc: isKo ? "Markdown (.md), HTML (.html), Plain Text (.txt), 또는 PDF 인쇄 서식을 지원합니다." : isJa ? "Markdown (.md)、HTML (.html)、テキスト (.txt)、またはPDF印刷形式に対応しています。" : "Export as Markdown (.md), HTML (.html), Text (.txt) or PDF print layout.",
+      title: t("guideTipJsonExportTitle"),
+      desc: t("guideTipJsonExportDesc"),
     },
     {
-      title: isKo ? "마인드맵 내보내기" : isJa ? "マインドマップ エクスポート" : "MindMap Export",
-      desc: isKo ? "고화질 PNG 이미지, SVG 벡터, 또는 JSON 스냅샷으로 내보내기 및 복원 가능합니다." : isJa ? "高画質PNG画像、SVGベクター、またはJSONスナップショットでの書き出し・復元が可能です。" : "Export as HD PNG image, SVG vector, or JSON snapshot file.",
+      title: t("guideTipHtmlImportTitle"),
+      desc: t("guideTipHtmlImportDesc"),
     },
   ];
 
@@ -95,7 +93,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
         <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
           <BookOpen size={18} />
           <h3 className="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-white">
-            {isKo ? "사용자 가이드 & 단축키" : isJa ? "ユーザーガイド＆ショートカット" : "Guide & Hotkeys"}
+            {t("cmdActionShortcutsGuide")}
           </h3>
         </div>
         <button
@@ -116,7 +114,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
           >
             <div className="flex items-center gap-2">
               <Command size={14} className="group-hover:rotate-12 transition-transform" />
-              <span>{isKo ? "커맨드 팔레트 열기" : isJa ? "コマンドパレットを開く" : "Open Command Palette"}</span>
+              <span>{t("guideCmdPaletteLabel")}</span>
             </div>
             <span className="px-1.5 py-0.5 text-[10px] font-mono bg-purple-800/60 rounded border border-purple-400/30 text-purple-100">
               Ctrl + K
@@ -135,7 +133,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
               : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
           }`}
         >
-          {isKo ? "단축키" : isJa ? "キー" : "Hotkeys"}
+          {t("guideTabShortcuts")}
         </button>
         <button
           onClick={() => setActiveTab("springnote")}
@@ -145,7 +143,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
               : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
           }`}
         >
-          {isKo ? "스프링노트" : isJa ? "ノート" : "Note"}
+          {t("guideTabSpringNote")}
         </button>
         <button
           onClick={() => setActiveTab("mindmap")}
@@ -155,7 +153,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
               : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
           }`}
         >
-          {isKo ? "마인드맵" : isJa ? "マップ" : "Map"}
+          {t("guideTabMindMap")}
         </button>
         <button
           onClick={() => setActiveTab("export")}
@@ -165,7 +163,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
               : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
           }`}
         >
-          {isKo ? "내보내기" : isJa ? "共有" : "Export"}
+          {t("guideTabExport")}
         </button>
       </div>
 
@@ -175,7 +173,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
           <div className="space-y-3">
             <h4 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
               <Keyboard size={12} className="text-purple-500" />
-              {isKo ? "전역 키보드 단축키" : isJa ? "グローバルショートカット" : "Global Hotkeys"}
+              {t("guideGlobalShortcutsTitle")}
             </h4>
             <div className="space-y-2.5">
               {globalShortcuts.map((s, idx) => (
@@ -207,7 +205,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
           <div className="space-y-3">
             <h4 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
               <FileText size={12} className="text-amber-500" />
-              {isKo ? "스프링노트 핵심 팁" : isJa ? "スプリングノートのヒント" : "Spring Note Features"}
+              {t("guideSpringNoteTipsTitle")}
             </h4>
             <div className="space-y-2.5">
               {springNoteTips.map((tItem, idx) => (
@@ -230,7 +228,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
           <div className="space-y-3">
             <h4 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
               <Sparkles size={12} className="text-emerald-500" />
-              {isKo ? "마인드맵 핵심 팁" : isJa ? "マインドマップのヒント" : "MindMap Features"}
+              {t("guideMindMapTipsTitle")}
             </h4>
             <div className="space-y-2.5">
               {mindMapTips.map((tItem, idx) => (
@@ -253,7 +251,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
           <div className="space-y-3">
             <h4 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
               <Share2 size={12} className="text-sky-500" />
-              {isKo ? "내보내기 (Export 2.0) 안내" : isJa ? "エクスポート (Export 2.0) ガイド" : "Export 2.0 Guide"}
+              {t("guideExportTipsTitle")}
             </h4>
             <div className="space-y-2.5">
               {exportTips.map((tItem, idx) => (

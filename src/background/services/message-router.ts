@@ -361,10 +361,71 @@ export async function handleMessage(message: Message, sender?: chrome.runtime.Me
       const notes = await getAllSpringNotes();
       return { success: true, data: notes };
     }
-    case "SAVE_ALL_SPRING_NOTES": {
-      const { saveAllSpringNotes } = await import("@/utils/springNoteDb");
-      await saveAllSpringNotes(message.notes);
-      return { success: true };
+    case "GET_CURRENT_LOCATION": {
+      const lang = message.lang || "ko";
+      // 1. ipwho.is (다국어 지명 및 위경도)
+      try {
+        const res = await fetch(`https://ipwho.is/?lang=${lang}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success !== false && data.latitude && data.longitude) {
+            const city = data.city || data.region || data.country || "";
+            return {
+              success: true,
+              data: {
+                lat: Number(Number(data.latitude).toFixed(4)),
+                lon: Number(Number(data.longitude).toFixed(4)),
+                city,
+              },
+            };
+          }
+        }
+      } catch (err) {
+        console.warn("[Background Geo] ipwho.is failed:", err);
+      }
+
+      // 2. bigdatacloud reverse-geocode
+      try {
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=${lang}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.latitude && data.longitude) {
+            const city = data.city || data.locality || data.principalSubdivision || "";
+            return {
+              success: true,
+              data: {
+                lat: Number(Number(data.latitude).toFixed(4)),
+                lon: Number(Number(data.longitude).toFixed(4)),
+                city,
+              },
+            };
+          }
+        }
+      } catch (err) {
+        console.warn("[Background Geo] BigDataCloud failed:", err);
+      }
+
+      // 3. freeipapi
+      try {
+        const res = await fetch("https://freeipapi.com/api/json");
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.latitude && data.longitude) {
+            return {
+              success: true,
+              data: {
+                lat: Number(Number(data.latitude).toFixed(4)),
+                lon: Number(Number(data.longitude).toFixed(4)),
+                city: data.cityName || data.regionName || "",
+              },
+            };
+          }
+        }
+      } catch (err) {
+        console.warn("[Background Geo] freeipapi failed:", err);
+      }
+
+      return { success: false, error: "Failed to detect location from background" };
     }
     default:
       return { success: false, error: "Unknown message type" };

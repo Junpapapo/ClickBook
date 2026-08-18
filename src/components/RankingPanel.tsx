@@ -37,7 +37,7 @@ export default function RankingPanel({ bookmarks, onClose }: Props) {
     .sort((a, b) => b.savedAt - a.savedAt)
     .slice(0, 20);
 
-  // Recent Reads: Top 20 bookmarks sorted by lastVisitedAt desc (falling back to savedAt if lastVisitedAt is missing)
+  // Recent Reads: Top 20 bookmarks sorted by lastVisitedAt desc
   const recentReads = [...bookmarks]
     .filter((b) => (b.lastVisitedAt !== undefined && b.lastVisitedAt > 0) || b.visitCount > 0)
     .sort((a, b) => {
@@ -72,11 +72,11 @@ export default function RankingPanel({ bookmarks, onClose }: Props) {
   };
 
   return (
-    <div className="w-72 h-full flex flex-col bg-white dark:bg-surface-900 border-l border-gray-200 dark:border-surface-700">
-      {/* ヘッダー（タイトルクリックで閉じる） */}
+    <div className="w-72 h-full flex flex-col bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-slate-200/80 dark:border-white/10 select-none overflow-hidden">
+      {/* 헤더 */}
       <button
         onClick={onClose}
-        className="flex items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-surface-700 shrink-0 w-full text-left group hover:bg-gray-50 dark:hover:bg-surface-800 transition-colors"
+        className="flex items-center gap-2 px-4 py-3 border-b border-slate-200/80 dark:border-slate-800 shrink-0 w-full text-left group hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         title={t("rankingClose")}
       >
         {activeTab === "top" ? (
@@ -86,59 +86,59 @@ export default function RankingPanel({ bookmarks, onClose }: Props) {
         ) : (
           <BookOpen size={14} className="text-emerald-400 animate-pulse shrink-0" />
         )}
-        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex-1">
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex-1">
           {activeTab === "top"
             ? t("rankingTitle")
             : activeTab === "recent"
             ? t("recentTitle")
             : t("recentReadsTitle")}
         </span>
-        <span className="text-[10px] text-gray-400 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="text-[10px] text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
           {t("closeBtn")}
         </span>
       </button>
 
       {/* 탭 헤더 */}
-      <div className="flex border-b border-gray-150 dark:border-surface-800 bg-gray-50 dark:bg-[#1E1E20]/50 shrink-0 p-1.5 gap-1.5">
+      <div className="flex border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 shrink-0 p-1.5 gap-1.5">
         <button
           onClick={() => setActiveTab("top")}
-          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border ${
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border cursor-pointer ${
             activeTab === "top"
-              ? "bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-sm"
-              : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800/40"
+              ? "bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20 shadow-xs font-bold"
+              : "border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/40"
           }`}
         >
-          <Trophy size={11} className={activeTab === "top" ? "text-amber-500" : "text-gray-400 dark:text-gray-500"} />
+          <Trophy size={11} className={activeTab === "top" ? "text-amber-500" : "text-slate-400 dark:text-slate-500"} />
           <span>{t("rankingTitle")}</span>
         </button>
         <button
           onClick={() => setActiveTab("recent")}
-          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border ${
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border cursor-pointer ${
             activeTab === "recent"
-              ? "bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-sm"
-              : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800/40"
+              ? "bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20 shadow-xs font-bold"
+              : "border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/40"
           }`}
         >
-          <Clock size={11} className={activeTab === "recent" ? "text-blue-500" : "text-gray-400 dark:text-gray-500"} />
+          <Clock size={11} className={activeTab === "recent" ? "text-blue-500" : "text-slate-400 dark:text-slate-500"} />
           <span>{t("recentTitle")}</span>
         </button>
         <button
           onClick={() => setActiveTab("reads")}
-          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border ${
+          className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-[9px] font-semibold transition-all text-center leading-tight tracking-tight border cursor-pointer ${
             activeTab === "reads"
-              ? "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-sm"
-              : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-surface-800/40"
+              ? "bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shadow-xs font-bold"
+              : "border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/40"
           }`}
         >
-          <BookOpen size={11} className={activeTab === "reads" ? "text-emerald-500" : "text-gray-400 dark:text-gray-500"} />
+          <BookOpen size={11} className={activeTab === "reads" ? "text-emerald-500" : "text-slate-400 dark:text-slate-500"} />
           <span>{t("recentReadsTitle")}</span>
         </button>
       </div>
 
       {/* 리스트 */}
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
         {activeList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center text-gray-400 dark:text-gray-600">
+          <div className="flex flex-col items-center justify-center py-20 px-4 text-center text-slate-400 dark:text-slate-600">
             {getTabIcon()}
             <p className="text-xs max-w-[200px] leading-relaxed">{getEmptyMessage()}</p>
           </div>
@@ -151,44 +151,46 @@ export default function RankingPanel({ bookmarks, onClose }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => chrome.runtime.sendMessage({ type: "INCREMENT_VISIT", id: b.id })}
-                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-surface-800 transition-colors group"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group cursor-pointer"
                 >
                   <span className="w-6 text-center shrink-0">
                     {MEDALS[i] ?? (
-                      <span className="text-xs font-bold text-gray-400 dark:text-gray-600">{i + 1}</span>
+                      <span className="text-xs font-bold text-slate-400 dark:text-slate-600">{i + 1}</span>
                     )}
                   </span>
                   <img
-                    src={b.favicon}
+                    src={b.favicon || `https://www.google.com/s2/favicons?domain=${b.domain || new URL(b.url).hostname}&sz=32`}
                     alt=""
                     width={14}
                     height={14}
-                    className="rounded-sm shrink-0"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    className="rounded-xs shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-700 dark:text-gray-200 truncate group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
+                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
                       {b.title}
                     </p>
-                    <p className="text-[10px] text-gray-400 dark:text-gray-600 truncate">{b.domain}</p>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-600 truncate">{b.domain}</p>
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-0.5">
                     {activeTab === "top" ? (
                       <>
-                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">{b.visitCount}</span>
-                        <span className="text-[9px] text-gray-400 dark:text-gray-600">{t("rankingVisits", { n: b.visitCount })}</span>
+                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">{b.visitCount}</span>
+                        <span className="text-[9px] text-slate-400 dark:text-slate-600">{t("rankingVisits", { n: b.visitCount })}</span>
                       </>
                     ) : activeTab === "recent" ? (
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 text-right">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 text-right">
                         {formatRelativeTime(b.savedAt, t)}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 text-right">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 text-right">
                         {formatRelativeTime(b.lastVisitedAt || b.savedAt, t)}
                       </span>
                     )}
                   </div>
-                  <ExternalLink size={10} className="shrink-0 text-gray-300 dark:text-gray-700 group-hover:text-indigo-400 transition-colors" />
+                  <ExternalLink size={10} className="shrink-0 text-slate-300 dark:text-slate-700 group-hover:text-indigo-400 transition-colors" />
                 </a>
               </li>
             ))}
@@ -196,9 +198,9 @@ export default function RankingPanel({ bookmarks, onClose }: Props) {
         )}
       </div>
 
-      {/* フッター */}
-      <div className="px-4 py-2 border-t border-gray-200 dark:border-surface-700 shrink-0">
-        <p className="text-[10px] text-gray-400 dark:text-gray-600 text-center">
+      {/* 푸터 */}
+      <div className="px-4 py-2 border-t border-slate-200/80 dark:border-slate-800 shrink-0">
+        <p className="text-[10px] text-slate-400 dark:text-slate-600 text-center">
           {t("rankingFooter")}
         </p>
       </div>

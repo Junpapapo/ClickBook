@@ -1,4 +1,4 @@
-import React from "react";
+
 import {
   Folder, Briefcase, Code2, Palette, Tv, FlaskConical, Trophy, Plane,
   Heart, Star, Music, Camera, Gamepad2, Book, GraduationCap, Map,
@@ -8,7 +8,7 @@ import {
   Tag, Gift, Key, Rainbow, Battery, Anchor, Bell, Compass, Cpu
 } from "lucide-react";
 
-export const LUCIDE_ICONS_MAP: Record<string, React.FC<any>> = {
+export const LUCIDE_ICONS_MAP: Record<string, any> = {
   Folder, Briefcase, Code2, Palette, Tv, FlaskConical, Trophy, Plane,
   Heart, Star, Music, Camera, Gamepad2, Book, GraduationCap, Map,
   Coffee, ShoppingBag, Car, PlaneTakeoff, Shield, User, Users,
@@ -20,7 +20,8 @@ export const LUCIDE_ICONS_MAP: Record<string, React.FC<any>> = {
 export const AVAILABLE_ICON_NAMES = Object.keys(LUCIDE_ICONS_MAP);
 
 export function isEmoji(s: string) {
-  return !!s && !/^[A-Za-z0-9_]+$/.test(s);
+  if (!s || typeof s !== "string") return false;
+  return !/^[A-Za-z0-9_]+$/.test(s);
 }
 
 interface Props {
@@ -31,7 +32,7 @@ interface Props {
 }
 
 export function FolderIcon({ iconName, className = "", size = 14, fallbackColorClass = "bg-gray-400" }: Props) {
-  if (!iconName) {
+  if (!iconName || typeof iconName !== "string") {
     return <span className={`w-2 h-2 rounded-full shrink-0 ${fallbackColorClass}`} />;
   }
   
@@ -40,7 +41,7 @@ export function FolderIcon({ iconName, className = "", size = 14, fallbackColorC
   }
 
   const IconComponent = LUCIDE_ICONS_MAP[iconName];
-  if (IconComponent) {
+  if (IconComponent && (typeof IconComponent === "function" || typeof IconComponent === "object")) {
     return <IconComponent size={size} className={`shrink-0 ${className}`} />;
   }
 

@@ -1,34 +1,33 @@
-import { useState, useEffect, useCallback, useMemo, useDeferredValue, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, useDeferredValue, useRef, Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
-import SearchBar from "@/components/SearchBar";
-import PatternBar from "@/components/PatternBar";
 import RightPanelBar, { type RightPanelId } from "@/components/RightPanelBar";
 import WelcomeModal from "@/components/WelcomeModal";
 import ProgressBar from "@/components/ProgressBar";
 import CommandPalette from "@/components/CommandPalette";
 import Dashboard from "@/pages/Dashboard";
-const FolderView = lazy(() => import("@/pages/FolderView"));
-const MemoBoard = lazy(() => import("@/pages/MemoBoard"));
-const TodoBoard = lazy(() => import("@/pages/TodoBoard"));
-const TagBoard = lazy(() => import("@/pages/TagBoard"));
-const TaskControlPage = lazy(() => import("@/pages/TaskControlPage"));
+import FolderView from "@/pages/FolderView";
+import { sendMsg, lazyWithRetry } from "@/shared/utils";
+
+const MemoBoard = lazyWithRetry(() => import("@/pages/MemoBoard"));
+const TodoBoard = lazyWithRetry(() => import("@/pages/TodoBoard"));
+const TagBoard = lazyWithRetry(() => import("@/pages/TagBoard"));
+const TaskControlPage = lazyWithRetry(() => import("@/pages/TaskControlPage"));
 
 // Lazy loaded heavy sub-pages & components for code splitting & initial load optimization
-const SettingsModal = lazy(() => import("@/components/SettingsModal"));
-const BookmarkMap = lazy(() => import("@/pages/BookmarkMap"));
-const GitHubRankingPage = lazy(() => import("@/pages/GitHubRanking"));
-const WikiRankingPage = lazy(() => import("@/pages/WikiRanking"));
-const HFRankingPage = lazy(() => import("@/pages/HFRanking"));
-const HNRankingPage = lazy(() => import("@/pages/HNRanking"));
-const CalendarBoard = lazy(() => import("@/pages/CalendarBoard"));
-const PrintCalendar = lazy(() => import("@/pages/PrintCalendar"));
-const MindMapBoard = lazy(() => import("@/pages/MindMapBoard"));
-const SpringNoteBoard = lazy(() => import("@/pages/SpringNoteBoard"));
-const ReaderModeViewer = lazy(() => import("@/components/ReaderModeViewer").then(m => ({ default: m.ReaderModeViewer })));
+const SettingsModal = lazyWithRetry(() => import("@/components/SettingsModal"));
+const BookmarkMap = lazyWithRetry(() => import("@/pages/BookmarkMap"));
+const GitHubRankingPage = lazyWithRetry(() => import("@/pages/GitHubRanking"));
+const WikiRankingPage = lazyWithRetry(() => import("@/pages/WikiRanking"));
+const HFRankingPage = lazyWithRetry(() => import("@/pages/HFRanking"));
+const HNRankingPage = lazyWithRetry(() => import("@/pages/HNRanking"));
+const CalendarBoard = lazyWithRetry(() => import("@/pages/CalendarBoard"));
+const PrintCalendar = lazyWithRetry(() => import("@/pages/PrintCalendar"));
+const MindMapBoard = lazyWithRetry(() => import("@/pages/MindMapBoard"));
+const SpringNoteBoard = lazyWithRetry(() => import("@/pages/SpringNoteBoard"));
+const ReaderModeViewer = lazyWithRetry(() => import("@/components/ReaderModeViewer").then(m => ({ default: m.ReaderModeViewer })));
 
 import type { Bookmark, Folder, MemoMap, StorageData, AppSettings, ClickBookBackupData, TodoBoardData, PageId } from "@/shared/types";
 import { DEFAULT_SETTINGS } from "@/shared/storage";
-import { sendMsg } from "@/shared/utils";
 import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -46,7 +45,7 @@ function AppContent() {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [memos, setMemos] = useState<MemoMap>({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [aiSearchQuery, setAiSearchQuery] = useState("");
+  const [aiSearchQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [activePage, setActivePage] = useState<PageId>("dashboard");
   const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
@@ -581,18 +580,8 @@ function AppContent() {
       />
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <SearchBar
-          query={searchQuery}
-          onChange={setSearchQuery}
-          onEnter={setAiSearchQuery}
-          onRefresh={loadData}
-          onOpenSettings={() => setSettingsModalOpen(true)}
-        />
-
-        <PatternBar onPatternLoad={loadData} />
-
         <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-slate-50 text-slate-800 dark:bg-[#0F172A] dark:text-slate-100 p-6">
+          <main className="flex-1 flex flex-col min-w-0 overflow-auto text-slate-800 dark:text-slate-100">
             <Suspense fallback={
               <div className="flex-1 flex items-center justify-center p-8 text-slate-400 text-sm font-medium animate-pulse">
                 페이지 로딩 중...
@@ -663,9 +652,12 @@ function AppContent() {
                   recommendCount={settings.recommendCount}
                   onSelectFolder={(id) => navigate("folder", id)}
                   onRefresh={loadData}
-                  searchQuery={deferredQuery}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
                   aiSearchQuery={aiSearchQuery}
                   onAiLoadingChange={setAiLoading}
+                  onOpenSettings={() => setSettingsModalOpen(true)}
+                  onOpenGuide={() => window.open("https://junpapapo.github.io/ClickBook/public/help.html", "_blank", "noopener,noreferrer")}
                   customSearchConfigs={settings.customSearchConfigs || []}
                   customPresets={settings.customPresets || []}
                   onSaveCustomSearchConfigs={(configs, presets) => {
@@ -683,12 +675,16 @@ function AppContent() {
                   onBack={() => navigate("dashboard")}
                   onSelectFolder={(id) => navigate("folder", id)}
                   onRefresh={loadData}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onOpenSettings={() => setSettingsModalOpen(true)}
+                  onOpenGuide={() => window.open("https://junpapapo.github.io/ClickBook/public/help.html", "_blank", "noopener,noreferrer")}
                 />
               )}
             </Suspense>
           </main>
 
-          {/* 右パネルバー（アイコンレール + 展開パネル） */}
+          {/* 右パネルバー（우측 탑사이트 및 상단 스마트 사용자 패널） */}
           <RightPanelBar
             activePanel={activePanel}
             onToggle={(panel) => setActivePanel((p) => (p === panel ? null : panel))}
@@ -698,8 +694,13 @@ function AppContent() {
             onRefresh={loadData}
             infoBookmark={infoBookmark}
             infoMemo={infoBookmark ? memos[infoBookmark.id] : undefined}
+            memoCount={Object.keys(memos).length}
+            urgentTasks={urgentTasks}
+            onSelectTodoBoard={handleSelectTodoBoard}
             onOpenCommandPalette={() => setCommandPaletteOpen(true)}
             onOpenOnboarding={() => setShowWelcome(true)}
+            onNavigate={navigate}
+            onOpenSettings={() => setSettingsModalOpen(true)}
           />
         </div>
       </div>

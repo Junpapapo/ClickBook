@@ -5,7 +5,7 @@ import { getAllSpringNotes, saveSpringNote, deleteSpringNote } from "@/utils/spr
 import SpringNotePanel from "./TodoBoard/SpringNote/SpringNotePanel";
 import SpringNoteShortcutGuide from "./TodoBoard/SpringNote/components/SpringNoteShortcutGuide";
 import { useLang } from "@/shared/LanguageContext";
-import { useTheme } from "@/shared/ThemeContext";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 
 interface SpringNoteBoardProps {
   lang?: string;
@@ -398,12 +398,14 @@ export default function SpringNoteBoard({
       : "w-1.5 hover:w-2 bg-[#D8C6AC] hover:bg-[#7A604D]/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"; // sepia
 
   return (
-    <div className="w-full h-full flex flex-row overflow-hidden bg-surface-50 dark:bg-surface-950 font-sans select-none">
-      {/* Left List Pane */}
-      <div 
-        style={{ width: `${sidebarWidth}px` }}
-        className={sidebarClass}
-      >
+    <WallpaperBackground isDarkMode={theme === "dark"}>
+      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)]">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex-1 flex flex-row overflow-hidden min-h-0">
+          {/* Left List Pane */}
+          <div 
+            style={{ width: `${sidebarWidth}px` }}
+            className={sidebarClass}
+          >
         {/* Header */}
         <div className={`${sidebarHeaderClass} ${isCollapsed ? "justify-center px-1" : ""}`}>
           {!isCollapsed && (
@@ -647,6 +649,8 @@ export default function SpringNoteBoard({
             </button>
           </div>
         )}
+      </div>
+
       {/* V6: 수려한 다이어리 감성의 노트 삭제 확인 커스텀 모달 */}
       {isNoteDeleteModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
@@ -683,6 +687,7 @@ export default function SpringNoteBoard({
           </div>
         </div>
       )}
+        </div>
       </div>
 
       {/* 스프링노트 전용 단축키 가이드 모달 */}
@@ -692,6 +697,6 @@ export default function SpringNoteBoard({
           lang={lang}
         />
       )}
-    </div>
+    </WallpaperBackground>
   );
 }

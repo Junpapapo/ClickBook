@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import type { Bookmark, Folder } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
 import { useDialog } from "@/shared/useDialog";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 import { getLocalizedFolderName } from "@/shared/categories";
 import TagCloudView from "./TagBoard/TagCloudView";
 import TagActionDialogs from "./TagBoard/TagActionDialogs";
@@ -206,10 +208,13 @@ export default function TagBoard({
     setEditingBookmark(b);
   }, []);
 
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
   return (
-    <>
+    <WallpaperBackground isDarkMode={isDarkMode}>
       {DialogEl}
-      <div className="h-full flex flex-col font-sans relative">
+      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col font-sans relative">
         {/* Toast Notification */}
         {toastMessage && (
           <div
@@ -452,6 +457,6 @@ export default function TagBoard({
           lang={lang}
         />
       </div>
-    </>
+    </WallpaperBackground>
   );
 }

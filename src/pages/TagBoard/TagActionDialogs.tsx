@@ -497,13 +497,7 @@ export default function TagActionDialogs({
                                           ? "text-white"
                                           : "text-gray-400 opacity-0 group-hover:opacity-100"
                                       }`}
-                                      title={
-                                        lang === "ko"
-                                          ? "그룹에서 제외"
-                                          : lang === "ja"
-                                          ? "グループから除外"
-                                          : "Remove from group"
-                                      }
+                                      title={t("tagRemoveFromGroup")}
                                     >
                                       <XIcon size={12} />
                                     </span>
@@ -517,13 +511,7 @@ export default function TagActionDialogs({
                                 </span>
                                 <input
                                   type="text"
-                                  placeholder={
-                                    lang === "ko"
-                                      ? "직접 입력..."
-                                      : lang === "ja"
-                                      ? "直接入力..."
-                                      : "Custom..."
-                                  }
+                                  placeholder={t("tagCustomInput")}
                                   value={
                                     !group.tags.includes(group.suggestedMaster)
                                       ? group.suggestedMaster
@@ -653,22 +641,14 @@ export default function TagActionDialogs({
                                 return (
                                   <p className="text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
                                     <XIcon size={10} />
-                                    {lang === "ko"
-                                      ? "원본 태그와 동일합니다"
-                                      : lang === "ja"
-                                      ? "元のタグと同じです"
-                                      : "Cannot be the same as source tag"}
+                                    {t("tagSameAsSource")}
                                   </p>
                                 );
                               }
                               if (normalized !== mergeTargetRaw.trim()) {
                                 return (
                                   <p className="text-[10px] text-amber-500 dark:text-amber-400">
-                                    {lang === "ko"
-                                      ? `저장 시 변환됨: #${normalized}`
-                                      : lang === "ja"
-                                      ? `保存時に変換: #${normalized}`
-                                      : `Will be saved as: #${normalized}`}
+                                    {t("tagWillSaveAs").replace("{name}", normalized)}
                                   </p>
                                 );
                               }
@@ -678,20 +658,12 @@ export default function TagActionDialogs({
                               return existsInList ? (
                                 <p className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                   <CheckIcon size={10} />
-                                  {lang === "ko"
-                                    ? "기존 태그에 병합됩니다"
-                                    : lang === "ja"
-                                    ? "既存タグにマージされます"
-                                    : "Will merge into existing tag"}
+                                  {t("tagWillMergeExisting")}
                                 </p>
                               ) : (
                                 <p className="text-[10px] text-indigo-500 dark:text-indigo-400 flex items-center gap-1">
                                   <PlusIcon size={10} />
-                                  {lang === "ko"
-                                    ? "새 태그로 생성됩니다"
-                                    : lang === "ja"
-                                    ? "新しいタグとして作成されます"
-                                    : "Will create as new tag"}
+                                  {t("tagWillCreateNew")}
                                 </p>
                               );
                             })()}
@@ -705,11 +677,7 @@ export default function TagActionDialogs({
                             className="w-full bg-gray-100 dark:bg-surface-900 text-xs text-gray-800 dark:text-gray-100 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-surface-800 outline-none focus:border-indigo-500 dark:focus:border-indigo-500 appearance-none shadow-sm cursor-pointer"
                           >
                             <option value="">
-                              {lang === "ko"
-                                ? "-- 유지할 태그 선택 --"
-                                : lang === "ja"
-                                ? "-- 残すタグを選択 --"
-                                : "-- Choose tag to maintain --"}
+                              {t("tagChooseMaintain")}
                             </option>
                             {allTagsWithCount
                               .filter((t) => t.name !== mergeSource)

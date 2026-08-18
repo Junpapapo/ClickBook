@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket } from "lucide-react";
-import type { AppSettings } from "@/shared/types";
+import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket, Sun, Crosshair } from "lucide-react";
+import type { AppSettings, WeatherConfig } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { getCurrentCoordinates, fetchCityName } from "@/utils/weatherApi";
 
 interface Props {
   settings: AppSettings;
@@ -128,7 +129,7 @@ export default function SettingsModal({
   settingsMessage,
   onOpenOnboarding
 }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
   const [saving, setSaving] = useState(false);
@@ -155,8 +156,50 @@ export default function SettingsModal({
     }
   }
 
+  const [detectingLoc, setDetectingLoc] = useState(false);
+
   function set<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setDraft((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function updateWeatherConfig(patch: Partial<WeatherConfig>) {
+    setDraft((prev) => ({
+      ...prev,
+      weatherConfig: {
+        unit: prev.weatherConfig?.unit ?? "celsius",
+        cacheExpiry: prev.weatherConfig?.cacheExpiry ?? 60,
+        lat: prev.weatherConfig?.lat ?? 37.5665,
+        lon: prev.weatherConfig?.lon ?? 126.9780,
+        displayName: prev.weatherConfig?.displayName ?? "",
+        ...patch,
+      },
+    }));
+  }
+
+  async function handleDetectLocation() {
+    setDetectingLoc(true);
+    try {
+      const coords = await getCurrentCoordinates(lang);
+      let detectedCity = coords.city || "";
+      if (!detectedCity) {
+        detectedCity = await fetchCityName(coords.lat, coords.lon, lang);
+      }
+      updateWeatherConfig({
+        lat: coords.lat,
+        lon: coords.lon,
+        displayName: detectedCity || draft.weatherConfig?.displayName || "",
+      });
+      await showAlert(
+        detectedCity
+          ? `${t("weatherAutoDetectSuccess")} (${detectedCity})`
+          : t("weatherAutoDetectSuccess"),
+        "info"
+      );
+    } catch {
+      await showAlert(t("weatherAutoDetectFailed"), "warn");
+    } finally {
+      setDetectingLoc(false);
+    }
   }
 
   async function handleRunGC() {
@@ -183,6 +226,7 @@ export default function SettingsModal({
   async function handleSave() {
     setSaving(true);
     try {
+      localStorage.removeItem("clickbook_weather_cache_v2");
       await onSave(draft);
       onClose();
     } finally {
@@ -215,7 +259,8 @@ export default function SettingsModal({
     draft.useClickBookAsNewTab !== settings.useClickBookAsNewTab ||
     draft.enableTodoNotifications !== settings.enableTodoNotifications ||
     draft.gcInterval !== settings.gcInterval ||
-    draft.holidayCountry !== settings.holidayCountry;
+    draft.holidayCountry !== settings.holidayCountry ||
+    JSON.stringify(draft.weatherConfig) !== JSON.stringify(settings.weatherConfig);
 
 
   return (
@@ -316,6 +361,110 @@ export default function SettingsModal({
                     <option value="US">{t("holidayCountryUS")}</option>
                     <option value="off">{t("holidayCountryOff")}</option>
                   </select>
+                </div>
+              </div>
+            </div>
+
+            {/* ── 날씨 위젯 설정 (Weather Widget Settings) ── */}
+            <div className="mt-4">
+              <SectionHeader icon={<Sun size={13} className="text-amber-500" />} title={t("weatherWidgetSettings")} />
+              <div className="bg-gray-50 dark:bg-surface-800 rounded-xl p-3.5 space-y-3">
+                {/* Temperature Unit */}
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t("weatherTempUnit")}
+                  </span>
+                  <div className="flex bg-slate-200/80 dark:bg-slate-700/80 p-0.5 rounded-lg border border-slate-300/50 dark:border-slate-600/50">
+                    <button
+                      type="button"
+                      onClick={() => updateWeatherConfig({ unit: "celsius" })}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        (draft.weatherConfig?.unit ?? "celsius") === "celsius"
+                          ? "bg-orange-500 text-white shadow-2xs"
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      °C
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateWeatherConfig({ unit: "fahrenheit" })}
+                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                        draft.weatherConfig?.unit === "fahrenheit"
+                          ? "bg-orange-500 text-white shadow-2xs"
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      °F
+                    </button>
+                  </div>
+                </div>
+
+                {/* Weather Cache Expiry */}
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {t("weatherCacheExpiry")}
+                  </span>
+                  <select
+                    value={draft.weatherConfig?.cacheExpiry ?? 60}
+                    onChange={(e) => updateWeatherConfig({ cacheExpiry: Number(e.target.value) })}
+                    className="text-xs bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2.5 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:border-orange-500 transition-all cursor-pointer shrink-0"
+                  >
+                    <option value={30}>30m</option>
+                    <option value={60}>1h</option>
+                    <option value={180}>3h</option>
+                    <option value={360}>6h</option>
+                    <option value={720}>12h</option>
+                    <option value={1440}>24h</option>
+                  </select>
+                </div>
+
+                {/* Location Coordinates & GPS */}
+                <div className="space-y-1.5 pt-1 border-t border-gray-200/50 dark:border-surface-700/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">📍</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                        {t("weatherLocationCoords")}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDetectLocation}
+                      disabled={detectingLoc}
+                      className="p-1.5 bg-white dark:bg-surface-700 hover:bg-orange-50 dark:hover:bg-orange-950/30 border border-slate-200 dark:border-surface-600 rounded-lg text-orange-500 hover:text-orange-600 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
+                      title={t("weatherAutoDetectGps")}
+                    >
+                      <Crosshair size={14} className={detectingLoc ? "animate-spin" : ""} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      step="0.0001"
+                      placeholder={t("weatherLatPlaceholder")}
+                      value={draft.weatherConfig?.lat ?? 37.5665}
+                      onChange={(e) => updateWeatherConfig({ lat: parseFloat(e.target.value) || 0 })}
+                      className="w-full text-xs bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2.5 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:border-orange-500"
+                    />
+                    <input
+                      type="number"
+                      step="0.0001"
+                      placeholder={t("weatherLonPlaceholder")}
+                      value={draft.weatherConfig?.lon ?? 126.9780}
+                      onChange={(e) => updateWeatherConfig({ lon: parseFloat(e.target.value) || 0 })}
+                      className="w-full text-xs bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2.5 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder={t("weatherDisplayNamePlaceholder")}
+                    value={draft.weatherConfig?.displayName ?? ""}
+                    onChange={(e) => updateWeatherConfig({ displayName: e.target.value })}
+                    className="w-full text-xs bg-white dark:bg-surface-700 border border-gray-200 dark:border-surface-600 rounded-lg px-2.5 py-1.5 text-gray-700 dark:text-gray-300 outline-none focus:border-orange-500 placeholder-gray-400"
+                  />
                 </div>
               </div>
             </div>

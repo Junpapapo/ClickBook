@@ -2,7 +2,9 @@ import { DragDropContext, Droppable, DroppableProvided } from "@hello-pangea/dnd
 import { Plus, ListTodo, Loader2 } from "lucide-react";
 import type { AppSettings } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
 import { useDialog } from "@/shared/useDialog";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 import TodoColumn from "./TodoBoard/TodoColumn";
 import TaskDetailsModal from "./TodoBoard/TaskDetailsModal";
 import { useTodoState } from "./TodoBoard/hooks/useTodoState";
@@ -114,31 +116,34 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
       ]?.title || ""
     : "";
 
-  return (
-    <>
-      {DialogEl}
-      <div className="h-full flex font-sans overflow-hidden p-6">
-        {/* Left Area - Kanban Board */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          <div className="mb-5 shrink-0 flex items-center justify-between">
-            <h1 className="text-lg font-bold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
-              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-indigo-500/20">
-                <ListTodo size={16} strokeWidth={2.2} />
-              </span>
-              <span>
-                {t("todoBoardTitle") || "TODO Board"}
-              </span>
-            </h1>
-            <button
-              onClick={addColumn}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs hover:shadow-sm transition-all active:scale-98"
-            >
-              <Plus size={13} strokeWidth={2.5} />
-              {t("addTodoColumn") || "Add List"}
-            </button>
-          </div>
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
-          <div className="flex-1 overflow-x-auto overflow-y-hidden pb-3 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+  return (
+    <WallpaperBackground isDarkMode={isDarkMode}>
+      {DialogEl}
+      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
+        {/* ── 타이틀 & 컨트롤 헤더 (박스 없이 시원하게 노출) ── */}
+        <div className="shrink-0 flex items-center justify-between px-1">
+          <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
+            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white shadow-sm shadow-emerald-500/20">
+              <ListTodo size={16} strokeWidth={2.2} />
+            </span>
+            <span>
+              {t("todoBoardTitle") || "TODO Board"}
+            </span>
+          </h1>
+          <button
+            onClick={addColumn}
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-figma-xs transition-all active:scale-98 cursor-pointer"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            {t("addTodoColumn") || "Add List"}
+          </button>
+        </div>
+
+        {/* ── 칸반 컬럼 영역 (브라우저 높이에 유동적 피팅) ── */}
+        <div className="flex-1 overflow-x-auto overflow-y-hidden pb-2 custom-scrollbar min-h-0">
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="all-columns" direction="horizontal" type="column">
               {(provided: DroppableProvided) => (
@@ -187,9 +192,8 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
           </DragDropContext>
         </div>
       </div>
-    </div>
 
-    {/* Task Details Modal Component */}
+      {/* Task Details Modal Component */}
       {editingTask && (
         <TaskDetailsModal
           task={editingTask}
@@ -201,6 +205,6 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
           lang={lang}
         />
       )}
-    </>
+    </WallpaperBackground>
   );
 }

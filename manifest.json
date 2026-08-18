@@ -74,7 +74,11 @@
     {
       "resources": [
         "buddies/*",
-        "src/newtab/index.html"
+        "src/newtab/index.html",
+        "*.js",
+        "*.css",
+        "*.png",
+        "*.svg"
       ],
       "matches": [
         "<all_urls>"

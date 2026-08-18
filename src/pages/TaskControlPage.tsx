@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import type { TaskItem, TaskCategory } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 
 interface Props {
   tasks: TaskItem[];
@@ -288,92 +290,97 @@ export default function TaskControlPage({
         : "bg-amber-500"
       : "bg-emerald-500";
 
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
   return (
-    <div className="w-full">
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/25">
-            <Zap size={18} className="text-yellow-300" />
+    <WallpaperBackground isDarkMode={isDarkMode}>
+      <div className="max-w-[1440px] w-full mx-auto pb-6 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
+        {/* Page Header */}
+        <div className="flex items-center gap-3 px-1">
+          <div className="flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-md shadow-violet-500/25">
+            <Zap size={17} className="text-yellow-300" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+            <h1 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
               {t("taskControlTitle") || "Task Control Center"}
             </h1>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {t("taskControlDesc") ||
                 "백그라운드 작업을 실시간 모니터링하고 제어합니다"}
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Concurrency Guard Banner */}
-      <div className="flex items-center justify-between px-4 py-3 mb-6 rounded-xl bg-white/80 dark:bg-surface-800/80 backdrop-blur-md border border-gray-200/50 dark:border-surface-700/50 shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-2 h-2 rounded-full ${guardDot} ${aiRunningCount > 0 ? "animate-pulse" : ""}`} />
-          <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-            AI Concurrency Guard
-          </span>
-        </div>
-        <span className={`text-[11px] font-bold ${guardColor}`}>
-          Limit: 1 · {guardLabel}
-        </span>
-      </div>
-
-      {/* Task List */}
-      {sortedTasks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-surface-800 flex items-center justify-center">
-            <Activity
-              size={28}
-              className="text-gray-300 dark:text-gray-600"
-            />
-          </div>
-          <p className="text-sm text-gray-400 dark:text-gray-500">
-            {t("taskControlEmpty") || "현재 진행 중인 작업이 없습니다"}
-          </p>
-          <p className="text-[11px] text-gray-300 dark:text-gray-600 max-w-xs text-center">
-            {t("taskControlEmptyHint") ||
-              "AI 정리, 자동 태깅, Chrome 동기화 등의 작업이 여기에 표시됩니다"}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {sortedTasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onRetry={onRetry}
-              onDismiss={onDismiss}
-              onCancel={onCancel}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Summary Footer */}
-      {tasks.length > 0 && (
-        <div className="mt-6 px-4 py-3 rounded-xl bg-gray-50/50 dark:bg-surface-800/30 border border-gray-200/30 dark:border-surface-700/30">
-          <div className="flex items-center gap-4 text-[10px] text-gray-400 dark:text-gray-500">
-            <span>
-              {t("taskTotal") || "전체"}: {tasks.length}
-            </span>
-            <span>
-              {t("taskRunningCount") || "진행 중"}:{" "}
-              {tasks.filter((t) => t.status === "running").length}
-            </span>
-            <span>
-              {t("taskQueuedCount") || "대기"}:{" "}
-              {tasks.filter((t) => t.status === "queued").length}
-            </span>
-            <span>
-              {t("taskFailedCount") || "실패"}:{" "}
-              {tasks.filter((t) => t.status === "failed").length}
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg p-4 sm:p-5 space-y-4">
+          {/* Concurrency Guard Banner */}
+          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-2 h-2 rounded-full ${guardDot} ${aiRunningCount > 0 ? "animate-pulse" : ""}`} />
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                AI Concurrency Guard
+              </span>
+            </div>
+            <span className={`text-[11px] font-bold ${guardColor}`}>
+              Limit: 1 · {guardLabel}
             </span>
           </div>
+
+          {/* Task List */}
+          {sortedTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <Activity
+                  size={28}
+                  className="text-slate-300 dark:text-slate-600"
+                />
+              </div>
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                {t("taskControlEmpty") || "현재 진행 중인 작업이 없습니다"}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 max-w-xs text-center">
+                {t("taskControlEmptyHint") ||
+                  "AI 정리, 자동 태깅, Chrome 동기화 등의 작업이 여기에 표시됩니다"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sortedTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onRetry={onRetry}
+                  onDismiss={onDismiss}
+                  onCancel={onCancel}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Summary Footer */}
+          {tasks.length > 0 && (
+            <div className="px-4 py-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50">
+              <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                <span>
+                  {t("taskTotal") || "전체"}: {tasks.length}
+                </span>
+                <span>
+                  {t("taskRunningCount") || "진행 중"}:{" "}
+                  {tasks.filter((t) => t.status === "running").length}
+                </span>
+                <span>
+                  {t("taskQueuedCount") || "대기"}:{" "}
+                  {tasks.filter((t) => t.status === "queued").length}
+                </span>
+                <span>
+                  {t("taskFailedCount") || "실패"}:{" "}
+                  {tasks.filter((t) => t.status === "failed").length}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </WallpaperBackground>
   );
 }

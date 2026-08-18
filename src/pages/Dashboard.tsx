@@ -1,16 +1,20 @@
 import { useState, useRef, useMemo } from "react";
-import { Check, X, Pencil, Lock, LockOpen, Trash2, AlertOctagon, Sparkles } from "lucide-react";
+import { Check, X, Pencil, Trash2, AlertOctagon, Sparkles, FolderTree } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
-
 import RecentReaderWidget from "@/components/RecentReaderWidget";
 import { EditModal } from "@/components/BookmarkEditPanel";
 import type { Bookmark, Folder, MemoMap, MessageResponse } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
 import { useDialog } from "@/shared/useDialog";
-import { getLocalizedFolderName, DEFAULT_FOLDER_ID } from "@/shared/categories";
+import { getLocalizedFolderName } from "@/shared/categories";
 import { FolderIcon } from "@/components/DynamicIcon";
 import { sendMsg } from "@/shared/utils";
+
+// ── 모던 대시보드 컴포넌트 ──────────────────────────────
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
+import ModernHeroHeader from "@/components/dashboard/ModernHeroHeader";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -22,6 +26,7 @@ interface Props {
   rankingCount: number;
   recommendCount: number;
   searchQuery?: string;
+  onSearchChange?: (query: string) => void;
   aiSearchQuery?: string;
   onAiLoadingChange?: (loading: boolean) => void;
   customSearchConfigs?: import("@/shared/types").CustomSearchConfig[];
@@ -30,6 +35,8 @@ interface Props {
   todoStats?: { overdueCount: number; dueTodayCount: number };
   urgentTasks?: import("@/shared/types").TodoTask[];
   onSelectTodoBoard?: () => void;
+  onOpenSettings?: () => void;
+  onOpenGuide?: () => void;
   organizeResult?: {
     movedCount: number;
     total: number;
@@ -52,20 +59,60 @@ const EMOJI_MAP: Record<string, string> = {
   other: "📁",
 };
 
-export default function Dashboard({ bookmarks, folders, memos, recentCount, rankingCount, recommendCount: _recommendCount, onSelectFolder, onRefresh, searchQuery: _searchQuery, aiSearchQuery: _aiSearchQuery, onAiLoadingChange: _onAiLoadingChange, customSearchConfigs: _customSearchConfigs = [], customPresets: _customPresets = [], onSaveCustomSearchConfigs: _onSaveCustomSearchConfigs, todoStats, urgentTasks, onSelectTodoBoard, organizeResult = null, onClearOrganizeResult }: Props) {
+export default function Dashboard({
+  bookmarks,
+  folders,
+  memos,
+  recentCount,
+  rankingCount,
+  recommendCount: _recommendCount,
+  onSelectFolder,
+  onRefresh,
+  searchQuery = "",
+  onSearchChange,
+  aiSearchQuery: _aiSearchQuery,
+  onAiLoadingChange: _onAiLoadingChange,
+  customSearchConfigs: _customSearchConfigs = [],
+  customPresets: _customPresets = [],
+  onSaveCustomSearchConfigs: _onSaveCustomSearchConfigs,
+  todoStats: _todoStats,
+  urgentTasks: _urgentTasks = [],
+  onSelectTodoBoard,
+  onOpenSettings,
+  onOpenGuide,
+  organizeResult = null,
+  onClearOrganizeResult,
+}: Props) {
   const { t, lang } = useLang();
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const { showConfirm, showAlert, DialogEl } = useDialog();
+
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const [isZenMode, setIsZenMode] = useState(false);
+
+  // 빈 배경 클릭 시 상단 검색창만 남기고 위젯 숨김 토글
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest(
+        "button, input, select, textarea, a, [role='button'], [role='dialog'], .no-zen-toggle"
+      )
+    ) {
+      return;
+    }
+    setIsZenMode((prev) => !prev);
+  };
 
   async function handleDelete(id: string) {
     try {
-      const response = await sendMsg({
+      const response = (await sendMsg({
         type: "DELETE_BOOKMARK",
         id,
-      }) as MessageResponse;
+      })) as MessageResponse;
       if (response && response.success) {
         onRefresh();
       } else {
@@ -79,12 +126,10 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
 
   async function handleDeleteFolder(id: string, _name: string) {
     const count = countByFolder[id] ?? 0;
-    const msg = count > 0
-      ? t("folderDeleteWithBookmarks", { n: count })
-      : t("folderDeleteConfirm");
-    if (!await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn")) return;
+    const msg = count > 0 ? t("folderDeleteWithBookmarks", { n: count }) : t("folderDeleteConfirm");
+    if (!(await showConfirm(msg, t("deleteTooltip"), t("cancelBtn"), "warn"))) return;
     try {
-      const response = await sendMsg({ type: "DELETE_FOLDER", id }) as MessageResponse;
+      const response = (await sendMsg({ type: "DELETE_FOLDER", id })) as MessageResponse;
       if (response && response.success) {
         onRefresh();
       } else {
@@ -96,11 +141,6 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
     }
   }
 
-  async function handleToggleLock(id: string) {
-    await sendMsg({ type: "TOGGLE_FOLDER_LOCK", id });
-    onRefresh();
-  }
-
   const folderToRoot = useMemo(() => {
     const map: Record<string, string> = {};
     for (const f of folders) {
@@ -109,11 +149,9 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       visited.add(curId);
       let cur = f;
       while (cur && cur.parentId !== null) {
-        if (visited.has(cur.parentId)) {
-          break;
-        }
+        if (visited.has(cur.parentId)) break;
         visited.add(cur.parentId);
-        const next = folders.find(p => p.id === cur.parentId);
+        const next = folders.find((p) => p.id === cur.parentId);
         if (!next) {
           curId = cur.parentId;
           break;
@@ -141,12 +179,10 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
       const visited = new Set<string>();
       let parentId: string | null = f.parentId;
       while (parentId !== null) {
-        if (visited.has(parentId)) {
-          break;
-        }
+        if (visited.has(parentId)) break;
         visited.add(parentId);
         acc[parentId] = (acc[parentId] ?? 0) + 1;
-        const parentFolder = folders.find(p => p.id === parentId);
+        const parentFolder = folders.find((p) => p.id === parentId);
         if (!parentFolder) break;
         parentId = parentFolder.parentId;
       }
@@ -175,246 +211,251 @@ export default function Dashboard({ bookmarks, folders, memos, recentCount, rank
     .sort((a, b) => a.order - b.order);
 
   return (
-    <div className="flex flex-col gap-6">
-      {DialogEl}
-      
-      {/* AI Organize 브리핑 배너 */}
-      {organizeResult && (
-        <div className="relative overflow-hidden bg-indigo-50/80 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-900/40 rounded-xl p-3 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg shadow-xs shrink-0">
-              <Sparkles size={15} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-xs">
-                {lang === "ko" ? "AI 북정리 완료 브리핑" : "AI Organize Briefing"}
-              </h3>
-              <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-0.5">
-                {lang === "ko" 
-                  ? `총 ${organizeResult.total}개의 북마크 중 ${organizeResult.movedCount}개의 위치를 정리했습니다.`
-                  : `Organized ${organizeResult.movedCount} out of ${organizeResult.total} bookmarks.`}
-              </p>
-              <div className="mt-1 flex flex-wrap gap-2 items-center text-xs text-indigo-600 dark:text-indigo-400 font-medium">
-                {organizeResult.aiSupported === false ? (
-                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider">
-                    💡 {lang === "ko" ? "로컬 규칙 적용" : "Local Rules"}
-                  </span>
-                ) : organizeResult.aiSuccessCount !== undefined && organizeResult.aiTotalBatches !== undefined && organizeResult.aiTotalBatches > 0 ? (
-                  <span className="shrink-0 bg-indigo-500/10 dark:bg-indigo-500/25 px-1.5 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider">
-                    💡 {lang === "ko" 
-                      ? `AI 분석 성공률: ${organizeResult.aiSuccessCount}/${organizeResult.aiTotalBatches} 배치` 
-                      : `AI Success: ${organizeResult.aiSuccessCount}/${organizeResult.aiTotalBatches}`}
-                  </span>
-                ) : null}
-                <span className="truncate max-w-[400px] text-slate-500 dark:text-slate-400 text-[10.5px]">
-                  📦 {lang === "ko" ? "백업본:" : "Backup:"} {organizeResult.backupName}
+    <WallpaperBackground isDarkMode={isDarkMode}>
+      <div
+        onClick={handleBackgroundClick}
+        className="flex flex-col gap-5 max-w-[1440px] w-full mx-auto pb-12 px-2 sm:px-6 select-none min-h-[calc(100vh-2rem)] cursor-default"
+      >
+        {DialogEl}
+
+        {/* ── 1. 상단 히어로 & 통합 검색창 & 유틸리티 툴바 (항상 유지) ── */}
+        <div className="no-zen-toggle">
+          <ModernHeroHeader
+            searchQuery={searchQuery}
+            onSearchChange={(q) => onSearchChange?.(q)}
+            onSearchSubmit={(q) => {
+              if (q.trim()) onSearchChange?.(q);
+            }}
+            onOpenSettings={onOpenSettings}
+            onOpenGuide={onOpenGuide}
+          />
+        </div>
+
+        {/* ── 2~7. 하단 위젯/콘텐츠 영역 (빈 배경 클릭 시 감춤/표시 토글) ── */}
+        {!isZenMode ? (
+          <div className="flex flex-col gap-5 animate-in fade-in duration-200">
+            {/* ── 2. AI 정리 브리핑 배너 (있을 때만) ── */}
+            {organizeResult && (
+              <div className="relative overflow-hidden bg-indigo-50/85 dark:bg-indigo-950/40 backdrop-blur-md border border-indigo-200/80 dark:border-indigo-800/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-figma-sm animate-in fade-in duration-200">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-1.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl shadow-xs shrink-0">
+                    <Sparkles size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-xs truncate">
+                      {lang === "ko" ? "AI 북정리 완료 브리핑" : "AI Organize Briefing"}
+                    </h3>
+                    <p className="text-[11.5px] text-slate-600 dark:text-slate-300 truncate mt-0.5">
+                      {lang === "ko"
+                        ? `총 ${organizeResult.total}개의 북마크 중 ${organizeResult.movedCount}개의 위치를 정리했습니다.`
+                        : `Organized ${organizeResult.movedCount} out of ${organizeResult.total} bookmarks.`}
+                    </p>
+                  </div>
+                </div>
+                {onClearOrganizeResult && (
+                  <button
+                    onClick={onClearOrganizeResult}
+                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    {t("dashboardBtnOk")}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* ── 3. 긴급 TODO 배너 (있을 때만) ── */}
+            {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
+              <div className="relative overflow-hidden bg-rose-50/85 dark:bg-rose-950/40 backdrop-blur-md border border-rose-200/80 dark:border-rose-800/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-figma-sm animate-in fade-in duration-200">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-1.5 bg-rose-600 dark:bg-rose-500 text-white rounded-xl shadow-xs shrink-0">
+                    <AlertOctagon size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-xs truncate">
+                      {t("todoBannerTitle") || "Action Required on Tasks"}
+                    </h3>
+                    <p className="text-[11.5px] text-slate-600 dark:text-slate-300 truncate mt-0.5">
+                      {lang === "ko"
+                        ? `오늘 마감 ${todoStats.dueTodayCount}개, 마감 초과 ${todoStats.overdueCount}개의 긴급 태스크가 있습니다.`
+                        : `${todoStats.dueTodayCount} tasks due today, ${todoStats.overdueCount} overdue.`}
+                    </p>
+                  </div>
+                </div>
+                {onSelectTodoBoard && (
+                  <button
+                    onClick={onSelectTodoBoard}
+                    className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    {t("dashboardBtnView")}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* ── 4. 루트 폴더 카드 그리드 (글래스모피즘) ── */}
+            <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div className="flex items-center gap-2">
+                  <FolderTree size={16} className="text-indigo-600 dark:text-indigo-400" />
+                  <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                    {t("dashboardCategoryFolders")}
+                  </h2>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  {rootFolders.length} {t("dashboardFolderUnit")}
                 </span>
               </div>
-            </div>
-          </div>
-          {onClearOrganizeResult && (
-            <button
-              onClick={onClearOrganizeResult}
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-lg transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              {lang === "ko" ? "확인" : "OK"}
-            </button>
-          )}
-        </div>
-      )}
 
-      {/* Urgent TODO Banner */}
-      {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
-        <div className="relative overflow-hidden bg-rose-50/80 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 rounded-xl p-3 flex items-center justify-between gap-3 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-rose-600 dark:bg-rose-500 text-white rounded-lg shadow-xs shrink-0">
-              <AlertOctagon size={15} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-xs">
-                {t("todoBannerTitle") || "Action Required on Tasks"}
-              </h3>
-              <p className="text-[11.5px] text-slate-600 dark:text-slate-300 mt-0.5">
-                {t("todoBannerDesc", { count: todoStats.overdueCount + todoStats.dueTodayCount }) || 
-                  `You have ${todoStats.overdueCount + todoStats.dueTodayCount} tasks that are due today or overdue.`}
-              </p>
-              {urgentTasks && urgentTasks.length > 0 && (
-                <div className="mt-1 flex flex-wrap gap-1.5 items-center text-xs text-rose-600 dark:text-rose-400 font-medium">
-                  <span className="shrink-0 bg-rose-500/10 dark:bg-rose-500/25 px-1.5 py-0.5 rounded text-[9.5px] uppercase font-bold tracking-wider">
-                    📍 {t("todoUrgent")}
-                  </span>
-                  <span className="truncate max-w-[400px] text-[10.5px]">
-                    {(() => {
-                      const titles = urgentTasks.map(t => t.content);
-                      if (titles.length <= 2) return titles.join(", ");
-                      return `${titles.slice(0, 2).join(", ")} ${lang === "ko" ? `외 ${titles.length - 2}개` : lang === "ja" ? `ほか ${titles.length - 2}件` : `and ${titles.length - 2} more`}`;
-                    })()}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          {onSelectTodoBoard && (
-            <button
-              onClick={onSelectTodoBoard}
-              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-semibold rounded-lg transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              {t("todoBannerBtn") || "View Board"}
-            </button>
-          )}
-        </div>
-      )}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2.5">
+                {rootFolders.map((f) => {
+                  const count = countByFolder[f.id] ?? 0;
+                  const subCount = subfolderCountByFolder[f.id] ?? 0;
+                  const isRenaming = renamingFolderId === f.id;
 
-      {/* 폴더 요약 섹션 */}
-      <section>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
-            {t("folders")}
-          </h2>
-          <span className="text-[10.5px] text-slate-400 font-medium">
-            {rootFolders.length} {lang === "ko" ? "개 폴더" : "folders"}
-          </span>
-        </div>
-        <div className="grid grid-cols-4 xl:grid-cols-8 gap-2">
-          {rootFolders.map((f) => {
-            const count = countByFolder[f.id] ?? 0;
-            const subCount = subfolderCountByFolder[f.id] ?? 0;
-            const isRenaming = renamingFolderId === f.id;
-            return (
-              <div
-                key={f.id}
-                className="group relative flex flex-col items-center gap-1 p-2 bg-white dark:bg-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-700/60 border border-slate-200/90 dark:border-slate-700/70 hover:border-indigo-400/80 dark:hover:border-indigo-500/50 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-figma-md cursor-pointer select-none"
-                onClick={() => { if (!isRenaming) onSelectFolder(f.id); }}
-              >
-                {!isRenaming && (
-                  f.id === DEFAULT_FOLDER_ID ? (
+                  return (
                     <div
-                      className="absolute top-1.5 left-1.5 p-0.5 rounded opacity-100 text-amber-500 cursor-not-allowed"
-                      title="기본 폴더는 이름 변경이나 삭제가 불가능합니다."
+                      key={f.id}
+                      onClick={() => !isRenaming && onSelectFolder(f.id)}
+                      className="group relative flex flex-col items-center justify-between p-3 rounded-2xl bg-white/60 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-800/90 border border-white/80 dark:border-white/10 shadow-figma-xs hover:shadow-figma-sm hover:-translate-y-0.5 transition-all cursor-pointer min-h-[90px]"
                     >
-                      <Lock size={10} />
-                    </div>
-                  ) : (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleToggleLock(f.id); }}
-                      className={`absolute top-1.5 left-1.5 p-0.5 rounded transition-all ${
-                        f.locked
-                          ? "opacity-100 text-amber-500 hover:text-amber-400"
-                          : "opacity-0 group-hover:opacity-100 text-slate-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400"
-                      }`}
-                      title={f.locked ? t("dashboardUnlockTooltip") : t("dashboardLockTooltip")}
-                    >
-                      {f.locked ? <Lock size={10} /> : <LockOpen size={10} />}
-                    </button>
-                  )
-                )}
-                {!isRenaming && (
-                  <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); startRename(f); }}
-                      className="p-0.5 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all"
-                      title={t("dashboardRenameTooltip")}
-                    >
-                      <Pencil size={10} className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400" />
-                    </button>
+                      {/* 카드 상단 우측 인라인 액션 (이름수정 / 삭제) */}
+                      {!isRenaming && (
+                        <div
+                          className="absolute top-1.5 right-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => startRename(f)}
+                            className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                            title={t("renameTooltip") || "이름 수정"}
+                          >
+                            <Pencil size={11} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" />
+                          </button>
+                          {count === 0 && (
+                            <button
+                              onClick={() => handleDeleteFolder(f.id, f.name)}
+                              className="p-1 rounded-md hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                              title={t("deleteTooltip") || "폴더 삭제"}
+                            >
+                              <Trash2 size={11} className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400" />
+                            </button>
+                          )}
+                        </div>
+                      )}
 
-                    {f.id !== DEFAULT_FOLDER_ID && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id, f.name); }}
-                        className="p-0.5 rounded hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all"
-                        title={t("deleteTooltip")}
-                      >
-                        <Trash2 size={10} className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400" />
-                      </button>
-                    )}
-                  </div>
-                )}
-                <div className="relative flex justify-center items-center h-7 mt-0.5">
-                  <FolderIcon 
-                    iconName={f.icon || EMOJI_MAP[f.id] || "📂"} 
-                    size={20} 
-                    className="text-[20px] text-slate-700 dark:text-slate-200" 
-                  />
-                  {subCount > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[9px] font-bold px-1 py-0.5 rounded-full leading-none shadow-figma-sm">
-                      {subCount}
-                    </span>
-                  )}
-                </div>
-                {isRenaming ? (
-                  <div
-                    className="flex flex-col items-center gap-1 w-full"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      ref={renameInputRef}
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") commitRename(f.id, f.name);
-                        if (e.key === "Escape") setRenamingFolderId(null);
-                      }}
-                      onBlur={() => commitRename(f.id, f.name)}
-                      className="w-full text-center text-xs bg-transparent border-b border-indigo-500 text-slate-800 dark:text-slate-100 outline-none"
-                    />
-                    <div className="flex items-center gap-1">
-                      <button
-                        onMouseDown={(e) => { e.preventDefault(); commitRename(f.id, f.name); }}
-                        className="text-emerald-500 hover:text-emerald-400"
-                      >
-                        <Check size={12} />
-                      </button>
-                      <button
-                        onMouseDown={(e) => { e.preventDefault(); setRenamingFolderId(null); }}
-                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                      >
-                        <X size={12} />
-                      </button>
+                      {/* 폴더 아이콘 */}
+                      <div className="relative flex justify-center items-center h-8 mt-1">
+                        <FolderIcon
+                          iconName={f.icon || EMOJI_MAP[f.id] || "📂"}
+                          size={24}
+                          className="text-[24px] text-slate-700 dark:text-slate-200 group-hover:scale-110 transition-transform"
+                        />
+                        {subCount > 0 && (
+                          <span className="absolute -top-1 -right-2 bg-indigo-100 dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full leading-none shadow-2xs">
+                            {subCount}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 폴더명 / 북마크 개수 */}
+                      {isRenaming ? (
+                        <div className="flex flex-col items-center gap-1 w-full" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            ref={renameInputRef}
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") commitRename(f.id, f.name);
+                              if (e.key === "Escape") setRenamingFolderId(null);
+                            }}
+                            onBlur={() => commitRename(f.id, f.name)}
+                            className="w-full text-center text-xs bg-transparent border-b border-indigo-500 text-slate-800 dark:text-slate-100 outline-none"
+                          />
+                          <div className="flex items-center gap-1">
+                            <button
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                commitRename(f.id, f.name);
+                              }}
+                              className="text-emerald-500 hover:text-emerald-400"
+                            >
+                              <Check size={12} />
+                            </button>
+                            <button
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setRenamingFolderId(null);
+                              }}
+                              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full text-center mt-1">
+                          <span className="text-[11.5px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate w-full block transition-colors">
+                            {getLocalizedFolderName(f, lang)}
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{count} items</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ) : (
-                  <>
-                    <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300 truncate w-full text-center">
-                      {getLocalizedFolderName(f, lang)}
-                    </span>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                      {count}
-                    </span>
-                  </>
-                )}
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </section>
 
+            {/* ── 5. 최근 읽은 사이트 (리더모드 진행률) ── */}
+            <RecentReaderWidget bookmarks={bookmarks} />
 
-      {/* 최근 읽은 사이트 */}
-      <RecentReaderWidget bookmarks={bookmarks} />
+            {/* ── 6. 최근 추가된 북마크 카드 그리드 (글래스모피즘) ── */}
+            <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
+              <RecentWidget
+                bookmarks={bookmarks}
+                folders={folders}
+                memos={memos}
+                count={recentCount}
+                onDelete={handleDelete}
+                onEdit={setEditingBookmark}
+                onMemoChange={onRefresh}
+              />
+            </section>
 
-      {/* 최근 추가 */}
-      <section>
-        <RecentWidget bookmarks={bookmarks} folders={folders} memos={memos} count={recentCount} onDelete={handleDelete} onEdit={setEditingBookmark} onMemoChange={onRefresh} />
-      </section>
+            {/* ── 7. 하단 2-Grid 랭킹 요약 섹션 (클릭북 인기 북마크 + 브라우저 Top Sites) ── */}
+            <section>
+              <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
+                <RankingWidget bookmarks={bookmarks} count={rankingCount} onRefresh={onRefresh} />
+              </div>
+            </section>
+          </div>
+        ) : (
+          /* ── Zen 모드 활성화 시 미니멀 안내 (배경 감상 모드) ── */
+          <div className="flex-1 flex flex-col items-center justify-center py-32 animate-in fade-in duration-300 pointer-events-none">
+            <div className="px-4 py-2 rounded-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-figma-sm">
+              {t("zenModeHint")}
+            </div>
+          </div>
+        )}
+      </div>
 
-      {/* 랭킹 위젯 */}
-      <section>
-        <div className="bg-white dark:bg-slate-800/70 border border-slate-200/90 dark:border-slate-700/70 rounded-xl p-3.5 shadow-figma-sm">
-          <RankingWidget bookmarks={bookmarks} count={rankingCount} />
-        </div>
-      </section>
-
-      {/* ブックマーク編集モーダル */}
+      {/* 북마크 수정 모달 */}
       {editingBookmark && (
         <EditModal
           mode="edit"
           bookmark={editingBookmark}
           folders={folders}
-          onSaved={() => { setEditingBookmark(null); onRefresh(); }}
-          onDeleted={() => { setEditingBookmark(null); onRefresh(); }}
+          onSaved={() => {
+            setEditingBookmark(null);
+            onRefresh();
+          }}
+          onDeleted={() => {
+            setEditingBookmark(null);
+            onRefresh();
+          }}
           onClose={() => setEditingBookmark(null)}
         />
       )}
-    </div>
+    </WallpaperBackground>
   );
 }

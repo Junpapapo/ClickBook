@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { Copy, RefreshCw, Check } from "lucide-react";
 import { getRandomQuote } from "@/shared/quotes";
 import type { Quote } from "@/shared/quotes";
+import { useLang } from "@/shared/LanguageContext";
 
 interface QuotePanelProps {
   isCollapsed: boolean;
-  lang: string;
+  lang?: string;
 }
 
-export default function QuotePanel({ isCollapsed, lang }: QuotePanelProps) {
+export default function QuotePanel({ isCollapsed }: QuotePanelProps) {
+  const { t } = useLang();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -39,14 +41,14 @@ export default function QuotePanel({ isCollapsed, lang }: QuotePanelProps) {
       <div className="absolute right-1 top-1 flex items-center gap-1 opacity-0 group-hover/quote:opacity-100 transition-opacity duration-200">
         <button
           onClick={handleCopyQuote}
-          title={lang === "ko" ? "명언 복사" : lang === "ja" ? "名言をコピー" : "Copy Quote"}
+          title={t("quoteCopyTooltip")}
           className="p-0.5 rounded bg-white dark:bg-surface-800 shadow-sm border border-gray-200 dark:border-surface-700 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors cursor-pointer"
         >
           {copied ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
         </button>
         <button
           onClick={handleRefreshQuote}
-          title={lang === "ko" ? "다른 명언 보기" : lang === "ja" ? "他の名言を見る" : "Refresh Quote"}
+          title={t("quoteRefreshTooltip")}
           className="p-0.5 rounded bg-white dark:bg-surface-800 shadow-sm border border-gray-200 dark:border-surface-700 text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors cursor-pointer"
         >
           <RefreshCw size={10} />

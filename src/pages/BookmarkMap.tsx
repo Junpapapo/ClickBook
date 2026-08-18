@@ -16,6 +16,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import type { Bookmark, Folder, BookmarkMemo } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
+import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 import { getLayoutedElements } from "@/utils/mapLayout";
 import { FolderNode, BookmarkNode } from "@/components/MapNodes";
 
@@ -33,25 +35,23 @@ interface Props {
 
 function MapControls({ layoutDir, onToggleLayout }: { layoutDir: "LR"|"TB", onToggleLayout: () => void }) {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
-  const { lang } = useLang();
+  const { t } = useLang();
   
   return (
     <Panel position="bottom-center" className="flex items-center gap-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-1.5 rounded-xl shadow-lg border border-slate-200/90 dark:border-slate-800 select-none">
       <button onClick={() => zoomOut({ duration: 300 })} className="px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg transition-all shadow-2xs cursor-pointer">
-        {lang === "ko" ? "축소" : lang === "ja" ? "縮小" : "Zoom Out"}
+        {t("mapZoomOut")}
       </button>
       <button onClick={() => zoomIn({ duration: 300 })} className="px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg transition-all shadow-2xs cursor-pointer">
-        {lang === "ko" ? "확대" : lang === "ja" ? "拡大" : "Zoom In"}
+        {t("mapZoomIn")}
       </button>
       <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-0.5" />
       <button onClick={() => fitView({ duration: 800, padding: 0.2 })} className="px-2.5 py-1 text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all shadow-2xs cursor-pointer border border-indigo-200/60 dark:border-indigo-800/40">
-        {lang === "ko" ? "자동 정렬" : lang === "ja" ? "自動整列" : "Fit View"}
+        {t("mapFitView")}
       </button>
       <div className="w-px h-5 bg-slate-200 dark:bg-slate-800 mx-0.5" />
       <button onClick={onToggleLayout} className="px-2.5 py-1 text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all shadow-2xs flex items-center gap-1 cursor-pointer border border-indigo-200/60 dark:border-indigo-800/40">
-        {layoutDir === "LR" 
-          ? (lang === "ko" ? "수평 ➡️" : lang === "ja" ? "水平 ➡️" : "Horizontal ➡️") 
-          : (lang === "ko" ? "수직 ⬇️" : lang === "ja" ? "垂直 ⬇️" : "Vertical ⬇️")}
+        {layoutDir === "LR" ? t("mapHorizontal") : t("mapVertical")}
       </button>
     </Panel>
   );
@@ -72,7 +72,7 @@ function MapToolbar({
   onSearchChange: (q: string) => void,
   onSearchCommit: () => void
 }) {
-  const { lang } = useLang();
+  const { t } = useLang();
   return (
     <Panel position="top-right" className="flex flex-col gap-2.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-slate-200/90 dark:border-slate-800 pointer-events-auto mt-3 mr-3 select-none">
       {/* Search */}
@@ -83,7 +83,7 @@ function MapToolbar({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") onSearchCommit(); }}
-          placeholder={lang === "ko" ? "폴더/북마크 검색..." : lang === "ja" ? "検索..." : "Search..."}
+          placeholder={t("mapSearchPlaceholder")}
           className="bg-transparent outline-none text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 w-36"
         />
         {searchQuery && (
@@ -93,34 +93,34 @@ function MapToolbar({
       <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
       <div className="flex items-center justify-between gap-3">
         <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-          {lang === "ko" ? "북마크 표시" : lang === "ja" ? "ブックマーク表示" : "Show Bookmarks"}
+          {t("mapShowBookmarks")}
         </span>
         <div className="flex items-center gap-1">
           <button onClick={() => onBookmarkModeChange("HIDE")} className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all ${bookmarkMode === "HIDE" ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'}`}>
-            {lang === "ko" ? "숨김" : lang === "ja" ? "非表示" : "Hide"}
+            {t("mapHide")}
           </button>
           <button onClick={() => onBookmarkModeChange("COLLAPSED")} className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all ${bookmarkMode === "COLLAPSED" ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'}`}>
-            {lang === "ko" ? "닫기" : lang === "ja" ? "閉じる" : "Close"}
+            {t("mapClose")}
           </button>
           <button onClick={() => onBookmarkModeChange("EXPANDED")} className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all ${bookmarkMode === "EXPANDED" ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'}`}>
-            {lang === "ko" ? "펼치기" : lang === "ja" ? "展開" : "Expand"}
+            {t("mapExpand")}
           </button>
         </div>
       </div>
       <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
       <div className="flex items-center justify-between gap-3">
         <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-          {lang === "ko" ? "폴더 펼침" : lang === "ja" ? "フォルダ展開" : "Expand"}
+          {t("mapExpandDepth")}
         </span>
         <div className="flex items-center gap-1">
           <button onClick={() => onExpandDepth(1)} className="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded transition-all">
-            {lang === "ko" ? "1단계" : lang === "ja" ? "1段階" : "1"}
+            {t("mapDepth1")}
           </button>
           <button onClick={() => onExpandDepth(2)} className="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded transition-all">
-            {lang === "ko" ? "2단계" : lang === "ja" ? "2段階" : "2"}
+            {t("mapDepth2")}
           </button>
           <button onClick={() => onExpandDepth(Infinity)} className="px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-all border border-indigo-200/60 dark:border-indigo-800/40">
-            {lang === "ko" ? "전체" : lang === "ja" ? "全展開" : "All"}
+            {t("mapDepthAll")}
           </button>
         </div>
       </div>
@@ -326,61 +326,69 @@ function BookmarkMapContent({ bookmarks, folders, memos, onRefresh }: Props) {
     // Left empty because toggles are handled by node internals
   }, []);
 
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
   if (!isLoaded) {
-    return <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gray-50 dark:bg-surface-950">Loading map state...</div>;
+    return <div className="w-full h-full flex items-center justify-center text-gray-500 bg-transparent">Loading map state...</div>;
   }
 
   return (
-    <div className="w-full h-full relative bg-gray-50 dark:bg-surface-950">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes}
-        defaultViewport={initialViewport || undefined}
-        fitView={!initialViewport}
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.1}
-        maxZoom={1.5}
-        className="[&_.react-flow__controls]:dark:bg-surface-800 [&_.react-flow__controls-button]:dark:bg-surface-800 [&_.react-flow__controls-button]:dark:text-gray-300 [&_.react-flow__controls-button]:dark:border-surface-600"
-      >
-        <MapToolbar 
-          onExpandDepth={expandToDepth} 
-          bookmarkMode={bookmarkMode} 
-          onBookmarkModeChange={handleBookmarkModeChange}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onSearchCommit={handleSearchCommit}
-        />
-        <MapControls layoutDir={layoutDir} onToggleLayout={() => setLayoutDir(d => d === "LR" ? "TB" : "LR")} />
-        <MiniMap 
-          pannable
-          zoomable
-          nodeStrokeColor={(n) => {
-            if (n.type === 'folder') return '#818cf8';
-            return '#cbd5e1';
-          }}
-          nodeColor={(n) => {
-            if (n.type === 'folder') return '#e0e7ff';
-            return '#f8fafc';
-          }}
-          maskColor="rgba(0,0,0, 0.1)"
-          className="dark:bg-surface-800 !border-gray-200 dark:!border-surface-700 rounded-lg shadow-sm"
-        />
-        <Background color="#94a3b8" gap={16} size={1} />
-      </ReactFlow>
-      
-      <div className="absolute top-4 left-4 bg-white/80 dark:bg-surface-900/80 backdrop-blur-md px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-surface-700 pointer-events-none">
-        <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200">🗺️ {t("bookmarkMap") || "Bookmark Map"}</h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {lang === "ko" ? "폴더 노드를 클릭하여 하위 북마크를 펼치거나 접을 수 있습니다." : 
-           lang === "ja" ? "フォルダをクリックして展開・折りたたみができます。" : 
-           "Click folder nodes to expand or collapse bookmarks."}
-        </p>
+    <WallpaperBackground isDarkMode={isDarkMode}>
+      <div className="max-w-[1440px] w-full mx-auto pb-3 pt-2 sm:pt-3 px-2 sm:px-4 select-none flex flex-col h-[calc(100vh-1rem)] space-y-2">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex-1 flex flex-col min-w-0 overflow-hidden relative min-h-0">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            defaultViewport={initialViewport || undefined}
+            fitView={!initialViewport}
+            fitViewOptions={{ padding: 0.2 }}
+            minZoom={0.1}
+            maxZoom={1.5}
+            className="[&_.react-flow__controls]:dark:bg-surface-800 [&_.react-flow__controls-button]:dark:bg-surface-800 [&_.react-flow__controls-button]:dark:text-gray-300 [&_.react-flow__controls-button]:dark:border-surface-600"
+          >
+            <MapToolbar 
+              onExpandDepth={expandToDepth} 
+              bookmarkMode={bookmarkMode} 
+              onBookmarkModeChange={handleBookmarkModeChange}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onSearchCommit={handleSearchCommit}
+            />
+            <MapControls layoutDir={layoutDir} onToggleLayout={() => setLayoutDir(d => d === "LR" ? "TB" : "LR")} />
+            <MiniMap 
+              pannable
+              zoomable
+              nodeStrokeColor={(n) => {
+                if (n.type === 'folder') return '#818cf8';
+                return '#cbd5e1';
+              }}
+              nodeColor={(n) => {
+                if (n.type === 'folder') return '#e0e7ff';
+                return '#f8fafc';
+              }}
+              maskColor="rgba(0,0,0, 0.1)"
+              className="dark:bg-surface-800 !border-gray-200 dark:!border-surface-700 rounded-xl shadow-sm"
+            />
+            <Background color="#94a3b8" gap={16} size={1} />
+          </ReactFlow>
+          
+          <div className="absolute top-4 left-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-figma-xs border border-white/60 dark:border-white/10 pointer-events-none">
+            <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+              <span>🗺️</span>
+              <span>{t("bookmarkMap") || "Bookmark Map"}</span>
+            </h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              {t("mapTipClick")}
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
+    </WallpaperBackground>
   );
 }
 

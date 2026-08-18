@@ -40,6 +40,24 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
   const [tourStep, setTourStep] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [nanoStatus, setNanoStatus] = useState<"checking" | "ready" | "not_ready">("checking");
+  const [userName, setUserName] = useState("Creator");
+
+  useEffect(() => {
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["clickbook_username"], (res) => {
+        if (res && res.clickbook_username) {
+          setUserName(res.clickbook_username);
+        }
+      });
+    }
+  }, []);
+
+  const handleUserNameChange = (val: string) => {
+    setUserName(val);
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clickbook_username: val });
+    }
+  };
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -233,13 +251,13 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
       />
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div 
-          className="w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-figma-lg flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans text-slate-800 dark:text-slate-100 my-auto"
+          className="w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-figma-lg flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-sans text-slate-800 dark:text-slate-100 my-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header (Single-line Compact Layout) */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 gap-3 flex-nowrap overflow-x-auto scrollbar-none select-none">
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 gap-3 flex-wrap sm:flex-nowrap select-none">
             {/* Left: Brand & Segmented Tabs */}
-            <div className="flex items-center gap-3 shrink-0 flex-nowrap">
+            <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
               <div className="flex items-center gap-2 shrink-0">
                 <img src="/icons/icon128.png" alt="ClickBook" className="w-6 h-6 rounded-lg shadow-figma-sm shrink-0" />
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -252,7 +270,7 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
               </div>
 
               {/* Segmented View Tabs (Overview | Step Tour | Gemini Nano Setup) */}
-              <div className="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700/80 shrink-0 flex-nowrap">
+              <div className="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700/80 shrink-0">
                 <button
                   onClick={() => setTab("overview")}
                   className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
@@ -290,16 +308,16 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
             </div>
 
             {/* Right: Language & Theme & Close */}
-            <div className="flex items-center gap-2 shrink-0 flex-nowrap">
-              {/* Language Selector */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 text-xs shrink-0 flex-nowrap">
+            <div className="flex items-center gap-2 shrink-0 ml-auto">
+              {/* Language Selector (주요 언어 + 간결한 디자인) */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 text-xs shrink-0 max-w-[220px] overflow-x-auto custom-scrollbar">
                 {SUPPORTED_LANGUAGES.map((l) => (
                   <button
                     key={l.code}
                     onClick={() => setLang(l.code)}
-                    className={`px-2 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-semibold whitespace-nowrap transition-all cursor-pointer ${
                       lang === l.code 
-                        ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-2xs" 
+                        ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-2xs font-bold" 
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     }`}
                   >
@@ -309,7 +327,7 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
               </div>
 
               {/* Theme Toggle */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 shrink-0 flex-nowrap">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700/80 shrink-0">
                 <button
                   onClick={() => toggleTheme("light")}
                   className={`p-1 rounded-md transition-all cursor-pointer ${
@@ -326,7 +344,7 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
                   className={`p-1 rounded-md transition-all cursor-pointer ${
                     theme === "dark" 
                       ? "bg-slate-700 text-indigo-400 shadow-2xs" 
-                      : "text-slate-400 hover:text-slate-200"
+                      : "text-slate-400 hover:text-slate-600"
                   }`}
                   title="Dark Mode"
                 >
@@ -334,9 +352,10 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
                 </button>
               </div>
 
+              {/* Close Button */}
               <button
                 onClick={handleFinish}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer ml-1"
                 title="Close"
               >
                 <X size={16} />
@@ -359,7 +378,7 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
                   </p>
 
                   {/* Gemini Nano Slim Recommendation Banner */}
-                  <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-indigo-50/80 dark:bg-slate-800/80 border border-indigo-200/70 dark:border-indigo-800/70 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="mt-2 px-3 py-1.5 rounded-xl bg-indigo-50/80 dark:bg-slate-800/80 border border-indigo-200/70 dark:border-indigo-800/70 flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="flex h-2 w-2 relative shrink-0">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -376,6 +395,31 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
                       <span>{t("onboardingNanoBannerBtn")}</span>
                       <ArrowRight size={11} />
                     </button>
+                  </div>
+
+                  {/* 👤 사용자 대시보드 닉네임 설정 바 */}
+                  <div className="mt-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-50/90 to-purple-50/90 dark:from-indigo-950/40 dark:to-purple-950/40 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-extrabold text-xs shadow-2xs shrink-0">
+                        {(userName || "C").charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
+                          {lang === "ko" ? "대시보드 닉네임" : "Dashboard Nickname"}
+                        </div>
+                        <p className="text-[9.5px] text-slate-500 dark:text-slate-400 truncate">
+                          {lang === "ko" ? "대시보드 인사말과 우측 스마트 위젯에 실시간 표시됩니다." : "Displayed on dashboard greeting & smart widgets."}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <input
+                        value={userName}
+                        onChange={(e) => handleUserNameChange(e.target.value)}
+                        placeholder={lang === "ko" ? "닉네임 입력 (예: Creator)" : "Your name"}
+                        className="w-32 sm:w-36 px-2 py-0.8 text-xs rounded-lg bg-white dark:bg-slate-800 border border-indigo-200/80 dark:border-indigo-700 text-slate-800 dark:text-slate-100 outline-none focus:border-indigo-500 font-bold shadow-2xs text-center"
+                      />
+                    </div>
                   </div>
                 </div>
 

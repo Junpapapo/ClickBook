@@ -66,7 +66,6 @@ export default function CommandPalette({
   const { lang, t } = useLang();
   const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
-  const isKo = lang === "ko";
 
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -84,13 +83,13 @@ export default function CommandPalette({
   const commandGroups = useMemo<CommandGroup[]>(() => {
     const groups: CommandGroup[] = [
       {
-        category: isKo ? "빠른 이동" : "Navigation",
+        category: t("cmdCategoryNav"),
         items: [
           {
             id: "nav-dashboard",
             icon: <LayoutDashboard size={16} className="text-indigo-400" />,
-            title: isKo ? "대시보드 (홈)" : "Dashboard (Home)",
-            description: isKo ? "모든 북마크 및 위젯 개요 보드" : "All bookmarks & widget overview",
+            title: t("cmdNavDashboard"),
+            description: t("cmdNavDashboardDesc"),
             action: () => {
               onNavigate("dashboard");
               onClose();
@@ -99,8 +98,8 @@ export default function CommandPalette({
           {
             id: "nav-springnote",
             icon: <BookOpen size={16} className="text-amber-400" />,
-            title: isKo ? "아날로그 스프링노트" : "Analog Spring Note",
-            description: isKo ? "리치 텍스트 서식 서재 에디터" : "Rich-text analog note editor",
+            title: t("cmdNavSpringNote"),
+            description: t("cmdNavSpringNoteDesc"),
             action: () => {
               onNavigate("springnote");
               onClose();
@@ -109,8 +108,8 @@ export default function CommandPalette({
           {
             id: "nav-mindmap",
             icon: <GitFork size={16} className="text-emerald-400" />,
-            title: isKo ? "인터랙티브 마인드맵" : "Interactive MindMap",
-            description: isKo ? "노드 기반 비주얼 구조화" : "Visual node diagramming",
+            title: t("cmdNavMindMap"),
+            description: t("cmdNavMindMapDesc"),
             action: () => {
               onNavigate("mindmap");
               onClose();
@@ -119,8 +118,8 @@ export default function CommandPalette({
           {
             id: "nav-todo",
             icon: <CheckSquare size={16} className="text-sky-400" />,
-            title: isKo ? "생산성 TODO 보드" : "Productivity TODO Board",
-            description: isKo ? "칸반 방식 할 일 및 메모 관리" : "Kanban task & todo board",
+            title: t("cmdNavTodo"),
+            description: t("cmdNavTodoDesc"),
             action: () => {
               onNavigate("todo");
               onClose();
@@ -129,8 +128,8 @@ export default function CommandPalette({
           {
             id: "nav-memo",
             icon: <FileText size={16} className="text-rose-400" />,
-            title: isKo ? "메모 관리 보드" : "Memo Board",
-            description: isKo ? "북마크 스티키 메모 한눈에 모아보기" : "Sticky memo repository",
+            title: t("cmdNavMemo"),
+            description: t("cmdNavMemoDesc"),
             action: () => {
               onNavigate("memo");
               onClose();
@@ -139,8 +138,8 @@ export default function CommandPalette({
           {
             id: "nav-calendar",
             icon: <CalendarIcon size={16} className="text-purple-400" />,
-            title: isKo ? "스마트 캘린더" : "Smart Calendar",
-            description: isKo ? "일정, 공휴일 및 Todo 타임라인 연동" : "Schedule & holiday calendar",
+            title: t("cmdNavCalendar"),
+            description: t("cmdNavCalendarDesc"),
             action: () => {
               onNavigate("calendar");
               onClose();
@@ -149,8 +148,8 @@ export default function CommandPalette({
           {
             id: "nav-tagboard",
             icon: <Tag size={16} className="text-pink-400" />,
-            title: isKo ? "AI 태그 클라우드" : "AI Tag Board",
-            description: isKo ? "인터랙티브 HSL 태그 필터링" : "Tag cloud and filtering",
+            title: t("cmdNavTag"),
+            description: t("cmdNavTagDesc"),
             action: () => {
               onNavigate("tagboard");
               onClose();
@@ -159,8 +158,8 @@ export default function CommandPalette({
           {
             id: "nav-map",
             icon: <MapPin size={16} className="text-teal-400" />,
-            title: isKo ? "비주얼 북마크 맵" : "Visual Bookmark Map",
-            description: isKo ? "카테고리별 위치 시각화" : "Visual map of saved links",
+            title: t("cmdNavBookmarkMap"),
+            description: t("cmdNavBookmarkMapDesc"),
             action: () => {
               onNavigate("map");
               onClose();
@@ -169,8 +168,8 @@ export default function CommandPalette({
           {
             id: "nav-github",
             icon: <Github size={16} className="text-slate-400" />,
-            title: isKo ? "GitHub 트렌드 랭킹" : "GitHub Trending",
-            description: isKo ? "인기 저장소 탐색" : "Popular GitHub repos",
+            title: t("cmdNavGithub"),
+            description: t("cmdNavGithubDesc"),
             action: () => {
               onNavigate("github");
               onClose();
@@ -179,13 +178,13 @@ export default function CommandPalette({
         ],
       },
       {
-        category: isKo ? "빠른 실행 (Actions)" : "Quick Actions",
+        category: t("cmdCategoryActions"),
         items: [
           {
             id: "act-ai-organize",
             icon: <Sparkles size={16} className="text-purple-400" />,
-            title: isKo ? "AI 자동 정리 실행" : "Run AI Auto-Organize",
-            description: isKo ? "북마크 카테고리 일괄 자동 재분류" : "Bulk re-categorize bookmarks",
+            title: t("cmdActionAiOrganize"),
+            description: t("cmdActionAiOrganizeDesc"),
             action: () => {
               onAiOrganize?.();
               onClose();
@@ -194,8 +193,8 @@ export default function CommandPalette({
           {
             id: "act-auto-tag",
             icon: <Tag size={16} className="text-pink-400" />,
-            title: isKo ? "AI 자동 태깅 실행" : "Run AI Auto-Tagging",
-            description: isKo ? "태그 없는 북마크에 AI 자동 태그 부여" : "Generate tags for untagged items",
+            title: t("cmdActionAutoTag"),
+            description: t("cmdActionAutoTagDesc"),
             action: () => {
               onAutoTag?.();
               onClose();
@@ -204,7 +203,7 @@ export default function CommandPalette({
           {
             id: "act-theme-toggle",
             icon: isDark ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} className="text-indigo-400" />,
-            title: isDark ? (isKo ? "라이트 테마로 전환" : "Switch to Light Theme") : (isKo ? "다크 테마로 전환" : "Switch to Dark Theme"),
+            title: isDark ? t("cmdActionSwitchLight") : t("cmdActionSwitchDark"),
             action: () => {
               if (onToggleTheme) onToggleTheme();
               else toggle();
@@ -224,7 +223,7 @@ export default function CommandPalette({
           {
             id: "act-open-guide",
             icon: <HelpCircle size={16} className="text-purple-400" />,
-            title: isKo ? "단축키 & 사용 도움말 가이드" : "Shortcuts & User Guide",
+            title: t("cmdActionShortcutsGuide"),
             action: () => {
               onOpenGuide?.();
               onClose();
@@ -233,7 +232,7 @@ export default function CommandPalette({
           {
             id: "act-open-settings",
             icon: <Settings size={16} className="text-slate-400" />,
-            title: isKo ? "상세 설정 모달 열기" : "Open Settings",
+            title: t("cmdActionOpenSettings"),
             action: () => {
               onOpenSettings?.();
               onClose();
@@ -257,12 +256,22 @@ export default function CommandPalette({
 
       if (matchedBookmarks.length > 0) {
         groups.unshift({
-          category: isKo ? "북마크 바로가기" : "Bookmark Results",
+          category: t("cmdCategoryBookmarks"),
           items: matchedBookmarks.map((b) => ({
             id: `bm-${b.id}`,
-            icon: <BookmarkIcon size={16} className="text-amber-400" />,
+            icon: (
+              <img
+                src={b.favicon || `https://www.google.com/s2/favicons?domain=${b.domain}&sz=32`}
+                alt=""
+                className="w-4 h-4 object-contain rounded"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'><circle cx='12' cy='12' r='10'/></svg>";
+                }}
+              />
+            ),
             title: b.title,
-            description: b.url,
+            description: b.domain || b.url,
             action: () => {
               window.open(b.url, "_blank");
               onClose();
@@ -329,9 +338,9 @@ export default function CommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={
-              isKo
+              lang === "ko"
                 ? "페이지 이동, 액션 실행 또는 북마크 검색... (위/아래 방향키, Enter)"
-                : "Type a command, page name or bookmark search..."
+                : t("heroSearchPlaceholder")
             }
             className="flex-1 bg-transparent text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
           />
@@ -347,7 +356,7 @@ export default function CommandPalette({
         <div ref={listRef} className="max-h-[60vh] overflow-y-auto p-2 space-y-4 scrollbar-thin">
           {flatItems.length === 0 ? (
             <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
-              {isKo ? "일치하는 커맨드나 검색 결과가 없습니다." : "No matching commands found."}
+              {t("cmdNoResults")}
             </div>
           ) : (
             commandGroups.map((group) => {
@@ -443,13 +452,13 @@ export default function CommandPalette({
         <div className="px-4 py-2.5 border-t border-slate-200 dark:border-surface-800 bg-slate-50/80 dark:bg-surface-950/80 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 font-mono bg-slate-200 dark:bg-surface-800 rounded">↑↓</kbd> {isKo ? "이동" : "Navigate"}
+              <kbd className="px-1 py-0.5 font-mono bg-slate-200 dark:bg-surface-800 rounded">↑↓</kbd> {t("cmdHintNavigate")}
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 font-mono bg-slate-200 dark:bg-surface-800 rounded">Enter</kbd> {isKo ? "선택" : "Select"}
+              <kbd className="px-1 py-0.5 font-mono bg-slate-200 dark:bg-surface-800 rounded">Enter</kbd> {t("cmdHintSelect")}
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 font-mono bg-slate-200 dark:bg-surface-800 rounded">Esc</kbd> {isKo ? "닫기" : "Close"}
+              <kbd className="px-1 py-0.5 font-mono bg-slate-200 dark:bg-surface-800 rounded">Esc</kbd> {t("cmdHintClose")}
             </span>
           </div>
           <div className="flex items-center gap-1 font-semibold text-purple-500 dark:text-purple-400">

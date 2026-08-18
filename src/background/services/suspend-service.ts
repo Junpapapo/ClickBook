@@ -156,6 +156,15 @@ export async function trackTabAccessed(tabId: number): Promise<void> {
   }
 }
 
+async function getStoredLang(): Promise<string> {
+  try {
+    const res = await chrome.storage.local.get("clickbook_lang");
+    return res.clickbook_lang || "";
+  } catch {
+    return "";
+  }
+}
+
 export async function checkAndAutoSuspend(now: number, lastAccessedMap: Record<string, number>): Promise<void> {
   try {
     const settings = await chrome.storage.local.get("clickbook_auto_suspend_time");
@@ -179,7 +188,9 @@ export async function checkAndAutoSuspend(now: number, lastAccessedMap: Record<s
       }
 
       if (now - lastAccessed > thresholdMs) {
-        const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}`);
+        const lang = await getStoredLang();
+        const langParam = lang ? `&lang=${encodeURIComponent(lang)}` : "";
+        const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}${langParam}`);
         await chrome.tabs.update(tab.id, { url: suspendUrl });
         delete lastAccessedMap[String(tab.id)];
         mapChanged = true;
@@ -197,7 +208,9 @@ export async function checkAndAutoSuspend(now: number, lastAccessedMap: Record<s
 export async function suspendTab(tabId: number): Promise<MessageResponse> {
   const tab = await chrome.tabs.get(tabId);
   if (tab && tab.url && !tab.url.includes("suspend.html")) {
-    const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}`);
+    const lang = await getStoredLang();
+    const langParam = lang ? `&lang=${encodeURIComponent(lang)}` : "";
+    const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}${langParam}`);
     await chrome.tabs.update(tabId, { url: suspendUrl });
   }
   return { success: true };
@@ -206,9 +219,11 @@ export async function suspendTab(tabId: number): Promise<MessageResponse> {
 export async function suspendAllInactive(): Promise<MessageResponse> {
   const tabs = await chrome.tabs.query({});
   let count = 0;
+  const lang = await getStoredLang();
+  const langParam = lang ? `&lang=${encodeURIComponent(lang)}` : "";
   for (const tab of tabs) {
     if (tab.id && !tab.active && !tab.pinned && !tab.audible && tab.url && (tab.url.startsWith("http://") || tab.url.startsWith("https://")) && !tab.url.includes("suspend.html")) {
-      const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}`);
+      const suspendUrl = chrome.runtime.getURL(`suspend.html?url=${encodeURIComponent(tab.url)}&title=${encodeURIComponent(tab.title || '')}&favicon=${encodeURIComponent(tab.favIconUrl || '')}${langParam}`);
       await chrome.tabs.update(tab.id, { url: suspendUrl });
       count++;
     }

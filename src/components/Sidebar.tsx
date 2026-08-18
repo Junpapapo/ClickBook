@@ -268,7 +268,7 @@ export default function Sidebar({
       `}</style>
       {DialogEl}
       <aside
-        className={`relative group/sidebar bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md border-r border-slate-200/90 dark:border-slate-800 flex flex-col shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out ${
+        className={`relative z-30 group/sidebar bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl border-r border-slate-200/80 dark:border-white/10 flex flex-col shrink-0 overflow-x-hidden transition-all duration-300 ease-in-out shadow-figma-md ${
           isCollapsed ? "w-16" : "w-60"
         }`}
       >
@@ -800,7 +800,8 @@ export default function Sidebar({
               {/* Memo Board Button */}
               <button
                 onClick={() => onNavigate("memo")}
-                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                title={t("memoBoard") || "Memos"}
+                className={`relative flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150 cursor-pointer
                   ${
                     activePage === "memo"
                       ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20 font-semibold"
@@ -813,17 +814,13 @@ export default function Sidebar({
                     {memoCount}
                   </span>
                 )}
-
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
-                  {t("memoBoard") || "Memos"}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
-                </span>
               </button>
 
               {/* TODO Board Button */}
               <button
                 onClick={() => onNavigate("todo")}
-                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                title={t("todoBoardMenu") || "TODO"}
+                className={`relative flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150 cursor-pointer
                   ${
                     activePage === "todo"
                       ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 font-semibold"
@@ -837,17 +834,13 @@ export default function Sidebar({
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                   </span>
                 )}
-
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
-                  {t("todoBoardMenu") || "TODO"}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
-                </span>
               </button>
 
               {/* Calendar Board Button */}
               <button
                 onClick={() => onNavigate("calendar")}
-                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                title={t("calendarMenu") || "Calendar"}
+                className={`relative flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150 cursor-pointer
                   ${
                     activePage === "calendar"
                       ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-semibold"
@@ -855,17 +848,13 @@ export default function Sidebar({
                   }`}
               >
                 <Calendar size={15} className="shrink-0" />
-
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
-                  {t("calendarMenu") || "Calendar"}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
-                </span>
               </button>
 
               {/* MindMap Board Button */}
               <button
                 onClick={() => onNavigate("mindmap")}
-                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                title={t("mindMapBoardMenu") || "Mind Map"}
+                className={`relative flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150 cursor-pointer
                   ${
                     activePage === "mindmap"
                       ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20 font-semibold"
@@ -873,17 +862,13 @@ export default function Sidebar({
                   }`}
               >
                 <GitBranch size={15} className="shrink-0" />
-
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
-                  {t("mindMapBoardMenu") || "Mind Map"}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
-                </span>
               </button>
 
               {/* SpringNote Board Button */}
               <button
                 onClick={() => onNavigate("springnote")}
-                className={`relative group flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150
+                title={t("springNoteBoardMenu") || "Sprint Note"}
+                className={`relative flex-1 flex items-center justify-center py-2.5 text-sm rounded-lg transition-all duration-150 cursor-pointer
                   ${
                     activePage === "springnote"
                       ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 font-semibold"
@@ -891,11 +876,6 @@ export default function Sidebar({
                   }`}
               >
                 <BookOpen size={15} className="shrink-0" />
-
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[11px] font-medium text-white bg-slate-900/90 dark:bg-surface-950/95 backdrop-blur-sm rounded shadow-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap border border-white/5">
-                  {t("springNoteBoardMenu") || "Sprint Note"}
-                  <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900/90 dark:border-t-surface-950/95" />
-                </span>
               </button>
             </div>
           )
