@@ -75,7 +75,7 @@ export default function Dashboard({
   customSearchConfigs: _customSearchConfigs = [],
   customPresets: _customPresets = [],
   onSaveCustomSearchConfigs: _onSaveCustomSearchConfigs,
-  todoStats: _todoStats,
+  todoStats,
   urgentTasks: _urgentTasks = [],
   onSelectTodoBoard,
   onOpenSettings,
