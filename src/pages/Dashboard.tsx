@@ -225,6 +225,7 @@ export default function Dashboard({
           }}
           onOpenSettings={onOpenSettings}
           onOpenGuide={onOpenGuide}
+          isZenMode={isZenMode}
         />
 
         {/* ── 2~7. 하단 위젯/콘텐츠 영역 (빈 배경 클릭 시 감춤/표시 토글) ── */}
@@ -428,8 +429,8 @@ export default function Dashboard({
             </section>
           </div>
         ) : (
-          /* ── Zen 모드 활성화 시 (순수 대형 시간 표시 모드) ── */
-          <div className="flex-1 flex flex-col items-center justify-center py-16 animate-in fade-in duration-500 select-none pointer-events-none">
+          /* ── Zen 모드 활성화 시 (순수 대형 시간/날짜/명언 감상 모드) ── */
+          <div className="flex-1 my-auto min-h-[65vh] flex flex-col items-center justify-center py-6 animate-in fade-in duration-500 select-none pointer-events-none">
             <ZenClock />
           </div>
         )}

@@ -10,6 +10,7 @@ interface Props {
   onOpenSettings?: () => void;
   onOpenGuide?: () => void;
   userName?: string;
+  isZenMode?: boolean;
 }
 
 export default function ModernHeroHeader({
@@ -19,6 +20,7 @@ export default function ModernHeroHeader({
   onOpenSettings,
   onOpenGuide,
   userName = "Creator",
+  isZenMode = false,
 }: Props) {
   const { lang, t } = useLang();
   const { theme, toggle: toggleTheme } = useTheme();
@@ -84,9 +86,9 @@ export default function ModernHeroHeader({
   }`;
 
   return (
-    <div className="w-full flex flex-col items-center justify-center text-center pt-2 pb-6 px-2 select-none">
+    <div className={`w-full flex flex-col items-center justify-center text-center select-none transition-all duration-300 ${isZenMode ? "pt-1 pb-2" : "pt-2 pb-6 px-2"}`}>
       {/* ── 우측 상단 유틸리티 아이콘 바 (보안 / 가이드 / 테마 / 설정) ── */}
-      <div className="w-full flex items-center justify-end gap-1.5 mb-2 px-2">
+      <div className={`w-full flex items-center justify-end gap-1.5 px-2 transition-all duration-300 ${isZenMode ? "opacity-40 hover:opacity-100" : "mb-2"}`}>
         <div
           className="flex items-center gap-1 px-2 py-1 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/60 dark:border-white/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold shadow-2xs"
           title={t("heroSecuredTooltip")}
@@ -128,56 +130,60 @@ export default function ModernHeroHeader({
         )}
       </div>
 
-      {/* ── 메인 타이틀 & 환영 메시지 ── */}
-      <div className="mb-4">
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white drop-shadow-xs">
-          {greeting},{" "}
-          <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-            {name}
-          </span>{" "}
-          👋
-        </h1>
-        <div className="flex items-center justify-center gap-1.5 mt-1">
-          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
-            {formattedDate}
-          </p>
-          <button
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent("TRIGGER_WALLPAPER_REFRESH"));
-            }}
-            className="p-1 rounded-full text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
-            title={t("heroRefreshWallpaper")}
-          >
-            <RefreshCw size={12} className="transition-transform group-hover:rotate-180 duration-300" />
-          </button>
-        </div>
-      </div>
-
-      {/* ── 글래스모피즘 북마크/URL 통합 검색 바 ── */}
-      <div className="w-full max-w-2xl relative group">
-        <div className="relative flex items-center no-zen-toggle bg-white/75 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-white/10 hover:border-indigo-400/80 dark:hover:border-indigo-500/60 rounded-2xl p-1.5 shadow-figma-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/40">
-          <div className="pl-3 pr-2 text-slate-400 dark:text-slate-500">
-            <Search size={18} />
+      {/* ── 메인 타이틀 & 환영 메시지 및 검색창 (일반 모드일 때만 표시) ── */}
+      {!isZenMode && (
+        <div className="w-full flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="mb-4">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white drop-shadow-xs">
+              {greeting},{" "}
+              <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                {name}
+              </span>{" "}
+              👋
+            </h1>
+            <div className="flex items-center justify-center gap-1.5 mt-1">
+              <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+                {formattedDate}
+              </p>
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("TRIGGER_WALLPAPER_REFRESH"));
+                }}
+                className="p-1 rounded-full text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
+                title={t("heroRefreshWallpaper")}
+              >
+                <RefreshCw size={12} className="transition-transform group-hover:rotate-180 duration-300" />
+              </button>
+            </div>
           </div>
 
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") onSearchSubmit(searchQuery);
-            }}
-            placeholder={t("heroSearchPlaceholder")}
-            className="w-full bg-transparent py-2 px-1 text-sm md:text-base text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none font-medium"
-          />
+          {/* ── 글래스모피즘 북마크/URL 통합 검색 바 ── */}
+          <div className="w-full max-w-2xl relative group">
+            <div className="relative flex items-center no-zen-toggle bg-white/75 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-white/10 hover:border-indigo-400/80 dark:hover:border-indigo-500/60 rounded-2xl p-1.5 shadow-figma-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/40">
+              <div className="pl-3 pr-2 text-slate-400 dark:text-slate-500">
+                <Search size={18} />
+              </div>
 
-          <div className="flex items-center gap-1.5 pr-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg text-[10px] font-mono border border-slate-200 dark:border-slate-700">
-              <Command size={10} /> K
-            </kbd>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onSearchSubmit(searchQuery);
+                }}
+                placeholder={t("heroSearchPlaceholder")}
+                className="w-full bg-transparent py-2 px-1 text-sm md:text-base text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none font-medium"
+              />
+
+              <div className="flex items-center gap-1.5 pr-2 shrink-0">
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-lg text-[10px] font-mono border border-slate-200 dark:border-slate-700">
+                  <Command size={10} /> K
+                </kbd>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
