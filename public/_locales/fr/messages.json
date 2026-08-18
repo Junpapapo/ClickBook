@@ -1,0 +1,14 @@
+{
+  "appName": {
+    "message": "ClickBook AI - Gestionnaire de Favoris & Tâches par IA",
+    "description": "The name of the extension"
+  },
+  "appDesc": {
+    "message": "Enregistrez des onglets en 1 clic, organisez vos favoris avec l'IA locale Gemini Nano et gérez vos listes TODO et votre calendrier.",
+    "description": "The description of the extension"
+  },
+  "saveCurrentTab": {
+    "message": "Enregistrer l'onglet actuel comme favori",
+    "description": "Command description for saving current tab"
+  }
+}

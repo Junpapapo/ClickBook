@@ -4,6 +4,7 @@ import { ko } from "./ko";
 import { zhTW } from "./zh-TW";
 import { de } from "./de";
 import { es } from "./es";
+import { fr } from "./fr";
 import {
   type Lang,
   SUPPORTED_LANGUAGES,
@@ -13,7 +14,7 @@ import {
 export * from "./config";
 export * from "./ai-prompts";
 
-export const DICT: Record<Lang, typeof en> = { en, ja, ko, "zh-TW": zhTW, de, es };
+export const DICT: Record<Lang, typeof en> = { en, ja, ko, "zh-TW": zhTW, de, es, fr };
 
 // ── Browser language detection ────────────────────────────
 export function detectBrowserLang(): Lang {

@@ -29,7 +29,7 @@
 | **概要（132文字以内）** | Save, organize, and manage bookmarks by category with one click. Includes browsing data cleanup tools. |
 | **詳細説明** | 下記参照 |
 | **カテゴリ** | Productivity（生産性向上） |
-| **言語** | 英語 / 日本語 / 韓国語 |
+| **言語** | 英語 / 日本語 / 韓国語 / 繁體中文 / ドイツ語 / スペイン語 / フランス語 (Français) |
 
 ### 詳細説明（ストア掲載用ドラフト）
 

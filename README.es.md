@@ -2,7 +2,7 @@
 
 > **Guarda pestañas con 1 clic y deja que la IA las categorice automáticamente en carpetas.**
 
-[English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [Deutsch](./README.de.md) | [Español](./README.es.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
+[English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [Deutsch](./README.de.md) | [Español](./README.es.md) | [Français](./README.fr.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/junpa)
 

@@ -40,7 +40,6 @@ Enregistrez des onglets en 1 clic, laissez l'IA les organiser et convertissez in
   * Toile Interactive Libre : Glissez-déposez des images, des post-its et des cartes de favoris directement sur votre note.
   * Défilement fluide à 60 fps : Les éléments de la toile défilent de manière native et parfaitement synchronisée avec votre texte.
   * Synchronisation adaptative des thèmes : L'interface s'adapte automatiquement aux thèmes Clair, Grille, Sépia et Sombre, ainsi qu'au thème système de Chrome.
-
 - Hub de Mind Mapping (Brainstorming Visuel) :
   * Moteur de Disposition Automatique : Générez des cartes mentales visuelles et claires à partir de vos dossiers de favoris.
   * Personnalisation Visuelle Complète : Modifiez la forme des nœuds (dont les nœuds octogonaux), les couleurs HSL et les lignes de liaison (épaisseur, style et couleurs).
@@ -58,3 +57,11 @@ Enregistrez des onglets en 1 clic, laissez l'IA les organiser et convertissez in
 
 🔒 CONFIDENTIALITÉ ET PERFORMANCE D'ABORD
 - Stockage 100 % Local : Toutes les données de favoris, les index plein texte et les calculs IA s'exécutent localement sur votre ordinateur (chrome.storage.local). Vos données personnelles ne quittent jamais votre appareil.
+- Aucune Collecte de Données : ClickBook ne transmet aucune donnée personnelle ni historique de navigation à des serveurs distants.
+
+⚙️ COMMENT ACTIVER L'IA LOCALE DE CHROME (GEMINI NANO)
+Étapes pour activer l'IA sur appareil dans Google Chrome (v127+) :
+1. Dans la barre d'adresse, ouvrez chrome://flags/#optimization-guide-on-device-model → Sélectionnez "Enabled (BypassPrefRequirement)".
+2. Ouvrez chrome://flags/#prompt-api-for-gemini-nano → Sélectionnez "Enabled".
+3. Redémarrez Chrome. Le navigateur téléchargera le modèle en arrière-plan. Rendez-vous dans chrome://components pour vérifier le statut de téléchargement d'Optimization Guide On Device Model.
+(Remarque : si Gemini Nano n'est pas encore prêt, le système de règles intelligent de ClickBook prend automatiquement le relais.)

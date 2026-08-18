@@ -174,6 +174,16 @@ export const LOCALIZED_DEFAULT_FOLDERS: Partial<Record<Lang, Record<string, stri
     travel: "Viajes",
     other: "Otros",
   },
+  fr: {
+    technology: "Technologie",
+    design: "Design",
+    business: "Affaires",
+    entertainment: "Divertissement",
+    science: "Science",
+    sports: "Sports",
+    travel: "Voyages",
+    other: "Autre",
+  },
 };
 
 export function getLocalizedFolderName(folder: Folder, lang: string): string {

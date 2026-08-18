@@ -190,6 +190,7 @@ export default function SearchBar({ query, onChange, onEnter, onRefresh, onOpenS
             lang === "zh-TW" ? "help.zh-TW.html" :
             lang === "de" ? "help.de.html" :
             lang === "es" ? "help.es.html" :
+            lang === "fr" ? "help.fr.html" :
             "help.html"
           }`}
           target="_blank"

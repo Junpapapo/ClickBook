@@ -4,14 +4,14 @@
  * 새로운 언어 지원 추가 시 이 파일에 정의를 추가하면 전체 앱 UI와 감지 로직에 자동 반영됩니다.
  */
 
-export type Lang = "en" | "ja" | "ko" | "zh-TW" | "de" | "es";
+export type Lang = "en" | "ja" | "ko" | "zh-TW" | "de" | "es" | "fr";
 
 export interface LanguageMeta {
   code: Lang;
-  label: string;          // 전체 표시 라벨 (예: "한국어", "English", "日本語", "繁體中文", "Deutsch", "Español")
+  label: string;          // 전체 표시 라벨 (예: "한국어", "English", "日本語", "繁體中文", "Deutsch", "Español", "Français")
   nativeName: string;     // 모국어 표기
-  shortLabel: string;     // 좁은 영역(버튼 등)용 축약 라벨 (예: "한국어", "EN", "日本語", "繁中", "DE", "ES")
-  flag: string;           // 국기 이모지 (예: "🇰🇷", "🇺🇸", "🇯🇵", "🇹🇼", "🇩🇪", "🇪🇸")
+  shortLabel: string;     // 좁은 영역(버튼 등)용 축약 라벨 (예: "한국어", "EN", "日本語", "繁中", "DE", "ES", "FR")
+  flag: string;           // 국기 이모지 (예: "🇰🇷", "🇺🇸", "🇯🇵", "🇹🇼", "🇩🇪", "🇪🇸", "🇫🇷")
   prefixMatch: string[];  // 브라우저 navigator.language 매칭 접두사 (소문자)
   defaultHolidayCountry?: string; // 캘린더 공휴일 기본 연동 국가 코드 (ISO 3166-1 alpha-2)
 }
@@ -70,6 +70,15 @@ export const SUPPORTED_LANGUAGES: readonly LanguageMeta[] = [
     flag: "🇪🇸",
     prefixMatch: ["es", "es-es", "es-419", "es-mx", "es-ar", "es-co", "es-cl", "es-pe"],
     defaultHolidayCountry: "ES",
+  },
+  {
+    code: "fr",
+    label: "Français",
+    nativeName: "Français",
+    shortLabel: "FR",
+    flag: "🇫🇷",
+    prefixMatch: ["fr", "fr-fr", "fr-ca", "fr-be", "fr-ch", "fr-lu"],
+    defaultHolidayCountry: "FR",
   },
 ] as const;
 

@@ -15,6 +15,7 @@ export const AI_LANGUAGE_NAMES: Record<Lang, string> = {
   "zh-TW": "Traditional Chinese (繁體中文)",
   de: "German (Deutsch)",
   es: "Spanish (Español)",
+  fr: "French (Français)",
 };
 
 /**
@@ -27,4 +28,5 @@ export const AI_LANGUAGE_INSTRUCTIONS: Record<Lang, string> = {
   "zh-TW": "請務必使用自然、簡潔的繁體中文（台灣/香港習慣用語）撰寫。",
   de: "Bitte schreiben Sie natürlich und prägnant auf Deutsch.",
   es: "Por favor, escribe de forma natural y concisa en español.",
+  fr: "Veuillez rédiger en français de manière naturelle et concise.",
 };

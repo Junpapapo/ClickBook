@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aide ClickBook AI - Gestionnaire de Favoris & Productivité par IA</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .logo img { width: 32px; height: 32px; border-radius: 8px; }
+
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--primary); text-decoration: none; }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 2.5rem;
+    }
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 5rem;
+      height: fit-content;
+    }
+    .toc-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+    .toc-link {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      display: block;
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .toc-link:hover {
+      background-color: var(--surface);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .content section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+    }
+    .content h2 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .content h3 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; }
+    .content p, .content ul {
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 0.75rem;
+    }
+    .content ul { padding-left: 1.25rem; }
+    .content li { margin-bottom: 0.35rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .code-box {
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin: 0.75rem 0;
+      word-break: break-all;
+    }
+    .kbd {
+      display: inline-block;
+      padding: 0.15rem 0.4rem;
+      font-size: 0.8rem;
+      font-family: monospace;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <img src="icons/icon128.png" alt="ClickBook AI">
+      <span>ClickBook AI Guide</span>
+    </div>
+    <nav class="nav-links">
+      <a href="qna.fr.html">Q&A / Dépannage</a>
+      <a href="help.html">English</a>
+      <a href="help.ko.html">한국어</a>
+      <a href="help.ja.html">日本語</a>
+      <a href="help.de.html">Deutsch</a>
+      <a href="help.es.html">Español</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="toc-title">Sommaire</div>
+      <ul class="toc-list">
+        <li><a href="#quickstart" class="toc-link">1. Démarrage rapide</a></li>
+        <li><a href="#gemini-nano" class="toc-link">2. Configuration Gemini Nano</a></li>
+        <li><a href="#bookmarks" class="toc-link">3. Gestion des favoris</a></li>
+        <li><a href="#todo-calendar" class="toc-link">4. TODO & Calendrier</a></li>
+        <li><a href="#springnote" class="toc-link">5. Notes Spirales</a></li>
+        <li><a href="#mindmap" class="toc-link">6. Carte mentale</a></li>
+        <li><a href="#buddy" class="toc-link">7. Compagnon IA (Buddy)</a></li>
+        <li><a href="#shortcuts" class="toc-link">8. Raccourcis clavier</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+      <section id="quickstart">
+        <h2>🚀 1. Démarrage rapide</h2>
+        <p>ClickBook AI est un hub de productivité tout-en-un fonctionnant 100 % localement sur votre navigateur Chrome.</p>
+        <ul>
+          <li><strong>Enregistrement en 1 clic :</strong> Cliquez sur l'icône de l'extension pour enregistrer instantanément l'onglet en cours.</li>
+          <li><strong>Organisation automatique :</strong> L'IA embarquée classe vos favoris dans 8 dossiers prédéfinis sans envoyer vos données sur le cloud.</li>
+          <li><strong>Productivité intégrée :</strong> Transformez vos trouvailles web en tâches Kanban, notes analogiques ou événements de calendrier.</li>
+        </ul>
+      </section>
+
+      <section id="gemini-nano">
+        <h2>⚡ 2. Configuration de Google Gemini Nano (IA locale)</h2>
+        <p>Pour activer l'IA sur votre appareil sans frais ni clé API, suivez ces 3 étapes simples :</p>
+        
+        <h3>Étape 1 : Activer les drapeaux (Flags) dans Chrome</h3>
+        <p>Ouvrez les adresses suivantes dans la barre d'adresse de Chrome :</p>
+        <div class="code-box">chrome://flags/#optimization-guide-on-device-model</div>
+        <p>👉 Définir sur <strong>Enabled (BypassPrefRequirement)</strong></p>
+
+        <div class="code-box">chrome://flags/#prompt-api-for-gemini-nano</div>
+        <p>👉 Définir sur <strong>Enabled</strong></p>
+
+        <h3>Étape 2 : Redémarrer le navigateur</h3>
+        <p>Cliquez sur le bouton <strong>Relaunch</strong> en bas de la page des flags ou fermez et rouvrez Chrome.</p>
+
+        <h3>Étape 3 : Vérifier le téléchargement du modèle (une seule fois)</h3>
+        <p>Accédez à <span class="code-box">chrome://components</span> et cliquez sur <strong>[Vérifier les mises à jour]</strong> sous <em>Optimization Guide On Device Model</em>.</p>
+      </section>
+
+      <section id="bookmarks">
+        <h2>📚 3. Gestion intelligente des favoris</h2>
+        <ul>
+          <li><strong>Organisation IA globale :</strong> Cliquez sur « Organisation IA » dans la barre latérale pour classer l'ensemble de votre bibliothèque avec sauvegarde automatique.</li>
+          <li><strong>Recherche personnalisée :</strong> Intégrez vos moteurs de recherche favoris avec des modèles d'URL personnalisés.</li>
+          <li><strong>Nettoyage des doublons :</strong> Détectez et supprimez facilement les URL en double via les paramètres.</li>
+          <li><strong>Mode Lecture Zen :</strong> Supprimez les publicités et distractions pour une lecture épurée.</li>
+        </ul>
+      </section>
+
+      <section id="todo-calendar">
+        <h2>📅 4. Tableau Kanban TODO & Calendrier</h2>
+        <ul>
+          <li><strong>Tableau Kanban :</strong> Organisez vos tâches selon les statuts <em>À faire</em>, <em>En cours</em> et <em>Terminé</em>.</li>
+          <li><strong>Calendrier dynamique :</strong> Vues Mois, Semaine et Jour avec synchronisation automatique des jours fériés de France (ou du pays de votre choix).</li>
+          <li><strong>Gestion des priorités & dates :</strong> Fixez des échéances précises et recevez des alertes système discrètes.</li>
+        </ul>
+      </section>
+
+      <section id="springnote">
+        <h2>📝 5. Notes Spirales (Tiptap & Toile libre)</h2>
+        <ul>
+          <li><strong>Éditeur riche Tiptap :</strong> Prise en charge des titres, listes de contrôle, tableaux et polices personnalisées.</li>
+          <li><strong>Toile interactive libre :</strong> Glissez-déposez des images, cartes de favoris et post-its sur votre note.</li>
+          <li><strong>Assistance IA intégrée :</strong> Demandez à Gemini Nano d'écrire, d'améliorer ou de traduire votre texte instantanément.</li>
+        </ul>
+      </section>
+
+      <section id="mindmap">
+        <h2>🧠 6. Carte mentale (Mind Map)</h2>
+        <ul>
+          <li>Visualisez l'arborescence de vos favoris et de vos pensées sous forme de nœuds 2D interactifs.</li>
+          <li>Générez automatiquement des sous-sujets grâce à l'IA embarquée.</li>
+          <li>Convertissez n'importe quel nœud en tâche TODO en un simple clic.</li>
+        </ul>
+      </section>
+
+      <section id="buddy">
+        <h2>🐾 7. Compagnon IA de bureau (Buddy)</h2>
+        <ul>
+          <li>Un compagnon animé présent sur vos pages web sans jamais gêner votre lecture.</li>
+          <li><strong>Menu radial à 9 actions :</strong> Traduction rapide, chat IA, minuteur Pomodoro, mode repos Zen, mémos et TODOs.</li>
+          <li>Système d'expérience et d'évolution : débloquez des personnages secrets au fil de vos sessions de travail.</li>
+        </ul>
+      </section>
+
+      <section id="shortcuts">
+        <h2>⌨️ 8. Raccourcis clavier principaux</h2>
+        <ul>
+          <li><span class="kbd">Ctrl</span> + <span class="kbd">K</span> : Ouvrir la palette de commandes rapide</li>
+          <li><span class="kbd">Ctrl</span> + <span class="kbd">/</span> : Afficher l'aide et les raccourcis complets</li>
+          <li><span class="kbd">Alt</span> + <span class="kbd">B</span> : Enregistrer l'onglet actuel</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Q&A et Dépannage ClickBook AI</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --surface: #1e293b;
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 4rem;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .header {
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-links { display: flex; gap: 1rem; align-items: center; font-size: 0.9rem; }
+    .container {
+      max-width: 800px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+    .qa-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .qa-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .qa-card p, .qa-card ul {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    .qa-card ul { padding-left: 1.25rem; margin-top: 0.5rem; }
+    .code {
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <img src="icons/icon128.png" alt="ClickBook AI">
+      <span>ClickBook AI Q&A</span>
+    </div>
+    <nav class="nav-links">
+      <a href="help.fr.html">← Manuel d'utilisation</a>
+      <a href="qna.html">English</a>
+      <a href="qna.ko.html">한국어</a>
+      <a href="qna.ja.html">日本語</a>
+      <a href="qna.de.html">Deutsch</a>
+      <a href="qna.es.html">Español</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Foire Aux Questions (Q&A) & Dépannage</h1>
+
+    <div class="qa-card">
+      <h3>Q. Mes données personnelles sont-elles envoyées sur des serveurs externes ?</h3>
+      <p><strong>Non, jamais.</strong> ClickBook AI s'exécute à 100 % localement dans votre navigateur Chrome. Vos favoris, notes, tâches et calculs d'IA (Gemini Nano) sont stockés uniquement sur votre machine (chrome.storage.local).</p>
+    </div>
+
+    <div class="qa-card">
+      <h3>Q. Pourquoi l'IA (Gemini Nano) indique-t-elle « Configuration requise » ?</h3>
+      <p>Gemini Nano nécessite l'activation de deux options expérimentales dans Chrome :</p>
+      <ul>
+        <li><span class="code">chrome://flags/#optimization-guide-on-device-model</span> → Enabled (BypassPrefRequirement)</li>
+        <li><span class="code">chrome://flags/#prompt-api-for-gemini-nano</span> → Enabled</li>
+        <li>Redémarrez Chrome et vérifiez le téléchargement du modèle dans <span class="code">chrome://components</span>.</li>
+      </ul>
+    </div>
+
+    <div class="qa-card">
+      <h3>Q. Que se passe-t-il si Gemini Nano n'est pas activé ?</h3>
+      <p>ClickBook bascule automatiquement vers son <strong>système de règles intelligent basé sur les domaines</strong>. Vos favoris continueront d'être classés proprement dans les dossiers correspondants sans aucune coupure de service.</p>
+    </div>
+
+    <div class="qa-card">
+      <h3>Q. Comment sauvegarder ou exporter mes favoris et notes ?</h3>
+      <p>Ouvrez les <strong>Paramètres</strong> (icône d'engrenage) et cliquez sur <strong>[Exporter JSON]</strong> sous la section Sauvegarde & Restauration. Vous pouvez réimporter ce fichier à tout moment sur un autre ordinateur.</p>
+    </div>
+
+    <div class="qa-card">
+      <h3>Q. Comment masquer temporairement le compagnon (Buddy) sur un site spécifique ?</h3>
+      <p>Cliquez sur le Buddy pour ouvrir le menu radial et sélectionnez <strong>« Masquer sur ce site »</strong>. Vous pouvez le réactiver à tout moment via le popup de l'extension ou le clic droit.</p>
+    </div>
+  </div>
+</body>
+</html>

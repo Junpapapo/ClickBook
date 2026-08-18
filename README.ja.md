@@ -3,7 +3,7 @@
 > **1クリックでタブを保存し、AIが自動でフォルダーへ分類する Chrome 拡張機能**
 > **A Chrome extension that saves tabs with 1-click and auto-categorizes them using AI**
 
-[English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [Deutsch](./README.de.md) | [Español](./README.es.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
+[English](./README.md) | [한국어](./README.ko.md) | [日本語](./README.ja.md) | [Deutsch](./README.de.md) | [Español](./README.es.md) | [Français](./README.fr.md) | [繁體中文](./README.zh-TW.md) | [简体中文](./README.zh-CN.md)
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/junpa)
 

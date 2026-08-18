@@ -11,6 +11,7 @@ import {
 // re-export
 export { categorizeQuick } from "./categorizer/rules";
 export { 
+  getAIModel,
   isAIAvailable, 
   setAIEnabled, 
   verifyAISession,
