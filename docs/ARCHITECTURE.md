@@ -1,6 +1,6 @@
 # ClickBook (클릭북) 시스템 아키텍처 및 엔지니어링 문서 허브
 
-> **ClickBook (v1.7.0)** — Chrome Manifest V3 기반 차세대 AI 북마크 & 지식 관리 생산성 플랫폼  
+> **ClickBook (v1.7.1)** — Chrome Manifest V3 기반 차세대 AI 북마크 & 지식 관리 생산성 플랫폼  
 > 온디바이스 AI(Gemini Nano), 스프링노트 위키, 투두 캘린더, 실시간 트렌드 랭킹 및 상호작용 데스크펫 버디(Buddy)가 결합된 통합 확장 프로그램 시스템
 
 ---

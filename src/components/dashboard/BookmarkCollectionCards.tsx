@@ -22,7 +22,7 @@ const GRADIENTS = [
 ];
 
 export default function BookmarkCollectionCards({ folders, bookmarks, onSelectFolder }: Props) {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
 
   // 폴더별 북마크 리스트 및 카운트 맵핑
   const bookmarksByFolder = useMemo(() => {
@@ -47,10 +47,10 @@ export default function BookmarkCollectionCards({ folders, bookmarks, onSelectFo
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">
-            {lang === "ko" ? "북마크 컬렉션" : "Bookmark Collections"}
+            {t("dashboardCollections")}
           </h2>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {rootFolders.length} {lang === "ko" ? "개 컬렉션" : "collections"}
+            {t("dashboardCollectionsCount", { count: rootFolders.length })}
           </span>
         </div>
       </div>
@@ -85,7 +85,7 @@ export default function BookmarkCollectionCards({ folders, bookmarks, onSelectFo
                       {getLocalizedFolderName(folder, lang)}
                     </h3>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                      {count} {lang === "ko" ? "개 저장됨" : "items"}
+                      {t("dashboardItemsSaved", { count })}
                     </span>
                   </div>
                 </div>
@@ -121,13 +121,13 @@ export default function BookmarkCollectionCards({ folders, bookmarks, onSelectFo
                   )}
                   {count === 0 && (
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 italic">
-                      {lang === "ko" ? "비어 있음" : "Empty"}
+                      {t("dashboardEmpty")}
                     </span>
                   )}
                 </div>
 
                 <span className="text-[10.5px] font-semibold text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {lang === "ko" ? "보기 →" : "View →"}
+                  {t("dashboardBtnView") || "View"} →
                 </span>
               </div>
             </div>

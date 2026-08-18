@@ -1,6 +1,5 @@
 import { useState, Fragment } from "react";
 import {
-  X,
   Keyboard,
   Command,
   BookOpen,
@@ -13,7 +12,7 @@ import {
 import { useLang } from "@/shared/LanguageContext";
 
 interface Props {
-  onClose: () => void;
+  onClose?: () => void;
   onOpenCommandPalette?: () => void;
   onOpenOnboarding?: () => void;
 }
@@ -98,13 +97,6 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
             {t("cmdActionShortcutsGuide")}
           </h3>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-surface-800 rounded-lg transition-colors cursor-pointer"
-          title={t("closeTooltip")}
-        >
-          <X size={16} />
-        </button>
       </div>
 
       {/* Quick Command Palette Button */}
@@ -277,7 +269,7 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
       <div className="p-3 border-t border-slate-200 dark:border-surface-800 bg-slate-50/60 dark:bg-surface-950/60 flex flex-col gap-2 shrink-0">
         <button
           onClick={() => {
-            onClose();
+            onClose?.();
             onOpenOnboarding?.();
           }}
           className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 text-xs font-semibold rounded-lg border border-indigo-200/60 dark:border-indigo-800/60 transition-all hover:shadow-2xs active:scale-95 cursor-pointer"

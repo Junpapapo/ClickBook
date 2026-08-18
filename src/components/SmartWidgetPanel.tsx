@@ -8,7 +8,7 @@ import PatternSaverWidget from "@/components/dashboard/widgets/PatternSaverWidge
 
 interface Props {
   bookmarks: Bookmark[];
-  onClose: () => void;
+  onClose?: () => void;
   memoCount?: number;
   urgentTasks?: TodoTask[];
   onSelectTodoBoard?: () => void;
@@ -18,7 +18,6 @@ interface Props {
 
 export default function SmartWidgetPanel({
   bookmarks,
-  onClose,
   memoCount = 0,
   urgentTasks = [],
   onSelectTodoBoard,
@@ -39,13 +38,6 @@ export default function SmartWidgetPanel({
             {lang === "ko" ? "스마트 위젯 패널" : "Smart Widgets"}
           </span>
         </div>
-        <button
-          onClick={onClose}
-          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          title="Close"
-        >
-          ✕
-        </button>
       </div>
 
       {/* 위젯 스크롤 영역 */}

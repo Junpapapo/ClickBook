@@ -127,7 +127,7 @@ export default function MemoEditModal({
             <div className="p-2.5 bg-amber-500/5 dark:bg-amber-955/10 border border-amber-250/20 dark:border-amber-900/30 rounded-2xl flex items-center gap-2">
               <StickyNote size={14} className="text-amber-500" />
               <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
-                {t("memoColorLabel") ? t("generalMemo") : "Memo"}
+                {t("generalMemo") || t("memo")}
               </span>
             </div>
           )}
@@ -135,7 +135,7 @@ export default function MemoEditModal({
           {/* Memo Color picker */}
           <div className="flex items-center justify-between bg-gray-50/50 dark:bg-surface-800/40 p-2.5 rounded-2xl border border-gray-200/10">
             <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
-              {t("memoColorLabel") || "Memo Color"}
+              {t("memoColorLabel")}
             </label>
             <div className="flex gap-2">
               {(["yellow", "pink", "blue", "green", "purple"] as MemoColor[]).map((col) => {

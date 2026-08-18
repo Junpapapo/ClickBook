@@ -15,6 +15,7 @@ import { sendMsg } from "@/shared/utils";
 // ── 모던 대시보드 컴포넌트 ──────────────────────────────
 import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 import ModernHeroHeader from "@/components/dashboard/ModernHeroHeader";
+import ZenClock from "@/components/dashboard/ZenClock";
 
 interface Props {
   bookmarks: Bookmark[];
@@ -427,11 +428,9 @@ export default function Dashboard({
             </section>
           </div>
         ) : (
-          /* ── Zen 모드 활성화 시 미니멀 안내 (배경 감상 모드) ── */
-          <div className="flex-1 flex flex-col items-center justify-center py-32 animate-in fade-in duration-300 pointer-events-none">
-            <div className="px-4 py-2 rounded-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-figma-sm">
-              {t("zenModeHint")}
-            </div>
+          /* ── Zen 모드 활성화 시 (순수 대형 시간 표시 모드) ── */
+          <div className="flex-1 flex flex-col items-center justify-center py-16 animate-in fade-in duration-500 select-none pointer-events-none">
+            <ZenClock />
           </div>
         )}
       </div>

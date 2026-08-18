@@ -1126,7 +1126,7 @@ export default function SpringNotePanel({
                   value={noteDateText}
                   onChange={(e) => setNoteDateText(e.target.value)}
                   onClick={() => setSelectedObjId(null)}
-                  placeholder={lang === "ko" ? "날짜를 입력하세요..." : lang === "ja" ? "日付を入力してください..." : "Enter date..."}
+                  placeholder={t("springNoteDatePlaceholder")}
                   className={`flex-1 bg-transparent border-none outline-none text-[11px] ${getDateColorClass()} font-medium p-0 focus:ring-0 focus:outline-none select-text cursor-text`}
                 />
                 
@@ -1136,7 +1136,7 @@ export default function SpringNotePanel({
                     type="button"
                     onClick={() => window.dispatchEvent(new CustomEvent("OPEN_TODO_BOARD"))}
                     className="flex items-center gap-1 px-2 py-0.5 text-[9px] font-extrabold text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 dark:text-[#EBDCB9] dark:bg-amber-500/15 dark:hover:bg-amber-500/35 border border-amber-500/20 rounded-md transition-all active:scale-95 cursor-pointer shrink-0 select-none"
-                    title={lang === "ko" ? "연동된 TODO로 이동" : lang === "ja" ? "連動したTODOへ移動" : "Go to Linked TODO"}
+                    title={t("springNoteGoToLinkedTodo")}
                   >
                     <ListTodo size={10} strokeWidth={2.5} className="text-amber-500" />
                     <span>TODO</span>
@@ -1301,14 +1301,10 @@ export default function SpringNotePanel({
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
           <div className="bg-[#3B281B] dark:bg-[#1E1E20] border border-[#2D1E15] dark:border-[#2D2D30] rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-200 text-[#EBDCB9]">
             <h3 className="text-sm font-bold text-[#FBF6EC] dark:text-gray-150 mb-2">
-              {lang === "ko" ? "페이지 삭제 확인" : lang === "ja" ? "ページ削除の確認" : "Delete Page Confirm"}
+              {t("springNoteDeleteTitle")}
             </h3>
-            <p className="text-xs text-gray-300 dark:text-gray-400 mb-6 leading-relaxed">
-              {lang === "ko" 
-                ? "정말로 현재 페이지를 삭제하시겠습니까?\n작성된 모든 오브젝트와 텍스트가 사라집니다."
-                : lang === "ja"
-                ? "本当にこのページを削除しますか？\n作成されたすべてのオブジェクトとテキストが失われます。"
-                : "Are you sure you want to delete this page?\nAll written objects and text will be permanently lost."}
+            <p className="text-xs text-gray-300 dark:text-gray-400 mb-6 leading-relaxed whitespace-pre-line">
+              {t("springNoteDeleteDesc")}
             </p>
             <div className="flex items-center justify-center gap-3">
               <button
@@ -1316,14 +1312,14 @@ export default function SpringNotePanel({
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="flex-1 py-2 text-xs font-bold text-[#EBDCB9] bg-white/10 hover:bg-white/15 active:scale-95 transition-all rounded-xl border border-white/5 cursor-pointer"
               >
-                {lang === "ko" ? "취소" : lang === "ja" ? "キャンセル" : "Cancel"}
+                {t("cancelBtn")}
               </button>
               <button
                 type="button"
                 onClick={confirmDeletePage}
                 className="flex-1 py-2 text-xs font-bold text-[#3B281B] bg-red-400 hover:bg-red-500 active:scale-95 transition-all rounded-xl shadow-md shadow-red-900/10 cursor-pointer"
               >
-                {lang === "ko" ? "삭제" : lang === "ja" ? "削除" : "Delete"}
+                {t("delete")}
               </button>
             </div>
           </div>

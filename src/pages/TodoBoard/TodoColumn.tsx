@@ -202,16 +202,16 @@ export default React.memo(function TodoColumn({
                     <div className="flex gap-1.5 justify-end items-center pt-1.5 border-t border-slate-100 dark:border-slate-700/50">
                       <button
                         onClick={() => setAddingTaskToCol(null)}
-                        className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
+                        className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
                       >
-                        Cancel
+                        {t("cancelBtn")}
                       </button>
                       <button
                         disabled={!newTaskContent.trim()}
                         onClick={() => addTask(column.id, newTaskContent)}
-                        className="px-3 py-1 text-xs bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white disabled:opacity-40 disabled:cursor-not-allowed rounded-md font-semibold transition-colors shadow-xs"
+                        className="px-3 py-1 text-xs bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white disabled:opacity-40 disabled:cursor-not-allowed rounded-md font-semibold transition-colors shadow-xs cursor-pointer"
                       >
-                        Add Task
+                        {t("addTodoTask")}
                       </button>
                     </div>
                   </div>
@@ -227,10 +227,10 @@ export default React.memo(function TodoColumn({
                   setAddingTaskToCol(column.id);
                   setNewTaskContent("");
                 }}
-                className="w-full flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:text-slate-800 dark:hover:text-slate-200 border border-transparent hover:border-slate-200/80 dark:hover:border-slate-700/60 hover:shadow-xs transition-all"
+                className="w-full flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:text-slate-800 dark:hover:text-slate-200 border border-transparent hover:border-slate-200/80 dark:hover:border-slate-700/60 hover:shadow-xs transition-all cursor-pointer"
               >
                 <Plus size={14} />
-                {t("addTodoTask") || "Add Task"}
+                {t("addTodoTask")}
               </button>
             </div>
           )}

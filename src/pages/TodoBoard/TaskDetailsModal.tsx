@@ -767,7 +767,7 @@ export default function TaskDetailsModal({
                             type="button"
                             onClick={() => setCalYear(calYear - 1)}
                             className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                            title={lang === "ko" ? "이전 해" : lang === "ja" ? "前年" : "Prev Year"}
+                            title={t("datepickerPrevYear")}
                           >
                             <ChevronsLeft size={13} />
                           </button>
@@ -782,7 +782,7 @@ export default function TaskDetailsModal({
                               }
                             }}
                             className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                            title={lang === "ko" ? "이전 달" : lang === "ja" ? "前月" : "Prev Month"}
+                            title={t("prevMonth")}
                           >
                             <ChevronLeft size={13} />
                           </button>
@@ -793,7 +793,7 @@ export default function TaskDetailsModal({
                             ? `${calYear}년 ${calMonth + 1}월`
                             : lang === "ja"
                             ? `${calYear}年 ${calMonth + 1}月`
-                            : new Date(calYear, calMonth).toLocaleDateString("en-US", {
+                            : new Date(calYear, calMonth).toLocaleDateString(lang === "de" ? "de-DE" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "zh-TW" ? "zh-TW" : "en-US", {
                                 year: "numeric",
                                 month: "long",
                               })}
@@ -811,7 +811,7 @@ export default function TaskDetailsModal({
                               }
                             }}
                             className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                            title={lang === "ko" ? "다음 달" : lang === "ja" ? "翌月" : "Next Month"}
+                            title={t("nextMonth")}
                           >
                             <ChevronRight size={13} />
                           </button>
@@ -819,7 +819,7 @@ export default function TaskDetailsModal({
                             type="button"
                             onClick={() => setCalYear(calYear + 1)}
                             className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-surface-800 rounded-lg transition-all"
-                            title={lang === "ko" ? "다음 해" : lang === "ja" ? "翌年" : "Next Year"}
+                            title={t("datepickerNextYear")}
                           >
                             <ChevronsRight size={13} />
                           </button>

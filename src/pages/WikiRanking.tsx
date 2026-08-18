@@ -133,9 +133,7 @@ export default function WikiRankingPage() {
             </h1>
             <div className="flex items-center gap-2 mt-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {lang === "ko" ? "위키백과에서 현재 가장 많이 읽히고 있는 문서 랭킹입니다." : 
-                 lang === "ja" ? "Wikipediaで現在最も読まれている記事のランキングです。" : 
-                 "The most read articles on Wikipedia right now."}
+                {t("wikiRankingDesc")}
               </p>
               {lastUpdated > 0 && (
                 <span className="text-[10px] text-slate-400 dark:text-slate-500 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xs border border-slate-200/50 dark:border-white/5 px-1.5 py-0.5 rounded-md">
@@ -167,7 +165,7 @@ export default function WikiRankingPage() {
               <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
               <input
                 type="text"
-                placeholder={lang === "ko" ? "결과 내 필터..." : lang === "ja" ? "結果内フィルター..." : "Filter results..."}
+                placeholder={t("wikiFilterPlaceholder")}
                 value={filterQuery}
                 onChange={(e) => setFilterQuery(e.target.value)}
                 className="w-full pl-8 pr-3 py-1.5 text-xs bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/70 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 text-slate-800 dark:text-slate-100 shadow-figma-xs"

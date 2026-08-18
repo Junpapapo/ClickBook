@@ -1033,13 +1033,13 @@ export default function Popup() {
 
               {/* 요일 헤더 */}
               <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-500 py-0.5">
-                <span className="text-red-500/80">{lang === "ko" ? "일" : lang === "ja" ? "日" : "Sun"}</span>
-                <span>{lang === "ko" ? "월" : lang === "ja" ? "月" : "Mon"}</span>
-                <span>{lang === "ko" ? "화" : lang === "ja" ? "火" : "Tue"}</span>
-                <span>{lang === "ko" ? "수" : lang === "ja" ? "水" : "Wed"}</span>
-                <span>{lang === "ko" ? "목" : lang === "ja" ? "木" : "Thu"}</span>
-                <span>{lang === "ko" ? "금" : lang === "ja" ? "金" : "Fri"}</span>
-                <span className="text-blue-400/80">{lang === "ko" ? "토" : lang === "ja" ? "土" : "Sat"}</span>
+                <span className="text-red-500/80">{t("daySun")}</span>
+                <span>{t("dayMon")}</span>
+                <span>{t("dayTue")}</span>
+                <span>{t("dayWed")}</span>
+                <span>{t("dayThu")}</span>
+                <span>{t("dayFri")}</span>
+                <span className="text-blue-400/80">{t("daySat")}</span>
               </div>
 
               {/* 날짜 그리드 */}
@@ -1168,7 +1168,7 @@ export default function Popup() {
         <div className="flex items-center gap-2 text-violet-400 text-sm animate-pulse bg-violet-950/20 border border-violet-800/30 rounded-lg px-3 py-2.5">
           <Loader2 size={15} className="animate-spin text-violet-500" />
           <span>
-            {lang === "ko" ? "AI가 본문을 분석하고 분류 중입니다..." : lang === "ja" ? "AI が本文を解析し分類中..." : "AI is analyzing content and categorizing..."}
+            {t("popupAiAnalyzing")}
           </span>
         </div>
       )}
@@ -1326,9 +1326,7 @@ export default function Popup() {
                   : "bg-gray-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-surface-750 hover:bg-gray-200 dark:hover:bg-surface-700"
               }`}
             >
-              🐾 {buddyConfig.enabled 
-                ? (lang === "ko" ? "버디 ON" : lang === "ja" ? "バディ ON" : "Buddy ON") 
-                : (lang === "ko" ? "버디 OFF" : lang === "ja" ? "バディ OFF" : "Buddy OFF")}
+              🐾 {buddyConfig.enabled ? t("popupBuddyOn") : t("popupBuddyOff")}
             </button>
             <div className="flex-1 flex gap-1.5 items-center bg-white/70 dark:bg-surface-900/60 border border-gray-200/80 dark:border-surface-700/80 rounded-lg px-2 py-1">
               <input
@@ -1362,7 +1360,7 @@ export default function Popup() {
                     config: next,
                   });
                 }}
-                className="text-xs hover:scale-115 active:scale-95 transition-transform disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                className="text-xs hover:scale-115 active:scale-95 transition-transform disabled:opacity-30 disabled:cursor-not-allowed shrink-0 cursor-pointer"
                 title={t("randomNameTooltip")}
               >
                 🎲
@@ -1370,7 +1368,7 @@ export default function Popup() {
             </div>
             <button
               onClick={() => setBuddyModalOpen(true)}
-              className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0"
+              className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0 cursor-pointer"
               title={t("buddyDetailSettingsTooltip")}
             >
               <Settings size={15} />
@@ -1379,8 +1377,8 @@ export default function Popup() {
               type="button"
               disabled={!buddyConfig.enabled}
               onClick={() => setBuddySelectorExpanded(prev => !prev)}
-              className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0 disabled:opacity-35 disabled:cursor-not-allowed"
-              title={buddySelectorExpanded ? (lang === "ko" ? "접기" : lang === "ja" ? "折りたたむ" : "Collapse") : (lang === "ko" ? "펼치기" : lang === "ja" ? "展開" : "Expand")}
+              className="p-1.5 rounded-lg text-gray-400 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-surface-700/60 hover:text-gray-700 dark:hover:text-white transition-colors shrink-0 disabled:opacity-35 disabled:cursor-not-allowed cursor-pointer"
+              title={buddySelectorExpanded ? t("collapse") : t("expand")}
             >
               {buddySelectorExpanded ? (
                 <ChevronUp size={15} className="stroke-[2.5]" />
