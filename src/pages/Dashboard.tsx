@@ -211,32 +211,27 @@ export default function Dashboard({
     .sort((a, b) => a.order - b.order);
 
   return (
-    <WallpaperBackground isDarkMode={isDarkMode}>
-      <div
-        onClick={handleBackgroundClick}
-        className="flex flex-col gap-5 max-w-[1440px] w-full mx-auto pb-12 px-2 sm:px-6 select-none min-h-[calc(100vh-2rem)] cursor-default"
-      >
+    <WallpaperBackground isDarkMode={isDarkMode} onClick={handleBackgroundClick}>
+      <div className="flex flex-col gap-5 max-w-[1440px] w-full mx-auto pb-12 px-2 sm:px-6 select-none min-h-[calc(100vh-2rem)] cursor-default">
         {DialogEl}
 
         {/* ── 1. 상단 히어로 & 통합 검색창 & 유틸리티 툴바 (항상 유지) ── */}
-        <div className="no-zen-toggle">
-          <ModernHeroHeader
-            searchQuery={searchQuery}
-            onSearchChange={(q) => onSearchChange?.(q)}
-            onSearchSubmit={(q) => {
-              if (q.trim()) onSearchChange?.(q);
-            }}
-            onOpenSettings={onOpenSettings}
-            onOpenGuide={onOpenGuide}
-          />
-        </div>
+        <ModernHeroHeader
+          searchQuery={searchQuery}
+          onSearchChange={(q) => onSearchChange?.(q)}
+          onSearchSubmit={(q) => {
+            if (q.trim()) onSearchChange?.(q);
+          }}
+          onOpenSettings={onOpenSettings}
+          onOpenGuide={onOpenGuide}
+        />
 
         {/* ── 2~7. 하단 위젯/콘텐츠 영역 (빈 배경 클릭 시 감춤/표시 토글) ── */}
         {!isZenMode ? (
-          <div className="flex flex-col gap-5 animate-in fade-in duration-200">
+          <div className="flex flex-col gap-5 animate-in fade-in duration-300">
             {/* ── 2. AI 정리 브리핑 배너 (있을 때만) ── */}
             {organizeResult && (
-              <div className="relative overflow-hidden bg-indigo-50/85 dark:bg-indigo-950/40 backdrop-blur-md border border-indigo-200/80 dark:border-indigo-800/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-figma-sm animate-in fade-in duration-200">
+              <div className="no-zen-toggle relative overflow-hidden bg-indigo-50/85 dark:bg-indigo-950/40 backdrop-blur-md border border-indigo-200/80 dark:border-indigo-800/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-figma-sm animate-in fade-in duration-200">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="p-1.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl shadow-xs shrink-0">
                     <Sparkles size={15} />
@@ -265,7 +260,7 @@ export default function Dashboard({
 
             {/* ── 3. 긴급 TODO 배너 (있을 때만) ── */}
             {todoStats && (todoStats.overdueCount > 0 || todoStats.dueTodayCount > 0) && (
-              <div className="relative overflow-hidden bg-rose-50/85 dark:bg-rose-950/40 backdrop-blur-md border border-rose-200/80 dark:border-rose-800/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-figma-sm animate-in fade-in duration-200">
+              <div className="no-zen-toggle relative overflow-hidden bg-rose-50/85 dark:bg-rose-950/40 backdrop-blur-md border border-rose-200/80 dark:border-rose-800/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-figma-sm animate-in fade-in duration-200">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="p-1.5 bg-rose-600 dark:bg-rose-500 text-white rounded-xl shadow-xs shrink-0">
                     <AlertOctagon size={15} />
@@ -293,7 +288,7 @@ export default function Dashboard({
             )}
 
             {/* ── 4. 루트 폴더 카드 그리드 (글래스모피즘) ── */}
-            <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
+            <section className="no-zen-toggle bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
                   <FolderTree size={16} className="text-indigo-600 dark:text-indigo-400" />
@@ -407,10 +402,12 @@ export default function Dashboard({
             </section>
 
             {/* ── 5. 최근 읽은 사이트 (리더모드 진행률) ── */}
-            <RecentReaderWidget bookmarks={bookmarks} />
+            <div className="no-zen-toggle">
+              <RecentReaderWidget bookmarks={bookmarks} />
+            </div>
 
             {/* ── 6. 최근 추가된 북마크 카드 그리드 (글래스모피즘) ── */}
-            <section className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
+            <section className="no-zen-toggle bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
               <RecentWidget
                 bookmarks={bookmarks}
                 folders={folders}
@@ -423,7 +420,7 @@ export default function Dashboard({
             </section>
 
             {/* ── 7. 하단 2-Grid 랭킹 요약 섹션 (클릭북 인기 북마크 + 브라우저 Top Sites) ── */}
-            <section>
+            <section className="no-zen-toggle">
               <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl p-4 shadow-figma-sm">
                 <RankingWidget bookmarks={bookmarks} count={rankingCount} onRefresh={onRefresh} />
               </div>

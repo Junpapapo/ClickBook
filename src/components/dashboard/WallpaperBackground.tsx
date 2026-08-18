@@ -11,9 +11,11 @@ import {
 interface Props {
   isDarkMode: boolean;
   children: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  className?: string;
 }
 
-export default function WallpaperBackground({ isDarkMode, children }: Props) {
+export default function WallpaperBackground({ isDarkMode, children, onClick, className = "" }: Props) {
   const [config, setConfig] = useState<WallpaperConfig>(getStoredWallpaperConfig);
   const [imgLoaded, setImgLoaded] = useState(false);
 
@@ -66,7 +68,10 @@ export default function WallpaperBackground({ isDarkMode, children }: Props) {
   const currentWp = resolveCurrentWallpaper(config, isDarkMode);
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden transition-colors duration-300">
+    <div 
+      onClick={onClick}
+      className={`relative min-h-screen w-full overflow-x-hidden transition-colors duration-300 ${className}`}
+    >
       {/* ── 배경 레이어 (이미지 / 그라디언트) ── */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none select-none">
         {currentWp.type === "image" ? (

@@ -155,7 +155,7 @@ export default function ModernHeroHeader({
 
       {/* ── 글래스모피즘 북마크/URL 통합 검색 바 ── */}
       <div className="w-full max-w-2xl relative group">
-        <div className="relative flex items-center bg-white/75 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-white/10 hover:border-indigo-400/80 dark:hover:border-indigo-500/60 rounded-2xl p-1.5 shadow-figma-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/40">
+        <div className="relative flex items-center no-zen-toggle bg-white/75 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-white/10 hover:border-indigo-400/80 dark:hover:border-indigo-500/60 rounded-2xl p-1.5 shadow-figma-lg transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/40">
           <div className="pl-3 pr-2 text-slate-400 dark:text-slate-500">
             <Search size={18} />
           </div>

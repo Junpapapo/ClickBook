@@ -703,62 +703,62 @@ export default function Popup() {
                 <div className="border-t border-slate-200 dark:border-slate-800 mx-2 my-1" />
                 <button
                   onClick={() => { setTextImportOpen(o => !o); setSettingsOpen(false); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs transition-colors cursor-pointer"
                 >
-                  <ClipboardList size={13} />
+                  <ClipboardList size={13} className="text-slate-500 dark:text-slate-400" />
                   {t("popupTextImportMenu")}
                 </button>
-                <div className="border-t border-gray-200 dark:border-surface-700 mx-2 my-1" />
+                <div className="border-t border-slate-200/80 dark:border-slate-800 mx-2 my-1" />
                 <button
                   onClick={() => {
                     const v = !chromePanel;
                     setChromePanel(v);
                     chrome.storage.local.set({ clickbook_popup_chrome: v });
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs transition-colors cursor-pointer"
                 >
-                  <Globe2 size={13} />
+                  <Globe2 size={13} className="text-slate-500 dark:text-slate-400" />
                   {t("popupChromePanelMenu")}
                   <span className={`ml-auto w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
-                    chromePanel ? "bg-indigo-500 border-indigo-500" : "border-gray-300 dark:border-surface-500"
+                    chromePanel ? "bg-indigo-600 border-indigo-600" : "border-slate-300 dark:border-slate-600"
                   }`}>
                     {chromePanel && <Check size={9} className="text-white" />}
                   </span>
                 </button>
                 {/* ── Feedback Links ─────────────────── */}
-                <div className="border-t border-gray-200 dark:border-surface-700 mx-2 my-1" />
+                <div className="border-t border-slate-200/80 dark:border-slate-800 mx-2 my-1" />
                 <button
                   onClick={() => {
                     chrome.tabs.create({ url: GITHUB_ISSUES_URL });
                     setSettingsOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs transition-colors cursor-pointer"
                 >
-                  <Bug size={13} />
+                  <Bug size={13} className="text-slate-500 dark:text-slate-400" />
                   {t("feedbackBugReport")}
-                  <ExternalLink size={9} className="ml-auto text-gray-600" />
+                  <ExternalLink size={9} className="ml-auto text-slate-400" />
                 </button>
                 <button
                   onClick={() => {
                     chrome.tabs.create({ url: FEEDBACK_FORM_URL });
                     setSettingsOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs transition-colors cursor-pointer"
                 >
-                  <MessageSquare size={13} />
+                  <MessageSquare size={13} className="text-slate-500 dark:text-slate-400" />
                   {t("feedbackQuick")}
-                  <ExternalLink size={9} className="ml-auto text-gray-600" />
+                  <ExternalLink size={9} className="ml-auto text-slate-400" />
                 </button>
                 <button
                   onClick={() => {
                     chrome.tabs.create({ url: CHROME_STORE_URL });
                     setSettingsOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 dark:hover:bg-surface-700 text-gray-600 dark:text-gray-300 text-xs transition-colors rounded-b-xl"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs transition-colors rounded-b-xl cursor-pointer"
                 >
                   <Star size={13} className="text-amber-400 fill-amber-400" />
                   {t("feedbackRate")}
-                  <ExternalLink size={9} className="ml-auto text-gray-600" />
+                  <ExternalLink size={9} className="ml-auto text-slate-400" />
                 </button>
               </div>
             )}

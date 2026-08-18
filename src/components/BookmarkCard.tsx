@@ -104,13 +104,13 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
     <div
       ref={popRef}
       style={{ position: "fixed", top: pos.top, left: pos.left, width: 264, zIndex: 9999 }}
-      className="bg-white dark:bg-surface-800 border border-gray-200 dark:border-surface-600 rounded-xl shadow-2xl p-3"
+      className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-figma-lg p-3"
       onClick={(e) => e.stopPropagation()}
     >
       {/* ヘッダー */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center gap-1">
-          <StickyNote size={10} />
+        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+          <StickyNote size={10} className="text-amber-500" />
           {t("memo")}
         </span>
         <div className="flex items-center gap-1">
@@ -119,12 +119,12 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
             <button
               onClick={handleGenerateDraft}
               disabled={draftState === "loading"}
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition-all ${
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold transition-all cursor-pointer ${
                 draftState === "loading"
-                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-400 cursor-not-allowed"
+                  ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-400 cursor-not-allowed"
                   : draftState === "done" || draftState === "used"
-                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400"
-                  : "bg-gray-100 dark:bg-surface-700 text-gray-500 dark:text-gray-400 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:text-violet-600 dark:hover:text-violet-400"
+                  ? "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/40"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400"
               }`}
               title={t("aiDraftTooltip")}
             >
@@ -134,7 +134,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
               {t("aiDraftBtn")}
             </button>
           )}
-          <button onClick={onClose} className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors" title={t("closeTooltip")}>
+          <button onClick={onClose} className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer" title={t("closeTooltip")}>
             <X size={12} />
           </button>
         </div>
@@ -146,9 +146,9 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
           <button
             key={c}
             onClick={() => setColor(c)}
-            className={`w-4 h-4 rounded-full ${MEMO_DOT[c]} transition-all ${
+            className={`w-4 h-4 rounded-full ${MEMO_DOT[c]} transition-all cursor-pointer ${
               color === c
-                ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500 dark:ring-offset-surface-800"
+                ? "ring-2 ring-offset-1 ring-indigo-500 dark:ring-indigo-400 dark:ring-offset-slate-900 scale-110"
                 : "opacity-50 hover:opacity-100"
             }`}
           />
@@ -159,7 +159,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
               if (content) navigator.clipboard.writeText(content);
             }}
             disabled={!content}
-            className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors disabled:opacity-40"
+            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded hover:bg-slate-100 dark:hover:bg-slate-850 transition-colors disabled:opacity-40 cursor-pointer"
             title={t("copyTooltip")}
           >
             <Copy size={12} />
@@ -167,7 +167,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
           {memo && (
             <button
               onClick={async () => { await onDelete(); onClose(); }}
-              className="p-0.5 text-gray-400 hover:text-red-400 transition-colors"
+              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
               title={t("deleteMemoTooltip")}
             >
               <Trash2 size={12} />
@@ -184,14 +184,14 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
         placeholder={t("memoPlaceholder")}
         rows={4}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
-        className={`w-full text-xs rounded-lg px-2.5 py-2 resize-y min-h-[90px] outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
+        className={`w-full text-xs rounded-lg px-2.5 py-2 resize-y min-h-[90px] outline-none leading-relaxed border border-slate-200/60 dark:border-slate-700/60 ${MEMO_TEXTAREA_BG[color]} text-slate-800 dark:text-slate-200 placeholder-slate-400`}
       />
 
       {/* AI Draft Panel */}
       {draftState === "loading" && (
-        <div className="mt-2 p-3 rounded-xl border border-violet-200 dark:border-violet-700/40 bg-violet-50 dark:bg-violet-900/20 flex items-center gap-2">
-          <Loader2 size={12} className="text-violet-500 animate-spin shrink-0" />
-          <span className="text-[10px] text-violet-600 dark:text-violet-400 animate-pulse">
+        <div className="mt-2 p-2.5 rounded-xl border border-indigo-200/80 dark:border-indigo-800/40 bg-indigo-50/70 dark:bg-indigo-950/30 flex items-center gap-2">
+          <Loader2 size={12} className="text-indigo-500 animate-spin shrink-0" />
+          <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 animate-pulse">
             {t("aiDraftApplying")}
           </span>
         </div>
@@ -200,20 +200,20 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
       {(draftState === "done" || draftState === "used") && (
         <div className={`mt-2 rounded-xl border overflow-hidden transition-all ${
           draftState === "used"
-            ? "border-emerald-200 dark:border-emerald-700/40 bg-emerald-50 dark:bg-emerald-900/20"
-            : "border-violet-200 dark:border-violet-700/40 bg-violet-50/60 dark:bg-violet-900/15"
+            ? "border-emerald-200/80 dark:border-emerald-800/40 bg-emerald-50/70 dark:bg-emerald-950/20"
+            : "border-indigo-200/80 dark:border-indigo-800/40 bg-indigo-50/70 dark:bg-indigo-950/20"
         }`}>
           {/* Panel header */}
           <div className={`flex items-center gap-1.5 px-3 py-1.5 border-b ${
             draftState === "used"
-              ? "border-emerald-200 dark:border-emerald-700/40"
-              : "border-violet-200 dark:border-violet-700/40"
+              ? "border-emerald-200/80 dark:border-emerald-800/40"
+              : "border-indigo-200/80 dark:border-indigo-800/40"
           }`}>
             {draftState === "used"
               ? <CheckCheck size={9} className="text-emerald-500" />
-              : <Bot size={9} className="text-violet-500" />}
+              : <Bot size={9} className="text-indigo-500" />}
             <span className={`text-[9px] font-bold uppercase tracking-wider ${
-              draftState === "used" ? "text-emerald-600 dark:text-emerald-400" : "text-violet-600 dark:text-violet-400"
+              draftState === "used" ? "text-emerald-600 dark:text-emerald-400" : "text-indigo-600 dark:text-indigo-400"
             }`}>
               {draftState === "used"
                 ? t("aiDraftApplied")
@@ -223,7 +223,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
           {/* Draft text */}
           <div className="px-3 py-2">
             <pre className={`text-[10px] leading-relaxed whitespace-pre-wrap font-sans ${
-              draftState === "used" ? "text-emerald-700 dark:text-emerald-300" : "text-violet-700 dark:text-violet-300"
+              draftState === "used" ? "text-emerald-700 dark:text-emerald-300" : "text-indigo-700 dark:text-indigo-300"
             }`}>{draft}</pre>
           </div>
           {/* Actions */}
@@ -231,13 +231,13 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
             <div className="flex items-center justify-end gap-1.5 px-3 pb-2">
               <button
                 onClick={() => setDraftState("idle")}
-                className="text-[9px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-1.5 py-0.5 rounded transition-colors"
+                className="text-[9px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
               >
                 {t("aiDraftDismiss")}
               </button>
               <button
                 onClick={handleUseDraft}
-                className="flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm shadow-violet-500/30"
+                className="flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-lg transition-colors shadow-2xs cursor-pointer"
               >
                 <CheckCheck size={8} />
                 {t("aiDraftUseThis")}
@@ -248,10 +248,10 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
       )}
 
       {/* アクションボタン */}
-      <div className="flex justify-end gap-2 mt-2">
+      <div className="flex justify-end gap-1.5 mt-2">
         <button
           onClick={onClose}
-          className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+          className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-2.5 py-1 rounded-md transition-colors cursor-pointer"
         >
           {t("closeTooltip")}
         </button>
@@ -261,7 +261,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
             else if (memo)      await onDelete();
             onClose();
           }}
-          className="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-lg transition-colors"
+          className="text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white px-3 py-1 rounded-md transition-all shadow-2xs cursor-pointer"
         >
           Save
         </button>
@@ -343,13 +343,13 @@ const BookmarkCard = React.memo(function BookmarkCard({ bookmark, memo, folderNa
               className="rounded-sm shrink-0"
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
-            <span className="text-xs text-gray-500 truncate">{bookmark.domain}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{bookmark.domain}</span>
             {folderName && (
-              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 font-medium truncate max-w-[72px]">
+              <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/40 font-medium truncate max-w-[72px]">
                 {folderName}
               </span>
             )}
-            <span className="ml-auto text-[10px] text-gray-600 shrink-0">
+            <span className="ml-auto text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
               {formatRelativeTime(bookmark.savedAt, t)}
             </span>
           </div>
@@ -357,7 +357,7 @@ const BookmarkCard = React.memo(function BookmarkCard({ bookmark, memo, folderNa
           {/* 타이틀 */}
           <button
             onClick={handleOpen}
-            className="text-left text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 transition-colors leading-snug"
+            className="text-left text-xs font-semibold text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 transition-colors leading-snug cursor-pointer"
           >
             {bookmark.title}
           </button>
@@ -368,10 +368,10 @@ const BookmarkCard = React.memo(function BookmarkCard({ bookmark, memo, folderNa
             {onEdit && (
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(bookmark); }}
-                className="shrink-0 p-1 rounded hover:bg-indigo-900/30 transition-colors"
+                className="shrink-0 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title={t("editTooltip")}
               >
-                <Pencil size={11} className="text-gray-500 hover:text-indigo-400 transition-colors" />
+                <Pencil size={11} className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" />
               </button>
             )}
           </div>

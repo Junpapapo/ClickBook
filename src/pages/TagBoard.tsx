@@ -375,18 +375,18 @@ export default function TagBoard({
         />
 
         {/* Filter State Banner & Switch */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 shrink-0 bg-white dark:bg-surface-900/40 border border-gray-200/50 dark:border-white/[0.03] px-5 py-3 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 shrink-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 px-5 py-3 rounded-2xl shadow-figma-sm">
           <div className="flex items-center gap-2">
-            <FilterIcon size={14} className="text-indigo-500" />
-            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+            <FilterIcon size={14} className="text-indigo-600 dark:text-indigo-400" />
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
               {selectedTags.length > 0 ? (
                 <>
                   Filtered by{" "}
-                  <span className="text-indigo-600 dark:text-indigo-400 font-extrabold bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-lg border border-indigo-100/30">
+                  <span className="text-indigo-600 dark:text-indigo-400 font-extrabold bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-lg border border-indigo-200/50 dark:border-indigo-800/40">
                     {selectedTags.length}
                   </span>{" "}
                   tag(s) ·{" "}
-                  <span className="text-gray-800 dark:text-gray-300 font-extrabold">
+                  <span className="text-slate-800 dark:text-slate-100 font-extrabold">
                     {filteredBookmarks.length}
                   </span>{" "}
                   bookmarks matched
@@ -394,7 +394,7 @@ export default function TagBoard({
               ) : (
                 <>
                   Showing all{" "}
-                  <span className="text-gray-800 dark:text-gray-100 font-extrabold bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-lg">
+                  <span className="text-slate-800 dark:text-slate-100 font-extrabold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
                     {filteredBookmarks.length}
                   </span>{" "}
                   tagged bookmarks

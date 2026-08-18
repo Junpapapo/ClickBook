@@ -320,7 +320,7 @@ export default function Sidebar({
                 </span>
               </span>
             </div>
-            <span className="text-[10px] text-gray-400 dark:text-gray-700 bg-gray-100 dark:bg-surface-800 rounded-full px-2 py-0.5">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-full px-2 py-0.5 font-semibold">
               {bookmarks.length}
             </span>
           </div>
@@ -340,11 +340,11 @@ export default function Sidebar({
             <button
               onClick={() => onNavigate("dashboard")}
               title={t("dashboard")}
-              className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-150 border
+              className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-150 border cursor-pointer
                 ${
                   activePage === "dashboard"
                     ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border-indigo-500/20 dark:border-indigo-500/30"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800 border-transparent"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent"
                 }
               `}
             >
@@ -354,11 +354,11 @@ export default function Sidebar({
             <div className="relative w-full group/dash">
               <button
                 onClick={() => onNavigate("dashboard")}
-                className={`w-full flex items-center justify-center gap-2 pl-3 pr-10 py-2.5 text-sm rounded-lg transition-all duration-150 border
+                className={`w-full flex items-center justify-center gap-2 pl-3 pr-10 py-2.5 text-sm rounded-lg transition-all duration-150 border cursor-pointer
                   ${
                     activePage === "dashboard"
                       ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold border-indigo-500/20 dark:border-indigo-500/30"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800 border-transparent"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent"
                   }
                 `}
               >
@@ -368,7 +368,7 @@ export default function Sidebar({
               <button
                 onClick={handleToggleAllSections}
                 title={isAllCollapsed ? t("expandAll") : t("collapseAll")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-surface-700/80 transition-all cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all cursor-pointer"
               >
                 {isAllCollapsed ? <ChevronsDown size={13} /> : <ChevronsUp size={13} />}
               </button>
@@ -379,16 +379,16 @@ export default function Sidebar({
         {/* 🔖 BOOKMARK Section */}
         <div
           onClick={!isCollapsed ? handleToggleBookmark : undefined}
-          className={`px-3 pt-3 pb-1.5 border-t border-gray-200/50 dark:border-surface-800/50 mt-1 flex justify-center shrink-0
-            ${!isCollapsed ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-surface-800/30 select-none" : ""}`}
+          className={`px-3 pt-3 pb-1.5 border-t border-slate-200/60 dark:border-slate-800/60 mt-1 flex justify-center shrink-0
+            ${!isCollapsed ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 select-none" : ""}`}
         >
           {!isCollapsed && (
-            <div className="flex items-center justify-between w-full text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold">
+            <div className="flex items-center justify-between w-full text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-semibold">
               <span>Bookmarks</span>
               {isBookmarkCollapsed ? (
-                <ChevronRight size={10} className="text-gray-400 dark:text-gray-600" />
+                <ChevronRight size={10} className="text-slate-400 dark:text-slate-500" />
               ) : (
-                <ChevronDown size={10} className="text-gray-400 dark:text-gray-600" />
+                <ChevronDown size={10} className="text-slate-400 dark:text-slate-500" />
               )}
             </div>
           )}
@@ -407,7 +407,7 @@ export default function Sidebar({
                 ${
                   aiAvailable && !isOrganizing
                     ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 shadow-sm cursor-pointer"
-                    : "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                 }
               `}
             >
@@ -424,14 +424,14 @@ export default function Sidebar({
                 ${
                   aiAvailable && !isOrganizing
                     ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 shadow-sm cursor-pointer"
-                    : "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                 }
               `}
             >
               {isOrganizing ? (
-                <Loader2 size={14} className="animate-spin" />
+                <Loader2 size={15} className="animate-spin text-white" />
               ) : (
-                <Sparkles size={14} className={aiAvailable ? "text-yellow-300" : ""} />
+                <Sparkles size={15} />
               )}
             </button>
 
@@ -444,14 +444,14 @@ export default function Sidebar({
                 relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200
                 ${
                   isOrganizing
-                    ? "bg-gray-100 dark:bg-surface-800 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                    ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                     : aiAvailable
                     ? "bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-500 dark:to-cyan-600 text-white hover:from-teal-500 hover:to-cyan-500 shadow-sm cursor-pointer"
-                    : "bg-gray-100 dark:bg-surface-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-surface-700 cursor-pointer"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer"
                 }
               `}
             >
-              <ScanSearch size={14} />
+              <ScanSearch size={15} />
             </button>
 
             {/* 태그 클라우드 */}
@@ -617,7 +617,7 @@ export default function Sidebar({
                     <div className={`px-3 py-2 rounded-lg border text-xs w-full overflow-hidden ${bgClass}`}>
                       <p className={`font-medium ${textTitleClass}`}>{title}</p>
                       <p className={`mt-0.5 ${textDescClass}`}>{desc}</p>
-                      <p className="text-gray-400 dark:text-gray-500 mt-1 text-[10px] truncate" title={backupName}>
+                      <p className="text-slate-400 dark:text-slate-500 mt-1 text-[10px] truncate" title={backupName}>
                         {t("backupPrefix")}
                         {backupName}
                       </p>
@@ -664,7 +664,7 @@ export default function Sidebar({
               <div className="px-1.5 mb-2 grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => onNavigate("tagboard")}
-                  className={`relative group flex items-center justify-center gap-1.5 px-2 py-2 text-xs rounded-lg transition-all duration-150
+                  className={`relative group flex items-center justify-center gap-1.5 px-2 py-2 text-xs rounded-lg transition-all duration-150 cursor-pointer
                     ${
                       activePage === "tagboard"
                         ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/20 font-semibold"
@@ -677,7 +677,7 @@ export default function Sidebar({
 
                 <button
                   onClick={() => onNavigate("map")}
-                  className={`relative group flex items-center justify-center gap-1.5 px-2 py-2 text-xs rounded-lg transition-all duration-150
+                  className={`relative group flex items-center justify-center gap-1.5 px-2 py-2 text-xs rounded-lg transition-all duration-150 cursor-pointer
                     ${
                       activePage === "map"
                         ? "bg-blue-500 text-white shadow-md shadow-blue-500/20 font-semibold"
@@ -699,12 +699,12 @@ export default function Sidebar({
             ${!isCollapsed ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 select-none" : ""}`}
         >
           {!isCollapsed && (
-            <div className="flex items-center justify-between w-full text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold">
+            <div className="flex items-center justify-between w-full text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-semibold">
               <span>Tasks</span>
               {isTaskCollapsed ? (
-                <ChevronRight size={10} className="text-gray-400 dark:text-gray-600" />
+                <ChevronRight size={10} className="text-slate-400 dark:text-slate-500" />
               ) : (
-                <ChevronDown size={10} className="text-gray-400 dark:text-gray-600" />
+                <ChevronDown size={10} className="text-slate-400 dark:text-slate-500" />
               )}
             </div>
           )}
@@ -717,7 +717,7 @@ export default function Sidebar({
             <button
               onClick={() => onNavigate("memo")}
               title={t("memoBoard") || "Memos"}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150 cursor-pointer
                 ${
                   activePage === "memo"
                     ? "bg-amber-500 text-white shadow-sm font-semibold"
@@ -736,7 +736,7 @@ export default function Sidebar({
             <button
               onClick={() => onNavigate("todo")}
               title={t("todoBoardMenu") || "TODO"}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150 cursor-pointer
                 ${
                   activePage === "todo"
                     ? "bg-emerald-500 text-white shadow-sm font-semibold"
@@ -756,7 +756,7 @@ export default function Sidebar({
             <button
               onClick={() => onNavigate("calendar")}
               title={t("calendarMenu") || "Calendar"}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150 cursor-pointer
                 ${
                   activePage === "calendar"
                     ? "bg-indigo-500 text-white shadow-sm font-semibold"
@@ -770,7 +770,7 @@ export default function Sidebar({
             <button
               onClick={() => onNavigate("mindmap")}
               title={t("mindMapBoardMenu") || "Mind Map"}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150 cursor-pointer
                 ${
                   activePage === "mindmap"
                     ? "bg-purple-500 text-white shadow-sm font-semibold"
@@ -784,7 +784,7 @@ export default function Sidebar({
             <button
               onClick={() => onNavigate("springnote")}
               title={t("springNoteBoardMenu") || "Sprint Note"}
-              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150
+              className={`relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150 cursor-pointer
                 ${
                   activePage === "springnote"
                     ? "bg-indigo-500 text-white shadow-sm font-semibold"
@@ -904,10 +904,10 @@ export default function Sidebar({
             {/* 세로 크기 조절 핸들 */}
             <div
               onMouseDown={handleFolderResizeMouseDown}
-              className="h-1.5 hover:h-2 bg-transparent hover:bg-indigo-500/20 dark:hover:bg-indigo-500/40 cursor-ns-resize transition-all shrink-0 flex items-center justify-center border-b border-gray-200/50 dark:border-surface-800/50 group"
+              className="h-1.5 hover:h-2 bg-transparent hover:bg-indigo-500/20 dark:hover:bg-indigo-500/40 cursor-ns-resize transition-all shrink-0 flex items-center justify-center border-b border-slate-200/60 dark:border-slate-800/60 group"
               title="Drag to resize folders panel"
             >
-              <div className="w-8 h-[2px] bg-gray-300 dark:bg-surface-700 rounded-full opacity-40 group-hover:opacity-100 transition-opacity" />
+              <div className="w-8 h-[2px] bg-slate-300 dark:bg-slate-700 rounded-full opacity-40 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>
         )}
@@ -924,14 +924,14 @@ export default function Sidebar({
 
         {/* Control Center & Task Control */}
         {isCollapsed ? (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-surface-700 flex flex-col items-center w-full shrink-0">
+          <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col items-center w-full shrink-0">
             <button
               onClick={() => onNavigate("taskcontrol")}
               className={`relative group flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150 cursor-pointer
                 ${
                   activePage === "taskcontrol"
                     ? "bg-violet-500/15 text-violet-600 dark:text-violet-300 font-semibold"
-                    : "text-gray-600 dark:text-gray-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+                    : "text-slate-600 dark:text-slate-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20"
                 }`}
               title={t("taskControlMenu") || "Task Control"}
             >
@@ -945,8 +945,8 @@ export default function Sidebar({
             </button>
           </div>
         ) : (
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-surface-700 space-y-0.5 px-1.5 pb-2 shrink-0">
-            <span className="text-[10px] uppercase tracking-[0.15em] text-gray-400 dark:text-gray-600 font-semibold px-2 mb-1 block">
+          <div className="mt-6 pt-4 border-t border-slate-200/60 dark:border-slate-800/60 space-y-0.5 px-1.5 pb-2 shrink-0">
+            <span className="text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-semibold px-2 mb-1 block">
               Control
             </span>
             <button
@@ -955,7 +955,7 @@ export default function Sidebar({
                 ${
                   activePage === "taskcontrol"
                     ? "bg-violet-500/15 text-violet-600 dark:text-violet-300 font-semibold"
-                    : "text-gray-600 dark:text-gray-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+                    : "text-slate-600 dark:text-slate-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20"
                 }`}
             >
               <Activity size={15} className="shrink-0" />
