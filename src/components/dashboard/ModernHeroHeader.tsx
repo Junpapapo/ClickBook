@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Sparkles, Command, ShieldCheck, HelpCircle, Sun, Moon, Settings, RefreshCw } from "lucide-react";
+import { Search, Command, ShieldCheck, HelpCircle, Sun, Moon, Settings, RefreshCw } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import { useTheme } from "@/shared/ThemeContext";
 

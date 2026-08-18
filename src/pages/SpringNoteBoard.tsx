@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Book, BookOpen, Plus, Search, Trash2, Keyboard } from "lucide-react";
 import type { SpringNote } from "@/shared/types";
 import { getAllSpringNotes, saveSpringNote, deleteSpringNote } from "@/utils/springNoteDb";
 import SpringNotePanel from "./TodoBoard/SpringNote/SpringNotePanel";
 import SpringNoteShortcutGuide from "./TodoBoard/SpringNote/components/SpringNoteShortcutGuide";
 import { useLang } from "@/shared/LanguageContext";
+import { useTheme } from "@/shared/ThemeContext";
 import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 
 interface SpringNoteBoardProps {
@@ -163,7 +164,7 @@ export default function SpringNoteBoard({
   const dragStartX = useRef<number>(0);
   const dragStartWidth = useRef<number>(0);
 
-  const { theme: systemTheme } = useTheme();
+  const { theme } = useTheme();
 
   useEffect(() => {
     loadNotes();
@@ -172,7 +173,7 @@ export default function SpringNoteBoard({
   // 시스템 테마 변경 시 현재 선택된 노트 테마 자동 연동
   useEffect(() => {
     if (!selectedNoteId || loading) return;
-    const targetTheme = systemTheme === "light" ? "grid" : "dark";
+    const targetTheme = theme === "light" ? "grid" : "dark";
     
     const currentNote = notes.find((n) => n.id === selectedNoteId);
     if (currentNote && currentNote.theme !== targetTheme) {
@@ -185,7 +186,7 @@ export default function SpringNoteBoard({
         console.warn("Failed to save theme sync from system:", err)
       );
     }
-  }, [systemTheme, selectedNoteId, loading]);
+  }, [theme, selectedNoteId, loading]);
 
   const loadNotes = async () => {
     setLoading(true);
@@ -336,7 +337,7 @@ export default function SpringNoteBoard({
     n.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const noteTheme = selectedNote?.theme || (systemTheme === "light" ? "light" : "dark");
+  const noteTheme = selectedNote?.theme || (theme === "light" ? "light" : "dark");
 
   // 테마별 사이드바 스타일 정의
   const sidebarClass = 

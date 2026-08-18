@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, Fragment } from "react";
 import {
   X,
   Keyboard,
@@ -19,7 +19,9 @@ interface Props {
 }
 
 export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboarding }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const isKo = lang === "ko";
+  const isJa = lang === "ja";
   const [activeTab, setActiveTab] = useState<"shortcuts" | "springnote" | "mindmap" | "export">("shortcuts");
 
   const globalShortcuts = [
@@ -185,12 +187,12 @@ export default function GuidePanel({ onClose, onOpenCommandPalette, onOpenOnboar
                     <span className="font-bold text-slate-900 dark:text-white">{s.label}</span>
                     <div className="flex items-center gap-1 shrink-0">
                       {s.keys.map((k, kIdx) => (
-                        <React.Fragment key={kIdx}>
+                        <Fragment key={kIdx}>
                           {kIdx > 0 && <span className="text-[9px] text-slate-400 font-bold">+</span>}
                           <kbd className="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-white dark:bg-surface-900 border border-slate-300 dark:border-surface-700 rounded shadow-xs text-purple-600 dark:text-purple-300">
                             {k}
                           </kbd>
-                        </React.Fragment>
+                        </Fragment>
                       ))}
                     </div>
                   </div>

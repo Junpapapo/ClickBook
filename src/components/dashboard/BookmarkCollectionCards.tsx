@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Folder as FolderIconLucide, ChevronRight, Plus } from "lucide-react";
+import { useMemo } from "react";
+import { ChevronRight } from "lucide-react";
 import type { Folder, Bookmark } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { getLocalizedFolderName } from "@/shared/categories";

@@ -315,7 +315,8 @@ export type Message =
   | { type: "BUDDY_GET_TOP_SITES" }
   | { type: "BUDDY_OPEN_DASHBOARD" }
   | { type: "GET_ALL_SPRING_NOTES" }
-  | { type: "SAVE_ALL_SPRING_NOTES"; notes: SpringNote[] };
+  | { type: "SAVE_ALL_SPRING_NOTES"; notes: SpringNote[] }
+  | { type: "GET_CURRENT_LOCATION"; lang?: string };
 
 
 export type MessageResponse<T = any> =

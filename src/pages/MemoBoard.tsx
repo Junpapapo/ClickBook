@@ -391,7 +391,7 @@ interface Props {
 }
 
 export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
-  const { t, lang } = useLang();
+  const { t } = useLang();
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
   const [showNew, setShowNew] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search,
   Command,
@@ -17,7 +17,6 @@ import {
   Settings,
   HelpCircle,
   ArrowRight,
-  Bookmark as BookmarkIcon,
   X,
   Rocket,
 } from "lucide-react";
@@ -64,6 +63,7 @@ export default function CommandPalette({
   bookmarks = [],
 }: Props) {
   const { lang, t } = useLang();
+  const isKo = lang === "ko";
   const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
 
