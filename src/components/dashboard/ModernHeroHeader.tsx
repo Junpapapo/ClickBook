@@ -26,6 +26,7 @@ export default function ModernHeroHeader({
   const { theme, toggle: toggleTheme } = useTheme();
   const isDarkMode = theme === "dark";
   const [name, setName] = useState(userName);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   useEffect(() => {
     if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
@@ -86,33 +87,69 @@ export default function ModernHeroHeader({
   }`;
 
   return (
-    <div className={`w-full flex flex-col items-center justify-center text-center select-none transition-all duration-300 ${isZenMode ? "pt-1 pb-2" : "pt-2 pb-6 px-2"}`}>
-      {/* ── 우측 상단 유틸리티 아이콘 바 (보안 / 가이드 / 테마 / 설정) ── */}
-      <div className={`w-full flex items-center justify-end gap-1.5 px-2 transition-all duration-300 ${isZenMode ? "opacity-40 hover:opacity-100" : "mb-2"}`}>
-        <div
-          className="flex items-center gap-1 px-2 py-1 rounded-xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/60 dark:border-white/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold shadow-2xs"
-          title={t("heroSecuredTooltip")}
-        >
-          <ShieldCheck size={14} />
-          <span className="text-[11px] hidden sm:inline">{t("heroSecured")}</span>
-        </div>
+    <>
+      {/* ── Privacy First Modal ── */}
+      {privacyOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-[9000] bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={() => setPrivacyOpen(false)}
+          />
+          <div className="fixed inset-0 z-[9001] flex items-center justify-center p-4 pointer-events-none">
+            <div
+              className="pointer-events-auto w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-800/50 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xs">
+                  <ShieldCheck size={24} className="text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+                  {t("privacyTitle")}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed break-keep">
+                  {t("privacyDesc")}
+                </p>
+                <button
+                  onClick={() => setPrivacyOpen(false)}
+                  className="mt-6 w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all active:scale-98 cursor-pointer shadow-figma-sm border border-slate-200/80 dark:border-slate-700/80 text-sm"
+                >
+                  {t("closeBtn")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
-        <button
-          onClick={() => {
-            if (onOpenGuide) {
-              onOpenGuide();
-            } else {
-              window.open(helpUrl, "_blank", "noopener,noreferrer");
-            }
-          }}
-          className="p-1.5 rounded-xl bg-white/60 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-700/80 backdrop-blur-md border border-white/60 dark:border-white/10 text-slate-600 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
-          title={t("heroHelpTooltip")}
-        >
-          <HelpCircle size={15} />
-        </button>
+      <div className={`w-full flex flex-col items-center justify-center text-center select-none transition-all duration-300 ${isZenMode ? "pt-1 pb-2" : "pt-2 pb-6 px-2"}`}>
+        {/* ── 우측 상단 유틸리티 아이콘 바 (보안 / 가이드 / 테마 / 설정) ── */}
+        <div className={`w-full flex items-center justify-end gap-1.5 px-2 transition-all duration-300 ${isZenMode ? "opacity-40 hover:opacity-100" : "mb-2"}`}>
+          <button
+            onClick={() => setPrivacyOpen(true)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/60 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-700/80 backdrop-blur-md border border-white/60 dark:border-white/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+            title={t("heroSecuredTooltip")}
+          >
+            <ShieldCheck size={14} />
+            <span className="text-[11px] hidden sm:inline">{t("heroSecured")}</span>
+          </button>
 
-        <button
-          onClick={toggleTheme}
+          <button
+            onClick={() => {
+              if (onOpenGuide) {
+                onOpenGuide();
+              } else {
+                window.open(helpUrl, "_blank", "noopener,noreferrer");
+              }
+            }}
+            className="p-1.5 rounded-xl bg-white/60 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-700/80 backdrop-blur-md border border-white/60 dark:border-white/10 text-slate-600 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
+            title={t("heroHelpTooltip")}
+          >
+            <HelpCircle size={15} />
+          </button>
+
+          <button
+            onClick={toggleTheme}
           className="p-1.5 rounded-xl bg-white/60 dark:bg-slate-800/60 hover:bg-white/90 dark:hover:bg-slate-700/80 backdrop-blur-md border border-white/60 dark:border-white/10 text-slate-600 dark:text-slate-300 shadow-2xs transition-all cursor-pointer"
           title={isDarkMode ? t("heroSwitchLight") : t("heroSwitchDark")}
         >
@@ -185,5 +222,6 @@ export default function ModernHeroHeader({
         </div>
       )}
     </div>
+    </>
   );
 }

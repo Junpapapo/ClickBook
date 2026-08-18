@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react";
-import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket, Sun, Crosshair } from "lucide-react";
+import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket, Sun, Crosshair, Image as ImageIcon } from "lucide-react";
 import type { AppSettings, WeatherConfig } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { getCurrentCoordinates, fetchCityName } from "@/utils/weatherApi";
+import {
+  type WallpaperConfig,
+  getStoredWallpaperConfig,
+  saveStoredWallpaperConfig,
+  getLocalWallpapers,
+  GRADIENT_PRESETS,
+} from "@/utils/wallpaperService";
 
 interface Props {
   settings: AppSettings;
@@ -132,11 +139,30 @@ export default function SettingsModal({
   const { t, lang } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
   const [draft, setDraft] = useState<AppSettings>({ ...settings });
+  const [initialWp] = useState<WallpaperConfig>(getStoredWallpaperConfig);
+  const [wpDraft, setWpDraft] = useState<WallpaperConfig>(getStoredWallpaperConfig);
   const [saving, setSaving] = useState(false);
   const [storageBytes, setStorageBytes] = useState<number>(0);
   const [dangerZoneExpanded, setDangerZoneExpanded] = useState(false);
   const [gcRunning, setGcRunning] = useState(false);
   const [orphanedStats, setOrphanedStats] = useState<{ count: number; bytes: number } | null>(null);
+
+  const localWallpapers = getLocalWallpapers();
+
+  function updateWallpaper(patch: Partial<WallpaperConfig>) {
+    setWpDraft((prev) => {
+      const next = { ...prev, ...patch };
+      saveStoredWallpaperConfig(next);
+      return next;
+    });
+  }
+
+  function handleCloseModal() {
+    if (JSON.stringify(wpDraft) !== JSON.stringify(initialWp)) {
+      saveStoredWallpaperConfig(initialWp);
+    }
+    onClose();
+  }
 
   useEffect(() => {
     chrome.storage.local.getBytesInUse(null, (bytes) => {
@@ -227,6 +253,7 @@ export default function SettingsModal({
     setSaving(true);
     try {
       localStorage.removeItem("clickbook_weather_cache_v2");
+      saveStoredWallpaperConfig(wpDraft);
       await onSave(draft);
       onClose();
     } finally {
@@ -260,8 +287,8 @@ export default function SettingsModal({
     draft.enableTodoNotifications !== settings.enableTodoNotifications ||
     draft.gcInterval !== settings.gcInterval ||
     draft.holidayCountry !== settings.holidayCountry ||
-    JSON.stringify(draft.weatherConfig) !== JSON.stringify(settings.weatherConfig);
-
+    JSON.stringify(draft.weatherConfig) !== JSON.stringify(settings.weatherConfig) ||
+    JSON.stringify(wpDraft) !== JSON.stringify(initialWp);
 
   return (
     <>
@@ -269,7 +296,7 @@ export default function SettingsModal({
       {/* オーバーレイ */}
       <div
         className="fixed inset-0 z-[9000] bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleCloseModal}
       />
 
       {/* モーダル本体 */}
@@ -285,7 +312,7 @@ export default function SettingsModal({
               <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{t("settingsTitle")}</span>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleCloseModal}
               className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
             >
               <X size={15} />
@@ -602,6 +629,242 @@ export default function SettingsModal({
             </div>
             </div>
 
+            {/* ── 대시보드 배경화면 설정 ── */}
+            <div className="mt-4">
+              <SectionHeader icon={<ImageIcon size={13} />} title={t("settingsWallpaper")} />
+              <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 rounded-xl p-3.5 space-y-3.5">
+                {/* 배경화면 소스 선택 */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                      {t("settingsWallpaperSource")}
+                    </span>
+                    <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+                      {wpDraft.source === "auto" && `🔄 ${t("settingsWallpaperSourceAuto")}`}
+                      {wpDraft.source === "online" && `🌐 ${t("settingsWallpaperSourceOnline")}`}
+                      {wpDraft.source === "local" && `📁 ${t("settingsWallpaperSourceLocal")}`}
+                      {wpDraft.source === "gradient" && `🎨 ${t("settingsWallpaperSourceGradient")}`}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {/* Auto */}
+                    <button
+                      type="button"
+                      onClick={() => updateWallpaper({ source: "auto" })}
+                      className={`flex flex-col items-center text-center p-2 rounded-lg border transition-all cursor-pointer ${
+                        wpDraft.source === "auto"
+                          ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-2xs font-semibold"
+                          : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                      }`}
+                    >
+                      <span className="text-sm mb-0.5">🔄</span>
+                      <span className="text-xs font-bold leading-tight">Auto</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-tight">
+                        {t("settingsWallpaperSourceAuto")}
+                      </span>
+                    </button>
+
+                    {/* Online */}
+                    <button
+                      type="button"
+                      onClick={() => updateWallpaper({ source: "online" })}
+                      className={`flex flex-col items-center text-center p-2 rounded-lg border transition-all cursor-pointer ${
+                        wpDraft.source === "online"
+                          ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-2xs font-semibold"
+                          : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                      }`}
+                    >
+                      <span className="text-sm mb-0.5">🌐</span>
+                      <span className="text-xs font-bold leading-tight">Online</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-tight">
+                        {t("settingsWallpaperSourceOnline")}
+                      </span>
+                    </button>
+
+                    {/* Local */}
+                    <button
+                      type="button"
+                      onClick={() => updateWallpaper({ source: "local" })}
+                      className={`flex flex-col items-center text-center p-2 rounded-lg border transition-all cursor-pointer ${
+                        wpDraft.source === "local"
+                          ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-2xs font-semibold"
+                          : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                      }`}
+                    >
+                      <span className="text-sm mb-0.5">📁</span>
+                      <span className="text-xs font-bold leading-tight">Offline</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-tight">
+                        {t("settingsWallpaperSourceLocal")}
+                      </span>
+                    </button>
+
+                    {/* Gradient */}
+                    <button
+                      type="button"
+                      onClick={() => updateWallpaper({ source: "gradient" })}
+                      className={`flex flex-col items-center text-center p-2 rounded-lg border transition-all cursor-pointer ${
+                        wpDraft.source === "gradient"
+                          ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-2xs font-semibold"
+                          : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                      }`}
+                    >
+                      <span className="text-sm mb-0.5">🎨</span>
+                      <span className="text-xs font-bold leading-tight">Gradient</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-tight">
+                        {t("settingsWallpaperSourceGradient")}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Mode Description Tip */}
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 bg-white/70 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-200/60 dark:border-slate-700/50 leading-relaxed">
+                    {wpDraft.source === "auto" && t("settingsWallpaperSourceAutoDesc")}
+                    {wpDraft.source === "online" && t("settingsWallpaperSourceOnlineDesc")}
+                    {wpDraft.source === "local" && t("settingsWallpaperSourceLocalDesc")}
+                    {wpDraft.source === "gradient" && t("settingsWallpaperSourceGradientDesc")}
+                  </p>
+                </div>
+
+                {/* Sub-Selection for Local Mode */}
+                {wpDraft.source === "local" && (
+                  <div className="space-y-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                        {t("settingsWallpaperLocalPresets")}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto pr-1">
+                      {/* Random Auto Cycle Button */}
+                      <button
+                        type="button"
+                        onClick={() => updateWallpaper({ localId: undefined })}
+                        className={`p-2 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between col-span-2 ${
+                          !wpDraft.localId
+                            ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-semibold shadow-2xs"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">🎲</span>
+                          <span className="text-xs font-bold">{t("settingsWallpaperRandomCycle")}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-normal">10 Presets</span>
+                      </button>
+
+                      {/* Local Wallpaper Presets */}
+                      {localWallpapers.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => updateWallpaper({ localId: item.id })}
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-2 ${
+                            wpDraft.localId === item.id
+                              ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-semibold shadow-2xs"
+                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                          }`}
+                        >
+                          {item.path ? (
+                            <img
+                              src={item.path}
+                              alt={item.nameEn}
+                              className="w-7 h-7 rounded object-cover shrink-0 border border-slate-200 dark:border-slate-700"
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded shrink-0" style={{ background: item.css }} />
+                          )}
+                          <span className="text-[11px] truncate leading-tight flex-1 text-left">
+                            {lang === "ko" ? item.nameKo : item.nameEn}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-Selection for Gradient Mode */}
+                {wpDraft.source === "gradient" && (
+                  <div className="space-y-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                        {t("settingsWallpaperSourceGradient")}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {GRADIENT_PRESETS.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => updateWallpaper({ localId: item.id })}
+                          className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center gap-2.5 ${
+                            wpDraft.localId === item.id
+                              ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-semibold shadow-2xs"
+                              : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                          }`}
+                        >
+                          <div className="w-6 h-6 rounded-md shrink-0 shadow-2xs border border-white/20" style={{ background: item.css }} />
+                          <span className="text-xs truncate leading-tight flex-1 text-left">
+                            {lang === "ko" ? item.nameKo : item.nameEn}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Blur & Overlay Sliders */}
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-3">
+                  {/* Background Blur */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{t("settingsWallpaperBlur")}</p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{t("settingsWallpaperBlurDesc")}</p>
+                    </div>
+                    <div className="flex bg-slate-200/80 dark:bg-slate-700/80 p-0.5 rounded-lg border border-slate-300/50 dark:border-slate-600/50 shrink-0">
+                      {[0, 4, 8, 12, 16].map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => updateWallpaper({ blur: b })}
+                          className={`px-2 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                            wpDraft.blur === b
+                              ? "bg-indigo-600 text-white shadow-2xs"
+                              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                          }`}
+                        >
+                          {b === 0 ? "Off" : `${b}px`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Overlay Darkness / Opacity */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between pr-2">
+                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{t("settingsWallpaperOpacity")}</p>
+                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                          {Math.round((wpDraft.overlayOpacity ?? 0.35) * 100)}%
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">{t("settingsWallpaperOpacityDesc")}</p>
+                    </div>
+                    <div className="w-36 shrink-0 flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="0.8"
+                        step="0.05"
+                        value={wpDraft.overlayOpacity ?? 0.35}
+                        onChange={(e) => updateWallpaper({ overlayOpacity: parseFloat(e.target.value) })}
+                        className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 表示設定 */}
             <div className="mt-4">
               <SectionHeader icon={<Eye size={13} />} title={t("settingsDisplay")} />
@@ -747,7 +1010,7 @@ export default function SettingsModal({
           <div className="px-5 py-4 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-2 bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex gap-2">
               <button
-                onClick={onClose}
+                onClick={handleCloseModal}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200/80 dark:border-slate-700/80 cursor-pointer"
               >
                 {t("closeBtn")}
