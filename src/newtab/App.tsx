@@ -584,7 +584,7 @@ function AppContent() {
           <main className="flex-1 flex flex-col min-w-0 overflow-auto text-slate-800 dark:text-slate-100">
             <Suspense fallback={
               <div className="flex-1 flex items-center justify-center p-8 text-slate-400 text-sm font-medium animate-pulse">
-                페이지 로딩 중...
+                {t("chromeLoading")}
               </div>
             }>
               {activePage === "taskcontrol" ? (

@@ -405,10 +405,10 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
                       </div>
                       <div className="min-w-0">
                         <div className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
-                          {lang === "ko" ? "대시보드 닉네임" : "Dashboard Nickname"}
+                          {t("dashboardNicknameLabel")}
                         </div>
                         <p className="text-[9.5px] text-slate-500 dark:text-slate-400 truncate">
-                          {lang === "ko" ? "대시보드 인사말과 우측 스마트 위젯에 실시간 표시됩니다." : "Displayed on dashboard greeting & smart widgets."}
+                          {t("dashboardNicknameDesc")}
                         </p>
                       </div>
                     </div>
@@ -416,7 +416,7 @@ export default function WelcomeModal({ onClose, onNavigate }: Props) {
                       <input
                         value={userName}
                         onChange={(e) => handleUserNameChange(e.target.value)}
-                        placeholder={lang === "ko" ? "닉네임 입력 (예: Creator)" : "Your name"}
+                        placeholder={t("dashboardNicknamePlaceholder")}
                         className="w-32 sm:w-36 px-2 py-0.8 text-xs rounded-lg bg-white dark:bg-slate-800 border border-indigo-200/80 dark:border-indigo-700 text-slate-800 dark:text-slate-100 outline-none focus:border-indigo-500 font-bold shadow-2xs text-center"
                       />
                     </div>

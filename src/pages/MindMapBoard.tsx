@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function MindMapBoard({ onRefresh: _onRefresh }: Props) {
-  const { lang } = useLang();
+  const { t } = useLang();
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
 
@@ -27,7 +27,7 @@ export default function MindMapBoard({ onRefresh: _onRefresh }: Props) {
               <Network size={16} strokeWidth={2.2} />
             </span>
             <span>
-              {lang === "ko" ? "마인드맵 보드" : lang === "ja" ? "マインドマップボード" : "Mind Map Board"}
+              {t("mindMapBoardTitle")}
             </span>
           </h1>
         </div>
@@ -36,7 +36,7 @@ export default function MindMapBoard({ onRefresh: _onRefresh }: Props) {
         <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg p-2 sm:p-3 flex-1 flex flex-col min-w-0 overflow-hidden min-h-0">
           <MindMapPanel
             taskId="global_workspace"
-            taskTitle={lang === "ko" ? "나의 아이디어 마인드맵" : lang === "ja" ? "マイアイデアマインドマップ" : "My Idea Mind Map"}
+            taskTitle={t("mindMapBoardDefaultIdea")}
             onClose={() => {}}
           />
         </div>

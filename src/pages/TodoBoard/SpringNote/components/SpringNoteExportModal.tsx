@@ -208,7 +208,7 @@ export default function SpringNoteExportModal({
                   <FileText size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">HTML 웹 문서 (.html)</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{t("springNoteExportHtml")}</p>
                   <p className="text-[10px] text-slate-400">{isKo ? "웹 브라우저용 서식 문서" : isJa ? "ウェブブラウザ用フォーマット文書" : "Web document with styles"}</p>
                 </div>
               </div>
@@ -228,7 +228,7 @@ export default function SpringNoteExportModal({
                   <FileText size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">순수 텍스트 (.txt)</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{t("springNoteExportTxt")}</p>
                   <p className="text-[10px] text-slate-400">{isKo ? "서식 없는 일반 텍스트" : isJa ? "書式なしプレーンテキスト" : "Plain unformatted text"}</p>
                 </div>
               </div>

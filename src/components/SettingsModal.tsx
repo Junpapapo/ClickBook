@@ -193,7 +193,7 @@ export default function SettingsModal({
       ...prev,
       weatherConfig: {
         unit: prev.weatherConfig?.unit ?? "celsius",
-        cacheExpiry: prev.weatherConfig?.cacheExpiry ?? 60,
+        cacheExpiry: prev.weatherConfig?.cacheExpiry ?? 180,
         lat: prev.weatherConfig?.lat ?? 37.5665,
         lon: prev.weatherConfig?.lon ?? 126.9780,
         displayName: prev.weatherConfig?.displayName ?? "",
@@ -433,7 +433,7 @@ export default function SettingsModal({
                     {t("weatherCacheExpiry")}
                   </span>
                   <select
-                    value={draft.weatherConfig?.cacheExpiry ?? 60}
+                    value={draft.weatherConfig?.cacheExpiry ?? 180}
                     onChange={(e) => updateWeatherConfig({ cacheExpiry: Number(e.target.value) })}
                     className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300 outline-none focus:border-orange-500 transition-all cursor-pointer shrink-0"
                   >

@@ -16,32 +16,67 @@ interface Props {
   onRefresh?: () => void;
 }
 
-export default function RankingWidget({ bookmarks, count = 5, onRefresh }: Props) {
-  const { t, lang } = useLang();
-  const [browserTopSites, setBrowserTopSites] = useState<BrowserTopSite[]>([]);
+export default function RankingWidget({ bookmarks, count: defaultCount = 5, onRefresh }: Props) {
+  const { t } = useLang();
+  const [allBrowserTopSites, setAllBrowserTopSites] = useState<BrowserTopSite[]>([]);
   const [addingUrl, setAddingUrl] = useState<string | null>(null);
   const [toastText, setToastText] = useState<string | null>(null);
 
-  // 1. 클릭북 북마크 랭킹 Top N
+  // 1. 클릭북 북마크 표시 개수 필터 (5 또는 10, localStorage 유지)
+  const [topBookmarksLimit, setTopBookmarksLimit] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("clickbook_top_bookmarks_limit");
+      return saved === "10" ? 10 : (saved === "5" ? 5 : defaultCount);
+    } catch {
+      return defaultCount;
+    }
+  });
+
+  // 2. 브라우저 Top Sites 표시 개수 필터 (5 또는 10, localStorage 유지)
+  const [topSitesLimit, setTopSitesLimit] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem("clickbook_top_sites_limit");
+      return saved === "10" ? 10 : (saved === "5" ? 5 : defaultCount);
+    } catch {
+      return defaultCount;
+    }
+  });
+
+  const handleSetBookmarksLimit = (limit: number) => {
+    setTopBookmarksLimit(limit);
+    try {
+      localStorage.setItem("clickbook_top_bookmarks_limit", String(limit));
+    } catch {}
+  };
+
+  const handleSetSitesLimit = (limit: number) => {
+    setTopSitesLimit(limit);
+    try {
+      localStorage.setItem("clickbook_top_sites_limit", String(limit));
+    } catch {}
+  };
+
+  // 3. 클릭북 북마크 랭킹 Top N (방문 횟수 순 정렬)
   const rankedBookmarks = [...bookmarks]
     .sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0))
-    .slice(0, count);
+    .slice(0, topBookmarksLimit);
 
-  // 2. 브라우저 Top Sites 불러오기
+  // 4. 브라우저 Top Sites 불러오기
   const loadBrowserTopSites = useCallback(() => {
     if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage({ type: "BUDDY_GET_TOP_SITES" }, (res) => {
         if (res && res.success && Array.isArray(res.data)) {
-          const list: BrowserTopSite[] = res.data.slice(0, count);
-          setBrowserTopSites(list);
+          setAllBrowserTopSites(res.data);
         }
       });
     }
-  }, [count]);
+  }, []);
 
   useEffect(() => {
     loadBrowserTopSites();
   }, [loadBrowserTopSites, bookmarks]);
+
+  const visibleBrowserTopSites = allBrowserTopSites.slice(0, topSitesLimit);
 
   // 클릭북 북마크 열기
   const handleOpenBookmark = (b: Bookmark) => {
@@ -77,7 +112,7 @@ export default function RankingWidget({ bookmarks, count = 5, onRefresh }: Props
         setToastText(t("toastBookmarkAdded"));
         setTimeout(() => setToastText(null), 2500);
         // 로컬 상태 즉시 갱신
-        setBrowserTopSites((prev) =>
+        setAllBrowserTopSites((prev) =>
           prev.map((s) => (s.url === site.url ? { ...s, isBookmarked: true } : s))
         );
         onRefresh?.();
@@ -110,9 +145,33 @@ export default function RankingWidget({ bookmarks, count = 5, onRefresh }: Props
                 {t("topBookmarksTitle")}
               </h3>
             </div>
-            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 shrink-0">
-              {lang === "ko" ? "방문 순위 Top 5" : "By Visits"}
-            </span>
+            {/* 5 / 10 필터 세그먼트 컨트롤 */}
+            <div className="flex items-center gap-0.5 bg-slate-200/60 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/5 shrink-0 select-none">
+              <button
+                type="button"
+                onClick={() => handleSetBookmarksLimit(5)}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                  topBookmarksLimit === 5
+                    ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-2xs font-extrabold"
+                    : "text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                }`}
+                title="Top 5"
+              >
+                5
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetBookmarksLimit(10)}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                  topBookmarksLimit === 10
+                    ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-2xs font-extrabold"
+                    : "text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                }`}
+                title="Top 10"
+              >
+                10
+              </button>
+            </div>
           </div>
 
           {rankedBookmarks.length === 0 ? (
@@ -181,12 +240,36 @@ export default function RankingWidget({ bookmarks, count = 5, onRefresh }: Props
                 {t("browserTopSitesTitle")}
               </h3>
             </div>
-            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 shrink-0">
-              {lang === "ko" ? "브라우저 추천 Top 5" : "Browser Top 5"}
-            </span>
+            {/* 5 / 10 필터 세그먼트 컨트롤 */}
+            <div className="flex items-center gap-0.5 bg-slate-200/60 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-300/40 dark:border-white/5 shrink-0 select-none">
+              <button
+                type="button"
+                onClick={() => handleSetSitesLimit(5)}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                  topSitesLimit === 5
+                    ? "bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-2xs font-extrabold"
+                    : "text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                }`}
+                title="Top 5"
+              >
+                5
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetSitesLimit(10)}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer ${
+                  topSitesLimit === 10
+                    ? "bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-2xs font-extrabold"
+                    : "text-slate-400 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                }`}
+                title="Top 10"
+              >
+                10
+              </button>
+            </div>
           </div>
 
-          {browserTopSites.length === 0 ? (
+          {visibleBrowserTopSites.length === 0 ? (
             <div className="h-[188px] flex items-center justify-center">
               <p className="text-xs text-slate-400 dark:text-slate-500 text-center">
                 {t("browserTopSitesEmpty")}
@@ -194,7 +277,7 @@ export default function RankingWidget({ bookmarks, count = 5, onRefresh }: Props
             </div>
           ) : (
             <ol className="space-y-1.5">
-              {browserTopSites.map((site, i) => {
+              {visibleBrowserTopSites.map((site, i) => {
                 const isBookmarked =
                   site.isBookmarked ||
                   bookmarks.some((b) => {

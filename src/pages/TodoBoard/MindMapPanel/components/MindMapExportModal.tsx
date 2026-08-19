@@ -26,14 +26,14 @@ export default function MindMapExportModal({
   edges,
   flowWrapperRef,
 }: Props) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const isKo = lang === "ko";
   const [isExporting, setIsExporting] = useState(false);
   const [successFormat, setSuccessFormat] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const safeTitle = title.trim() || (isKo ? "마인드맵_아이디어" : "MindMap_Idea");
+  const safeTitle = title.trim() || t("mindMapBoardDefaultIdea");
   const fileNameSlug = safeTitle.replace(/[/\\?%*:|"<>]/g, "_");
 
   const handleExportPNG = async () => {
@@ -144,7 +144,7 @@ export default function MindMapExportModal({
               <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate mt-0.5">{safeTitle}</p>
             </div>
             <div className="text-[10px] font-bold text-slate-500 bg-white dark:bg-surface-900 px-2 py-1 rounded-md border border-slate-200 dark:border-surface-700">
-              {nodes.length} 노드
+              {t("mindMapNodeCount", { count: nodes.length })}
             </div>
           </div>
 
@@ -157,7 +157,7 @@ export default function MindMapExportModal({
                   <ImageIcon size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">PNG 이미지 (.png)</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{t("mindMapExportPng")}</p>
                   <p className="text-[10px] text-slate-400">{isKo ? "고화질 마인드맵 캡처 이미지" : "HD MindMap image snapshot"}</p>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function MindMapExportModal({
                 className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 disabled:opacity-50"
               >
                 {successFormat === "png" ? <Check size={13} /> : <Download size={13} />}
-                <span>{isExporting ? "생성중..." : "PNG"}</span>
+                <span>{isExporting ? t("mindMapExportGenerating") : "PNG"}</span>
               </button>
             </div>
 
@@ -178,7 +178,7 @@ export default function MindMapExportModal({
                   <FileCode size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">SVG 벡터 (.svg)</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{t("mindMapExportSvg")}</p>
                   <p className="text-[10px] text-slate-400">{isKo ? "확대해도 깨지지 않는 벡터" : "Scalable vector image"}</p>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export default function MindMapExportModal({
                 className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg shadow-xs flex items-center gap-1.5 cursor-pointer transition-transform active:scale-95 disabled:opacity-50"
               >
                 {successFormat === "svg" ? <Check size={13} /> : <Download size={13} />}
-                <span>{isExporting ? "생성중..." : "SVG"}</span>
+                <span>{isExporting ? t("mindMapExportGenerating") : "SVG"}</span>
               </button>
             </div>
 
@@ -199,7 +199,7 @@ export default function MindMapExportModal({
                   <FileCode size={16} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-900 dark:text-white">JSON 스냅샷 (.json)</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">{t("mindMapExportJson")}</p>
                   <p className="text-[10px] text-slate-400">{isKo ? "백업 및 다시 불러오기용 데이터" : "Backup & import data snapshot"}</p>
                 </div>
               </div>

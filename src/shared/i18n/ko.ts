@@ -1089,6 +1089,37 @@ export const ko = {
   dayThu: "목",
   dayFri: "금",
   daySat: "토",
+
+  // ── Extended UI & Component Localizations ──
+  noNotesFound: "작성된 노트가 없습니다",
+  mindMapShortcutFooterTip: "💡 마우스 없이 키보드만으로 빠른 아이디어 확장이 가능합니다.",
+  mindMapNodeCount: "{count}개 노드",
+  mindMapExportPng: "PNG 이미지 (.png)",
+  mindMapExportSvg: "SVG 벡터 (.svg)",
+  mindMapExportJson: "JSON 스냅샷 (.json)",
+  mindMapExportGenerating: "생성중...",
+  springNoteExportHtml: "HTML 웹 문서 (.html)",
+  springNoteExportTxt: "순수 텍스트 (.txt)",
+  dashboardNicknameLabel: "대시보드 닉네임",
+  dashboardNicknameDesc: "대시보드 인사말과 우측 스마트 위젯에 실시간 표시됩니다.",
+  dashboardNicknamePlaceholder: "닉네임 입력 (예: Creator)",
+  taskCategoryAiOrganize: "AI 분류",
+  taskCategoryAiTag: "AI 태깅",
+  taskCategoryAiClean: "AI 중복검사",
+  taskCategoryChromeSync: "Chrome 동기화",
+  taskCategoryScrape: "콘텐츠 수집",
+  rankingHfDesc: "Hugging Face에서 실시간으로 가장 주목받고 있는 AI 모델 트렌드입니다.",
+  rankingHfFilterPlaceholder: "모델명 / 작성자 필터...",
+  rankingHnDesc: "실리콘밸리와 전 세계 개발자들이 실시간으로 토론 중인 해커뉴스 핫 토픽입니다.",
+  rankingHnFilterPlaceholder: "뉴스 제목 / 도메인 필터...",
+  mindMapBoardTitle: "마인드맵 보드",
+  mindMapBoardDefaultIdea: "나의 아이디어 마인드맵",
+  viewModeMonth: "월간",
+  viewModeWeek: "주간",
+  viewModeDay: "일간",
+  newNote: "새 노트",
+  guide: "가이드",
 };
+
 
 

@@ -1091,6 +1091,37 @@ export const en = {
   dayThu: "Thu",
   dayFri: "Fri",
   daySat: "Sat",
+
+  // ── Extended UI & Component Localizations ──
+  noNotesFound: "No notebooks found",
+  mindMapShortcutFooterTip: "💡 Quick idea expansion is possible with keyboard only.",
+  mindMapNodeCount: "{count} Nodes",
+  mindMapExportPng: "PNG Image (.png)",
+  mindMapExportSvg: "SVG Vector (.svg)",
+  mindMapExportJson: "JSON Snapshot (.json)",
+  mindMapExportGenerating: "Generating...",
+  springNoteExportHtml: "HTML Document (.html)",
+  springNoteExportTxt: "Plain Text (.txt)",
+  dashboardNicknameLabel: "Dashboard Nickname",
+  dashboardNicknameDesc: "Displayed on dashboard greeting & smart widgets.",
+  dashboardNicknamePlaceholder: "Your name",
+  taskCategoryAiOrganize: "AI Organize",
+  taskCategoryAiTag: "AI Tagging",
+  taskCategoryAiClean: "AI Duplicate Check",
+  taskCategoryChromeSync: "Chrome Sync",
+  taskCategoryScrape: "Content Scrape",
+  rankingHfDesc: "Trending open-source AI models on Hugging Face.",
+  rankingHfFilterPlaceholder: "Filter models...",
+  rankingHnDesc: "Top trending stories and discussions on Hacker News.",
+  rankingHnFilterPlaceholder: "Filter stories...",
+  mindMapBoardTitle: "Mind Map Board",
+  mindMapBoardDefaultIdea: "My Idea Mind Map",
+  viewModeMonth: "Month",
+  viewModeWeek: "Week",
+  viewModeDay: "Day",
+  newNote: "New Note",
+  guide: "Guide",
 };
+
 
 

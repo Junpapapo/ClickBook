@@ -436,7 +436,7 @@ export default function SpringNoteBoard({
               <button
                 onClick={handleCreateNote}
                 className={sidebarBtnClass}
-                title={lang === "ko" ? "새 노트" : lang === "ja" ? "新規ノート" : "New Note"}
+                title={t("newNote")}
               >
                 <Plus size={14} strokeWidth={2.5} />
               </button>
@@ -453,7 +453,7 @@ export default function SpringNoteBoard({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={lang === "ko" ? "검색..." : lang === "ja" ? "検索..." : "Search..."}
+                placeholder={t("searchPlaceholder")}
                 className={searchInputClass}
               />
             </div>
@@ -473,7 +473,7 @@ export default function SpringNoteBoard({
           ) : filteredNotes.length === 0 ? (
             !isCollapsed && (
               <div className="text-xs text-[#EBDCB9]/50 text-center py-8">
-                {lang === "ko" ? "작성된 노트가 없습니다" : lang === "ja" ? "ノート가 없습니다" : "No notebooks found"}
+                {t("noNotesFound")}
               </div>
             )
           ) : (
@@ -554,10 +554,10 @@ export default function SpringNoteBoard({
                 ? "bg-[#2B2B2E]/30 hover:bg-[#2B2B2E]/70 border-white/5 text-gray-400 hover:text-white shadow-sm"
                 : "bg-[#FBF6EC]/35 hover:bg-[#FBF6EC] border-[#D8C6AC]/30 text-[#7A604D] hover:text-[#4A3728] shadow-sm"
             }`}
-            title={lang === "ko" ? "가이드" : "Guide"}
+            title={t("guide")}
           >
             <Keyboard size={12} className={isCollapsed ? "scale-110" : ""} />
-            {!isCollapsed && <span>{lang === "ko" ? "가이드" : "Guide"}</span>}
+            {!isCollapsed && <span>{t("guide")}</span>}
           </button>
         </div>
       </div>

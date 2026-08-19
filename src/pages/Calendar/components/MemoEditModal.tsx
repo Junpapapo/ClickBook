@@ -165,7 +165,7 @@ export default function MemoEditModal({
           {/* Memo input box */}
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">
-              메모 내용
+              {t("memo")}
             </label>
             <textarea
               value={content}

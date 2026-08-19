@@ -858,6 +858,14 @@ export default function TaskDetailsModal({
                           ? ["월", "화", "수", "목", "금", "토", "일"]
                           : lang === "ja"
                           ? ["月", "火", "水", "木", "金", "土", "日"]
+                          : lang === "zh-TW"
+                          ? ["一", "二", "三", "四", "五", "六", "日"]
+                          : lang === "de"
+                          ? ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+                          : lang === "es"
+                          ? ["Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do"]
+                          : lang === "fr"
+                          ? ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"]
                           : ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
                         ).map((day, idx) => {
                           const isSat = idx === 5;

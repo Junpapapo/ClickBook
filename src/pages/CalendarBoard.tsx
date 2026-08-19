@@ -699,7 +699,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                     : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                 }`}
               >
-                {mode === "month" ? (lang === "ko" ? "월간" : "Month") : mode === "week" ? (lang === "ko" ? "주간" : "Week") : (lang === "ko" ? "일간" : "Day")}
+                {mode === "month" ? t("viewModeMonth") : mode === "week" ? t("viewModeWeek") : t("viewModeDay")}
               </button>
             ))}
           </div>

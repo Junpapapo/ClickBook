@@ -1089,6 +1089,37 @@ export const ja = {
   dayThu: "木",
   dayFri: "金",
   daySat: "土",
+
+  // ── Extended UI & Component Localizations ──
+  noNotesFound: "ノートがありません",
+  mindMapShortcutFooterTip: "💡 マウスなしでキーボードのみで素早くアイデアを展開できます。",
+  mindMapNodeCount: "{count} ノード",
+  mindMapExportPng: "PNG画像 (.png)",
+  mindMapExportSvg: "SVGベクター (.svg)",
+  mindMapExportJson: "JSONスナップショット (.json)",
+  mindMapExportGenerating: "生成中...",
+  springNoteExportHtml: "HTMLウェブドキュメント (.html)",
+  springNoteExportTxt: "プレーンテキスト (.txt)",
+  dashboardNicknameLabel: "ダッシュボードニックネーム",
+  dashboardNicknameDesc: "ダッシュボードの挨拶と右側のスマートウィジェットにリアルタイム表示されます。",
+  dashboardNicknamePlaceholder: "名前を入力 (例: Creator)",
+  taskCategoryAiOrganize: "AI自動分類",
+  taskCategoryAiTag: "AIタグ付け",
+  taskCategoryAiClean: "AI重複チェック",
+  taskCategoryChromeSync: "Chrome同期",
+  taskCategoryScrape: "コンテンツ収集",
+  rankingHfDesc: "Hugging Faceで今最も注目されているAIモデルのトレンドです。",
+  rankingHfFilterPlaceholder: "モデル名 / 作成者フィルター...",
+  rankingHnDesc: "Hacker Newsで現在最も熱く議論されているトップストーリーです。",
+  rankingHnFilterPlaceholder: "ニュースタイトル・ドメインフィルター...",
+  mindMapBoardTitle: "マインドマップボード",
+  mindMapBoardDefaultIdea: "マイアイデアマインドマップ",
+  viewModeMonth: "月間",
+  viewModeWeek: "週間",
+  viewModeDay: "日間",
+  newNote: "新規ノート",
+  guide: "ガイド",
 };
+
 
 

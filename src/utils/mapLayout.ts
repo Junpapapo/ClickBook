@@ -42,7 +42,14 @@ export function getLayoutedElements(
     id: rootId,
     type: "folder",
     data: { 
-      label: lang === "ko" ? "나의 북마크" : lang === "ja" ? "マイブックマーク" : "My Bookmarks", 
+      label:
+        lang === "ko" ? "나의 북마크" :
+        lang === "ja" ? "マイブックマーク" :
+        lang === "zh-TW" ? "我的書籤" :
+        lang === "de" ? "Meine Lesezeichen" :
+        lang === "es" ? "Mis marcadores" :
+        lang === "fr" ? "Mes favoris" :
+        "My Bookmarks", 
       icon: "🏠", 
       isExpanded: expandedFolderIds.has(rootId), 
       isRoot: true,

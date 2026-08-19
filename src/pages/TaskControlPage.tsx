@@ -30,41 +30,46 @@ interface Props {
 
 const CATEGORY_META: Record<
   TaskCategory,
-  { icon: typeof Activity; iconBg: string; badgeCls: string; badge: string; barColor: string }
+  { icon: typeof Activity; iconBg: string; badgeCls: string; badgeKey: string; badgeFallback: string; barColor: string }
 > = {
   "ai-organize": {
     icon: Sparkles,
     iconBg: "bg-indigo-600 dark:bg-indigo-500",
     badgeCls: "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40",
-    badge: "AI 분류",
+    badgeKey: "taskCategoryAiOrganize",
+    badgeFallback: "AI Organize",
     barColor: "bg-indigo-600 dark:bg-indigo-500",
   },
   "ai-tag": {
     icon: Tag,
     iconBg: "bg-teal-600 dark:bg-teal-500",
     badgeCls: "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/40",
-    badge: "AI 태깅",
+    badgeKey: "taskCategoryAiTag",
+    badgeFallback: "AI Tagging",
     barColor: "bg-teal-600 dark:bg-teal-500",
   },
   "ai-clean": {
     icon: ScanSearch,
     iconBg: "bg-sky-600 dark:bg-sky-500",
     badgeCls: "bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/40",
-    badge: "AI 중복검사",
+    badgeKey: "taskCategoryAiClean",
+    badgeFallback: "AI Duplicate Check",
     barColor: "bg-sky-600 dark:bg-sky-500",
   },
   "chrome-sync": {
     icon: RefreshCw,
     iconBg: "bg-blue-600 dark:bg-blue-500",
     badgeCls: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40",
-    badge: "Chrome 동기화",
+    badgeKey: "taskCategoryChromeSync",
+    badgeFallback: "Chrome Sync",
     barColor: "bg-blue-600 dark:bg-blue-500",
   },
   scrape: {
     icon: FileText,
     iconBg: "bg-amber-600 dark:bg-amber-500",
     badgeCls: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40",
-    badge: "콘텐츠 수집",
+    badgeKey: "taskCategoryScrape",
+    badgeFallback: "Content Scrape",
     barColor: "bg-amber-600 dark:bg-amber-500",
   },
 };
@@ -154,7 +159,7 @@ function TaskCard({
             <span
               className={`text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded ${meta.badgeCls}`}
             >
-              {meta.badge}
+              {t(meta.badgeKey as any) || meta.badgeFallback}
             </span>
             <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
               {task.name}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { 
   Sun, 
   Cloud, 
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
 import type { WeatherConfig, AppSettings } from "@/shared/types";
-import { fetchLiveWeather, type WeatherResult } from "@/utils/weatherApi";
+import { fetchLiveWeather, getCachedWeather, type WeatherResult } from "@/utils/weatherApi";
 
 function WeatherIcon({ icon, size = 16, className = "" }: { icon: string; size?: number; className?: string }) {
   switch (icon) {
@@ -36,9 +36,19 @@ export default function WeatherWidget() {
   const { lang, t } = useLang();
   const [viewTab, setViewTab] = useState<"hourly" | "daily">("hourly");
   const [weatherConfig, setWeatherConfig] = useState<WeatherConfig | undefined>(undefined);
-  const [weather, setWeather] = useState<WeatherResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  // 동기적으로 캐시를 즉시 불러와 첫 렌더링부터 스피너 없이 날씨 화면 표시
+  const [weather, setWeather] = useState<WeatherResult | null>(() => {
+    const initialCached = getCachedWeather(undefined, lang);
+    return initialCached?.data ?? null;
+  });
+  const [loading, setLoading] = useState(() => {
+    const initialCached = getCachedWeather(undefined, lang);
+    return !initialCached?.data;
+  });
   const [refreshing, setRefreshing] = useState(false);
+  const weatherRef = useRef(weather);
+  weatherRef.current = weather;
 
   // 1. chrome.storage에서 날씨 설정 불러오기 및 실시간 동기화
   useEffect(() => {
@@ -69,10 +79,13 @@ export default function WeatherWidget() {
     }
   }, []);
 
-  // 2. 날씨 데이터 패치
+  // 2. 날씨 데이터 패치 (캐시 만료 시에만 조용히 백그라운드 갱신, 수동 새로고침 시 즉시 갱신)
   const loadWeather = useCallback(async (force = false) => {
-    if (force) setRefreshing(true);
-    else setLoading(true);
+    if (force) {
+      setRefreshing(true);
+    } else if (!weatherRef.current) {
+      setLoading(true);
+    }
 
     try {
       const data = await fetchLiveWeather(weatherConfig, lang, force);
@@ -86,8 +99,27 @@ export default function WeatherWidget() {
   }, [weatherConfig, lang]);
 
   useEffect(() => {
-    loadWeather(false);
-  }, [loadWeather]);
+    // 캐시가 없거나 만료된 경우에만 네트워크 패치 실행
+    const cached = getCachedWeather(weatherConfig, lang);
+    if (!cached || !cached.isFresh) {
+      loadWeather(false);
+    } else if (cached.data) {
+      setWeather(cached.data);
+      setLoading(false);
+    }
+  }, [loadWeather, weatherConfig, lang]);
+
+  // 3. 주기적 캐시 만료 체크 (1분마다 확인하여 설정된 캐시 만료 시간 도달 시 조용히 백그라운드 자동 갱신)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const cached = getCachedWeather(weatherConfig, lang);
+      if (!cached || !cached.isFresh) {
+        loadWeather(false);
+      }
+    }, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [weatherConfig, lang, loadWeather]);
 
   const unitLabel = weatherConfig?.unit === "fahrenheit" ? "°F" : "°C";
 

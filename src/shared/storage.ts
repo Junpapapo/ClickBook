@@ -656,6 +656,13 @@ export const DEFAULT_SETTINGS: import("./types").AppSettings = {
     xp: 0,
     unlockedBuddies: ["owl", "cat", "fox", "penguin", "rabbit", "leafy", "jellyfish", "fennec", "unicorn", "wizard", "fairy", "ufo", "cotton", "dragon", "pingu", "shiba", "shroom", "starbot"],
   },
+  weatherConfig: {
+    unit: "celsius",
+    cacheExpiry: 180,
+    lat: 37.5665,
+    lon: 126.9780,
+    displayName: "",
+  },
 };
 
 const KO_PRESETS = [

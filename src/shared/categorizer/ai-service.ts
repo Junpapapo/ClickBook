@@ -478,6 +478,7 @@ export async function generateMemoDraft(
       detectedLang === "zh-TW" ? "請務必使用繁體中文撰寫。" :
       detectedLang === "de" ? "Bitte schreiben Sie auf Deutsch." :
       detectedLang === "es" ? "Por favor, escribe en español." :
+      detectedLang === "fr" ? "Veuillez rédiger en français." :
       "Write in English.";
 
     const context = [
@@ -630,6 +631,24 @@ ${originalMemo}
 """
 
 Nota mejorada:`;
+    } else if (detectedLang === "fr") {
+      systemPrompt = "Vous êtes un assistant expert en prise de notes, perspicace et extrêmement concis. Vous organisez les mémos et les complétez avec des avis professionnels, des idées créatives et un contexte utile, à l'aide de puces courtes et percutantes (•).";
+      prompt = `Veuillez améliorer et structurer le contenu de la note suivante.
+
+Règles:
+- Rédigez en français.
+- Organisez en puces (• ) claires et très concises.
+- Complétez avec 1 à 2 phrases courtes contenant des conseils pratiques ou des avis d'experts.
+- Limitez la sortie globale à 3–6 puces.
+- N'utilisez aucune formule de politesse ni introduction conversationnelle.
+- Renvoyez UNIQUEMENT le texte de la note améliorée.
+
+Note originale:
+"""
+${originalMemo}
+"""
+
+Note améliorée:`;
     } else {
       prompt = `Please enhance and organize the following memo.
 
@@ -680,6 +699,7 @@ function buildFallbackDraft(
         lang === "zh-TW" ? `• 從 ${domain} 儲存的書籤。` :
         lang === "de" ? `• Lesezeichen von ${domain} gespeichert.` :
         lang === "es" ? `• Marcador guardado desde ${domain}.` :
+        lang === "fr" ? `• Marque-page enregistré depuis ${domain}.` :
         `• Bookmarked from ${domain}.`;
       lines.push(domainLine);
     } catch {
@@ -693,6 +713,7 @@ function buildFallbackDraft(
       lang === "zh-TW" ? `• 相關主題: ${tags.join(", ")}` :
       lang === "de" ? `• Verwandte Themen: ${tags.join(", ")}` :
       lang === "es" ? `• Temas relacionados: ${tags.join(", ")}` :
+      lang === "fr" ? `• Thèmes associés: ${tags.join(", ")}` :
       `• Topics: ${tags.join(", ")}`;
     lines.push(tagLine);
   }
@@ -702,6 +723,7 @@ function buildFallbackDraft(
     lang === "zh-TW" ? "📌 TODO: 稍後再次確認" :
     lang === "de" ? "📌 TODO: Später noch einmal prüfen" :
     lang === "es" ? "📌 TODO: Revisar esto más tarde" :
+    lang === "fr" ? "📌 TODO: À revoir plus tard" :
     "📌 TODO: Review this later";
   lines.push(todoLine);
   return lines.join("\n");
@@ -725,6 +747,7 @@ export async function findSimilarTagGroups(
           lang === "zh-TW" ? "相似原因 (reason) 請務必使用繁體中文撰寫。" :
           lang === "de" ? "Der Grund für die Ähnlichkeit (reason) muss auf Deutsch verfasst werden." :
           lang === "es" ? "El motivo de la similitud (reason) debe redactarse en español." :
+          lang === "fr" ? "Le motif de similarité (reason) doit être rédigé en français." :
           "Write the similarity reason in English.";
 
         const prompt = `System: You are a tag consolidation assistant.

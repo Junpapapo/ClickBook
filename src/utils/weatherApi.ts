@@ -30,59 +30,106 @@ export interface WeatherResult {
   hourly: HourlyForecastItem[];
   daily: DailyForecastItem[];
   lastUpdated: number;
+  expiryMinutes?: number;
 }
 
 // WMO 날씨 코드 해석 및 아이콘/번역 매핑
 export function getWeatherInfo(code: number, lang: string = "ko"): { condition: string; icon: "sun" | "cloud-sun" | "cloud" | "rain" | "snow" | "thunder" } {
+  const getCond = (ko: string, ja: string, zh: string, de: string, es: string, fr: string, en: string) => {
+    switch (lang) {
+      case "ko": return ko;
+      case "ja": return ja;
+      case "zh-TW": return zh;
+      case "de": return de;
+      case "es": return es;
+      case "fr": return fr;
+      default: return en;
+    }
+  };
+
   if (code === 0) {
     return {
-      condition: lang === "ko" ? "맑음" : lang === "ja" ? "快晴" : lang === "zh-TW" ? "晴朗" : "Clear Sky",
+      condition: getCond("맑음", "快晴", "晴朗", "Klar", "Despejado", "Ciel dégagé", "Clear Sky"),
       icon: "sun",
     };
   }
   if (code === 1 || code === 2) {
     return {
-      condition: lang === "ko" ? "구름 조금" : lang === "ja" ? "晴れ時々曇り" : lang === "zh-TW" ? "多雲時晴" : "Partly Cloudy",
+      condition: getCond("구름 조금", "晴れ時々曇り", "多雲時晴", "Teils bewölkt", "Parcialmente nublado", "Partiellement nuageux", "Partly Cloudy"),
       icon: "cloud-sun",
     };
   }
   if (code === 3) {
     return {
-      condition: lang === "ko" ? "흐림" : lang === "ja" ? "曇り" : lang === "zh-TW" ? "陰天" : "Overcast",
+      condition: getCond("흐림", "曇り", "陰天", "Bedeckt", "Nublado", "Couvert", "Overcast"),
       icon: "cloud",
     };
   }
   if (code === 45 || code === 48) {
     return {
-      condition: lang === "ko" ? "안개" : lang === "ja" ? "霧" : lang === "zh-TW" ? "有霧" : "Foggy",
+      condition: getCond("안개", "霧", "有霧", "Nebel", "Niebla", "Brouillard", "Foggy"),
       icon: "cloud",
     };
   }
   if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
     return {
-      condition: lang === "ko" ? "비" : lang === "ja" ? "雨" : lang === "zh-TW" ? "下雨" : "Rain",
+      condition: getCond("비", "雨", "下雨", "Regen", "Lluvia", "Pluie", "Rain"),
       icon: "rain",
     };
   }
   if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
     return {
-      condition: lang === "ko" ? "눈" : lang === "ja" ? "雪" : lang === "zh-TW" ? "下雪" : "Snow",
+      condition: getCond("눈", "雪", "下雪", "Schnee", "Nieve", "Neige", "Snow"),
       icon: "snow",
     };
   }
   if (code >= 95) {
     return {
-      condition: lang === "ko" ? "뇌우" : lang === "ja" ? "雷雨" : lang === "zh-TW" ? "雷陣雨" : "Thunderstorm",
+      condition: getCond("뇌우", "雷雨", "雷陣雨", "Gewitter", "Tormenta", "Orage", "Thunderstorm"),
       icon: "thunder",
     };
   }
   return {
-    condition: lang === "ko" ? "맑음" : lang === "ja" ? "晴れ" : lang === "zh-TW" ? "晴" : "Clear",
+    condition: getCond("맑음", "晴れ", "晴", "Klar", "Despejado", "Clair", "Clear"),
     icon: "sun",
   };
 }
 
-const WEATHER_CACHE_KEY = "clickbook_weather_cache_v2";
+export const WEATHER_CACHE_KEY = "clickbook_weather_cache_v2";
+
+/**
+ * 로컬 스토리지에 캐시된 날씨 데이터를 동기적으로 조회합니다.
+ */
+export function getCachedWeather(
+  config?: WeatherConfig,
+  lang: string = "ko"
+): { data: WeatherResult; isFresh: boolean } | null {
+  try {
+    const cachedStr = localStorage.getItem(WEATHER_CACHE_KEY);
+    if (!cachedStr) return null;
+    const cached: WeatherResult & { cacheKey?: string; expiryMinutes?: number } = JSON.parse(cachedStr);
+
+    const lat = config?.lat ?? 37.5665;
+    const lon = config?.lon ?? 126.9780;
+    const isFahrenheit = config?.unit === "fahrenheit";
+    const cacheExpiryMinutes = config?.cacheExpiry ?? cached.expiryMinutes ?? 60;
+    const cacheKey = `${lat.toFixed(3)}_${lon.toFixed(3)}_${isFahrenheit ? "F" : "C"}_${lang}`;
+
+    const isFresh = Date.now() - (cached.lastUpdated || 0) < cacheExpiryMinutes * 60 * 1000;
+    const isMatchingKey = !cached.cacheKey || cached.cacheKey === cacheKey;
+
+    if (config?.displayName) {
+      cached.city = config.displayName;
+    }
+
+    if (isMatchingKey) {
+      return { data: cached, isFresh };
+    }
+    return { data: cached, isFresh: false };
+  } catch {
+    return null;
+  }
+}
 
 export async function fetchLiveWeather(
   config?: WeatherConfig,
@@ -92,37 +139,35 @@ export async function fetchLiveWeather(
   const lat = config?.lat ?? 37.5665;
   const lon = config?.lon ?? 126.9780;
   const isFahrenheit = config?.unit === "fahrenheit";
-  const cacheExpiryMinutes = config?.cacheExpiry ?? 60;
+  const expiryMinutes = config?.cacheExpiry ?? 60; // 사용자가 설정한 캐시 만료 시간(분)
 
-  // 캐시 확인
+  // 1. 캐시가 유효하고 강제 새로고침이 아닌 경우 캐시 즉시 반환
   if (!forceRefresh) {
-    try {
-      const cachedStr = localStorage.getItem(WEATHER_CACHE_KEY);
-      if (cachedStr) {
-        const cached: WeatherResult & { cacheKey?: string } = JSON.parse(cachedStr);
-        const cacheKey = `${lat.toFixed(3)}_${lon.toFixed(3)}_${isFahrenheit ? "F" : "C"}_${lang}`;
-        const isFresh = Date.now() - cached.lastUpdated < cacheExpiryMinutes * 60 * 1000;
-        if (cached.cacheKey === cacheKey && isFresh) {
-          // 커스텀 displayName이 있으면 덮어씌움
-          if (config?.displayName) {
-            cached.city = config.displayName;
-          }
-          return cached;
-        }
-      }
-    } catch {
-      // 캐시 파싱 에러 무시
+    const cachedInfo = getCachedWeather(config, lang);
+    if (cachedInfo && cachedInfo.isFresh) {
+      return cachedInfo.data;
     }
   }
 
   const tempUnitParam = isFahrenheit ? "&temperature_unit=fahrenheit" : "";
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto${tempUnitParam}`;
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Weather API error: ${res.statusText}`);
+  let data: any;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Weather API error: ${res.statusText}`);
+    }
+    data = await res.json();
+  } catch (fetchErr) {
+    // 네트워크 실패 시 기존 캐시가 있으면 반환
+    const fallback = getCachedWeather(config, lang);
+    if (fallback?.data) {
+      console.warn("[WeatherAPI] Fetch failed, fallback to stale cache:", fetchErr);
+      return fallback.data;
+    }
+    throw fetchErr;
   }
-  const data = await res.json();
 
   const current = data.current || {};
   const weatherCode = current.weather_code ?? 0;
@@ -174,6 +219,12 @@ export async function fetchLiveWeather(
       const ampm = rawHours >= 12 ? "下午" : "上午";
       const h12 = rawHours % 12 || 12;
       formattedTime = `${ampm} ${h12}點`;
+    } else if (lang === "de") {
+      formattedTime = `${rawHours}:00 Uhr`;
+    } else if (lang === "fr") {
+      formattedTime = `${rawHours}h`;
+    } else if (lang === "es") {
+      formattedTime = `${rawHours}:00`;
     } else {
       const ampm = rawHours >= 12 ? "PM" : "AM";
       const h12 = rawHours % 12 || 12;
@@ -202,6 +253,9 @@ export async function fetchLiveWeather(
   const dayNamesKo = ["일", "월", "화", "수", "목", "금", "토"];
   const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
   const dayNamesZh = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
+  const dayNamesDe = ["SO", "MO", "DI", "MI", "DO", "FR", "SA"];
+  const dayNamesEs = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+  const dayNamesFr = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
   const dayNamesEn = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
   for (let i = 0; i < Math.min(5, dailyTimes.length); i++) {
@@ -210,18 +264,32 @@ export async function fetchLiveWeather(
     let dayLabel: string;
 
     if (i === 0) {
-      dayLabel = lang === "ko" ? "오늘" : lang === "ja" ? "今日" : lang === "zh-TW" ? "今天" : "Today";
+      dayLabel =
+        lang === "ko" ? "오늘" :
+        lang === "ja" ? "今日" :
+        lang === "zh-TW" ? "今天" :
+        lang === "de" ? "Heute" :
+        lang === "es" ? "Hoy" :
+        lang === "fr" ? "Auj." :
+        "Today";
     } else if (i === 1) {
-      dayLabel = lang === "ko" ? "내일" : lang === "ja" ? "明日" : lang === "zh-TW" ? "明天" : "Tom";
+      dayLabel =
+        lang === "ko" ? "내일" :
+        lang === "ja" ? "明日" :
+        lang === "zh-TW" ? "明天" :
+        lang === "de" ? "Morgen" :
+        lang === "es" ? "Mañana" :
+        lang === "fr" ? "Demain" :
+        "Tom";
     } else {
       dayLabel =
-        lang === "ko"
-          ? dayNamesKo[dayOfWeek]
-          : lang === "ja"
-          ? dayNamesJa[dayOfWeek]
-          : lang === "zh-TW"
-          ? dayNamesZh[dayOfWeek]
-          : dayNamesEn[dayOfWeek];
+        lang === "ko" ? dayNamesKo[dayOfWeek] :
+        lang === "ja" ? dayNamesJa[dayOfWeek] :
+        lang === "zh-TW" ? dayNamesZh[dayOfWeek] :
+        lang === "de" ? dayNamesDe[dayOfWeek] :
+        lang === "es" ? dayNamesEs[dayOfWeek] :
+        lang === "fr" ? dayNamesFr[dayOfWeek] :
+        dayNamesEn[dayOfWeek];
     }
 
     const code = dailyCodes[i] ?? 0;
@@ -250,6 +318,7 @@ export async function fetchLiveWeather(
     hourly,
     daily,
     lastUpdated: Date.now(),
+    expiryMinutes,
     cacheKey: `${lat.toFixed(3)}_${lon.toFixed(3)}_${isFahrenheit ? "F" : "C"}_${lang}`,
   };
 

@@ -88,7 +88,7 @@ export default function ShortcutGuide({ onClose }: Props) {
         {/* Footer info */}
         <div className="mt-5 pt-3.5 border-t border-white/5 flex items-center justify-center">
           <p className="text-[9px] text-slate-500 font-semibold tracking-wider uppercase">
-            💡 마우스 없이 키보드만으로 빠른 아이디어 확장이 가능합니다.
+            {t("mindMapShortcutFooterTip")}
           </p>
         </div>
 
