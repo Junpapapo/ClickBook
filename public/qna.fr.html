@@ -3,18 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Q&A et Dépannage ClickBook AI</title>
+  <title>ClickBook AI Q&A - Foire aux questions & Dépannage</title>
   <style>
     :root {
       --primary: #6366f1;
+      --primary-hover: #4f46e5;
       --bg: #f8fafc;
       --text: #1e293b;
       --text-muted: #64748b;
       --border: #e2e8f0;
       --surface: #ffffff;
-      --radius: 12px;
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --radius: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
+
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #0f172a;
@@ -22,126 +24,728 @@
         --text-muted: #94a3b8;
         --border: #334155;
         --surface: #1e293b;
-        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
       }
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg);
       color: var(--text);
       line-height: 1.6;
-      padding-bottom: 4rem;
+      padding-bottom: 3rem;
     }
-    a { color: var(--primary); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Header */
     .header {
-      background-color: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background-color: rgba(255, 255, 255, 0.8);
       border-bottom: 1px solid var(--border);
       padding: 1rem 2rem;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.3s;
     }
-    .logo {
+
+    @media (prefers-color-scheme: dark) {
+      .header {
+        background-color: rgba(30, 41, 59, 0.8);
+      }
+    }
+
+    .header-logo {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      font-weight: 800;
       font-size: 1.25rem;
-      font-weight: 700;
       color: var(--primary);
     }
-    .logo img { width: 32px; height: 32px; border-radius: 8px; }
-    .nav-links { display: flex; gap: 1rem; align-items: center; font-size: 0.9rem; }
-    .container {
-      max-width: 800px;
-      margin: 2.5rem auto;
-      padding: 0 1.5rem;
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
     }
-    h1 {
-      font-size: 1.8rem;
+
+    .nav-btn {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover {
       color: var(--primary);
-      margin-bottom: 1.5rem;
+      text-decoration: none;
     }
-    .qa-card {
-      background: var(--surface);
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1.25rem;
-      box-shadow: var(--shadow);
-    }
-    .qa-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
+      background: var(--surface);
       color: var(--text);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
     }
-    .qa-card p, .qa-card ul {
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      min-width: 140px;
+      padding: 4px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 1000;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: flex;
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .lang-option.active {
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .lang-option.active:hover {
+      background: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 2.5rem auto 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .title-area {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .title-area h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .title-area p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Q&A Accordion Style */
+    .qna-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    details {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: all 0.25s ease-in-out;
+      overflow: hidden;
+    }
+
+    details[open] {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.15);
+    }
+
+    summary {
+      padding: 1.25rem 1.5rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      list-style: none;
+      user-select: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .q-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 800;
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+
+    .q-text {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+      text-align: left;
+    }
+
+    .arrow-icon {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: var(--text-muted);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.25s ease, stroke 0.25s;
+      flex-shrink: 0;
+    }
+
+    details[open] .arrow-icon {
+      transform: rotate(180deg);
+      stroke: var(--primary);
+    }
+
+    .answer-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      border-top: 1px dashed rgba(226, 232, 240, 0.6);
+      padding-top: 1.25rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .answer-content {
+        border-top-color: rgba(51, 65, 85, 0.6);
+      }
+    }
+
+    .answer-content p {
+      margin-bottom: 0.85rem;
+    }
+
+    .answer-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .answer-content ul, .answer-content ol {
+      margin: 0.5rem 0 0.85rem 1.25rem;
+    }
+
+    .answer-content li {
+      margin-bottom: 0.35rem;
+    }
+
+    .step-box {
+      background: rgba(99, 102, 241, 0.04);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+    }
+
+    .step-box ol {
+      margin-bottom: 0;
+    }
+
+    code {
+      background: rgba(0, 0, 0, 0.06);
+      color: #e11d48;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85em;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      code {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fb7185;
+      }
+    }
+
+    .badge-premium {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      color: white;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    /* Support section */
+    .support-card {
+      margin-top: 3.5rem;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .support-card h2 {
+      font-size: 1.35rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .support-card p {
       color: var(--text-muted);
       font-size: 0.95rem;
+      margin-bottom: 1.25rem;
     }
-    .qa-card ul { padding-left: 1.25rem; margin-top: 0.5rem; }
-    .code {
-      background: rgba(0, 0, 0, 0.05);
-      border: 1px solid var(--border);
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      font-family: monospace;
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
       font-size: 0.85rem;
+      margin-top: 4rem;
     }
   </style>
 </head>
 <body>
+
   <header class="header">
-    <div class="logo">
-      <img src="icons/icon128.png" alt="ClickBook AI">
-      <span>ClickBook AI Q&A</span>
+    <div class="header-logo">
+      <img src="icons/icon128.png" alt="Logo" width="28" height="28" style="border-radius: 6px;">
+      <span>
+        ClickBook AI Q&A
+        <span style="font-size: 0.72rem; font-weight: 700; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; padding: 2px 7px; border-radius: 20px; margin-left: 6px; vertical-align: middle;">
+          FAQ
+        </span>
+      </span>
     </div>
-    <nav class="nav-links">
-      <a href="help.fr.html">← Manuel d'utilisation</a>
-      <a href="qna.html">English</a>
-      <a href="qna.ko.html">한국어</a>
-      <a href="qna.ja.html">日本語</a>
-      <a href="qna.de.html">Deutsch</a>
-      <a href="qna.es.html">Español</a>
-    </nav>
+    <div class="header-nav">
+      <a href="help.fr.html" class="nav-btn">← Manuel d'utilisation</a>
+      
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇫🇷</span>
+            <span>Français</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="qna.html" class="lang-option">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+          </a>
+          <a href="qna.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="qna.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="qna.zh-TW.html" class="lang-option">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+          </a>
+          <a href="qna.de.html" class="lang-option">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+          </a>
+          <a href="qna.es.html" class="lang-option">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+          </a>
+          <a href="qna.fr.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇫🇷</span><span>Français</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
   </header>
 
   <div class="container">
-    <h1>Foire Aux Questions (Q&A) & Dépannage</h1>
-
-    <div class="qa-card">
-      <h3>Q. Mes données personnelles sont-elles envoyées sur des serveurs externes ?</h3>
-      <p><strong>Non, jamais.</strong> ClickBook AI s'exécute à 100 % localement dans votre navigateur Chrome. Vos favoris, notes, tâches et calculs d'IA (Gemini Nano) sont stockés uniquement sur votre machine (chrome.storage.local).</p>
+    <div class="title-area">
+      <h1>Foire Aux Questions & Q&A</h1>
+      <p>Retrouvez ici les réponses et solutions aux questions courantes sur l'utilisation de ClickBook Premium.</p>
     </div>
 
-    <div class="qa-card">
-      <h3>Q. Pourquoi l'IA (Gemini Nano) indique-t-elle « Configuration requise » ?</h3>
-      <p>Gemini Nano nécessite l'activation de deux options expérimentales dans Chrome :</p>
-      <ul>
-        <li><span class="code">chrome://flags/#optimization-guide-on-device-model</span> → Enabled (BypassPrefRequirement)</li>
-        <li><span class="code">chrome://flags/#prompt-api-for-gemini-nano</span> → Enabled</li>
-        <li>Redémarrez Chrome et vérifiez le téléchargement du modèle dans <span class="code">chrome://components</span>.</li>
-      </ul>
+    <div class="qna-list">
+      
+      <!-- Q1: New Tab Page security popup -->
+      <details open>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            À l'ouverture d'un nouvel onglet, Chrome affiche : « Revenir à Google ? ». Peut-on désactiver ou contrôler cette invite ?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>Non, cette invite ne peut être ni contrôlée, ni désactivée, ni contournée par les développeurs d'extensions.</strong></p>
+          <p>Cette boîte de dialogue est un <strong>mécanisme de sécurité natif et obligatoire du navigateur Chrome</strong> destiné à protéger les utilisateurs contre les logiciels malveillants (détourneurs de navigateur) qui modifieraient les moteurs de recherche ou la page de nouvel onglet sans consentement.</p>
+          <p>Pour utiliser ClickBook comme page de nouvel onglet personnalisée, vous devez cliquer manuellement sur le bouton <strong>[Conserver les modifications]</strong> lors de la première apparition de cette invite après l'installation.</p>
+        </div>
+      </details>
+
+      <!-- Q2: NTP settings messed up -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            J'ai accidentellement cliqué sur « Rétablir les paramètres » et maintenant le nouvel onglet ou le tableau de bord est blanc ou ne s'ouvre plus.
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Si vous avez cliqué sur <strong>[Rétablir les paramètres]</strong>, Chrome révoque unilatéralement l'autorisation de ClickBook à gérer la page de nouvel onglet. L'état interne de l'extension et le blocage de Chrome entrent alors en conflit, provoquant un écran vide ou un blocage.</p>
+          <p>Vous pouvez résoudre ce problème très facilement en réinitialisant l'autorisation via les étapes suivantes :</p>
+          <div class="step-box">
+            <strong>Procédure de récupération rapide et infaillible :</strong>
+            <ol>
+              <li>Saisissez <code>chrome://extensions/</code> dans la barre d'adresse de Chrome pour ouvrir la page de gestion des extensions.</li>
+              <li>Recherchez la fiche ClickBook et <strong>désactivez l'interrupteur bleu, puis réactivez-le</strong>.</li>
+              <li>Ouvrez un nouvel onglet vierge. Chrome affichera à nouveau la confirmation de sécurité.</li>
+              <li>Cette fois, veillez à cliquer sur le bouton <strong>[Conserver les modifications]</strong>. Tout rentrera immédiatement dans l'ordre !</li>
+            </ol>
+          </div>
+        </div>
+      </details>
+
+      <!-- Q3: Chrome Bookmark import hanging -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Lors de l'importation de favoris ou d'ajouts en masse, l'opération se fige ou reste bloquée sur « Enregistrement en cours... ».
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Il s'agissait d'un ralentissement qui se produisait lorsque l'environnement <strong>d'IA locale intégrée au navigateur (Gemini Nano)</strong> n'était pas encore configuré ou téléchargé sur l'ordinateur. <strong>Ce point a été intégralement résolu dans la mise à jour v1.2.5.</strong></p>
+          <p>ClickBook effectue désormais un pré-diagnostic instantané de la disponibilité de l'IA locale (en moins de 1 ms). Si l'IA n'est pas prête, l'extension bascule automatiquement sur son classificateur par correspondances ultra-rapide pour garantir un import fluide et sans blocage.</p>
+          <p>Les résumés et tags IA des favoris importés sont traités de manière asynchrone en arrière-plan, sans ralentir votre navigation ou votre tableau de bord.</p>
+        </div>
+      </details>
+
+      <!-- Q4: Smart Tab suspension rules -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Le destructeur d'onglets intelligents (Smart Tab Suspender) risque-t-il d'endormir des onglets importants ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Rassurez-vous ! L'algorithme de mise en veille intelligente de ClickBook est conçu pour sécuriser votre flux de travail. Les onglets suivants sont <strong>strictement protégés et exclus de toute mise en veille automatique</strong> :</p>
+          <ul>
+            <li><strong>Onglets avec lecture audio :</strong> Onglets en arrière-plan diffusant de la musique ou une vidéo (YouTube, plateformes de streaming, etc.).</li>
+            <li><strong>Onglets épinglés :</strong> Onglets fixés sur le côté gauche de votre barre d'onglets.</li>
+            <li><strong>Onglet actif en cours :</strong> La page web que vous êtes actuellement en train de consulter.</li>
+            <li><strong>Formulaires en cours de saisie :</strong> Pages comportant des champs de texte modifiés pour éviter toute perte de données.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q5: Secure Folder clear items -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Quelles données le destructeur de session automatique du Dossier sécurisé supprime-t-il ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Lorsque vous désignez des dossiers confidentiels ou des domaines sensibles comme <strong>Dossiers sécurisés</strong>, un <strong>badge vert `SEC`</strong> s'allume sur l'icône Chrome pendant la navigation. Dès la fermeture de tous les onglets associés, les traces suivantes collectées par ce domaine sont immédiatement et définitivement détruites :</p>
+          <ul>
+            <li><strong>Cookies :</strong> Données de connexion automatique et cookies de traçage.</li>
+            <li><strong>Stockage local & session :</strong> Résidus LocalStorage et SessionStorage.</li>
+            <li><strong>Bases de données web :</strong> Données IndexedDB et WebSQL.</li>
+            <li><strong>Cache & Service Workers :</strong> Fichiers mis en cache et scripts d'arrière-plan.</li>
+            <li><strong>Historique de navigation & fichiers temporaires :</strong> Entrées d'historique et résidus de session.</li>
+          </ul>
+          <p>Vous n'avez plus besoin d'effacer manuellement vos données de navigation : la simple fermeture de l'onglet sécurisé protège intégralement votre vie privée.</p>
+        </div>
+      </details>
+
+      <!-- Q6: Tab Group sync method -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Comment synchroniser les groupes d'onglets natifs de Chrome avec les dossiers ClickBook ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook propose une intégration bidirectionnelle transparente avec les groupes d'onglets natifs de Chrome :</p>
+          <ul>
+            <li><strong>Sauvegarder un groupe d'onglets dans un dossier :</strong> Cliquez sur l'icône de l'extension ClickBook (pop-up) dans votre barre d'outils. La liste de vos groupes d'onglets ouverts s'affiche avec leurs couleurs. Cliquez sur le groupe souhaité et choisissez <strong>[Enregistrer le groupe]</strong> pour créer un dossier ClickBook instantané.</li>
+            <li><strong>Restaurer un dossier ClickBook en groupe d'onglets :</strong> Survolez un dossier dans la barre latérale du tableau de bord et cliquez sur l'icône de calque, ou cliquez sur <strong>[Ouvrir en tant que groupe d'onglets Chrome]</strong>. Le dossier est restauré en groupe d'onglets Chrome avec son nom et sa couleur d'origine.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q7: Backup and Reset -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Comment sauvegarder mes données ou migrer mes favoris vers un nouvel ordinateur ?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>ClickBook conserve toutes vos données exclusivement en local sur votre ordinateur pour garantir une confidentialité absolue. Nous proposons un système de sauvegarde manuelle complet.</p>
+          <p>Cliquez sur l'icône d'engrenage (Paramètres) en haut à droite du tableau de bord, puis accédez à l'onglet <strong>Gestion des données</strong>. Cliquez sur <strong>[Exporter la sauvegarde (JSON)]</strong> pour télécharger un fichier contenant l'intégralité de vos dossiers, favoris, réglages et mémos.</p>
+          <p>Sur votre nouvel ordinateur ou navigateur, rendez-vous sur la même page de paramètres et cliquez sur <strong>[Importer la sauvegarde]</strong> pour restaurer l'ensemble de votre espace de travail en moins d'une seconde !</p>
+        </div>
+      </details>
+
+      <!-- Q8: FTS Search -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Comment fonctionne la recherche plein texte (FTS) et le Smart Clipper ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Le <strong>Smart Clipper</strong> s'exécute en arrière-plan lors de la sauvegarde d'un favori : il filtre les éléments parasites (publicités, menus, pieds de page) pour extraire et stocker le corps textuel épuré en moins de 10 ms.</p>
+          <p>Le texte extrait est directement indexé et interrogeable via le moteur de <strong>Recherche plein texte (FTS)</strong> :</p>
+          <ul>
+            <li><strong>Recherche multi-mots-clés :</strong> Saisissez plusieurs termes séparés par des espaces (ex : <code>React State Management</code>) pour trouver des correspondances instantanées dans les titres, tags, résumés et corps textuels complets des pages.</li>
+            <li><strong>Zéro surcharge :</strong> Conçu sans bibliothèques lourdes avec indexation locale native pour une recherche instantanée parmi des milliers de pages.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q9: Offline Reader & Zen Reader -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Qu'est-ce que le Lecteur hors ligne et le mode Zen Reader ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Le <strong>Lecteur hors ligne</strong> est une vue immersive qui reformate les textes de vos favoris dans une mise en page digne d'un livre numérique, sans aucune publicité ni distraction.</p>
+          <ul>
+            <li><strong>Thèmes & Typographie :</strong> Reposez vos yeux avec les thèmes Clair, Sombre ou Sépia. Polices avec ou sans empattement optimisées et 4 tailles de texte au choix.</li>
+            <li><strong>Table des matières automatique (TOC) :</strong> Analyse la hiérarchie des titres pour générer un panneau de navigation interactif avec défilement fluide.</li>
+            <li><strong>Barre de progression & Export :</strong> Visualisez l'avancement de votre lecture et copiez facilement les articles au format Markdown ou texte brut.</li>
+            <li><strong>Mode Zen Reader :</strong> Les mémos longs du tableau des mémos disposent également de ce visualiseur épuré pour relire vos notes en toute sérénité.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q10: AI Cleaner -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Comment le nettoyeur IA identifie-t-il les favoris en double ?
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Le <strong>Nettoyeur IA</strong> analyse l'ensemble de votre base de favoris et regroupe les doublons sur la base de la similarité des URL et des titres grâce à des algorithmes heuristiques locaux.</p>
+          <p>Dès la détection, il préconise automatiquement de conserver la version la plus ancienne. Vous pouvez examiner les suggestions et supprimer les éléments superflus d'un simple clic pour conserver une bibliothèque ordonnée.</p>
+        </div>
+      </details>
+
+      <!-- Q11: ClickBook Buddy & Focus Timer -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Comment fonctionnent le compagnon ClickBook Buddy et le menu radial ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p><strong>ClickBook Buddy</strong> est un compagnon de bureau animé discret qui s'affiche sur vos pages web. Un clic ouvre un **menu radial à 9 actions** rapides :</p>
+          <ul>
+            <li><strong>Traduction :</strong> Traduit le texte surligné dans votre langue préférée.</li>
+            <li><strong>Favori :</strong> Enregistre la page actuelle dans ClickBook en un instant.</li>
+            <li><strong>Chat IA :</strong> Ouvre une discussion directe avec l'IA Gemini Nano locale.</li>
+            <li><strong>Minuteur :</strong> Démarre un minuteur Pomodoro de focus.</li>
+            <li><strong>Repos :</strong> Lance une session de relaxation plein écran avec paysages animés et ambiance sonore.</li>
+            <li><strong>Mémos & Tâches :</strong> Épingle des notes sur la page et coche les objectifs de la journée.</li>
+            <li><strong>Masquage & Réglages :</strong> Masque temporairement le Buddy sur le site actuel et personnalise sa taille, sa transparence et l'horloge.</li>
+          </ul>
+          <p>Chaque session terminée permet de débloquer de nouveaux compagnons rares dans l'**Encyclopédie des Buddies** et de célébrer vos réussites avec des thèmes d'achèvement spectaculaires (Nuit étoilée, Forêt Zen, Bol tibétain, etc.).</p>
+        </div>
+      </details>
+
+      <!-- Q12: Interactive Mind Map -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Quelles sont les fonctionnalités de la Carte mentale (Mind Map) et comment la personnaliser ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>La <strong>Carte mentale interactive</strong> affiche l'ensemble de votre structure de dossiers et de favoris sous forme d'arborescence visuelle :</p>
+          <ul>
+            <li><strong>Disposition sur mesure :</strong> Déplacez manuellement les nœuds par glisser-déposer avec sauvegarde automatique permanente.</li>
+            <li><strong>Personnalisation visuelle :</strong> Choisissez la forme des nœuds (dont octogone), couleurs HSL, styles de lignes et de connecteurs.</li>
+            <li><strong>Assistants IA & Synchronisation :</strong> Utilisez Gemini Nano pour enrichir vos branches d'idées, et transformez n'importe quelle branche en tâche de calendrier ou de todo list en un clic.</li>
+            <li><strong>Panneau latéral & Notes :</strong> Rédigez des mémos détaillés et consultez les raccourcis clavier dans le panneau coulissant dédié.</li>
+          </ul>
+        </div>
+      </details>
+
+      <!-- Q13: Spring Note & Smart Calendar -->
+      <details>
+        <summary>
+          <span class="q-text">
+            <span class="q-badge">Q</span>
+            Comment le Carnet analogique (Spring Note) et le Calendrier s'articulent-ils ? <span class="badge badge-premium">Premium</span>
+          </span>
+          <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="answer-content">
+          <p>Le <strong>Carnet analogique (Spring Note)</strong> combine un éditeur WYSIWYG Tiptap avec une zone de dessin et d'objets libres où vous pouvez insérer, déplacer et organiser images, mémos adhésifs et cartes de favoris avec un défilement fluide à 60 fps.</p>
+          <p>Le <strong>Calendrier intelligent</strong> s'associe aux notes et listes de tâches pour planifier vos journées par simple glisser-déposer, avec récurrence automatique et intégration des jours fériés pour la France, les États-Unis, le Japon, etc.</p>
+        </div>
+      </details>
+
     </div>
 
-    <div class="qa-card">
-      <h3>Q. Que se passe-t-il si Gemini Nano n'est pas activé ?</h3>
-      <p>ClickBook bascule automatiquement vers son <strong>système de règles intelligent basé sur les domaines</strong>. Vos favoris continueront d'être classés proprement dans les dossiers correspondants sans aucune coupure de service.</p>
-    </div>
-
-    <div class="qa-card">
-      <h3>Q. Comment sauvegarder ou exporter mes favoris et notes ?</h3>
-      <p>Ouvrez les <strong>Paramètres</strong> (icône d'engrenage) et cliquez sur <strong>[Exporter JSON]</strong> sous la section Sauvegarde & Restauration. Vous pouvez réimporter ce fichier à tout moment sur un autre ordinateur.</p>
-    </div>
-
-    <div class="qa-card">
-      <h3>Q. Comment masquer temporairement le compagnon (Buddy) sur un site spécifique ?</h3>
-      <p>Cliquez sur le Buddy pour ouvrir le menu radial et sélectionnez <strong>« Masquer sur ce site »</strong>. Vous pouvez le réactiver à tout moment via le popup de l'extension ou le clic droit.</p>
+    <div class="support-card">
+      <h2>Soutenir le projet ClickBook</h2>
+      <p>Si ClickBook vous est utile, soutenez son développement continu en offrant une tasse de café !</p>
+      <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+        <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+      </a>
     </div>
   </div>
+
+  <footer>
+    <p>© 2026 ClickBook AI - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. Tous droits réservés.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+  </script>
 </body>
 </html>

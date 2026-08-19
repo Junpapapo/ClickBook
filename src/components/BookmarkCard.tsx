@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot, Copy, History } from "lucide-react";
+import { Trash2, ExternalLink, Pencil, StickyNote, X, Info, Sparkles, Loader2, CheckCheck, Bot, Copy, History, GripHorizontal } from "lucide-react";
 import type { Bookmark, BookmarkMemo, MemoColor } from "@/shared/types";
 import { MEMO_DOT, MEMO_TEXTAREA_BG, ALL_MEMO_COLORS as ALL_COLORS } from "@/shared/colors";
 import { useLang } from "@/shared/LanguageContext";
@@ -50,6 +50,16 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
   const [color, setColor] = useState<MemoColor>(memo?.color ?? "yellow");
   const popRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [size, setSize] = useState<{ width: number; height?: number }>({ width: 280 });
+
+  // Drag & Resize states
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const isDraggingRef = useRef(false);
+  const isResizingRef = useRef(false);
+  const hasMovedRef = useRef(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ startX: 0, startY: 0, startWidth: 280, startHeight: 260 });
 
   // AI Draft Panel state
   const [draftState, setDraftState] = useState<"idle" | "loading" | "done" | "used">("idle");
@@ -81,18 +91,95 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
     setDraftState("used");
   }
 
+  // Calculate initial position from anchor
   useEffect(() => {
-    if (!anchorRef.current) return;
-    const r  = anchorRef.current.getBoundingClientRect();
+    if (hasMovedRef.current || !anchorRef.current) return;
+    const r = anchorRef.current.getBoundingClientRect();
     const ph = draftState === "done" ? 380 : 280;
-    const pw = 264;
-    const top  = r.bottom + 8 + ph < window.innerHeight ? r.bottom + 8 : r.top - ph - 8;
+    const pw = size.width;
+    const top = r.bottom + 8 + ph < window.innerHeight ? r.bottom + 8 : Math.max(8, r.top - ph - 8);
     const left = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
     setPos({ top, left });
-  }, [anchorRef, draftState]);
+  }, [anchorRef, draftState, size.width]);
 
+  // Pointer event handlers for Header Drag
+  const handleHeaderPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    if ((e.target as HTMLElement).closest("button") || (e.target as HTMLElement).closest("input")) return;
+    isDraggingRef.current = true;
+    setIsDragging(true);
+    hasMovedRef.current = true;
+    dragOffsetRef.current = {
+      x: e.clientX - pos.left,
+      y: e.clientY - pos.top,
+    };
+    e.preventDefault();
+  };
+
+  // Pointer event handlers for Resize
+  const handleResizePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+    isResizingRef.current = true;
+    setIsResizing(true);
+    hasMovedRef.current = true;
+    resizeStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startWidth: popRef.current?.offsetWidth || size.width,
+      startHeight: popRef.current?.offsetHeight || 260,
+    };
+  };
+
+  // Global PointerMove & PointerUp listeners
+  useEffect(() => {
+    function handlePointerMove(e: PointerEvent) {
+      if (isDraggingRef.current) {
+        const w = popRef.current?.offsetWidth || size.width;
+        const h = popRef.current?.offsetHeight || 260;
+        const clampedLeft = Math.max(8, Math.min(e.clientX - dragOffsetRef.current.x, window.innerWidth - w - 8));
+        const clampedTop = Math.max(8, Math.min(e.clientY - dragOffsetRef.current.y, window.innerHeight - h - 8));
+        setPos({ top: clampedTop, left: clampedLeft });
+      } else if (isResizingRef.current) {
+        const dx = e.clientX - resizeStartRef.current.startX;
+        const dy = e.clientY - resizeStartRef.current.startY;
+        const minW = 240;
+        const maxW = Math.max(minW, window.innerWidth - pos.left - 16);
+        const minH = 200;
+        const maxH = Math.max(minH, window.innerHeight - pos.top - 16);
+        const newW = Math.max(minW, Math.min(maxW, resizeStartRef.current.startWidth + dx));
+        const newH = Math.max(minH, Math.min(maxH, resizeStartRef.current.startHeight + dy));
+        setSize({ width: newW, height: newH });
+      }
+    }
+
+    function handlePointerUp() {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        setIsDragging(false);
+      }
+      if (isResizingRef.current) {
+        isResizingRef.current = false;
+        setIsResizing(false);
+      }
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    };
+  }, [pos.left, pos.top, size.width]);
+
+  // Click outside detection
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
+      if (isDraggingRef.current || isResizingRef.current) return;
       if (anchorRef.current?.contains(e.target as Node)) return;
       if (popRef.current && !popRef.current.contains(e.target as Node)) onClose();
     }
@@ -103,17 +190,35 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
   return createPortal(
     <div
       ref={popRef}
-      style={{ position: "fixed", top: pos.top, left: pos.left, width: 264, zIndex: 9999 }}
-      className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-xl shadow-figma-lg p-3"
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        width: size.width,
+        height: size.height ? `${size.height}px` : undefined,
+        zIndex: 9999,
+      }}
+      className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border ${
+        isDragging || isResizing
+          ? "border-indigo-400/80 dark:border-indigo-500/80 shadow-2xl scale-[1.005]"
+          : "border-slate-200/90 dark:border-slate-800 shadow-figma-lg"
+      } rounded-xl p-3 flex flex-col transition-[box-shadow,border-color,transform] duration-150 relative`}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
-          <StickyNote size={10} className="text-amber-500" />
-          {t("memo")}
-        </span>
-        <div className="flex items-center gap-1">
+      {/* ヘッダー (드래그 핸들) */}
+      <div
+        onPointerDown={handleHeaderPointerDown}
+        className="flex items-center justify-between mb-2 cursor-grab active:cursor-grabbing select-none shrink-0 group/header pb-1"
+        title={lang === "ko" ? "드래그하여 이동" : "Drag to move"}
+      >
+        <div className="flex items-center gap-1.5">
+          <GripHorizontal size={13} className="text-slate-400 dark:text-slate-500 opacity-60 group-hover/header:opacity-100 transition-opacity" />
+          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <StickyNote size={10} className="text-amber-500" />
+            {t("memo")}
+          </span>
+        </div>
+        <div className="flex items-center gap-1" onPointerDown={(e) => e.stopPropagation()}>
           {/* AI 초안 버튼 */}
           {bookmark && (
             <button
@@ -141,7 +246,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
       </div>
 
       {/* カラーピッカー */}
-      <div className="flex items-center gap-1.5 mb-2">
+      <div className="flex items-center gap-1.5 mb-2 shrink-0">
         {ALL_COLORS.map((c) => (
           <button
             key={c}
@@ -184,12 +289,12 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
         placeholder={t("memoPlaceholder")}
         rows={4}
         onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
-        className={`w-full text-xs rounded-lg px-2.5 py-2 resize-y min-h-[90px] outline-none leading-relaxed border border-slate-200/60 dark:border-slate-700/60 ${MEMO_TEXTAREA_BG[color]} text-slate-800 dark:text-slate-200 placeholder-slate-400`}
+        className={`w-full text-xs rounded-lg px-2.5 py-2 min-h-[90px] flex-1 resize-none outline-none leading-relaxed border border-slate-200/60 dark:border-slate-700/60 ${MEMO_TEXTAREA_BG[color]} text-slate-800 dark:text-slate-200 placeholder-slate-400 custom-scrollbar`}
       />
 
       {/* AI Draft Panel */}
       {draftState === "loading" && (
-        <div className="mt-2 p-2.5 rounded-xl border border-indigo-200/80 dark:border-indigo-800/40 bg-indigo-50/70 dark:bg-indigo-950/30 flex items-center gap-2">
+        <div className="mt-2 p-2.5 rounded-xl border border-indigo-200/80 dark:border-indigo-800/40 bg-indigo-50/70 dark:bg-indigo-950/30 flex items-center gap-2 shrink-0">
           <Loader2 size={12} className="text-indigo-500 animate-spin shrink-0" />
           <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 animate-pulse">
             {t("aiDraftApplying")}
@@ -198,13 +303,13 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
       )}
 
       {(draftState === "done" || draftState === "used") && (
-        <div className={`mt-2 rounded-xl border overflow-hidden transition-all ${
+        <div className={`mt-2 rounded-xl border overflow-hidden transition-all shrink-0 max-h-[160px] flex flex-col ${
           draftState === "used"
             ? "border-emerald-200/80 dark:border-emerald-800/40 bg-emerald-50/70 dark:bg-emerald-950/20"
             : "border-indigo-200/80 dark:border-indigo-800/40 bg-indigo-50/70 dark:bg-indigo-950/20"
         }`}>
           {/* Panel header */}
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 border-b ${
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 border-b shrink-0 ${
             draftState === "used"
               ? "border-emerald-200/80 dark:border-emerald-800/40"
               : "border-indigo-200/80 dark:border-indigo-800/40"
@@ -221,14 +326,14 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
             </span>
           </div>
           {/* Draft text */}
-          <div className="px-3 py-2">
+          <div className="px-3 py-2 overflow-y-auto custom-scrollbar flex-1">
             <pre className={`text-[10px] leading-relaxed whitespace-pre-wrap font-sans ${
               draftState === "used" ? "text-emerald-700 dark:text-emerald-300" : "text-indigo-700 dark:text-indigo-300"
             }`}>{draft}</pre>
           </div>
           {/* Actions */}
           {draftState === "done" && (
-            <div className="flex items-center justify-end gap-1.5 px-3 pb-2">
+            <div className="flex items-center justify-end gap-1.5 px-3 pb-2 shrink-0">
               <button
                 onClick={() => setDraftState("idle")}
                 className="text-[9px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
@@ -248,7 +353,7 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
       )}
 
       {/* アクションボタン */}
-      <div className="flex justify-end gap-1.5 mt-2">
+      <div className="flex justify-end gap-1.5 mt-2 shrink-0">
         <button
           onClick={onClose}
           className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-2.5 py-1 rounded-md transition-colors cursor-pointer"
@@ -265,6 +370,28 @@ export function MemoPopover({ memo, bookmark, anchorRef, onClose, onSave, onDele
         >
           Save
         </button>
+      </div>
+
+      {/* 우하단 리사이즈 핸들 */}
+      <div
+        onPointerDown={handleResizePointerDown}
+        className="absolute bottom-1 right-1 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 opacity-30 hover:opacity-100 transition-opacity group/resize select-none"
+        title={lang === "ko" ? "드래그하여 크기 조절" : "Drag to resize"}
+      >
+        <svg
+          width="8"
+          height="8"
+          viewBox="0 0 8 8"
+          fill="none"
+          className="text-slate-400 dark:text-slate-500 group-hover/resize:text-indigo-500 transition-colors"
+        >
+          <circle cx="7" cy="7" r="0.75" fill="currentColor" />
+          <circle cx="4" cy="7" r="0.75" fill="currentColor" />
+          <circle cx="7" cy="4" r="0.75" fill="currentColor" />
+          <circle cx="1" cy="7" r="0.75" fill="currentColor" />
+          <circle cx="4" cy="4" r="0.75" fill="currentColor" />
+          <circle cx="7" cy="1" r="0.75" fill="currentColor" />
+        </svg>
       </div>
     </div>,
     document.body

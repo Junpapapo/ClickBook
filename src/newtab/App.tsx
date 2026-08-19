@@ -657,7 +657,20 @@ function AppContent() {
                   aiSearchQuery={aiSearchQuery}
                   onAiLoadingChange={setAiLoading}
                   onOpenSettings={() => setSettingsModalOpen(true)}
-                  onOpenGuide={() => window.open("https://junpapapo.github.io/ClickBook/public/help.html", "_blank", "noopener,noreferrer")}
+                  onOpenGuide={() => {
+                    const helpFileName =
+                      lang === "ko" ? "help.ko.html" :
+                      lang === "ja" ? "help.ja.html" :
+                      lang === "zh-TW" ? "help.zh-TW.html" :
+                      lang === "de" ? "help.de.html" :
+                      lang === "es" ? "help.es.html" :
+                      lang === "fr" ? "help.fr.html" :
+                      "help.html";
+                    const url = typeof chrome !== "undefined" && chrome.runtime?.getURL
+                      ? chrome.runtime.getURL(helpFileName)
+                      : `https://junpapapo.github.io/ClickBook/public/${helpFileName}`;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
                   customSearchConfigs={settings.customSearchConfigs || []}
                   customPresets={settings.customPresets || []}
                   onSaveCustomSearchConfigs={(configs, presets) => {
@@ -678,7 +691,20 @@ function AppContent() {
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   onOpenSettings={() => setSettingsModalOpen(true)}
-                  onOpenGuide={() => window.open("https://junpapapo.github.io/ClickBook/public/help.html", "_blank", "noopener,noreferrer")}
+                  onOpenGuide={() => {
+                    const helpFileName =
+                      lang === "ko" ? "help.ko.html" :
+                      lang === "ja" ? "help.ja.html" :
+                      lang === "zh-TW" ? "help.zh-TW.html" :
+                      lang === "de" ? "help.de.html" :
+                      lang === "es" ? "help.es.html" :
+                      lang === "fr" ? "help.fr.html" :
+                      "help.html";
+                    const url = typeof chrome !== "undefined" && chrome.runtime?.getURL
+                      ? chrome.runtime.getURL(helpFileName)
+                      : `https://junpapapo.github.io/ClickBook/public/${helpFileName}`;
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
                 />
               )}
             </Suspense>

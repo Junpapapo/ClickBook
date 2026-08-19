@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aide ClickBook AI - Gestionnaire de Favoris & Productivité par IA</title>
+  <title>Aide ClickBook AI - Gestion intelligente des favoris et de la productivité</title>
   <style>
     :root {
       --primary: #6366f1;
@@ -14,7 +14,6 @@
       --border: #e2e8f0;
       --surface: #ffffff;
       --radius: 12px;
-      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -24,11 +23,15 @@
         --text-muted: #94a3b8;
         --border: #334155;
         --surface: #1e293b;
-        --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
       }
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg);
@@ -36,9 +39,17 @@
       line-height: 1.6;
       scroll-behavior: smooth;
     }
-    a { color: var(--primary); text-decoration: none; }
-    a:hover { text-decoration: underline; }
 
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Layout */
     .header {
       position: sticky;
       top: 0;
@@ -47,243 +58,759 @@
       border-bottom: 1px solid var(--border);
       padding: 1rem 2rem;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       backdrop-filter: blur(8px);
     }
-    .logo {
+
+    .header-logo {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      font-weight: 800;
       font-size: 1.25rem;
-      font-weight: 700;
       color: var(--primary);
     }
-    .logo img { width: 32px; height: 32px; border-radius: 8px; }
 
-    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
-    .nav-links a {
-      color: var(--text-muted);
-      font-weight: 500;
-      font-size: 0.9rem;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--primary); text-decoration: none; }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem;
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      gap: 2.5rem;
-    }
-    @media (max-width: 768px) {
-      .container { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
     }
 
-    .sidebar {
-      position: sticky;
-      top: 5rem;
-      height: fit-content;
-    }
-    .toc-title {
+    .qna-btn {
       font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
       font-weight: 700;
-    }
-    .toc-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-    .toc-link {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      display: block;
-      padding: 0.35rem 0.5rem;
+      color: var(--primary);
+      background-color: #6366f115;
+      padding: 0.4rem 0.8rem;
       border-radius: 6px;
       transition: all 0.2s;
     }
-    .toc-link:hover {
-      background-color: var(--surface);
+
+    .qna-btn:hover {
+      background-color: var(--primary);
+      color: white;
+      text-decoration: none;
+    }
+
+    /* Slim Custom Dropdown Selector */
+    .lang-dropdown-wrapper {
+      position: relative;
+      font-size: 0.85rem;
+    }
+
+    .lang-dropdown-trigger {
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      min-width: 125px;
+    }
+
+    .lang-dropdown-trigger:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .lang-flag-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.2s;
+      color: var(--text-muted);
+    }
+
+    .lang-dropdown-wrapper.open .dropdown-arrow {
+      transform: rotate(180deg);
+      color: var(--primary);
+    }
+
+    .lang-dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 4px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      min-width: 140px;
+      padding: 4px;
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 1000;
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    .lang-dropdown-wrapper.open .lang-dropdown-menu {
+      display: flex;
+    }
+
+    .lang-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .lang-option:hover {
+      background: rgba(99, 102, 241, 0.08);
       color: var(--primary);
       text-decoration: none;
     }
 
-    .content section {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: var(--shadow);
+    .lang-option.active {
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
     }
-    .content h2 {
-      font-size: 1.4rem;
+
+    .lang-option.active:hover {
+      background: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .lang-option-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 2.5rem;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      position: sticky;
+      top: 5rem;
+      height: calc(100vh - 6rem);
+      overflow-y: auto;
+      padding-right: 1rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-link {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
       color: var(--primary);
+      background-color: var(--surface);
+      text-decoration: none;
+    }
+
+    .nav-item-qna {
+      margin-top: 0.75rem;
+      border-top: 1px dashed var(--border);
+      padding-top: 0.75rem;
+    }
+
+    .nav-link-qna {
+      color: var(--primary);
+      background-color: #6366f110;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-link-qna:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    /* Content Area */
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+
+    section {
+      scroll-margin-top: 6rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
       margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-    .content h3 { font-size: 1.1rem; margin: 1.25rem 0 0.5rem; }
-    .content p, .content ul {
-      color: var(--text);
-      font-size: 0.95rem;
-      margin-bottom: 0.75rem;
-    }
-    .content ul { padding-left: 1.25rem; }
-    .content li { margin-bottom: 0.35rem; }
 
     .badge {
-      display: inline-block;
-      padding: 0.2rem 0.6rem;
       font-size: 0.75rem;
-      font-weight: 700;
+      padding: 0.15rem 0.5rem;
       border-radius: 9999px;
-      background: rgba(99, 102, 241, 0.1);
-      color: var(--primary);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
     }
-    .code-box {
-      background: rgba(0, 0, 0, 0.05);
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .card {
+      background-color: var(--surface);
       border: 1px solid var(--border);
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.85rem;
-      margin: 0.75rem 0;
-      word-break: break-all;
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
-    .kbd {
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .shortcut {
       display: inline-block;
       padding: 0.15rem 0.4rem;
-      font-size: 0.8rem;
-      font-family: monospace;
-      background: var(--bg);
+      background-color: var(--bg);
       border: 1px solid var(--border);
       border-radius: 4px;
-      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .alert-info {
+      background-color: #e0e7ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+    }
+
+    .alert-warning {
+      background-color: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .alert-info {
+        background-color: #1e1b4b;
+        color: #c7d2fe;
+        border-color: #312e81;
+      }
+      .alert-warning {
+        background-color: #451a03;
+        color: #fde68a;
+        border-color: #78350f;
+      }
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
+
   <header class="header">
-    <div class="logo">
-      <img src="icons/icon128.png" alt="ClickBook AI">
-      <span>ClickBook AI Guide</span>
+    <div class="header-logo">
+      <img src="icons/icon128.png" alt="Logo" width="28" height="28" style="border-radius: 6px;">
+      <span>ClickBook AI Aide</span>
     </div>
-    <nav class="nav-links">
-      <a href="qna.fr.html">Q&A / Dépannage</a>
-      <a href="help.html">English</a>
-      <a href="help.ko.html">한국어</a>
-      <a href="help.ja.html">日本語</a>
-      <a href="help.de.html">Deutsch</a>
-      <a href="help.es.html">Español</a>
-    </nav>
+    <div class="header-nav">
+      <a href="qna.fr.html" class="qna-btn">FAQ & Questions fréquentes</a>
+
+      <!-- Slim Custom Dropdown Selector -->
+      <div class="lang-dropdown-wrapper" id="langDropdown">
+        <button class="lang-dropdown-trigger" type="button" aria-haspopup="true" aria-expanded="false" onclick="toggleLangDropdown()">
+          <span class="lang-flag-label">
+            <span>🇫🇷</span>
+            <span>Français</span>
+          </span>
+          <svg class="dropdown-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="lang-dropdown-menu" role="menu">
+          <a href="help.html" class="lang-option">
+            <span class="lang-option-content"><span>🇺🇸</span><span>English</span></span>
+          </a>
+          <a href="help.ko.html" class="lang-option">
+            <span class="lang-option-content"><span>🇰🇷</span><span>한국어</span></span>
+          </a>
+          <a href="help.ja.html" class="lang-option">
+            <span class="lang-option-content"><span>🇯🇵</span><span>日本語</span></span>
+          </a>
+          <a href="help.zh-TW.html" class="lang-option">
+            <span class="lang-option-content"><span>🇹🇼</span><span>繁體中文</span></span>
+          </a>
+          <a href="help.de.html" class="lang-option">
+            <span class="lang-option-content"><span>🇩🇪</span><span>Deutsch</span></span>
+          </a>
+          <a href="help.es.html" class="lang-option">
+            <span class="lang-option-content"><span>🇪🇸</span><span>Español</span></span>
+          </a>
+          <a href="help.fr.html" class="lang-option active">
+            <span class="lang-option-content"><span>🇫🇷</span><span>Français</span></span>
+            <svg viewBox="0 0 24 24" width="13" height="13"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
   </header>
 
   <div class="container">
     <aside class="sidebar">
-      <div class="toc-title">Sommaire</div>
-      <ul class="toc-list">
-        <li><a href="#quickstart" class="toc-link">1. Démarrage rapide</a></li>
-        <li><a href="#gemini-nano" class="toc-link">2. Configuration Gemini Nano</a></li>
-        <li><a href="#bookmarks" class="toc-link">3. Gestion des favoris</a></li>
-        <li><a href="#todo-calendar" class="toc-link">4. TODO & Calendrier</a></li>
-        <li><a href="#springnote" class="toc-link">5. Notes Spirales</a></li>
-        <li><a href="#mindmap" class="toc-link">6. Carte mentale</a></li>
-        <li><a href="#buddy" class="toc-link">7. Compagnon IA (Buddy)</a></li>
-        <li><a href="#shortcuts" class="toc-link">8. Raccourcis clavier</a></li>
-      </ul>
+      <nav>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#intro" class="nav-link active">Présentation & Installation</a></li>
+          <li class="nav-item"><a href="#getting-started" class="nav-link">Premiers pas</a></li>
+          <li class="nav-item"><a href="#ai-features" class="nav-link">Fonctionnalités IA</a></li>
+          <li class="nav-item"><a href="#productivity" class="nav-link">Outils de productivité</a></li>
+          <li class="nav-item"><a href="#buddy-timer" class="nav-link">ClickBook Buddy</a></li>
+          <li class="nav-item"><a href="#rankings" class="nav-link">Tendances & Classements</a></li>
+          <li class="nav-item"><a href="#folders" class="nav-link">Gestion des dossiers</a></li>
+          <li class="nav-item"><a href="#chrome-sync" class="nav-link">Synchronisation Chrome</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">Paramètres & Données</a></li>
+          <li class="nav-item"><a href="#privacy" class="nav-link">Confidentialité & Sécurité</a></li>
+          <li class="nav-item nav-item-qna">
+            <a href="qna.fr.html" class="nav-link nav-link-qna">
+              <span>FAQ & Q&A</span>
+              <span class="badge">QNA</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </aside>
 
     <main class="content">
-      <section id="quickstart">
-        <h2>🚀 1. Démarrage rapide</h2>
-        <p>ClickBook AI est un hub de productivité tout-en-un fonctionnant 100 % localement sur votre navigateur Chrome.</p>
-        <ul>
-          <li><strong>Enregistrement en 1 clic :</strong> Cliquez sur l'icône de l'extension pour enregistrer instantanément l'onglet en cours.</li>
-          <li><strong>Organisation automatique :</strong> L'IA embarquée classe vos favoris dans 8 dossiers prédéfinis sans envoyer vos données sur le cloud.</li>
-          <li><strong>Productivité intégrée :</strong> Transformez vos trouvailles web en tâches Kanban, notes analogiques ou événements de calendrier.</li>
-        </ul>
-      </section>
-
-      <section id="gemini-nano">
-        <h2>⚡ 2. Configuration de Google Gemini Nano (IA locale)</h2>
-        <p>Pour activer l'IA sur votre appareil sans frais ni clé API, suivez ces 3 étapes simples :</p>
+      <div class="alert" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 0.9rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.6;">
+        <strong>⭐ Avis sur les fonctionnalités Premium :</strong> Toutes les fonctionnalités Premium sont actuellement accessibles gratuitement dans le cadre d'une version bêta ouverte à durée limitée. Selon les futures politiques de service, certaines fonctionnalités pourront être restreintes ou nécessiter un abonnement distinct. Tout changement sera préalablement notifié.
+      </div>
+      <section id="intro">
+        <h1 class="section-title">Présentation & Installation</h1>
+        <div class="alert alert-warning">
+          <strong>⚠️ Remarque :</strong> Cette page d'aide peut présenter des fonctionnalités en cours de développement. Des écarts de mise à jour peuvent exister entre la version officielle du Chrome Web Store et les versions de prévisualisation.
+        </div>
+        <p>ClickBook est un outil innovant qui utilise l'IA intégrée de Chrome (Gemini Nano) pour catégoriser et organiser intelligemment vos favoris. Enregistrez des pages d'un simple clic et retrouvez-les instantanément sans corvée de classement manuel.</p>
         
-        <h3>Étape 1 : Activer les drapeaux (Flags) dans Chrome</h3>
-        <p>Ouvrez les adresses suivantes dans la barre d'adresse de Chrome :</p>
-        <div class="code-box">chrome://flags/#optimization-guide-on-device-model</div>
-        <p>👉 Définir sur <strong>Enabled (BypassPrefRequirement)</strong></p>
-
-        <div class="code-box">chrome://flags/#prompt-api-for-gemini-nano</div>
-        <p>👉 Définir sur <strong>Enabled</strong></p>
-
-        <h3>Étape 2 : Redémarrer le navigateur</h3>
-        <p>Cliquez sur le bouton <strong>Relaunch</strong> en bas de la page des flags ou fermez et rouvrez Chrome.</p>
-
-        <h3>Étape 3 : Vérifier le téléchargement du modèle (une seule fois)</h3>
-        <p>Accédez à <span class="code-box">chrome://components</span> et cliquez sur <strong>[Vérifier les mises à jour]</strong> sous <em>Optimization Guide On Device Model</em>.</p>
+        <div class="alert alert-info">
+          <strong>💡 Astuce :</strong> <strong>Épinglez</strong> l'icône de l'extension dans votre barre d'outils Chrome pour un accès rapide en un clic.
+        </div>
       </section>
 
-      <section id="bookmarks">
-        <h2>📚 3. Gestion intelligente des favoris</h2>
+      <section id="getting-started">
+        <h2 class="section-title">Premiers pas</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Enregistrement rapide en 1 clic</div>
+            <div class="card-desc">Cliquez simplement sur l'icône ClickBook sur la page à enregistrer. L'IA analyse le contenu et le range automatiquement dans le dossier idéal.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Raccourcis clavier</div>
+            <div class="card-desc">Inutile d'utiliser la souris. Appuyez sur <span class="shortcut">Alt + S</span> pour sauvegarder instantanément l'onglet actif.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Tableau de bord complet</div>
+            <div class="card-desc">Consultez tous vos favoris d'un coup d'œil sur le tableau de bord dédié. Recherchez, modifiez, déplacez et organisez vos contenus avec fluidité.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ai-features">
+        <h2 class="section-title">Fonctionnalités intelligentes IA <span class="badge">Essentiel</span></h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Catégorisation automatique par IA</div>
+            <div class="card-desc">Classe automatiquement les favoris dans diverses catégories (Tech, Design, Business, etc.) en analysant le titre et le texte de la page.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Nettoyage automatique par IA</div>
+            <div class="card-desc">Vous souhaitez réorganiser tous vos favoris existants d'un coup ? Cliquez sur "Nettoyage IA" dans la barre latérale.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Détecteur de doublons IA</div>
+            <div class="card-desc">Détection intelligente des doublons et des liens redondants pour garder vos dossiers impeccables.</div>
+          </div>
+
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Capture de surlignage IA <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Surlignez n'importe quel texte sur une page web et enregistrez-le via le menu clic droit. L'IA embarquée analyse la langue et génère automatiquement un résumé structuré selon vos préférences.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Smart Clipper & Recherche plein texte <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Lors de l'enregistrement d'un favori, le contenu textuel est nettoyé (suppression des publicités, scripts et menus) et indexé localement en moins de 10 ms. Saisissez plusieurs mots-clés séparés par des espaces pour trouver des correspondances dans le corps des pages.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="productivity">
+        <h2 class="section-title">Outils de productivité</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Tableau de mémos (Memo Board)</div>
+            <div class="card-desc">Ajoutez des notes importantes à chaque favori et visualisez-les toutes ensemble sur le tableau des mémos.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Tableau des tâches (Todo Board)</div>
+            <div class="card-desc">Créez des listes de tâches liées à vos favoris pour gérer méthodiquement vos lectures et projets.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Tableau des étiquettes (Tag Board)</div>
+            <div class="card-desc">Attribuez des tags libres indépendamment de l'arborescence des dossiers et filtrez vos favoris selon vos centres d'intérêt.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Carte des favoris (Bookmark Map)</div>
+            <div class="card-desc">Visualisez les relations entre vos favoris et dossiers sous forme de carte visuelle interactive.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Carte mentale interactive (Mind Map) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Donnez vie à vos idées. Déplacez manuellement les nœuds par glisser-déposer avec sauvegarde persistante, utilisez l'assistant IA local pour développer les branches ou résumer, et personnalisez avec le sélecteur d'icônes et d'émojis intégré.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Carnet de notes analogique (Spring Note) <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Un espace de prise de notes au style carnet vintage. Éditeur de texte riche moderne (Tiptap) avec thèmes visuels (Clair, Grille, Sépia, Sombre), reliure cuir et harmonisation des couleurs d'arrière-plan.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Mise en veille intelligente des onglets <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Met en veille les onglets inactifs en arrière-plan pour réduire l'utilisation de la mémoire RAM de Chrome jusqu'à 90 %. Filtre intelligemment les onglets audio ou épinglés et les restaure instantanément au survol.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Lecteur hors ligne & Mode Zen <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Offre une vue de lecture épurée sans bannières ni éléments superflus. Thèmes personnalisables (Clair/Sépia/Sombre), typographies avec ou sans empattement, table des matières dynamique et suivi de lecture. Les mémos bénéficient également d'une vue Zen dédiée.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Calendrier intelligent & Synchronisation <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Calendrier synchronisé dynamiquement avec votre liste de tâches. Prend en charge les jours fériés internationaux (France, États-Unis, Japon, Corée, etc.), transitions Mois/Semaine/Jour, glisser-déposer d'événements et planification récurrente.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #10b981;">
+            <div class="card-title">Impression & Export PDF du calendrier <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Mises en page d'impression soignées (Paysage bureau, Portrait mini, grille annuelle 12 mois sur une seule page A4). Marges personnalisables pour perforations, en-têtes sur mesure et 8 thèmes pastel pour impression ou export PDF haute qualité.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="buddy-timer">
+        <h2 class="section-title">ClickBook Buddy & Minuteur de concentration <span class="badge" style="background-color: #8b5cf6;">Premium</span></h2>
+        <p>Optimisez vos sessions de concentration profonde avec d'adorables compagnons numériques interactifs et des effets sonores immersifs de fin de cycle.</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Compagnons Buddy animés</div>
+            <div class="card-desc">Choisissez parmi 32 personnages animés exclusifs ! Répartis en catégories Basique, Premium (avec bordure dorée scintillante et couronne) et Secrète pour vous accompagner sur votre bureau numérique.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Progression par niveaux & Buddies secrets <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">Montez de niveau en utilisant les fonctionnalités du menu radial ou en terminant des sessions Pomodoro. Débloquez successivement 10 Buddies secrets rares du niveau 1 au niveau 10 avec une fenêtre de célébration.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Minuteur Pomodoro de focus</div>
+            <div class="card-desc">Définissez votre temps de concentration, lancez le décompte et enregistrez vos statistiques de productivité pour instaurer une routine de travail solide.</div>
+          </div>
+          <div class="card" style="border: 1px dashed #6366f1;">
+            <div class="card-title">Thèmes immersifs d'achèvement <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+            <div class="card-desc">
+              À la fin du minuteur, profitez d'effets visuels plein écran accompagnés de pistes audio apaisantes :
+              <ul style="margin-top: 0.5rem; margin-left: 1.25rem; list-style-type: disc; space-y: 0.25rem; font-size: 0.8rem; text-align: left;">
+                <li><strong>Nuit étoilée :</strong> Reliez les constellations avec des étoiles scintillantes en temps réel.</li>
+                <li><strong>Forêt Zen :</strong> Feuilles doucement tombantes sur un fond boisé verdoyant.</li>
+                <li><strong>Feu de cheminée :</strong> Crépitements réalistes et braises tourbillonnantes chaleureuses.</li>
+                <li><strong>Lac au coucher du soleil :</strong> Vol d'oiseaux dans une atmosphère crépusculaire pastel.</li>
+                <li><strong>Zen Yoga :</strong> Guide de respiration guidée (cycle de 12 s) synchronisé avec une aura lunaire, 36 lucioles scintillantes et le tintement analogique d'un bol chantant tibétain.</li>
+                <li><strong>Récits de succès :</strong> 18 cartes panoramiques artistiques avec effet de mouvement de caméra Ken Burns.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column: span 2; border: 1px solid rgba(99, 102, 241, 0.25); background: rgba(99, 102, 241, 0.02);">
+            <div class="card-title">🎡 Guide rapide du menu radial Buddy</div>
+            <div class="card-desc">
+              Un clic sur votre Buddy déploie un menu circulaire avec 9 fonctionnalités essentielles :
+              <ul style="margin-top: 0.5rem; margin-left: 1.25rem; list-style-type: disc; space-y: 0.25rem; font-size: 0.85rem; text-align: left;">
+                <li><strong>Traduire (Translate) :</strong> Traduit instantanément le texte sélectionné sur la page web dans votre langue cible.</li>
+                <li><strong>Favori (Bookmark) :</strong> Sauvegarde la page web actuelle dans ClickBook en un clic.</li>
+                <li><strong>Chat IA (AI Chat) :</strong> Ouvre le panneau de discussion pour poser des questions à l'IA locale (Gemini Nano) en direct.</li>
+                <li><strong>Minuteur (Timer) :</strong> Démarre un minuteur de concentration Pomodoro personnalisé.</li>
+                <li><strong>Mode repos (Rest) :</strong> Lance une session de relaxation plein écran avec musique et visuels apaisants (double-clic pour quitter).</li>
+                <li><strong>Mémo adhésif (Memo) :</strong> Épingle une note autocollante sur la page web en cours.</li>
+                <li><strong>Tâches (Todo) :</strong> Ajoute et gère les tâches prioritaires du jour avec cases à cocher.</li>
+                <li><strong>Masquer (Hide) :</strong> Masque temporairement le Buddy sur le domaine en cours (réactivable via le menu clic droit ou les paramètres).</li>
+                <li><strong>Paramètres (Settings) :</strong> Personnalise la taille du Buddy, son opacité, la fréquence des animations, les thèmes de repos et l'horloge intégrée.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="buddy-showcase" style="margin-top: 1.5rem; background: rgba(99,102,241,0.04); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--primary);">Encyclopédie des Buddies</h4>
+          
+          <!-- Basic Buddies -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; opacity: 0.85; display: flex; align-items: center; gap: 4px;">
+              <span>⭐ BUDDIES BASIQUES</span>
+              <span style="font-size: 0.7rem; background: #6366f115; color: var(--primary); padding: 1px 5px; border-radius: 4px;">13 Compagnons</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <img src="help_buddies/bsprout.webp" alt="bsprout" title="bsprout" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/bydragon.webp" alt="bydragon" title="bydragon" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/cat.webp" alt="cat" title="cat" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/cotton.webp" alt="cotton" title="cotton" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/curobot.webp" alt="curobot" title="curobot" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/fox.webp" alt="fox" title="fox" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/owl.webp" alt="owl" title="owl" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/penguin.webp" alt="penguin" title="penguin" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/rabbit.webp" alt="rabbit" title="rabbit" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/shroom.webp" alt="shroom" title="shroom" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/star.webp" alt="star" title="star" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/xcafe.webp" alt="xcafe" title="xcafe" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/xcloud.webp" alt="xcloud" title="xcloud" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid var(--border); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+            </div>
+          </div>
+
+          <!-- Premium Buddies -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; color: #f59e0b; display: flex; align-items: center; gap: 4px;">
+              <span>👑 BUDDIES PREMIUM</span>
+              <span style="font-size: 0.7rem; background: rgba(245,158,11,0.1); color: #f59e0b; padding: 1px 5px; border-radius: 4px;">18 Compagnons</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <img src="help_buddies/astrobot.webp" alt="astrobot" title="astrobot" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/corgi.webp" alt="corgi" title="corgi" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/dog.webp" alt="dog" title="dog" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/dragon.webp" alt="dragon" title="dragon" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/fairy.webp" alt="fairy" title="fairy" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/fennec.webp" alt="fennec" title="fennec" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/jellyfish.webp" alt="jellyfish" title="jellyfish" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/nebula.webp" alt="nebula" title="nebula" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/ufo.webp" alt="ufo" title="ufo" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/unicorn.webp" alt="unicorn" title="unicorn" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/wizard.webp" alt="wizard" title="wizard" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/sprout.webp" alt="sprout" title="sprout" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/chef.webp" alt="chef" title="chef" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/p_cat.webp" alt="p_cat" title="p_cat" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/p_fox.webp" alt="p_fox" title="p_fox" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/p_owl.webp" alt="p_owl" title="p_owl" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/p_penguin.webp" alt="p_penguin" title="p_penguin" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <img src="help_buddies/p_rabbit.webp" alt="p_rabbit" title="p_rabbit" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+            </div>
+          </div>
+
+          <!-- Hidden Buddies -->
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; color: #ec4899; display: flex; align-items: center; gap: 4px;">
+              <span>✨ BUDDIES SECRETS (Déblocage par montée de niveau !)</span>
+              <span style="font-size: 0.7rem; background: rgba(236,72,153,0.1); color: #ec4899; padding: 1px 5px; border-radius: 4px;">17 Compagnons</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <img src="help_buddies/cactus.webp" alt="cactus" title="Cactus (Niv. 1)" style="width: 64px; height: 64px; object-fit: contain; border: 1px solid rgba(236,72,153,0.35); border-radius: 6px; padding: 2px; background: var(--surface); transition: transform 0.15s; cursor: pointer;" onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1.0)';" />
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+              <div style="width: 64px; height: 64px; background: rgba(0,0,0,0.04); border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text-muted); cursor: help;" title="Buddy secret (Montez de niveau pour le débloquer !)">?</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="rankings">
+        <h2 class="section-title">Tendances & Classements en direct</h2>
+        <p>Restez informé des tendances mondiales. ClickBook intègre en temps réel les classements de multiples plateformes réputées.</p>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Tendances GitHub</div>
+            <div class="card-desc">Découvrez les projets open-source les plus populaires du moment et ajoutez-les immédiatement à vos favoris.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Classements Hugging Face</div>
+            <div class="card-desc">Suivez d'un coup d'œil les modèles d'IA de pointe et les jeux de données les plus plébiscités.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Hacker News & Wikipédia</div>
+            <div class="card-desc">Consultez l'actualité tech de la communauté et les articles de référence Wikipédia directement depuis votre tableau de bord.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="folders">
+        <h2 class="section-title">Gestion des dossiers & Favoris</h2>
         <ul>
-          <li><strong>Organisation IA globale :</strong> Cliquez sur « Organisation IA » dans la barre latérale pour classer l'ensemble de votre bibliothèque avec sauvegarde automatique.</li>
-          <li><strong>Recherche personnalisée :</strong> Intégrez vos moteurs de recherche favoris avec des modèles d'URL personnalisés.</li>
-          <li><strong>Nettoyage des doublons :</strong> Détectez et supprimez facilement les URL en double via les paramètres.</li>
-          <li><strong>Mode Lecture Zen :</strong> Supprimez les publicités et distractions pour une lecture épurée.</li>
+          <li><strong>Arborescence illimitée :</strong> Créez autant de sous-dossiers que nécessaire pour une structure rigoureuse.</li>
+          <li><strong>Glisser-déposer intuitif :</strong> Réorganisez facilement vos sites et dossiers à l'emplacement souhaité.</li>
+          <li><strong>Verrouillage de dossier :</strong> Verrouillez les dossiers sensibles pour empêcher leur modification lors du nettoyage automatique par IA.</li>
+          <li><strong>Icônes & Émojis personnalisés :</strong> Décorez vos dossiers avec des émojis pour les identifier instantanément.</li>
+          <li><strong>Synchronisation bidirectionnelle des groupes d'onglets <span class="badge" style="background-color: #8b5cf6;">Premium</span> :</strong> Sauvegardez les groupes d'onglets natifs de Chrome dans vos dossiers ClickBook et restaurez-les en sens inverse tout en conservant leurs couleurs et dénominations d'origine.</li>
         </ul>
       </section>
 
-      <section id="todo-calendar">
-        <h2>📅 4. Tableau Kanban TODO & Calendrier</h2>
+      <section id="chrome-sync">
+        <h2 class="section-title">Synchronisation des favoris Chrome</h2>
+        <div class="feature-grid">
+          <div class="card">
+            <div class="card-title">Importer les favoris Chrome</div>
+            <div class="card-desc">Importez instantanément vos favoris Chrome existants dans ClickBook avec option de catégorisation automatique par IA.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Exporter vers Chrome</div>
+            <div class="card-desc">Exportez votre arborescence organisée vers le gestionnaire de favoris Chrome pour synchroniser vos autres appareils.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings">
+        <h2 class="section-title">Paramètres & Gestion des données</h2>
         <ul>
-          <li><strong>Tableau Kanban :</strong> Organisez vos tâches selon les statuts <em>À faire</em>, <em>En cours</em> et <em>Terminé</em>.</li>
-          <li><strong>Calendrier dynamique :</strong> Vues Mois, Semaine et Jour avec synchronisation automatique des jours fériés de France (ou du pays de votre choix).</li>
-          <li><strong>Gestion des priorités & dates :</strong> Fixez des échéances précises et recevez des alertes système discrètes.</li>
+          <li><strong>Thèmes d'affichage :</strong> Basculez librement entre le mode Clair, Sombre ou automatique Système.</li>
+          <li><strong>Sauvegarde & Restauration :</strong> Exportez l'ensemble de vos données dans un fichier JSON sécurisé et restaurez-les à tout moment.</li>
+          <li><strong>Réinitialisation :</strong> Effacez les données locales pour repartir de zéro. (Attention : opération irréversible).</li>
         </ul>
       </section>
 
-      <section id="springnote">
-        <h2>📝 5. Notes Spirales (Tiptap & Toile libre)</h2>
-        <ul>
-          <li><strong>Éditeur riche Tiptap :</strong> Prise en charge des titres, listes de contrôle, tableaux et polices personnalisées.</li>
-          <li><strong>Toile interactive libre :</strong> Glissez-déposez des images, cartes de favoris et post-its sur votre note.</li>
-          <li><strong>Assistance IA intégrée :</strong> Demandez à Gemini Nano d'écrire, d'améliorer ou de traduire votre texte instantanément.</li>
-        </ul>
-      </section>
-
-      <section id="mindmap">
-        <h2>🧠 6. Carte mentale (Mind Map)</h2>
-        <ul>
-          <li>Visualisez l'arborescence de vos favoris et de vos pensées sous forme de nœuds 2D interactifs.</li>
-          <li>Générez automatiquement des sous-sujets grâce à l'IA embarquée.</li>
-          <li>Convertissez n'importe quel nœud en tâche TODO en un simple clic.</li>
-        </ul>
-      </section>
-
-      <section id="buddy">
-        <h2>🐾 7. Compagnon IA de bureau (Buddy)</h2>
-        <ul>
-          <li>Un compagnon animé présent sur vos pages web sans jamais gêner votre lecture.</li>
-          <li><strong>Menu radial à 9 actions :</strong> Traduction rapide, chat IA, minuteur Pomodoro, mode repos Zen, mémos et TODOs.</li>
-          <li>Système d'expérience et d'évolution : débloquez des personnages secrets au fil de vos sessions de travail.</li>
-        </ul>
-      </section>
-
-      <section id="shortcuts">
-        <h2>⌨️ 8. Raccourcis clavier principaux</h2>
-        <ul>
-          <li><span class="kbd">Ctrl</span> + <span class="kbd">K</span> : Ouvrir la palette de commandes rapide</li>
-          <li><span class="kbd">Ctrl</span> + <span class="kbd">/</span> : Afficher l'aide et les raccourcis complets</li>
-          <li><span class="kbd">Alt</span> + <span class="kbd">B</span> : Enregistrer l'onglet actuel</li>
-        </ul>
+      <section id="privacy">
+        <h2 class="section-title" style="color: #10b981;">Confidentialité & Sécurité</h2>
+        <div class="card" style="border-left: 4px solid #10b981;">
+          <div class="card-title">Fonctionnement 100% local</div>
+          <div class="card-desc">ClickBook ne transmet aucune donnée à des serveurs externes. Toutes vos informations restent strictement stockées sur votre machine (stockage local).</div>
+        </div>
+        <div class="card" style="border-left: 4px solid #10b981; border: 1px dashed #10b981;">
+          <div class="card-title">Dossier sécurisé & Destructeur de session automatique <span class="badge" style="background-color: #8b5cf6;">Premium</span></div>
+          <div class="card-desc">Désignez des dossiers comme « Dossiers sécurisés » pour vos comptes bancaires ou pages confidentielles.
+            <ul style="margin-top: 0.5rem; space-y: 0.25rem;">
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>Badge de détection en direct :</strong> Lors de la navigation sur un site sécurisé, un <strong>badge vert `SEC`</strong> s'allume sur l'icône de la barre d'outils Chrome.</li>
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>Notification d'entrée :</strong> Un toast élégant confirme le démarrage d'une session sécurisée dès la fin du chargement.</li>
+              <li style="margin-left: 1.25rem; list-style-type: disc;"><strong>Destruction automatique à la fermeture :</strong> Dès la fermeture de l'onglet, les cookies associés, le stockage local, le cache, IndexedDB et l'historique de session sont définitivement et automatiquement effacés sans laisser la moindre trace.</li>
+            </ul>
+          </div>
+        </div>
       </section>
     </main>
   </div>
+
+  <section id="support" style="text-align: center; padding: 1.5rem; background-color: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto;">
+    <h2 class="section-title" style="justify-content: center; font-size: 1.4rem; margin-bottom: 0.75rem;">Soutenir le projet</h2>
+    <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.95rem;">Si ClickBook vous aide au quotidien, offrez-moi un café pour encourager le développement continu !</p>
+    <a href="https://www.buymeacoffee.com/junpa" target="_blank" style="display: inline-block;">
+      <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=junpa&button_colour=6366f1&font_colour=ffffff&font_family=Inter&outline_colour=ffffff&coffee_colour=FFDD00" alt="Buy Me A Coffee" style="height: 44px;">
+    </a>
+  </section>
+
+  <footer>
+    <p>© 2026 ClickBook AI - <a href="https://nexusforce.cloud/" target="_blank" style="color: inherit; text-decoration: underline;">NexusForce</a>. Tous droits réservés.</p>
+  </footer>
+
+  <script>
+    function toggleLangDropdown() {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper) {
+        wrapper.classList.toggle('open');
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('langDropdown');
+      if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('open');
+      }
+    });
+
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        if (pageYOffset >= section.offsetTop - 150) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) link.classList.add('active');
+      });
+    });
+  </script>
 </body>
 </html>
