@@ -203,7 +203,7 @@ export const de = {
   settingsWallpaperSourceOnline: "Nur Online (Unsplash)",
   settingsWallpaperSourceOnlineDesc: "Zufällig ausgewählte globale HD-Landschafts- und Naturfotografien.",
   settingsWallpaperSourceLocal: "Nur Offline / Lokal (Integriert)",
-  settingsWallpaperSourceLocalDesc: "10 integrierte hochwertige Wallpaper, die sofort ohne Internet geladen werden.",
+  settingsWallpaperSourceLocalDesc: "20 integrierte hochwertige Wallpaper, die sofort ohne Internet geladen werden.",
   settingsWallpaperSourceGradient: "Farbverlauf",
   settingsWallpaperSourceGradientDesc: "Ruhiger und eleganter moderner Farbverlaufshintergrund.",
   settingsWallpaperBlur: "Hintergrundunschärfe (Blur)",

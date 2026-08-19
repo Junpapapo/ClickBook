@@ -203,7 +203,7 @@ export const ko = {
   settingsWallpaperSourceOnline: "온라인 전용 (Unsplash)",
   settingsWallpaperSourceOnlineDesc: "글로벌 고화질 풍경 및 자연 사진을 랜덤으로 제공",
   settingsWallpaperSourceLocal: "오프라인/로컬 전용 (내장 번들)",
-  settingsWallpaperSourceLocalDesc: "인터넷 연결 없이 즉시 로드되는 10종의 내장 테마 이미지",
+  settingsWallpaperSourceLocalDesc: "인터넷 연결 없이 즉시 로드되는 20종의 내장 테마 이미지",
   settingsWallpaperSourceGradient: "그라디언트",
   settingsWallpaperSourceGradientDesc: "차분하고 세련된 모던 컬러 그라디언트 배경",
   settingsWallpaperBlur: "배경 흐림 효과 (Blur)",

@@ -203,7 +203,7 @@ export const zhTW = {
   settingsWallpaperSourceOnline: "僅限線上 (Unsplash)",
   settingsWallpaperSourceOnlineDesc: "隨機提供全球精選高畫質風景與大自然攝影圖片",
   settingsWallpaperSourceLocal: "僅限離線 / 本機 (內建圖庫)",
-  settingsWallpaperSourceLocalDesc: "無需網路連線，秒速載入 10 款高品質內建主題桌布",
+  settingsWallpaperSourceLocalDesc: "無需網路連線，秒速載入 20 款高品質內建主題桌布",
   settingsWallpaperSourceGradient: "漸層色彩",
   settingsWallpaperSourceGradientDesc: "沉穩典雅的現代色彩漸層背景",
   settingsWallpaperBlur: "背景模糊效果 (Blur)",

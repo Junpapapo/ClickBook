@@ -749,7 +749,7 @@ export default function SettingsModal({
                           <span className="text-sm">🎲</span>
                           <span className="text-xs font-bold">{t("settingsWallpaperRandomCycle")}</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 font-normal">10 Presets</span>
+                        <span className="text-[10px] text-slate-400 font-normal">{localWallpapers.length} Presets</span>
                       </button>
 
                       {/* Local Wallpaper Presets */}

@@ -203,7 +203,7 @@ export const fr = {
   settingsWallpaperSourceOnline: "En ligne uniquement (Unsplash)",
   settingsWallpaperSourceOnlineDesc: "Photos de paysages et de nature HD sélectionnées de manière aléatoire.",
   settingsWallpaperSourceLocal: "Hors ligne / Local uniquement (Intégré)",
-  settingsWallpaperSourceLocalDesc: "10 fonds thématiques intégrés de haute qualité chargés instantanément sans internet.",
+  settingsWallpaperSourceLocalDesc: "20 fonds thématiques intégrés de haute qualité chargés instantanément sans internet.",
   settingsWallpaperSourceGradient: "Dégradé",
   settingsWallpaperSourceGradientDesc: "Arrière-plan en dégradé de couleurs modernes, sobre et élégant.",
   settingsWallpaperBlur: "Flou d'arrière-plan (Blur)",

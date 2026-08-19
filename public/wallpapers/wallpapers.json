@@ -39,6 +39,46 @@
       "nameEn": "Dark Wallpaper #05",
       "path": "/wallpapers/dark/dark_05.webp",
       "theme": "dark"
+    },
+    {
+      "id": "dark_06",
+      "filename": "dark_06.webp",
+      "nameKo": "다크 월페이퍼 #06",
+      "nameEn": "Dark Wallpaper #06",
+      "path": "/wallpapers/dark/dark_06.webp",
+      "theme": "dark"
+    },
+    {
+      "id": "dark_07",
+      "filename": "dark_07.webp",
+      "nameKo": "다크 월페이퍼 #07",
+      "nameEn": "Dark Wallpaper #07",
+      "path": "/wallpapers/dark/dark_07.webp",
+      "theme": "dark"
+    },
+    {
+      "id": "dark_08",
+      "filename": "dark_08.webp",
+      "nameKo": "다크 월페이퍼 #08",
+      "nameEn": "Dark Wallpaper #08",
+      "path": "/wallpapers/dark/dark_08.webp",
+      "theme": "dark"
+    },
+    {
+      "id": "dark_09",
+      "filename": "dark_09.webp",
+      "nameKo": "다크 월페이퍼 #09",
+      "nameEn": "Dark Wallpaper #09",
+      "path": "/wallpapers/dark/dark_09.webp",
+      "theme": "dark"
+    },
+    {
+      "id": "dark_10",
+      "filename": "dark_10.webp",
+      "nameKo": "다크 월페이퍼 #10",
+      "nameEn": "Dark Wallpaper #10",
+      "path": "/wallpapers/dark/dark_10.webp",
+      "theme": "dark"
     }
   ],
   "light": [
@@ -80,6 +120,46 @@
       "nameKo": "라이트 월페이퍼 #05",
       "nameEn": "Light Wallpaper #05",
       "path": "/wallpapers/light/light_05.webp",
+      "theme": "light"
+    },
+    {
+      "id": "light_06",
+      "filename": "light_06.webp",
+      "nameKo": "라이트 월페이퍼 #06",
+      "nameEn": "Light Wallpaper #06",
+      "path": "/wallpapers/light/light_06.webp",
+      "theme": "light"
+    },
+    {
+      "id": "light_07",
+      "filename": "light_07.webp",
+      "nameKo": "라이트 월페이퍼 #07",
+      "nameEn": "Light Wallpaper #07",
+      "path": "/wallpapers/light/light_07.webp",
+      "theme": "light"
+    },
+    {
+      "id": "light_08",
+      "filename": "light_08.webp",
+      "nameKo": "라이트 월페이퍼 #08",
+      "nameEn": "Light Wallpaper #08",
+      "path": "/wallpapers/light/light_08.webp",
+      "theme": "light"
+    },
+    {
+      "id": "light_09",
+      "filename": "light_09.webp",
+      "nameKo": "라이트 월페이퍼 #09",
+      "nameEn": "Light Wallpaper #09",
+      "path": "/wallpapers/light/light_09.webp",
+      "theme": "light"
+    },
+    {
+      "id": "light_10",
+      "filename": "light_10.webp",
+      "nameKo": "라이트 월페이퍼 #10",
+      "nameEn": "Light Wallpaper #10",
+      "path": "/wallpapers/light/light_10.webp",
       "theme": "light"
     }
   ]

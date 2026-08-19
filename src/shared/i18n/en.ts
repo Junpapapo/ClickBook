@@ -203,7 +203,7 @@ export const en = {
   settingsWallpaperSourceOnline: "Online Only (Unsplash)",
   settingsWallpaperSourceOnlineDesc: "Random curated global HD landscape and nature photography.",
   settingsWallpaperSourceLocal: "Offline / Local Only (Built-in)",
-  settingsWallpaperSourceLocalDesc: "10 built-in high-quality theme wallpapers loaded instantly without internet.",
+  settingsWallpaperSourceLocalDesc: "20 built-in high-quality theme wallpapers loaded instantly without internet.",
   settingsWallpaperSourceGradient: "Gradient",
   settingsWallpaperSourceGradientDesc: "Calm and refined modern color gradient background.",
   settingsWallpaperBlur: "Background Blur",

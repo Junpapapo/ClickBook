@@ -203,7 +203,7 @@ export const ja = {
   settingsWallpaperSourceOnline: "オンライン専用 (Unsplash)",
   settingsWallpaperSourceOnlineDesc: "世界中から厳選された高画質風景・自然写真をランダム配信",
   settingsWallpaperSourceLocal: "オフライン / ローカル専用 (内蔵バンドル)",
-  settingsWallpaperSourceLocalDesc: "ネット接続不要で瞬時に読み込まれる10種の高品質内蔵テーマ画像",
+  settingsWallpaperSourceLocalDesc: "ネット接続不要で瞬時に読み込まれる20種の高品質内蔵テーマ画像",
   settingsWallpaperSourceGradient: "グラデーション",
   settingsWallpaperSourceGradientDesc: "落ち着きのある洗練されたモダンカラーグラデーション背景",
   settingsWallpaperBlur: "背景ぼかし効果 (Blur)",
