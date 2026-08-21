@@ -25,10 +25,12 @@ interface Props {
 }
 
 type Step = "sentiment" | "love" | "feedback";
+type FeedbackCategory = "feature" | "bug" | "general";
 
 export default function ReviewPromptModal({ onClose }: Props) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [step, setStep] = useState<Step>("sentiment");
+  const [category, setCategory] = useState<FeedbackCategory>("feature");
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSent, setFeedbackSent] = useState(false);
 
@@ -52,22 +54,48 @@ export default function ReviewPromptModal({ onClose }: Props) {
 
   const handleSendFeedback = useCallback(async () => {
     await snoozeReviewPrompt(14);
-    if (feedbackText.trim()) {
-      const encodedBody = encodeURIComponent(feedbackText.trim());
-      const url = `${GITHUB_ISSUES_URL}&body=${encodedBody}`;
-      if (typeof window !== "undefined") {
-        window.open(url, "_blank");
-      }
-    } else {
-      if (typeof window !== "undefined") {
-        window.open(GITHUB_ISSUES_URL, "_blank");
-      }
+    
+    const appVersion = (typeof chrome !== "undefined" && chrome?.runtime?.getManifest?.()?.version) || "1.7.3";
+    const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "Unknown";
+    const clientLang = lang || "en";
+    const screenRes = typeof window !== "undefined" ? `${window.screen.width}x${window.screen.height}` : "Unknown";
+
+    const categoryMeta: Record<FeedbackCategory, { label: string; tag: string; issueLabel: string }> = {
+      feature: { label: "Feature Request 💡", tag: "Feature", issueLabel: "enhancement" },
+      bug: { label: "Bug Report 🐛", tag: "Bug", issueLabel: "bug" },
+      general: { label: "General Feedback 💬", tag: "Feedback", issueLabel: "feedback" },
+    };
+
+    const currentCat = categoryMeta[category] || categoryMeta.general;
+    const feedbackContent = feedbackText.trim() || "(No additional text provided)";
+
+    const formattedBody = `### 💌 User Feedback Details
+- **Category:** ${currentCat.label}
+- **App Version:** ClickBook v${appVersion}
+- **Language:** ${clientLang}
+- **Client:** ${userAgent}
+- **Screen:** ${screenRes}
+
+---
+
+### 📝 Feedback Content
+${feedbackContent}
+
+---
+*Sent via ClickBook Feedback Assistant*`;
+
+    const issueTitle = `[${currentCat.tag}] User Feedback (v${appVersion})`;
+    const issueUrl = `https://github.com/Junpapapo/ClickBook/issues/new?title=${encodeURIComponent(issueTitle)}&labels=${encodeURIComponent(currentCat.issueLabel)}&body=${encodeURIComponent(formattedBody)}`;
+
+    if (typeof window !== "undefined") {
+      window.open(issueUrl, "_blank");
     }
+    
     setFeedbackSent(true);
     setTimeout(() => {
       onClose();
     }, 1200);
-  }, [feedbackText, onClose]);
+  }, [category, feedbackText, lang, onClose]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -198,15 +226,58 @@ export default function ReviewPromptModal({ onClose }: Props) {
               {t("reviewStep2FeedbackTitle")}
             </h3>
 
-            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed mb-4 max-w-sm">
+            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed mb-3 max-w-sm">
               {t("reviewStep2FeedbackMsg")}
             </p>
+
+            {/* Category Selection Chips */}
+            <div className="w-full flex items-center justify-center gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setCategory("feature")}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  category === "feature"
+                    ? "bg-amber-500 text-white shadow-xs font-semibold scale-105"
+                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                }`}
+              >
+                💡 Feature
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategory("bug")}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  category === "bug"
+                    ? "bg-rose-500 text-white shadow-xs font-semibold scale-105"
+                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                }`}
+              >
+                🐛 Bug
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategory("general")}
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                  category === "general"
+                    ? "bg-blue-600 text-white shadow-xs font-semibold scale-105"
+                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                }`}
+              >
+                💬 General
+              </button>
+            </div>
 
             <div className="w-full mb-4">
               <textarea
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Write your feedback, feature request or bug report here..."
+                placeholder={
+                  category === "feature"
+                    ? "Describe the feature or improvement you'd love to see..."
+                    : category === "bug"
+                    ? "Describe what happened, steps to reproduce, or the issue..."
+                    : "Write your feedback or thoughts here..."
+                }
                 rows={3}
                 className="w-full p-3 text-xs bg-neutral-50 dark:bg-neutral-800/80 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 resize-none transition"
               />
