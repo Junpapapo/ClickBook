@@ -13,7 +13,7 @@ export async function getGitHubRankingCache(): Promise<GitHubRankingCache | null
 export async function setGitHubRankingCache(cache: GitHubRankingCache): Promise<void> {
   await chrome.storage.local.set({ [GITHUB_RANKING_KEY]: cache });
 }
-import type { Bookmark, Folder, StorageData, ClickBookBackupData, AppSettings } from "./types";
+import type { Bookmark, Folder, StorageData, ClickBookBackupData, AppSettings, ReviewPromptState } from "./types";
 import { DEFAULT_FOLDERS, DEFAULT_FOLDER_ID } from "./categories";
 import { getAllSpringNotes, saveAllSpringNotes } from "@/utils/springNoteDb";
 
@@ -80,12 +80,14 @@ export async function addBookmark(bookmark: Bookmark): Promise<void> {
   await withStorageLock(async (data) => {
     data.bookmarks = [bookmark, ...data.bookmarks];
   });
+  trackUserAction(1).catch(() => {});
 }
 
 export async function addBookmarks(newBookmarks: Bookmark[]): Promise<void> {
   await withStorageLock(async (data) => {
     data.bookmarks = [...newBookmarks, ...data.bookmarks];
   });
+  trackUserAction(newBookmarks.length).catch(() => {});
 }
 
 export async function deleteBookmark(id: string): Promise<void> {
@@ -1178,4 +1180,95 @@ export async function deleteAnchoredMemo(url: string, memoId: string): Promise<v
   }
 }
 
+// ── Review Prompt State Helpers ───────────────────────────
+const REVIEW_PROMPT_KEY = "clickbook_review_prompt_state";
 
+export const DEFAULT_REVIEW_PROMPT_STATE: ReviewPromptState = {
+  installedAt: 0,
+  newTabOpenCount: 0,
+  actionCount: 0,
+  shownCount: 0,
+  snoozedUntil: 0,
+  hasReviewed: false,
+  dismissedForever: false,
+};
+
+export async function getReviewPromptState(): Promise<ReviewPromptState> {
+  const result = await chrome.storage.local.get(REVIEW_PROMPT_KEY);
+  const data = result[REVIEW_PROMPT_KEY];
+  if (data && typeof data === "object") {
+    return {
+      installedAt: typeof data.installedAt === "number" ? data.installedAt : Date.now(),
+      newTabOpenCount: typeof data.newTabOpenCount === "number" ? data.newTabOpenCount : 0,
+      actionCount: typeof data.actionCount === "number" ? data.actionCount : 0,
+      shownCount: typeof data.shownCount === "number" ? data.shownCount : 0,
+      snoozedUntil: typeof data.snoozedUntil === "number" ? data.snoozedUntil : 0,
+      hasReviewed: Boolean(data.hasReviewed),
+      dismissedForever: Boolean(data.dismissedForever),
+    };
+  }
+  const initial: ReviewPromptState = {
+    ...DEFAULT_REVIEW_PROMPT_STATE,
+    installedAt: Date.now(),
+  };
+  await chrome.storage.local.set({ [REVIEW_PROMPT_KEY]: initial });
+  return initial;
+}
+
+export async function saveReviewPromptState(state: ReviewPromptState): Promise<void> {
+  await chrome.storage.local.set({ [REVIEW_PROMPT_KEY]: state });
+}
+
+export async function trackNewTabOpen(): Promise<ReviewPromptState> {
+  const state = await getReviewPromptState();
+  state.newTabOpenCount += 1;
+  await saveReviewPromptState(state);
+  return state;
+}
+
+export async function trackUserAction(increment = 1): Promise<ReviewPromptState> {
+  const state = await getReviewPromptState();
+  state.actionCount += increment;
+  await saveReviewPromptState(state);
+  return state;
+}
+
+export async function incrementReviewPromptShown(): Promise<ReviewPromptState> {
+  const state = await getReviewPromptState();
+  state.shownCount += 1;
+  await saveReviewPromptState(state);
+  return state;
+}
+
+export async function snoozeReviewPrompt(days = 7): Promise<void> {
+  const state = await getReviewPromptState();
+  state.snoozedUntil = Date.now() + days * 24 * 60 * 60 * 1000;
+  await saveReviewPromptState(state);
+}
+
+export async function dismissReviewPromptForever(): Promise<void> {
+  const state = await getReviewPromptState();
+  state.dismissedForever = true;
+  await saveReviewPromptState(state);
+}
+
+export async function markReviewCompleted(): Promise<void> {
+  const state = await getReviewPromptState();
+  state.hasReviewed = true;
+  await saveReviewPromptState(state);
+}
+
+export function shouldShowReviewPrompt(state: ReviewPromptState): boolean {
+  if (state.hasReviewed || state.dismissedForever) return false;
+  if (state.shownCount >= 3) return false;
+  if (Date.now() < state.snoozedUntil) return false;
+
+  // 최소 3일(72시간) 이상 설치 경과
+  const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+  const isInstalledLongEnough = state.installedAt > 0 && Date.now() - state.installedAt >= threeDaysMs;
+  if (!isInstalledLongEnough) return false;
+
+  // 새 탭 15회 이상 또는 주요 액션 10회 이상
+  const hasEngaged = state.newTabOpenCount >= 15 || state.actionCount >= 10;
+  return hasEngaged;
+}

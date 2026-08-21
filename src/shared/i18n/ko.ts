@@ -1119,6 +1119,25 @@ export const ko = {
   viewModeDay: "일간",
   newNote: "새 노트",
   guide: "가이드",
+
+  // ── Review Prompt ─────────────────────────────────────────
+  reviewStep1Title: "ClickBook과 함께한 시간, 만족스러우셨나요?",
+  reviewStep1Desc: "더 깔끔하고 생산적인 웹 생활을 위해 매일 발전하고 있습니다. 사용자님의 솔직한 경험을 들려주세요!",
+  reviewStep1Positive: "😍 아주 유용하고 만족해요!",
+  reviewStep1Negative: "😅 아직 조금 아쉬워요",
+  reviewStep2LoveTitle: "개발자의 진심을 담은 작은 편지",
+  reviewStep2LoveBadge: "1인 인디 프로젝트",
+  reviewStep2LoveMsg1: "안녕하세요! ClickBook은 광고 없는 쾌적한 생산성 도구를 만들기 위해 1인 개발자가 매일 밤 열정으로 가꿔가는 무료 프로젝트입니다.",
+  reviewStep2LoveMsg2: "대규모 마케팅 없이, 사용자님의 따뜻한 별점 5점 리뷰 하나가 ClickBook을 계속 유지하고 발전시키는 가장 큰 원동력이 됩니다. 30초만 시간을 내어 응원의 별점을 남겨주실 수 있을까요?",
+  reviewStep2LoveBtn: "⭐ 30초 만에 스토어 리뷰 남기기",
+  reviewStep2FeedbackTitle: "더 나은 ClickBook을 위한 의견 🙇",
+  reviewStep2FeedbackBadge: "소중한 피드백",
+  reviewStep2FeedbackMsg: "불편을 드려 죄송합니다. 아쉬운 점이나 필요한 기능을 알려주시면 다음 업데이트에 최우선으로 반영하여 더 완벽한 도구로 보답하겠습니다!",
+  reviewStep2FeedbackBtn: "💬 개선 의견 / 이슈 남기기",
+  reviewLaterBtn: "☕ 나중에 하기",
+  reviewNeverBtn: "다시 보지 않기",
+  reviewCloseBtn: "닫기",
+  supportAndReview: "💌 개발자 응원 / 리뷰 남기기",
 };
 
 

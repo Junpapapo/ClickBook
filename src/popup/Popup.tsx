@@ -24,7 +24,7 @@ type SaveResult = { folderName: string; method: ClassifyMethod };
 
 const GITHUB_ISSUES_URL = "https://github.com/Junpapapo/ClickBook/issues/new/choose";
 const FEEDBACK_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSd84kbl768v0lx8rJMw4jq-cnS9fwwVj45fFBHEmG5Wu5iMCg/viewform?usp=dialog";
-const CHROME_STORE_URL = "https://chromewebstore.google.com/detail/ikdaaibmockcojalohiopmbcpcnkkmga?utm_source=item-share-cb";
+const CHROME_STORE_URL = "https://chromewebstore.google.com/detail/ikdaaibmockcojalohiopmbcpcnkkmga/reviews";
 
 function getTodayString() {
   const d = new Date();

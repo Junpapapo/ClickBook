@@ -1119,6 +1119,25 @@ export const zhTW = {
   viewModeDay: "日檢視",
   newNote: "新增筆記",
   guide: "指南",
+
+  // ── Review Prompt ─────────────────────────────────────────
+  reviewStep1Title: "您對 ClickBook 的使用體驗滿意嗎？",
+  reviewStep1Desc: "我們每天都在努力打造更清爽、更高效的瀏覽工作區。請告訴我們您的真實感受！",
+  reviewStep1Positive: "😍 非常實用，我很喜歡！",
+  reviewStep1Negative: "😅 還有一些需要改進的地方",
+  reviewStep2LoveTitle: "來自開發者的一封真誠信件",
+  reviewStep2LoveBadge: "獨立開發專案",
+  reviewStep2LoveMsg1: "您好！ClickBook 是一位獨立開發者出於熱情、每晚用心打造的完全免費擴充功能，旨在為大家提供無廣告干擾的高效生產力環境。",
+  reviewStep2LoveMsg2: "在沒有任何推廣預算的情況下，您寶貴的 5 星好評是推動 ClickBook 持續維護與更新的最大動力。能否抽出 30 秒為我們留下溫暖的好評？",
+  reviewStep2LoveBtn: "⭐ 30 秒留下 5 星好評",
+  reviewStep2FeedbackTitle: "如何讓 ClickBook 變得更好？🙇",
+  reviewStep2FeedbackBadge: "傾聽您的聲音",
+  reviewStep2FeedbackMsg: "很抱歉未能完全滿足您的期望。請告訴我們您遇到的問題或希望新增的功能，我們會在下一次更新中優先處理！",
+  reviewStep2FeedbackBtn: "💬 提交反饋 / 報告問題",
+  reviewLaterBtn: "☕ 稍後再說",
+  reviewNeverBtn: "不再顯示",
+  reviewCloseBtn: "關閉",
+  supportAndReview: "💌 支持開發者 / 留下好評",
 };
 
 

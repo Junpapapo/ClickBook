@@ -38,6 +38,7 @@ interface Props {
   onSelectTodoBoard?: () => void;
   onOpenSettings?: () => void;
   onOpenGuide?: () => void;
+  initialZenMode?: boolean;
   organizeResult?: {
     movedCount: number;
     total: number;
@@ -81,6 +82,7 @@ export default function Dashboard({
   onSelectTodoBoard,
   onOpenSettings,
   onOpenGuide,
+  initialZenMode,
   organizeResult = null,
   onClearOrganizeResult,
 }: Props) {
@@ -93,7 +95,16 @@ export default function Dashboard({
   const [renamingFolderId, setRenamingFolderId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
-  const [isZenMode, setIsZenMode] = useState(false);
+  const [isZenMode, setIsZenMode] = useState(() => {
+    if (initialZenMode !== undefined) return initialZenMode;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "dashboard") {
+        return true;
+      }
+    }
+    return false;
+  });
 
   // 빈 배경 클릭 시 상단 검색창만 남기고 위젯 숨김 토글
   const handleBackgroundClick = (e: React.MouseEvent) => {

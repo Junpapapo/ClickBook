@@ -85,6 +85,10 @@ export default function Sidebar({
 }: Props) {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "dashboard") {
+        return true;
+      }
       return localStorage.getItem("clickbook_sidebar_collapsed") === "true";
     }
     return false;

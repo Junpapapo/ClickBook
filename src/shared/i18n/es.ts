@@ -1119,6 +1119,25 @@ export const es = {
   viewModeDay: "Día",
   newNote: "Nueva nota",
   guide: "Guía",
+
+  // ── Review Prompt ─────────────────────────────────────────
+  reviewStep1Title: "¿Estás disfrutando de tu experiencia con ClickBook?",
+  reviewStep1Desc: "Nos esforzamos cada día por crear un espacio de trabajo más limpio y productivo en tu navegador. ¿Cómo ha sido tu experiencia?",
+  reviewStep1Positive: "😍 ¡Me encanta, es súper útil!",
+  reviewStep1Negative: "😅 Podría mejorar en algunos aspectos",
+  reviewStep2LoveTitle: "Una nota sincera del desarrollador",
+  reviewStep2LoveBadge: "Proyecto Indie",
+  reviewStep2LoveMsg1: "¡Hola! ClickBook es un proyecto gratuito desarrollado con pasión por un creador independiente para ofrecerte una herramienta de productividad sin distracciones.",
+  reviewStep2LoveMsg2: "Sin presupuesto de publicidad, tu reseña de 5 estrellas es el mayor motor que mantiene vivo y en constante mejora este proyecto. ¿Podrías dedicarnos 30 segundos para apoyarnos?",
+  reviewStep2LoveBtn: "⭐ Apoyar con 5 estrellas (30s)",
+  reviewStep2FeedbackTitle: "¿Cómo podemos mejorar ClickBook? 🙇",
+  reviewStep2FeedbackBadge: "Escuchamos tu opinión",
+  reviewStep2FeedbackMsg: "Lamentamos que ClickBook no haya cumplido todas tus expectativas. Cuéntanos qué ha fallado o qué funciones necesitas y lo priorizaremos en la próxima actualización.",
+  reviewStep2FeedbackBtn: "💬 Enviar comentarios / Reportar error",
+  reviewLaterBtn: "☕ Quizás más tarde",
+  reviewNeverBtn: "No volver a mostrar",
+  reviewCloseBtn: "Cerrar",
+  supportAndReview: "💌 Apoyar al creador / Dejar reseña",
 };
 
 

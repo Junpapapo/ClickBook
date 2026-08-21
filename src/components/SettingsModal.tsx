@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket, Sun, Crosshair, Image as ImageIcon } from "lucide-react";
+import { X, Settings2, Eye, FolderTree, Sparkles, Download, Upload, Globe2, Database, Keyboard, HardDrive, AlertOctagon, Trash2, ChevronDown, ChevronRight, Calendar, Rocket, Sun, Crosshair, Image as ImageIcon, Heart } from "lucide-react";
 import type { AppSettings, WeatherConfig } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -32,6 +32,7 @@ interface Props {
   onToggleHNRankingMenu: (v: boolean) => void;
   settingsMessage?: { text: string; type: "info" | "warn" } | null;
   onOpenOnboarding?: () => void;
+  onOpenReviewPrompt?: () => void;
 }
 
 function NumInput({
@@ -134,7 +135,8 @@ export default function SettingsModal({
   showHFRankingMenu, onToggleHFRankingMenu,
   showHNRankingMenu, onToggleHNRankingMenu,
   settingsMessage,
-  onOpenOnboarding
+  onOpenOnboarding,
+  onOpenReviewPrompt
 }: Props) {
   const { t, lang } = useLang();
   const { showConfirm, showAlert, DialogEl } = useDialog();
@@ -1007,7 +1009,19 @@ export default function SettingsModal({
           </div>
 
           {/* フッター */}
-          <div className="px-5 py-4 border-t border-slate-200/80 dark:border-slate-800 flex justify-end items-center gap-2 bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="px-5 py-4 border-t border-slate-200/80 dark:border-slate-800 flex justify-between items-center gap-2 bg-slate-50/50 dark:bg-slate-900/50">
+            {onOpenReviewPrompt ? (
+              <button
+                type="button"
+                onClick={onOpenReviewPrompt}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 hover:underline transition-colors cursor-pointer group"
+              >
+                <Heart size={13} className="text-amber-500 fill-amber-500 group-hover:scale-110 transition-transform" />
+                <span>{t("supportAndReview")}</span>
+              </button>
+            ) : (
+              <div />
+            )}
             <div className="flex gap-2">
               <button
                 onClick={handleCloseModal}

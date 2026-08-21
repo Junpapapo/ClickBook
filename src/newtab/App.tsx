@@ -25,9 +25,15 @@ const PrintCalendar = lazyWithRetry(() => import("@/pages/PrintCalendar"));
 const MindMapBoard = lazyWithRetry(() => import("@/pages/MindMapBoard"));
 const SpringNoteBoard = lazyWithRetry(() => import("@/pages/SpringNoteBoard"));
 const ReaderModeViewer = lazyWithRetry(() => import("@/components/ReaderModeViewer").then(m => ({ default: m.ReaderModeViewer })));
+const ReviewPromptModal = lazyWithRetry(() => import("@/components/ReviewPromptModal"));
 
 import type { Bookmark, Folder, MemoMap, StorageData, AppSettings, ClickBookBackupData, TodoBoardData, PageId } from "@/shared/types";
-import { DEFAULT_SETTINGS } from "@/shared/storage";
+import { 
+  DEFAULT_SETTINGS, 
+  trackNewTabOpen, 
+  shouldShowReviewPrompt, 
+  incrementReviewPromptShown 
+} from "@/shared/storage";
 import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -48,7 +54,15 @@ function AppContent() {
   const [aiSearchQuery] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [activePage, setActivePage] = useState<PageId>("dashboard");
-  const [activePanel, setActivePanel] = useState<RightPanelId | null>(null);
+  const [activePanel, setActivePanel] = useState<RightPanelId | null>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "dashboard") {
+        return "widgets";
+      }
+    }
+    return null;
+  });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const [infoBookmarkId, setInfoBookmarkId] = useState<string | null>(null);
@@ -60,6 +74,7 @@ function AppContent() {
   const [showHFRankingMenu, setShowHFRankingMenu] = useState(true);
   const [showHNRankingMenu, setShowHNRankingMenu] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [pageContents, setPageContents] = useState<Record<string, string>>({});
   const [pageContentsLoaded, setPageContentsLoaded] = useState(false);
@@ -297,6 +312,34 @@ function AppContent() {
       if (r.clickbook_show_hn_ranking !== undefined) setShowHNRankingMenu(r.clickbook_show_hn_ranking);
       if (!r.clickbook_onboarded) setShowWelcome(true);
     });
+  }, []);
+
+  // Review Prompt Eligibility & Frequency Controller
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    trackNewTabOpen()
+      .then((state) => {
+        if (shouldShowReviewPrompt(state)) {
+          timer = setTimeout(() => {
+            if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+              chrome.storage.local.get(["clickbook_onboarded"], (res) => {
+                // 온보딩 창이 아직 완료되지 않은 신규 유저에게는 겹치지 않게 방지
+                if (res && res.clickbook_onboarded) {
+                  setShowReviewPrompt(true);
+                  incrementReviewPromptShown();
+                }
+              });
+            }
+          }, 1200);
+        }
+      })
+      .catch((err) => {
+        console.warn("[ClickBook] Failed to check review prompt status:", err);
+      });
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -785,6 +828,10 @@ function AppContent() {
               setSettingsModalOpen(false);
               setShowWelcome(true);
             }}
+            onOpenReviewPrompt={() => {
+              setSettingsModalOpen(false);
+              setShowReviewPrompt(true);
+            }}
           />
         )}
       </Suspense>
@@ -803,6 +850,15 @@ function AppContent() {
           }}
         />
       )}
+
+      {/* 진정성 있는 다국어 리뷰 유도 모달 */}
+      <Suspense fallback={null}>
+        {showReviewPrompt && (
+          <ReviewPromptModal
+            onClose={() => setShowReviewPrompt(false)}
+          />
+        )}
+      </Suspense>
 
       {/* Reader Mode Viewer Overlay */}
       <Suspense fallback={null}>

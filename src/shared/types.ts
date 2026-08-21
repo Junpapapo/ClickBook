@@ -461,3 +461,18 @@ export type PageId =
   | "calendar"
   | "mindmap"
   | "springnote";
+
+// =============================
+// Review Prompt State Model
+// =============================
+
+export interface ReviewPromptState {
+  installedAt: number;        // 최초 설치 일시 (타임스탬프)
+  newTabOpenCount: number;    // 새 탭 열기 누적 횟수
+  actionCount: number;        // 북마크/투두/메모 등 주요 인터랙션 누적 횟수
+  shownCount: number;         // 모달이 노출된 횟수 (최대 3회)
+  snoozedUntil: number;       // 쿨다운 만료 시각 (타임스탬프)
+  hasReviewed: boolean;       // 리뷰 링크 클릭 여부 (영구 비노출)
+  dismissedForever: boolean;  // '다시 보지 않기' 클릭 여부 (영구 비노출)
+}
+

@@ -1121,6 +1121,25 @@ export const en = {
   viewModeDay: "Day",
   newNote: "New Note",
   guide: "Guide",
+
+  // ── Review Prompt ─────────────────────────────────────────
+  reviewStep1Title: "Enjoying your time with ClickBook?",
+  reviewStep1Desc: "We strive every day to build a cleaner, more productive browsing workspace. How has your experience been?",
+  reviewStep1Positive: "😍 Loving it, super helpful!",
+  reviewStep1Negative: "😅 Needs some improvement",
+  reviewStep2LoveTitle: "A Heartfelt Note from the Developer",
+  reviewStep2LoveBadge: "Solo Indie Project",
+  reviewStep2LoveMsg1: "Hi there! ClickBook is a passion project built and maintained by a solo developer who dreams of creating a distraction-free, privacy-friendly productivity tool.",
+  reviewStep2LoveMsg2: "With zero advertising budget, your 5-star review is the single biggest fuel that keeps ClickBook alive and continuously improving. Could you spare 30 seconds to support us?",
+  reviewStep2LoveBtn: "⭐ Support with 5 Stars (30s)",
+  reviewStep2FeedbackTitle: "How can we make ClickBook better?",
+  reviewStep2FeedbackBadge: "We Listen & Improve",
+  reviewStep2FeedbackMsg: "We're truly sorry that ClickBook hasn't fully met your expectations. Tell us what went wrong or what features you need, and we'll prioritize them in our next update!",
+  reviewStep2FeedbackBtn: "💬 Send Feedback / Report Issue",
+  reviewLaterBtn: "☕ Maybe later",
+  reviewNeverBtn: "Don't show again",
+  reviewCloseBtn: "Close",
+  supportAndReview: "💌 Support & Leave a Review",
 };
 
 

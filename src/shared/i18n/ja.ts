@@ -1119,6 +1119,25 @@ export const ja = {
   viewModeDay: "日間",
   newNote: "新規ノート",
   guide: "ガイド",
+
+  // ── Review Prompt ─────────────────────────────────────────
+  reviewStep1Title: "ClickBookの使い心地はいかがですか？",
+  reviewStep1Desc: "よりクリーンで生産的なブラウジング環境をお届けできるよう日々改善しています。率直なご感想をお聞かせください！",
+  reviewStep1Positive: "😍 とても便利で大満足です！",
+  reviewStep1Negative: "😅 まだ少し物足りない点があります",
+  reviewStep2LoveTitle: "開発者からのささやかなお願い",
+  reviewStep2LoveBadge: "個人開発プロジェクト",
+  reviewStep2LoveMsg1: "こんにちは！ClickBookは、広告のない快適な作業空間を目指し、個人開発者が情熱を注いで作り続けている完全無料の拡張機能です。",
+  reviewStep2LoveMsg2: "大規模な広告宣伝を行っていないため、皆様からの「★5レビュー」が本プロジェクトを維持・進化させる最大の原動力になります。30秒だけお時間をいただき、応援のレビューをいただけませんか？",
+  reviewStep2LoveBtn: "⭐ 30秒で応援レビューを書く",
+  reviewStep2FeedbackTitle: "改善に向けたご意見をお聞かせください 🙇",
+  reviewStep2FeedbackBadge: "ご意見・ご要望",
+  reviewStep2FeedbackMsg: "ご期待に沿えず申し訳ありません。ご不便な点や欲しい機能がございましたらぜひお知らせください。最優先で次回アップデートに反映いたします！",
+  reviewStep2FeedbackBtn: "💬 改善要望・フィードバックを送る",
+  reviewLaterBtn: "☕ あとで",
+  reviewNeverBtn: "今後表示しない",
+  reviewCloseBtn: "閉じる",
+  supportAndReview: "💌 開発者を応援 / レビュー",
 };
 
 
