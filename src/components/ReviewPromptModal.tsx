@@ -18,7 +18,6 @@ import {
 } from "@/shared/storage";
 
 const CHROME_STORE_REVIEWS_URL = "https://chromewebstore.google.com/detail/ikdaaibmockcojalohiopmbcpcnkkmga/reviews";
-const GITHUB_ISSUES_URL = "https://github.com/Junpapapo/ClickBook/issues/new?title=%5BFeedback%5D%20ClickBook%20Improvement&labels=feedback";
 
 interface Props {
   onClose: () => void;

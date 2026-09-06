@@ -595,7 +595,15 @@ export async function saveMemo(
   color: import("./types").MemoColor
 ): Promise<void> {
   const memos = await readMemos();
-  memos[bookmarkId] = { bookmarkId, content, color, updatedAt: Date.now() };
+  const existing = memos[bookmarkId];
+  memos[bookmarkId] = {
+    ...existing,
+    bookmarkId,
+    content,
+    color,
+    updatedAt: Date.now(),
+    ...(existing?.anchoredMemos ? { anchoredMemos: existing.anchoredMemos } : {}),
+  };
   await chrome.storage.local.set({ [MEMOS_KEY]: memos });
 }
 

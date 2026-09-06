@@ -1,5 +1,20 @@
-import { useState, useEffect } from "react";
-import { StickyNote, ExternalLink, X, Plus, Check, Info, Sparkles, Loader2, Copy, Trash2, BookOpen } from "lucide-react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  StickyNote,
+  ExternalLink,
+  X,
+  Plus,
+  Check,
+  Info,
+  Sparkles,
+  Loader2,
+  Copy,
+  Trash2,
+  BookOpen,
+  Search,
+  Globe,
+  Anchor,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
 import { refineMemoDraft } from "@/shared/categorizer";
@@ -19,30 +34,73 @@ import WallpaperBackground from "@/components/dashboard/WallpaperBackground";
 type CardSize = "s" | "m" | "l";
 
 const SIZE_GRID: Record<CardSize, string> = {
-  s: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
-  m: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+  s: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+  m: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
   l: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+};
+
+const SIZE_STYLES: Record<
+  CardSize,
+  {
+    padding: string;
+    bodyText: string;
+    leading: string;
+    textareaText: string;
+    textareaMinH: string;
+    metaText: string;
+  }
+> = {
+  s: {
+    padding: "p-2.5",
+    bodyText: "text-[11.5px]",
+    leading: "leading-snug",
+    textareaText: "text-[11.5px]",
+    textareaMinH: "min-h-[85px]",
+    metaText: "text-[9.5px]",
+  },
+  m: {
+    padding: "p-3",
+    bodyText: "text-[13px]",
+    leading: "leading-relaxed",
+    textareaText: "text-[13px]",
+    textareaMinH: "min-h-[110px]",
+    metaText: "text-[10.5px]",
+  },
+  l: {
+    padding: "p-3.5 sm:p-4",
+    bodyText: "text-[14.5px]",
+    leading: "leading-relaxed",
+    textareaText: "text-[14.5px]",
+    textareaMinH: "min-h-[140px]",
+    metaText: "text-[11.5px]",
+  },
 };
 
 const SIZE_LABEL: Record<CardSize, string> = { s: "S", m: "M", l: "L" };
 const SIZE_STORAGE_KEY = "clickbook_memo_size";
+const COLS_STORAGE_KEY = "clickbook_memo_cols";
+type ColumnOption = "auto" | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 // ── NewMemoCard（サイト連携なしの新規メモ入力カード） ────
 
-function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
+interface NewMemoCardProps {
+  onSave: () => void;
+  onCancel: () => void;
+  cardSize?: CardSize;
+  aiEnabled: boolean;
+}
+
+function NewMemoCard({
+  onSave,
+  onCancel,
+  cardSize = "m",
+  aiEnabled,
+}: NewMemoCardProps) {
   const { t, lang } = useLang();
   const [content, setContent] = useState("");
   const [color, setColor] = useState<MemoColor>("yellow");
   const [isRefining, setIsRefining] = useState(false);
-  const [aiEnabled, setAiEnabled] = useState(true);
-
-  useEffect(() => {
-    chrome.storage.local.get("clickbook_ai_enabled", (res) => {
-      if (res.clickbook_ai_enabled === false) {
-        setAiEnabled(false);
-      }
-    });
-  }, []);
+  const [copied, setCopied] = useState(false);
 
   async function handleSave() {
     const text = content.trim();
@@ -55,26 +113,40 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
   async function handleRefine() {
     if (!content.trim() || isRefining || !aiEnabled) return;
     setIsRefining(true);
-    const res = await refineMemoDraft(content, lang);
-    if (res.aiUsed) {
-      setContent(res.draft);
+    try {
+      const res = await refineMemoDraft(content, lang);
+      if (res.aiUsed) {
+        setContent(res.draft);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsRefining(false);
     }
-    setIsRefining(false);
   }
 
+  const handleCopy = useCallback(() => {
+    if (!content) return;
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  }, [content]);
+
   return (
-    <div className={`flex flex-col rounded-xl border overflow-hidden shadow-md ${MEMO_CARD_CLS[color]}`}>
+    <div className={`flex flex-col rounded-xl border overflow-hidden shadow-md ${MEMO_CARD_CLS[color]} transition-all animate-fadeIn`}>
       <div className={`h-1.5 w-full shrink-0 ${MEMO_ACCENT[color]}`} />
-      <div className="p-3 flex flex-col gap-2">
+      <div className={`${SIZE_STYLES[cardSize].padding} flex flex-col gap-2`}>
         {/* カラーピッカー */}
         <div className="flex items-center gap-1.5">
           {ALL_COLORS.map((c) => (
             <button
               key={c}
+              type="button"
               onClick={() => setColor(c)}
-              className={`w-4 h-4 rounded-full ${MEMO_DOT[c]} transition-all ${
+              className={`w-4 h-4 rounded-full ${MEMO_DOT[c]} transition-all cursor-pointer ${
                 c === color
-                  ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500 dark:ring-offset-transparent"
+                  ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500 dark:ring-offset-transparent scale-110"
                   : "opacity-50 hover:opacity-100"
               }`}
             />
@@ -87,58 +159,65 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
           onChange={(e) => setContent(e.target.value)}
           autoFocus
           placeholder={t("memoPlaceholder")}
-          rows={8}
+          rows={cardSize === "s" ? 6 : cardSize === "l" ? 10 : 8}
           onKeyDown={(e) => {
             if (e.key === "Escape") onCancel();
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSave();
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              handleSave();
+            }
           }}
-          className={`w-full text-xs rounded-lg px-2.5 py-2 resize-y min-h-[100px] outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500`}
+          className={`w-full ${SIZE_STYLES[cardSize].textareaText} rounded-lg px-2.5 py-2 resize-y ${SIZE_STYLES[cardSize].textareaMinH} outline-none ${SIZE_STYLES[cardSize].leading} ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 custom-scrollbar border focus:border-indigo-400/80 transition-colors`}
         />
 
         {/* アクション */}
         <div className="flex gap-1 justify-between items-center mt-1">
           <div className="flex items-center gap-1">
             <button
+              type="button"
               onClick={handleRefine}
               disabled={!content.trim() || isRefining || !aiEnabled}
               title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
-              className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center gap-1"
+              className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/60 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-figma-xs flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
             >
-              {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {isRefining ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+              {isRefining && <span className="text-[10px] font-medium">{t("aiRefining")}</span>}
             </button>
             <button
-              onClick={() => {
-                if (content) navigator.clipboard.writeText(content);
-              }}
+              type="button"
+              onClick={handleCopy}
               disabled={!content}
-              title="Copy"
-              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+              title={copied ? t("memoCopied") : t("memoCopyTooltip")}
+              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/60 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-figma-xs flex items-center cursor-pointer disabled:cursor-not-allowed"
             >
-              <Copy size={14} />
+              {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
             </button>
             <button
+              type="button"
               onClick={() => setContent("")}
               disabled={!content}
-              title="Clear text"
-              className="text-red-500 hover:text-red-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+              title={t("memoClearTooltip")}
+              className="text-red-500 hover:text-red-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/60 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-figma-xs flex items-center cursor-pointer disabled:cursor-not-allowed"
             >
-              <Trash2 size={14} />
+              <Trash2 size={13} />
             </button>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
             <button
+              type="button"
               onClick={onCancel}
-              className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+              className="text-[11px] font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 px-2 py-1 rounded-md transition-colors cursor-pointer"
             >
-              Cancel
+              {t("memoCancelAction")}
             </button>
             <button
+              type="button"
               onClick={handleSave}
               disabled={!content.trim()}
-              className="text-[10px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
+              className="text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 shadow-figma-xs cursor-pointer"
             >
-              <Check size={10} />
-              Save
+              <Check size={12} strokeWidth={2.5} />
+              <span>{t("memoSaveAction")}</span>
             </button>
           </div>
         </div>
@@ -149,29 +228,35 @@ function NewMemoCard({ onSave, onCancel }: { onSave: () => void; onCancel: () =>
 
 // ── MemoCard ──────────────────────────────────────────────
 
-function MemoCard({
-  memo,
-  bookmark,
-  onRefresh,
-}: {
+interface MemoCardProps {
   memo: BookmarkMemo;
   bookmark?: Bookmark;
+  cardSize?: CardSize;
+  aiEnabled: boolean;
   onRefresh: () => void;
-}) {
+}
+
+const MemoCard = React.memo(function MemoCard({
+  memo,
+  bookmark,
+  cardSize = "m",
+  aiEnabled,
+  onRefresh,
+}: MemoCardProps) {
   const { t, lang } = useLang();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(memo.content);
   const [color, setColor] = useState<MemoColor>(memo.color);
   const [isRefining, setIsRefining] = useState(false);
-  const [aiEnabled, setAiEnabled] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [faviconFailed, setFaviconFailed] = useState(false);
 
+  // memo prop 변경 시 로컬 draft/color 동기화
   useEffect(() => {
-    chrome.storage.local.get("clickbook_ai_enabled", (res) => {
-      if (res.clickbook_ai_enabled === false) {
-        setAiEnabled(false);
-      }
-    });
-  }, []);
+    setDraft(memo.content);
+    setColor(memo.color);
+  }, [memo.content, memo.color]);
 
   async function handleSave() {
     const text = draft.trim();
@@ -189,89 +274,163 @@ function MemoCard({
   async function handleRefine() {
     if (!draft.trim() || isRefining || !aiEnabled) return;
     setIsRefining(true);
-    const res = await refineMemoDraft(draft, lang);
-    if (res.aiUsed) {
-      setDraft(res.draft);
+    try {
+      const res = await refineMemoDraft(draft, lang);
+      if (res.aiUsed) {
+        setDraft(res.draft);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsRefining(false);
     }
-    setIsRefining(false);
   }
 
+  // 색상 변경 시 편집 중인 내용(draft) 유실 방지
   async function handleColorChange(c: MemoColor) {
     setColor(c);
+    const contentToSave = editing ? draft : memo.content;
     await chrome.runtime.sendMessage({
       type: "SAVE_MEMO",
       bookmarkId: memo.bookmarkId,
-      content: memo.content,
+      content: contentToSave,
       color: c,
     });
     onRefresh();
   }
 
-  async function handleDelete() {
+  async function handleDeleteConfirm() {
     await chrome.runtime.sendMessage({ type: "DELETE_MEMO", bookmarkId: memo.bookmarkId });
+    setShowDeleteConfirm(false);
     onRefresh();
   }
 
+  const handleCopy = useCallback(() => {
+    const textToCopy = editing ? draft : memo.content;
+    if (!textToCopy) return;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  }, [editing, draft, memo.content]);
+
+  // 마크다운 클릭 시 텍스트 드래그 선택 중이면 편집 모드 전환 차단
+  const handleMarkdownClick = () => {
+    const selection = window.getSelection()?.toString();
+    if (selection && selection.length > 0) return;
+    setDraft(memo.content);
+    setEditing(true);
+  };
+
+  const hasAnchors = memo.anchoredMemos && memo.anchoredMemos.length > 0;
+
   return (
-    <div className={`group relative flex flex-col rounded-xl border overflow-hidden shadow-sm dark:shadow-none ${MEMO_CARD_CLS[color]}`}>
+    <div className={`group relative flex flex-col rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow dark:shadow-none ${MEMO_CARD_CLS[color]}`}>
       {/* カラーアクセントバー */}
       <div className={`h-1.5 w-full shrink-0 ${MEMO_ACCENT[color]}`} />
 
-      <div className="p-3 flex flex-col gap-2 flex-1">
-        {/* カラーピッカー + 削除（ホバー時） */}
-        <div className="flex items-center gap-1 min-h-[18px]">
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className={`${SIZE_STYLES[cardSize].padding} flex flex-col gap-2 flex-1`}>
+        {/* カラーピッカー + 削除（ホバーまたは常時アクセス） */}
+        <div className="flex items-center gap-1 min-h-[22px]">
+          <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
             {ALL_COLORS.map((c) => (
               <button
                 key={c}
+                type="button"
                 onClick={() => handleColorChange(c)}
-                className={`w-3.5 h-3.5 rounded-full ${MEMO_DOT[c]} transition-all ${
+                className={`w-3.5 h-3.5 rounded-full ${MEMO_DOT[c]} transition-all cursor-pointer ${
                   c === color
-                    ? "ring-1 ring-offset-1 ring-gray-500 dark:ring-offset-transparent"
-                    : "opacity-50 hover:opacity-100"
+                    ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500 dark:ring-offset-transparent scale-110"
+                    : "opacity-40 hover:opacity-100"
                 }`}
+                title={t("changeColor")}
               />
             ))}
           </div>
-          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+          <div className="ml-auto flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+            {hasAnchors && (
+              <span
+                className="flex items-center gap-0.5 text-[9.5px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold"
+                title={t("memoAnchoredBadge", { n: memo.anchoredMemos!.length })}
+              >
+                <Anchor size={10} />
+                <span>{memo.anchoredMemos!.length}</span>
+              </span>
+            )}
             {bookmark && (
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.dispatchEvent(new CustomEvent("OPEN_BOOKMARK_INFO", { detail: bookmark }));
                 }}
-                className="p-0.5 text-gray-400 hover:text-indigo-500"
-                title="View Site Info"
+                className="p-1 text-gray-400 hover:text-indigo-500 transition-colors rounded-md hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                title={t("memoViewSiteTooltip")}
               >
-                <Info size={12} />
+                <Info size={13} />
               </button>
             )}
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 window.dispatchEvent(new CustomEvent("OPEN_READER_MODE", {
                   detail: {
                     bookmarkId: `memo-${memo.bookmarkId}`,
-                    title: bookmark ? `Memo: ${bookmark.title}` : "Memo",
+                    title: bookmark ? `${t("memo")}: ${bookmark.title}` : t("memo"),
                     url: bookmark?.url,
-                    content: memo.content
-                  }
+                    content: memo.content,
+                  },
                 }));
               }}
-              className="p-0.5 text-gray-400 hover:text-indigo-500"
+              className="p-1 text-gray-400 hover:text-indigo-500 transition-colors rounded-md hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
               title={t("readerTooltipOpenZen")}
             >
-              <BookOpen size={12} />
+              <BookOpen size={13} />
             </button>
             <button
-              onClick={handleDelete}
-              className="p-0.5 text-gray-400 hover:text-red-400"
-              title="Delete Memo"
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowDeleteConfirm((prev) => !prev);
+              }}
+              className="p-1 text-gray-400 hover:text-red-500 transition-colors rounded-md hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              title={t("deleteMemoTooltip")}
             >
-              <X size={12} />
+              <X size={13} />
             </button>
           </div>
         </div>
+
+        {/* インライン削除確認バー */}
+        {showDeleteConfirm && (
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs animate-fadeIn">
+            <span className="font-semibold text-[11px] truncate">{t("memoDeleteConfirm")}</span>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteConfirm(false);
+                }}
+                className="px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 rounded hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              >
+                {t("memoCancelAction")}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteConfirm();
+                }}
+                className="px-2 py-0.5 text-[10px] font-semibold bg-red-500 hover:bg-red-600 text-white rounded shadow-figma-xs cursor-pointer"
+              >
+                {t("memoDeleteAction")}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* メモ本文 */}
         {editing ? (
@@ -280,71 +439,101 @@ function MemoCard({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               autoFocus
-              rows={Math.min(20, Math.max(8, Math.floor((memo.content || "").length / 50)))}
-              onKeyDown={(e) => { if (e.key === "Escape") { setDraft(memo.content); setEditing(false); } }}
-              className={`w-full text-xs rounded-lg px-2.5 py-1.5 resize-y min-h-[100px] outline-none leading-relaxed ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200`}
+              rows={Math.min(20, Math.max(cardSize === "s" ? 6 : cardSize === "l" ? 10 : 8, Math.floor((memo.content || "").length / 50)))}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setDraft(memo.content);
+                  setEditing(false);
+                }
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  handleSave();
+                }
+              }}
+              className={`w-full ${SIZE_STYLES[cardSize].textareaText} rounded-lg px-2.5 py-2 resize-y ${SIZE_STYLES[cardSize].textareaMinH} outline-none ${SIZE_STYLES[cardSize].leading} ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 custom-scrollbar border focus:border-indigo-400/80 transition-colors`}
             />
             <div className="flex gap-1 justify-between items-center mt-1">
               <div className="flex items-center gap-1">
                 <button
+                  type="button"
                   onClick={handleRefine}
                   disabled={!draft.trim() || isRefining || !aiEnabled}
                   title={aiEnabled ? t("aiRefineMemo") : t("aiNotAvailable")}
-                  className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center gap-1"
+                  className="text-indigo-500 hover:text-indigo-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/60 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-figma-xs flex items-center gap-1 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  {isRefining ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  {isRefining && <span className="text-[10px] whitespace-nowrap">{t("aiRefining")}</span>}
+                  {isRefining ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                  {isRefining && <span className="text-[10px] font-medium whitespace-nowrap">{t("aiRefining")}</span>}
                 </button>
                 <button
-                  onClick={() => {
-                    if (draft) navigator.clipboard.writeText(draft);
-                  }}
+                  type="button"
+                  onClick={handleCopy}
                   disabled={!draft}
-                  title="Copy"
-                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+                  title={copied ? t("memoCopied") : t("memoCopyTooltip")}
+                  className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/60 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-figma-xs flex items-center cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Copy size={14} />
+                  {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
                 </button>
                 <button
+                  type="button"
                   onClick={() => setDraft("")}
                   disabled={!draft}
-                  title="Clear text"
-                  className="text-red-500 hover:text-red-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/50 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-sm flex items-center"
+                  title={t("memoClearTooltip")}
+                  className="text-red-500 hover:text-red-600 disabled:opacity-40 p-1 px-1.5 transition-colors bg-white/60 dark:bg-black/20 rounded-md hover:bg-white dark:hover:bg-black/40 shadow-figma-xs flex items-center cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </button>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 items-center">
                 <button
-                  onClick={() => { setDraft(memo.content); setEditing(false); }}
-                  className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 transition-colors"
+                  type="button"
+                  onClick={() => {
+                    setDraft(memo.content);
+                    setEditing(false);
+                  }}
+                  className="text-[11px] font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 px-2 py-1 rounded-md transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {t("memoCancelAction")}
                 </button>
                 <button
+                  type="button"
                   onClick={handleSave}
                   disabled={!draft.trim()}
-                  className="text-[10px] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-colors"
+                  className="text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 shadow-figma-xs cursor-pointer"
                 >
-                  Save
+                  <Check size={12} strokeWidth={2.5} />
+                  <span>{t("memoSaveAction")}</span>
                 </button>
               </div>
             </div>
           </div>
         ) : (
           <div
-            className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-1 min-h-[40px] markdown-body"
-            onClick={() => { setDraft(memo.content); setEditing(true); }}
+            className={`${SIZE_STYLES[cardSize].bodyText} ${SIZE_STYLES[cardSize].leading} text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100 transition-colors flex-1 min-h-[44px] custom-scrollbar overflow-y-auto`}
+            onClick={handleMarkdownClick}
             title={t("clickToEdit")}
           >
             <ReactMarkdown
               components={{
-                p: ({ node, ...props }) => <p className="whitespace-pre-wrap mb-2 last:mb-0" {...props} />,
-                ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 last:mb-0" {...props} />,
-                ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 last:mb-0" {...props} />,
-                li: ({ node, ...props }) => <li className="mb-0.5" {...props} />,
-                a: ({ node, ...props }) => <a className="text-indigo-500 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
-                strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900 dark:text-gray-100" {...props} />
+                p: ({ node, ...props }) => <p className="whitespace-pre-wrap mb-2 last:mb-0 break-words" {...props} />,
+                ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2 last:mb-0 space-y-0.5" {...props} />,
+                ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2 last:mb-0 space-y-0.5" {...props} />,
+                li: ({ node, ...props }) => <li className="leading-snug" {...props} />,
+                a: ({ node, ...props }) => (
+                  <a
+                    className="text-indigo-500 hover:underline underline-offset-2 break-all"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    {...props}
+                  />
+                ),
+                strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900 dark:text-gray-100" {...props} />,
+                blockquote: ({ node, ...props }) => (
+                  <blockquote className="border-l-2 border-indigo-400 pl-2.5 my-1.5 italic text-slate-500 dark:text-slate-400" {...props} />
+                ),
+                code: ({ node, ...props }) => (
+                  <code className="px-1 py-0.5 rounded bg-black/10 dark:bg-white/10 font-mono text-[90%]" {...props} />
+                ),
               }}
             >
               {memo.content}
@@ -356,31 +545,33 @@ function MemoCard({
         {bookmark && (
           <div className="mt-auto pt-2 border-t border-black/10 dark:border-white/10">
             <button
+              type="button"
               onClick={() => window.open(bookmark.url, "_blank", "noopener,noreferrer")}
-              className="flex items-center gap-1.5 w-full hover:opacity-80 transition-opacity group/link"
+              className="flex items-center gap-1.5 w-full hover:opacity-85 transition-opacity group/link cursor-pointer"
             >
-              <img
-                src={bookmark.favicon}
-                alt=""
-                width={12}
-                height={12}
-                className="rounded-sm shrink-0"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              <span className="text-[10px] text-gray-500 dark:text-gray-400 truncate flex-1 text-left group-hover/link:text-indigo-500 dark:group-hover/link:text-indigo-400 transition-colors">
+              {!faviconFailed && bookmark.favicon ? (
+                <img
+                  src={bookmark.favicon}
+                  alt=""
+                  width={13}
+                  height={13}
+                  className="rounded-sm shrink-0 object-contain"
+                  onError={() => setFaviconFailed(true)}
+                />
+              ) : (
+                <Globe size={13} className="text-gray-400 shrink-0" />
+              )}
+              <span className={`${SIZE_STYLES[cardSize].metaText} text-gray-500 dark:text-gray-400 truncate flex-1 text-left group-hover/link:text-indigo-500 dark:group-hover/link:text-indigo-400 transition-colors font-medium`}>
                 {bookmark.title}
               </span>
-              <ExternalLink size={9} className="shrink-0 text-gray-400 ml-auto" />
+              <ExternalLink size={10} className="shrink-0 text-gray-400 ml-auto group-hover/link:text-indigo-500 transition-colors" />
             </button>
           </div>
         )}
       </div>
     </div>
   );
-}
-
-const COLS_STORAGE_KEY = "clickbook_memo_cols";
-type ColumnOption = "auto" | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+});
 
 // ── MemoBoard（メインエクスポート） ───────────────────────
 
@@ -394,10 +585,25 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
   const { t } = useLang();
   const { theme } = useTheme();
   const isDarkMode = theme === "dark";
+
   const [showNew, setShowNew] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [colorFilter, setColorFilter] = useState<MemoColor | "all">("all");
+  const [aiEnabled, setAiEnabled] = useState(true);
+
+  // AI 활성화 여부 상위에서 1회만 조회 (N+1 IPC 쿼리 제거)
+  useEffect(() => {
+    chrome.storage.local.get("clickbook_ai_enabled", (res) => {
+      if (res.clickbook_ai_enabled === false) {
+        setAiEnabled(false);
+      }
+    });
+  }, []);
+
   const [cardSize, setCardSize] = useState<CardSize>(() => {
     return (localStorage.getItem(SIZE_STORAGE_KEY) as CardSize | null) ?? "m";
   });
+
   const [customCols, setCustomCols] = useState<ColumnOption>(() => {
     const saved = localStorage.getItem(COLS_STORAGE_KEY);
     if (!saved || saved === "auto") return "auto";
@@ -417,35 +623,114 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
     localStorage.setItem(COLS_STORAGE_KEY, String(c));
   }
 
-  const memoList = Object.values(memos).sort((a, b) => b.updatedAt - a.updatedAt);
-  const bookmarkMap = new Map(bookmarks.map((b) => [b.id, b]));
+  // 북마크 매핑 캐싱 (useMemo)
+  const bookmarkMap = useMemo(() => {
+    return new Map(bookmarks.map((b) => [b.id, b]));
+  }, [bookmarks]);
+
+  // 검색 및 색상 필터링 적용된 메모 리스트 (useMemo)
+  const filteredMemos = useMemo(() => {
+    let list = Object.values(memos).sort((a, b) => b.updatedAt - a.updatedAt);
+
+    if (colorFilter !== "all") {
+      list = list.filter((m) => m.color === colorFilter);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((m) => {
+        const contentMatch = (m.content || "").toLowerCase().includes(q);
+        const bm = bookmarkMap.get(m.bookmarkId);
+        const titleMatch = bm?.title ? bm.title.toLowerCase().includes(q) : false;
+        const urlMatch = bm?.url ? bm.url.toLowerCase().includes(q) : false;
+        return contentMatch || titleMatch || urlMatch;
+      });
+    }
+
+    return list;
+  }, [memos, colorFilter, searchQuery, bookmarkMap]);
+
+  const totalCount = Object.keys(memos).length;
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
       <div className="max-w-[1440px] w-full mx-auto pb-12 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
-        {/* ── 타이틀 & 컨트롤 헤더 (박스 없이 시원하게 노출) ── */}
-        <div className="flex items-center gap-2.5 flex-wrap select-none px-1">
-          <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
-            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500 text-white shadow-sm shadow-amber-500/20">
-              <StickyNote size={15} strokeWidth={2.5} />
+        {/* ── 타이틀 & 컨트롤 헤더 (피그마 스타일 고품격 툴바) ── */}
+        <div className="flex items-center gap-2.5 flex-wrap px-1">
+          {/* 타이틀 & 배지 */}
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-extrabold flex items-center gap-2 tracking-tight text-slate-800 dark:text-slate-100">
+              <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500 text-white shadow-sm shadow-amber-500/20">
+                <StickyNote size={15} strokeWidth={2.5} />
+              </span>
+              <span>{t("memo") || "MEMO"}</span>
+            </h1>
+            <span className="text-xs font-semibold bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full shadow-figma-xs">
+              {filteredMemos.length}
+              {totalCount !== filteredMemos.length && ` / ${totalCount}`}
             </span>
-            <span>
-              {t("memo") || "MEMO"}
-            </span>
-          </h1>
-          <span className="text-xs font-semibold bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/60 dark:border-white/10 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full shadow-figma-xs">
-            {memoList.length}
-          </span>
+          </div>
+
+          {/* 검색창 */}
+          <div className="relative flex items-center min-w-[160px] sm:min-w-[210px] max-w-[280px]">
+            <Search size={13} className="absolute left-2.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("memoSearchPlaceholder")}
+              className="w-full pl-8 pr-7 py-1 text-xs rounded-xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-md border border-slate-200/70 dark:border-white/10 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all shadow-figma-xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                title={t("memoClearTooltip")}
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* 색상 필터 칩 */}
+          <div className="flex items-center gap-1 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-1 border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
+            <button
+              type="button"
+              onClick={() => setColorFilter("all")}
+              className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer ${
+                colorFilter === "all"
+                  ? "bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow-figma-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              {t("memoAllColors")}
+            </button>
+            {ALL_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColorFilter(c)}
+                className={`w-4 h-4 rounded-full ${MEMO_DOT[c]} transition-all cursor-pointer ${
+                  colorFilter === c
+                    ? "ring-2 ring-offset-1 ring-slate-400 dark:ring-slate-500 scale-110"
+                    : "opacity-45 hover:opacity-100"
+                }`}
+                title={`${t("memoColorFilterTooltip")}: ${c}`}
+              />
+            ))}
+          </div>
 
           {/* 반응형 프리셋 카드 크기 (S / M / L) */}
-          <div className="flex items-center gap-0.5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-0.5 ml-1 border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
+          <div className="flex items-center gap-0.5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-0.5 border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
             {(["s", "m", "l"] as CardSize[]).map((s) => (
               <button
                 key={s}
+                type="button"
                 onClick={() => handleSizeChange(s)}
                 className={`text-[10.5px] font-bold w-6 h-5 rounded-lg transition-all cursor-pointer ${
-                  cardSize === s && customCols === "auto"
-                    ? "bg-amber-500 text-white shadow-2xs"
+                  cardSize === s
+                    ? "bg-amber-500 text-white shadow-figma-xs"
                     : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                 }`}
                 title={`Preset Size ${SIZE_LABEL[s]}`}
@@ -455,73 +740,99 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
             ))}
           </div>
 
-          {/* 한 열당 메모 개수 지정 옵션 피커 (2 ~ 8개 / Auto) */}
-          <div className="flex items-center gap-0.5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-0.5 text-[11px] border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
+          {/* 한 열당 메모 개수 지정 (2 ~ 8개 / Auto) */}
+          <div className="hidden sm:flex items-center gap-0.5 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl p-0.5 text-[11px] border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
             <span className="text-[9.5px] font-bold text-slate-400 dark:text-slate-500 px-1.5 select-none">
               {t("memoColsLabel")}:
             </span>
             {(["auto", 2, 3, 4, 5, 6, 7, 8] as ColumnOption[]).map((c) => (
               <button
                 key={c}
+                type="button"
                 onClick={() => handleColsChange(c)}
                 className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                   customCols === c
-                    ? "bg-indigo-600 text-white shadow-2xs"
+                    ? "bg-indigo-600 text-white shadow-figma-xs"
                     : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
                 }`}
-                title={c === "auto" ? "Responsive Auto Layout" : `${c} Columns per Row`}
+                title={c === "auto" ? "Auto Layout" : `${c} Columns`}
               >
                 {c === "auto" ? t("memoColsAuto") : c}
               </button>
             ))}
           </div>
 
+          {/* 메모 추가 버튼 */}
           <button
+            type="button"
             onClick={() => setShowNew(true)}
             className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold rounded-xl transition-all shadow-figma-xs active:scale-98 cursor-pointer"
           >
             <Plus size={13} strokeWidth={2.5} />
-            {t("addMemo")}
+            <span>{t("addMemo")}</span>
           </button>
         </div>
 
         {/* ── 메모 카드 그리드 ── */}
-        {memoList.length === 0 && !showNew ? (
-          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-500 select-none">
-            <StickyNote size={48} className="mb-3 opacity-20" />
+        {totalCount === 0 && !showNew ? (
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 select-none">
+            <StickyNote size={44} className="mb-3 opacity-25" />
             <p className="text-sm font-semibold mb-1">{t("memoEmpty")}</p>
             <p className="text-xs text-center leading-relaxed max-w-xs mb-4 text-slate-400 dark:text-slate-500">
               {t("memoEmptyDesc")}
             </p>
             <button
+              type="button"
               onClick={() => setShowNew(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-figma-xs cursor-pointer"
             >
               <Plus size={13} />
-              {t("addMemo")}
+              <span>{t("addMemo")}</span>
+            </button>
+          </div>
+        ) : filteredMemos.length === 0 && !showNew ? (
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-white/10 shadow-figma-sm flex flex-col items-center justify-center py-14 text-slate-400 dark:text-slate-500 select-none">
+            <Search size={32} className="mb-2 opacity-30" />
+            <p className="text-xs font-semibold mb-2">{t("memoNoSearchResults")}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setColorFilter("all");
+              }}
+              className="text-[11px] font-semibold text-indigo-500 hover:underline cursor-pointer"
+            >
+              {t("memoClearTooltip")}
             </button>
           </div>
         ) : (
           <div
-            className={`grid gap-4 items-start ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
+            className={`grid gap-3.5 items-start ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
             style={
               customCols !== "auto"
-                ? { gridTemplateColumns: `repeat(${customCols}, minmax(0, 1fr))` }
+                ? { gridTemplateColumns: `repeat(${customCols}, minmax(200px, 1fr))` }
                 : undefined
             }
           >
             {/* 新規入力カード（先頭に表示） */}
             {showNew && (
               <NewMemoCard
-                onSave={() => { setShowNew(false); onRefresh(); }}
+                cardSize={cardSize}
+                aiEnabled={aiEnabled}
+                onSave={() => {
+                  setShowNew(false);
+                  onRefresh();
+                }}
                 onCancel={() => setShowNew(false)}
               />
             )}
-            {memoList.map((memo) => (
+            {filteredMemos.map((memo) => (
               <MemoCard
                 key={memo.bookmarkId}
                 memo={memo}
                 bookmark={bookmarkMap.get(memo.bookmarkId)}
+                cardSize={cardSize}
+                aiEnabled={aiEnabled}
                 onRefresh={onRefresh}
               />
             ))}
