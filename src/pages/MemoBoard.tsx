@@ -14,6 +14,7 @@ import {
   Search,
   Globe,
   Anchor,
+  Link2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Bookmark, BookmarkMemo, MemoColor, MemoMap } from "@/shared/types";
@@ -134,9 +135,9 @@ function NewMemoCard({
   }, [content]);
 
   return (
-    <div className={`flex flex-col rounded-xl border overflow-hidden shadow-md ${MEMO_CARD_CLS[color]} transition-all animate-fadeIn`}>
+    <div className={`flex flex-col rounded-xl border overflow-hidden shadow-md ${MEMO_CARD_CLS[color]} transition-all animate-fadeIn h-full`}>
       <div className={`h-1.5 w-full shrink-0 ${MEMO_ACCENT[color]}`} />
-      <div className={`${SIZE_STYLES[cardSize].padding} flex flex-col gap-2`}>
+      <div className={`${SIZE_STYLES[cardSize].padding} flex flex-col gap-2 flex-1`}>
         {/* カラーピッカー */}
         <div className="flex items-center gap-1.5">
           {ALL_COLORS.map((c) => (
@@ -167,11 +168,11 @@ function NewMemoCard({
               handleSave();
             }
           }}
-          className={`w-full ${SIZE_STYLES[cardSize].textareaText} rounded-lg px-2.5 py-2 resize-y ${SIZE_STYLES[cardSize].textareaMinH} outline-none ${SIZE_STYLES[cardSize].leading} ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 custom-scrollbar border focus:border-indigo-400/80 transition-colors`}
+          className={`w-full ${SIZE_STYLES[cardSize].textareaText} rounded-lg px-2.5 py-2 resize-y ${SIZE_STYLES[cardSize].textareaMinH} outline-none ${SIZE_STYLES[cardSize].leading} ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 custom-scrollbar border focus:border-indigo-400/80 transition-colors flex-1`}
         />
 
         {/* アクション */}
-        <div className="flex gap-1 justify-between items-center mt-1">
+        <div className="flex gap-1 justify-between items-center mt-auto pt-1">
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -226,6 +227,112 @@ function NewMemoCard({
   );
 }
 
+// ── 본문 내 URL 링크 추출 및 링크 아이템 컴포넌트 ────
+
+interface ExtractedLink {
+  url: string;
+  title: string;
+  domain: string;
+}
+
+function extractLinksFromContent(content: string): ExtractedLink[] {
+  if (!content) return [];
+  const results: ExtractedLink[] = [];
+  const seenUrls = new Set<string>();
+
+  // 1. Markdown 링크 [title](url) 추출
+  const mdRegex = /\[([^\]]+)\]\(((?:https?:\/\/)[^\s)]+)\)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = mdRegex.exec(content)) !== null) {
+    const title = match[1].trim();
+    const url = match[2].trim();
+    if (url && !seenUrls.has(url)) {
+      seenUrls.add(url);
+      try {
+        const u = new URL(url);
+        results.push({
+          url,
+          title: title || u.hostname.replace(/^www\./, ""),
+          domain: u.hostname,
+        });
+      } catch {
+        results.push({ url, title: title || url, domain: "" });
+      }
+    }
+  }
+
+  // 2. 일반 URL (http:// 또는 https://) 추출
+  const urlRegex = /(https?:\/\/[^\s)\]>"']+)/gi;
+  while ((match = urlRegex.exec(content)) !== null) {
+    let rawUrl = match[1].trim();
+    rawUrl = rawUrl.replace(/[.,;:!?]+$/, "");
+    if (rawUrl && !seenUrls.has(rawUrl)) {
+      seenUrls.add(rawUrl);
+      try {
+        const u = new URL(rawUrl);
+        const cleanHost = u.hostname.replace(/^www\./, "");
+        const pathSnippet =
+          u.pathname !== "/" && u.pathname.length > 1
+            ? u.pathname.length > 26
+              ? u.pathname.slice(0, 23) + "..."
+              : u.pathname
+            : "";
+        const displayTitle = pathSnippet ? `${cleanHost}${pathSnippet}` : cleanHost;
+        results.push({
+          url: rawUrl,
+          title: displayTitle,
+          domain: u.hostname,
+        });
+      } catch {
+        results.push({ url: rawUrl, title: rawUrl, domain: "" });
+      }
+    }
+  }
+
+  return results;
+}
+
+function MemoLinkItem({ link, cardSize }: { link: ExtractedLink; cardSize: CardSize }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const faviconUrl = link.domain
+    ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(link.domain)}&sz=32`
+    : "";
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        window.open(link.url, "_blank", "noopener,noreferrer");
+      }}
+      title={link.url}
+      className="flex items-center gap-1.5 w-full px-1.5 py-1 rounded-md text-left transition-all hover:bg-black/5 dark:hover:bg-white/5 group/link cursor-pointer border border-black/5 dark:border-white/5 bg-white/40 dark:bg-black/15 shadow-figma-xs"
+    >
+      {!imgFailed && faviconUrl ? (
+        <img
+          src={faviconUrl}
+          alt=""
+          width={12}
+          height={12}
+          className="rounded-sm shrink-0 object-contain"
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <Globe size={11} className="text-gray-400 shrink-0" />
+      )}
+      <span
+        className={`${SIZE_STYLES[cardSize].metaText} text-gray-600 dark:text-gray-300 truncate flex-1 font-medium group-hover/link:text-indigo-500 dark:group-hover/link:text-indigo-400 transition-colors`}
+      >
+        {link.title}
+      </span>
+      <ExternalLink
+        size={10}
+        className="shrink-0 text-gray-400 ml-auto group-hover/link:text-indigo-500 transition-colors opacity-70 group-hover/link:opacity-100"
+      />
+    </button>
+  );
+}
+
 // ── MemoCard ──────────────────────────────────────────────
 
 interface MemoCardProps {
@@ -251,6 +358,16 @@ const MemoCard = React.memo(function MemoCard({
   const [copied, setCopied] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [faviconFailed, setFaviconFailed] = useState(false);
+
+  // 본문 내 URL 링크 자동 추출 (뷰 모드 하단 목록용, 북마크와 중복 제외)
+  const extractedLinks = useMemo(() => {
+    const links = extractLinksFromContent(memo.content);
+    if (bookmark?.url) {
+      const bmClean = bookmark.url.replace(/\/$/, "");
+      return links.filter((l) => l.url.replace(/\/$/, "") !== bmClean);
+    }
+    return links;
+  }, [memo.content, bookmark?.url]);
 
   // memo prop 변경 시 로컬 draft/color 동기화
   useEffect(() => {
@@ -325,7 +442,7 @@ const MemoCard = React.memo(function MemoCard({
   const hasAnchors = memo.anchoredMemos && memo.anchoredMemos.length > 0;
 
   return (
-    <div className={`group relative flex flex-col rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow dark:shadow-none ${MEMO_CARD_CLS[color]}`}>
+    <div className={`group relative flex flex-col rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow dark:shadow-none ${MEMO_CARD_CLS[color]} h-full`}>
       {/* カラーアクセントバー */}
       <div className={`h-1.5 w-full shrink-0 ${MEMO_ACCENT[color]}`} />
 
@@ -434,7 +551,7 @@ const MemoCard = React.memo(function MemoCard({
 
         {/* メモ本文 */}
         {editing ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 flex-1">
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -450,9 +567,9 @@ const MemoCard = React.memo(function MemoCard({
                   handleSave();
                 }
               }}
-              className={`w-full ${SIZE_STYLES[cardSize].textareaText} rounded-lg px-2.5 py-2 resize-y ${SIZE_STYLES[cardSize].textareaMinH} outline-none ${SIZE_STYLES[cardSize].leading} ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 custom-scrollbar border focus:border-indigo-400/80 transition-colors`}
+              className={`w-full ${SIZE_STYLES[cardSize].textareaText} rounded-lg px-2.5 py-2 resize-y ${SIZE_STYLES[cardSize].textareaMinH} outline-none ${SIZE_STYLES[cardSize].leading} ${MEMO_TEXTAREA_BG[color]} text-gray-800 dark:text-gray-200 custom-scrollbar border focus:border-indigo-400/80 transition-colors flex-1`}
             />
-            <div className="flex gap-1 justify-between items-center mt-1">
+            <div className="flex gap-1 justify-between items-center mt-auto pt-1">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -541,9 +658,27 @@ const MemoCard = React.memo(function MemoCard({
           </div>
         )}
 
+        {/* 본문 내 추출된 링크 목록 (뷰 모드일 때만 표시) */}
+        {!editing && extractedLinks.length > 0 && (
+          <div className="mt-auto pt-2 border-t border-black/10 dark:border-white/10 flex flex-col gap-1">
+            <div className="flex items-center gap-1 text-[9.5px] font-bold text-gray-400 dark:text-gray-500 px-0.5 select-none">
+              <Link2 size={10} />
+              <span>{t("memoExtractedLinks") || "Links"}</span>
+              <span className="text-[8.5px] px-1 rounded-full bg-black/5 dark:bg-white/10 font-bold">
+                {extractedLinks.length}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1 max-h-24 overflow-y-auto custom-scrollbar pr-0.5">
+              {extractedLinks.map((link) => (
+                <MemoLinkItem key={link.url} link={link} cardSize={cardSize} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 紐づきサイト */}
         {bookmark && (
-          <div className="mt-auto pt-2 border-t border-black/10 dark:border-white/10">
+          <div className={`${!editing && extractedLinks.length > 0 ? "pt-1.5 border-t border-dashed border-black/10 dark:border-white/10" : "mt-auto pt-2 border-t border-black/10 dark:border-white/10"}`}>
             <button
               type="button"
               onClick={() => window.open(bookmark.url, "_blank", "noopener,noreferrer")}
@@ -807,7 +942,7 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
           </div>
         ) : (
           <div
-            className={`grid gap-3.5 items-start ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
+            className={`grid gap-3.5 items-stretch ${customCols === "auto" ? SIZE_GRID[cardSize] : ""}`}
             style={
               customCols !== "auto"
                 ? { gridTemplateColumns: `repeat(${customCols}, minmax(200px, 1fr))` }

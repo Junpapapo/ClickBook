@@ -133,6 +133,7 @@ export const es = {
   memoColorFilterTooltip: "Filtrar por color",
   memoNoSearchResults: "No hay notas que coincidan con la búsqueda",
   memoAnchoredBadge: "{n} anclajes web",
+  memoExtractedLinks: "Enlaces",
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "Tablero TODO",

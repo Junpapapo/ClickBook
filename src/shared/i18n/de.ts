@@ -133,6 +133,7 @@ export const de = {
   memoColorFilterTooltip: "Nach Farbe filtern",
   memoNoSearchResults: "Keine Notizen entsprechen Ihrer Suche",
   memoAnchoredBadge: "{n} Web-Anker",
+  memoExtractedLinks: "Links",
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "TODO-Board",

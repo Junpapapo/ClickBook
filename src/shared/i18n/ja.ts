@@ -133,6 +133,7 @@ export const ja = {
   memoColorFilterTooltip: "色で絞り込み",
   memoNoSearchResults: "一致するメモがありません",
   memoAnchoredBadge: "Webハイライト{n}件",
+  memoExtractedLinks: "本文リンク",
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "TODO ボード",

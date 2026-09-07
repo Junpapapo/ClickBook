@@ -132,7 +132,8 @@ export const zhTW = {
   memoAllColors: "全部",
   memoColorFilterTooltip: "依顏色篩選",
   memoNoSearchResults: "沒有符合搜尋條件的備忘錄",
-  memoAnchoredBadge: "{n} 個網頁錨點",
+  memoAnchoredBadge: "網頁重點標記 {n} 個",
+  memoExtractedLinks: "內文連結",
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "待辦看板",

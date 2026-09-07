@@ -133,6 +133,7 @@ export const ko = {
   memoColorFilterTooltip: "색상별 필터",
   memoNoSearchResults: "검색 조건에 맞는 메모가 없습니다",
   memoAnchoredBadge: "웹 하이라이트 {n}개",
+  memoExtractedLinks: "본문 링크",
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "TODO 보드",

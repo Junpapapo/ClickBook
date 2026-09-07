@@ -132,7 +132,8 @@ export const en = {
   memoAllColors: "All",
   memoColorFilterTooltip: "Filter by color",
   memoNoSearchResults: "No memos match your search criteria",
-  memoAnchoredBadge: "{n} web anchors",
+  memoAnchoredBadge: "{n} Web Highlights",
+  memoExtractedLinks: "Links",
 
   // ── TodoBoard ────────────────────────────────────────────
   todoBoardTitle: "TODO Board",
