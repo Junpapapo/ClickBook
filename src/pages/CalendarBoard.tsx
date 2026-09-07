@@ -27,7 +27,10 @@ import DayView from "./Calendar/components/DayView";
 import {
   TASK_TEXT_COLORS,
   formatDateStr,
-  getCalendarGrid
+  getCalendarGrid,
+  CalendarTheme,
+  CALENDAR_THEMES,
+  getCalendarThemeConfig,
 } from "./Calendar/calendar-utils";
 
 interface Props {
@@ -42,6 +45,27 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
   const { showConfirm, DialogEl } = useDialog();
 
   const [todoBoard, setTodoBoard] = useState<TodoBoardData | null>(null);
+  const [calTheme, setCalTheme] = useState<CalendarTheme>("glass");
+
+  useEffect(() => {
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["clickbook_calendar_theme"], (res) => {
+        if (res && res.clickbook_calendar_theme) {
+          setCalTheme(res.clickbook_calendar_theme as CalendarTheme);
+        }
+      });
+    }
+  }, []);
+
+  const handleThemeChange = (newTheme: CalendarTheme) => {
+    setCalTheme(newTheme);
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clickbook_calendar_theme: newTheme });
+    }
+  };
+
+  const themeConfig = useMemo(() => getCalendarThemeConfig(calTheme), [calTheme]);
+
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [currentMonth, setCurrentMonth] = useState<number>(new Date().getMonth()); // 0-indexed
   const [holidayMap, setHolidayMap] = useState<Record<string, string>>({});
@@ -654,112 +678,137 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
-      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col gap-3 h-[calc(100vh-2rem)]">
+      <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col gap-3 h-[calc(100vh-2rem)]">
         {DialogEl}
 
-        {/* ── 타이틀 & 컨트롤 헤더 (박스 없이 시원하게 노출) ── */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 shrink-0">
-        {/* Month/Week/Day Navigation */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handlePrev}
-            className="p-1.5 bg-white/70 hover:bg-white dark:bg-slate-800/70 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl backdrop-blur-md border border-slate-200/70 dark:border-white/10 shadow-figma-xs transition-colors cursor-pointer"
-            title="Previous"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <div className="px-3.5 py-1.5 font-bold text-slate-800 dark:text-slate-100 min-w-[140px] text-center select-none text-xs sm:text-sm bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
-            {getDateHeaderLabel()}
-          </div>
-          <button
-            onClick={handleNext}
-            className="p-1.5 bg-white/70 hover:bg-white dark:bg-slate-800/70 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl backdrop-blur-md border border-slate-200/70 dark:border-white/10 shadow-figma-xs transition-colors cursor-pointer"
-            title="Next"
-          >
-            <ChevronRight size={16} />
-          </button>
-          <button
-            onClick={setToday}
-            className="px-3 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl shadow-figma-xs transition-all ml-1 active:scale-98 cursor-pointer"
-          >
-            Today
-          </button>
-        </div>
-
-        {/* View Mode Switcher & Print Control */}
-        <div className="flex items-center gap-2">
-          <div className="flex bg-white/70 dark:bg-slate-800/70 backdrop-blur-md p-0.5 rounded-xl border border-slate-200/70 dark:border-white/10 shadow-figma-xs">
-            {(["month", "week", "day"] as const).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  viewMode === mode
-                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold"
-                    : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
-                }`}
-              >
-                {mode === "month" ? t("viewModeMonth") : mode === "week" ? t("viewModeWeek") : t("viewModeDay")}
-              </button>
-            ))}
+        {/* ── 타이틀 & 컨트롤 헤더 (배경 비치도록 투명 글래스모피즘 적용) ── */}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-3 px-1 shrink-0">
+          {/* Month/Week/Day Navigation */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handlePrev}
+              className="p-1.5 bg-white/45 hover:bg-white/70 dark:bg-slate-900/45 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300 rounded-xl backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-figma-xs transition-colors cursor-pointer"
+              title="Previous"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <div className="px-3.5 py-1.5 font-bold text-slate-800 dark:text-slate-100 min-w-[140px] text-center select-none text-xs sm:text-sm bg-white/45 dark:bg-slate-900/45 backdrop-blur-xl rounded-xl border border-white/50 dark:border-white/10 shadow-figma-xs">
+              {getDateHeaderLabel()}
+            </div>
+            <button
+              onClick={handleNext}
+              className="p-1.5 bg-white/45 hover:bg-white/70 dark:bg-slate-900/45 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300 rounded-xl backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-figma-xs transition-colors cursor-pointer"
+              title="Next"
+            >
+              <ChevronRight size={16} />
+            </button>
+            <button
+              onClick={setToday}
+              className="px-3 py-1.5 text-xs font-semibold bg-indigo-600/90 hover:bg-indigo-600 active:bg-indigo-700 text-white rounded-xl shadow-figma-xs transition-all ml-1 active:scale-98 cursor-pointer"
+            >
+              Today
+            </button>
           </div>
 
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/70 hover:bg-white dark:bg-slate-800/70 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors backdrop-blur-md border border-slate-200/70 dark:border-white/10 shadow-figma-xs active:scale-98 cursor-pointer"
-            title={t("printCalendar") || "인쇄"}
-          >
-            <Printer size={13} className="text-slate-500 dark:text-slate-400" />
-            <span className="hidden sm:inline">{t("printCalendar") || "인쇄"}</span>
-          </button>
-        </div>
-      </div>
+          {/* Theme Selector (SpringNote Style Slim Pill Segmented Control - Unified in English) */}
+          <div className="flex items-center h-[32px] p-0.5 rounded-xl border transition-all duration-300 backdrop-blur-xl bg-white/45 dark:bg-slate-900/45 border-white/50 dark:border-white/10 shadow-figma-xs">
+            {CALENDAR_THEMES.map((tItem) => {
+              const isSelected = calTheme === tItem.id;
+              return (
+                <button
+                  key={tItem.id}
+                  onClick={() => handleThemeChange(tItem.id)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold scale-[0.98]"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-white/5"
+                  }`}
+                  title={tItem.name}
+                >
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${tItem.dotColor}`} />
+                  <span className="text-[11px]">{tItem.name}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
-        {/* Left Side: Calendar Grid */}
-        <div className="col-span-12 xl:col-span-8 flex flex-col bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl border border-white/60 dark:border-white/10 p-3.5 sm:p-4 rounded-3xl shadow-figma-lg overflow-hidden h-full min-h-[460px]">
-          {viewMode === "month" ? (
-            <MonthView
-              gridCells={gridCells}
-              tasksByDate={tasksByDate}
-              memosByDate={memosByDate}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              holidayMap={holidayMap}
-              manualHolidays={manualHolidays}
-              onTaskDrop={handleTaskDrop}
-              onOpenTaskEditor={openTaskEditor}
-              onOpenMemoEditor={openMemoEditor}
-            />
-          ) : viewMode === "week" ? (
-            <WeekView
-              tasksByDate={tasksByDate}
-              memosByDate={memosByDate}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              holidayMap={holidayMap}
-              manualHolidays={manualHolidays}
-              getSelectedWeekDays={getSelectedWeekDays}
-              onTaskDrop={handleTaskDrop}
-              onOpenTaskEditor={openTaskEditor}
-              onOpenMemoEditor={openMemoEditor}
-            />
-          ) : (
-            <DayView
-              selectedDate={selectedDate}
-              tasksByDate={tasksByDate}
-              memosByDate={memosByDate}
-              onTaskHourDrop={handleTaskHourDrop}
-              onOpenTaskEditor={openTaskEditor}
-              onOpenMemoEditor={openMemoEditor}
-            />
-          )}
+          {/* View Mode Switcher & Print Control */}
+          <div className="flex items-center gap-2">
+            <div className="flex bg-white/45 dark:bg-slate-900/45 backdrop-blur-xl p-0.5 rounded-xl border border-white/50 dark:border-white/10 shadow-figma-xs">
+              {(["month", "week", "day"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    viewMode === mode
+                      ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  {mode === "month" ? t("viewModeMonth") : mode === "week" ? t("viewModeWeek") : t("viewModeDay")}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/45 hover:bg-white/70 dark:bg-slate-900/45 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-300 rounded-xl transition-colors backdrop-blur-xl border border-white/50 dark:border-white/10 shadow-figma-xs active:scale-98 cursor-pointer"
+              title={t("printCalendar") || "인쇄"}
+            >
+              <Printer size={13} className="text-slate-500 dark:text-slate-400" />
+              <span className="hidden sm:inline">{t("printCalendar") || "인쇄"}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right Side: Day Details & Event Lists */}
-        <div className="col-span-12 xl:col-span-4 flex flex-col gap-4 h-full min-h-[460px]">
-          <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl border border-white/60 dark:border-white/10 p-3.5 sm:p-4 rounded-3xl shadow-figma-lg flex flex-col flex-1 min-h-0">
-            <div className="pb-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+        <div className="grid grid-cols-12 gap-4 flex-1 min-h-0">
+          {/* Left Side: Calendar Grid */}
+          <div className={`col-span-12 xl:col-span-8 flex flex-col ${themeConfig.panelBg} ${themeConfig.panelBorder} p-3.5 sm:p-4 rounded-3xl shadow-figma-lg overflow-hidden h-full min-h-[460px] transition-colors duration-300`}>
+            {viewMode === "month" ? (
+              <MonthView
+                gridCells={gridCells}
+                tasksByDate={tasksByDate}
+                memosByDate={memosByDate}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                holidayMap={holidayMap}
+                manualHolidays={manualHolidays}
+                themeConfig={themeConfig}
+                onTaskDrop={handleTaskDrop}
+                onOpenTaskEditor={openTaskEditor}
+                onOpenMemoEditor={openMemoEditor}
+              />
+            ) : viewMode === "week" ? (
+              <WeekView
+                tasksByDate={tasksByDate}
+                memosByDate={memosByDate}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                holidayMap={holidayMap}
+                manualHolidays={manualHolidays}
+                getSelectedWeekDays={getSelectedWeekDays}
+                themeConfig={themeConfig}
+                onTaskDrop={handleTaskDrop}
+                onOpenTaskEditor={openTaskEditor}
+                onOpenMemoEditor={openMemoEditor}
+              />
+            ) : (
+              <DayView
+                selectedDate={selectedDate}
+                tasksByDate={tasksByDate}
+                memosByDate={memosByDate}
+                themeConfig={themeConfig}
+                onTaskHourDrop={handleTaskHourDrop}
+                onOpenTaskEditor={openTaskEditor}
+                onOpenMemoEditor={openMemoEditor}
+              />
+            )}
+          </div>
+
+          {/* Right Side: Day Details & Event Lists */}
+          <div className="col-span-12 xl:col-span-4 flex flex-col gap-4 h-full min-h-[460px]">
+            <div className={`${themeConfig.panelBg} ${themeConfig.panelBorder} p-3.5 sm:p-4 rounded-3xl shadow-figma-lg flex flex-col flex-1 min-h-0 transition-colors duration-300`}>
+              <div className={`pb-2.5 border-b ${themeConfig.detailHeaderBorder} flex items-center justify-between shrink-0`}>
               <h2 className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm flex items-center flex-wrap gap-2">
                 <Calendar size={15} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>
@@ -818,8 +867,8 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                             <div
                               key={task.id}
                               onClick={() => openTaskEditor(task)}
-                              className={`p-3 rounded-lg border border-slate-200/90 dark:border-slate-700/60 cursor-pointer hover:shadow-xs hover:border-indigo-400/60 dark:hover:border-indigo-500/50 transition-all
-                                ${(!isEvent && task.completed) ? "bg-slate-50/60 dark:bg-slate-800/40 opacity-70" : "bg-white dark:bg-slate-800/90"}
+                              className={`p-3 rounded-lg border cursor-pointer hover:shadow-xs hover:border-indigo-400/60 dark:hover:border-indigo-500/50 transition-all ${themeConfig.detailItemBg}
+                                ${(!isEvent && task.completed) ? "opacity-60" : ""}
                               `}
                             >
                               <div className="flex items-start gap-2.5">
@@ -843,13 +892,13 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                     {task.dueDate && (
                                       <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                         <Clock size={10} />
-                                        {t("datepickerDueDate")}: {formatDateLocale(task.dueDate, lang)} {task.dueTime || ""}
+                                        {formatDateLocale(task.dueDate, lang)} {task.dueTime || ""}
                                       </span>
                                     )}
                                     {isEvent && task.location && (
                                       <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-                                        {t("locationLabel")}: {task.location}
+                                        {task.location}
                                       </span>
                                     )}
                                   </div>
@@ -874,7 +923,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                           <div
                             key={item.memo.bookmarkId}
                             onClick={() => openMemoEditor(item)}
-                            className="p-3 rounded-lg border border-slate-200/90 dark:border-slate-700/60 bg-white dark:bg-slate-800/90 cursor-pointer hover:shadow-xs hover:border-indigo-400/60 dark:hover:border-indigo-500/50 transition-all"
+                            className={`p-3 rounded-lg border cursor-pointer hover:shadow-xs hover:border-indigo-400/60 dark:hover:border-indigo-500/50 transition-all ${themeConfig.detailItemBg}`}
                           >
                             <div className="flex flex-col gap-1.5">
                               <div className="flex items-center gap-1.5">
@@ -883,7 +932,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                     <img
                                       src={item.bookmark.favicon}
                                       alt=""
-                                      className="w-3.5 h-3.5 rounded shrink-0 bg-white"
+                                      className="w-3.5 h-3.5 rounded shrink-0 bg-white/70"
                                       onError={(e) => {
                                         (e.target as HTMLElement).style.display = "none";
                                       }}
@@ -899,7 +948,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 bg-slate-50 dark:bg-slate-800/60 p-2 rounded border border-slate-100 dark:border-slate-700/50">
+                              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 bg-black/5 dark:bg-white/5 p-2 rounded border border-black/5 dark:border-white/5">
                                 {item.memo.content}
                               </p>
                             </div>
@@ -915,13 +964,13 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
             {/* Quick Add Interface Panel */}
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 mt-auto shrink-0 space-y-2.5">
               {/* Type Switch Tabs */}
-              <div className="flex bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+              <div className="flex bg-black/5 dark:bg-white/5 p-0.5 rounded-lg border border-white/20 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setQuickAddType("todo")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "todo" 
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs" 
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
@@ -934,7 +983,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   onClick={() => setQuickAddType("event")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "event" 
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs" 
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
@@ -947,7 +996,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   onClick={() => setQuickAddType("holiday")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "holiday" 
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs" 
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
@@ -960,7 +1009,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                   onClick={() => setQuickAddType("memo")}
                   className={`flex-1 flex items-center justify-center gap-1 py-1 text-[10px] font-semibold rounded-md transition-all
                     ${quickAddType === "memo" 
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs border border-slate-200/50 dark:border-slate-700/50" 
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs" 
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
                     }
                   `}
@@ -985,7 +1034,7 @@ export default function CalendarBoard({ settings, bookmarks, memos, onRefresh }:
                       ? t("quickAddHolidayPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                       : t("quickAddMemoPlaceholder").replace("{date}", String(selectedDate ? selectedDate.getDate() : ""))
                   }
-                  className="flex-1 bg-white dark:bg-slate-800 text-xs border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-2xs placeholder-slate-400"
+                  className="flex-1 bg-white/40 dark:bg-black/20 text-xs border border-slate-200/60 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 shadow-2xs placeholder-slate-400 backdrop-blur-md"
                 />
                 <button
                   type="submit"

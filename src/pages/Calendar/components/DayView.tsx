@@ -7,12 +7,15 @@ import {
   TASK_BG_COLORS,
   MEMO_COLORS,
   formatDateStr,
+  CalendarThemeMeta,
+  getCalendarThemeConfig,
 } from "../calendar-utils";
 
 interface DayViewProps {
   selectedDate: Date | null;
   tasksByDate: Record<string, TodoTask[]>;
   memosByDate: Record<string, { bookmark: Bookmark | null; memo: BookmarkMemo }[]>;
+  themeConfig?: CalendarThemeMeta;
   onTaskHourDrop: (e: React.DragEvent, hourStr: string) => void;
   onOpenTaskEditor: (task: TodoTask) => void;
   onOpenMemoEditor: (item: { bookmark: Bookmark | null; memo: BookmarkMemo }) => void;
@@ -22,11 +25,13 @@ export default function DayView({
   selectedDate,
   tasksByDate,
   memosByDate,
+  themeConfig,
   onTaskHourDrop,
   onOpenTaskEditor,
   onOpenMemoEditor,
 }: DayViewProps) {
   const { t } = useLang();
+  const cfg = themeConfig || getCalendarThemeConfig();
   if (!selectedDate) return null;
   const dStr = formatDateStr(selectedDate);
   const dayTasks = tasksByDate[dStr] || [];
@@ -44,7 +49,7 @@ export default function DayView({
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => onTaskHourDrop(e, "")} // Drop to clear dueTime
-        className="p-3 bg-slate-50/70 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 rounded-lg flex flex-col gap-1.5"
+        className={`p-3 rounded-lg flex flex-col gap-1.5 border transition-colors ${cfg.detailItemBg}`}
       >
         <div className="font-semibold text-[9.5px] text-slate-400 dark:text-slate-500 uppercase tracking-wider">
           All Day / Memos
@@ -90,7 +95,7 @@ export default function DayView({
       </div>
 
       {/* Hourly Agenda */}
-      <div className="flex-1 overflow-y-auto max-h-[360px] xl:max-h-none divide-y divide-slate-100 dark:divide-slate-800/60 border border-slate-200/80 dark:border-slate-800 rounded-lg bg-white/50 dark:bg-slate-900/30 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+      <div className={`flex-1 overflow-y-auto max-h-[360px] xl:max-h-none divide-y rounded-lg border transition-colors scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 ${cfg.detailItemBg} ${cfg.cellBorder}`}>
         {hours.map((hour) => {
           const hourPrefix = hour.split(":")[0];
           const hourlyTasks = dayTasks.filter((t) => t.dueTime && t.dueTime.startsWith(hourPrefix));
@@ -100,7 +105,7 @@ export default function DayView({
               key={hour}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => onTaskHourDrop(e, hour)}
-              className="flex items-start p-2 min-h-[44px] hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+              className={`flex items-start p-2 min-h-[44px] transition-colors ${cfg.cellHover}`}
             >
               <div className="w-12 text-[10px] font-semibold text-slate-400 dark:text-slate-500 tabular-nums self-center">
                 {hour}

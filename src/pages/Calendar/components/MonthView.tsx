@@ -9,6 +9,8 @@ import {
   TASK_TEXT_COLORS,
   MEMO_COLORS,
   formatDateStr,
+  CalendarThemeMeta,
+  getCalendarThemeConfig,
 } from "../calendar-utils";
 
 interface MonthViewProps {
@@ -19,6 +21,7 @@ interface MonthViewProps {
   setSelectedDate: (date: Date) => void;
   holidayMap: Record<string, string>;
   manualHolidays: Record<string, TodoTask>;
+  themeConfig?: CalendarThemeMeta;
   onTaskDrop: (e: React.DragEvent, targetDate: Date) => void;
   onOpenTaskEditor: (task: TodoTask) => void;
   onOpenMemoEditor: (item: { bookmark: Bookmark | null; memo: BookmarkMemo }) => void;
@@ -32,22 +35,25 @@ export default function MonthView({
   setSelectedDate,
   holidayMap,
   manualHolidays,
+  themeConfig,
   onTaskDrop,
   onOpenTaskEditor,
   onOpenMemoEditor,
 }: MonthViewProps) {
   const { t } = useLang();
+  const cfg = themeConfig || getCalendarThemeConfig();
+
   return (
     <>
       {/* Weekday Titles */}
-      <div className="grid grid-cols-7 gap-1 mb-1.5 text-center text-[11px] font-semibold text-slate-400 dark:text-slate-500 select-none pb-2 border-b border-slate-100 dark:border-slate-800">
+      <div className={`grid grid-cols-7 gap-1 mb-1.5 text-center text-[11px] font-semibold select-none pb-2 border-b ${cfg.weekdayBorder} ${cfg.weekdayText}`}>
         <div>MON</div>
         <div>TUE</div>
         <div>WED</div>
         <div>THU</div>
         <div>FRI</div>
-        <div className="text-blue-500">SAT</div>
-        <div className="text-rose-500">SUN</div>
+        <div className={cfg.satHeader}>SAT</div>
+        <div className={cfg.sunHeader}>SUN</div>
       </div>
 
       {/* Days Grid */}
@@ -66,19 +72,19 @@ export default function MonthView({
           let cellBgClass = "";
           if (cell.isCurrentMonth) {
             if (manualHoliday) {
-              cellBgClass = TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default;
+              cellBgClass = `${TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default} ${cfg.cellBorder}`;
             } else if (holidayName) {
               cellBgClass = "bg-rose-50/40 dark:bg-rose-950/20 border-rose-200/60 dark:border-rose-900/40";
             } else {
-              cellBgClass = "bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800/80";
+              cellBgClass = `${cfg.cellBgCurrent} ${cfg.cellBorder}`;
             }
           } else {
             if (manualHoliday) {
-              cellBgClass = `${TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default} opacity-40`;
+              cellBgClass = `${TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default} opacity-40 ${cfg.cellBorder}`;
             } else if (holidayName) {
               cellBgClass = "bg-rose-50/15 dark:bg-rose-950/10 border-rose-100/30 dark:border-rose-900/20 opacity-40";
             } else {
-              cellBgClass = "bg-slate-100/30 dark:bg-slate-900/30 border-slate-200/40 dark:border-slate-800/40 opacity-40";
+              cellBgClass = `${cfg.cellBgOther} ${cfg.cellBorder}`;
             }
           }
 
@@ -90,15 +96,15 @@ export default function MonthView({
               onDrop={(e) => onTaskDrop(e, cell.date)}
               className={`min-h-[85px] p-2 flex flex-col justify-between rounded-lg border transition-all duration-150 relative cursor-pointer group/cell
                 ${cellBgClass}
-                ${isTodayCell ? "ring-2 ring-indigo-500/60 bg-indigo-50/20 dark:bg-indigo-950/20" : ""}
+                ${isTodayCell ? cfg.cellTodayRing : ""}
                 ${
                   isSelected
-                    ? "border-indigo-500 dark:border-indigo-500 ring-1 ring-indigo-500/30 bg-indigo-50/30 dark:bg-indigo-950/25"
+                    ? cfg.cellSelected
                     : manualHoliday
                     ? "hover:border-indigo-400/60 hover:opacity-100"
                     : holidayName
                     ? "hover:border-rose-400/60 hover:bg-rose-50/60 dark:hover:bg-rose-950/30"
-                    : "hover:border-indigo-400/60 hover:bg-white dark:hover:bg-slate-800/80"
+                    : cfg.cellHover
                 }
               `}
             >
@@ -108,15 +114,15 @@ export default function MonthView({
                   <span
                     className={`text-xs font-semibold ${
                       cell.date.getDay() === 0 || holidayName
-                        ? "text-rose-500"
+                        ? cfg.sunHeader
                         : manualHoliday
                         ? TASK_TEXT_COLORS[manualHoliday.color || "rose"] || "text-indigo-600 dark:text-indigo-400"
                         : cell.date.getDay() === 6
-                        ? "text-blue-500"
+                        ? cfg.satHeader
                         : "text-slate-700 dark:text-slate-300"
                     } ${
                       isTodayCell
-                        ? "text-white dark:text-white bg-indigo-600 dark:bg-indigo-500 rounded-full h-5 w-5 flex items-center justify-center font-bold text-[11px] shadow-2xs"
+                        ? `${cfg.todayBadge} rounded-full h-5 w-5 flex items-center justify-center font-bold text-[11px] shadow-2xs`
                         : ""
                     }`}
                   >

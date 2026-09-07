@@ -181,7 +181,7 @@ export default function SpringNoteBoard({
         prev.map((n) => (n.id === selectedNoteId ? { ...n, theme: targetTheme } : n))
       );
       
-      const updatedNote = { ...currentNote, theme: targetTheme as "light" | "sepia" | "dark" | "grid", updatedAt: Date.now() };
+      const updatedNote = { ...currentNote, theme: targetTheme as SpringNote["theme"], updatedAt: Date.now() };
       saveSpringNote(updatedNote).catch((err) =>
         console.warn("Failed to save theme sync from system:", err)
       );
@@ -338,61 +338,77 @@ export default function SpringNoteBoard({
   );
 
   const noteTheme = selectedNote?.theme || (theme === "light" ? "light" : "dark");
+  const isLightLike = noteTheme === "light" || noteTheme === "grid" || noteTheme === "dot";
+  const isSage = noteTheme === "sage";
 
   // 테마별 사이드바 스타일 정의
   const sidebarClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "bg-[#EDF2EA] text-[#243828] border-r border-[#D2DDD0] flex flex-col shrink-0 transition-colors relative animate-in slide-in-from-left duration-300"
+      : isLightLike
       ? "bg-[#F5F5F7] text-gray-700 border-r border-gray-200 flex flex-col shrink-0 transition-colors relative animate-in slide-in-from-left duration-300"
       : noteTheme === "dark"
       ? "bg-[#1E1E20] text-gray-200 border-r border-[#131315] flex flex-col shrink-0 transition-colors relative animate-in slide-in-from-left duration-300"
       : "bg-[#EFE7D8] text-[#4A3728] border-r border-[#D8C6AC] flex flex-col shrink-0 transition-colors relative animate-in slide-in-from-left duration-300"; // sepia
 
   const sidebarHeaderClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "p-4 border-b border-[#D2DDD0] flex justify-between items-center shrink-0"
+      : isLightLike
       ? "p-4 border-b border-gray-200 flex justify-between items-center shrink-0"
       : noteTheme === "dark"
       ? "p-4 border-b border-[#131315] flex justify-between items-center shrink-0"
       : "p-4 border-b border-[#D8C6AC] flex justify-between items-center shrink-0"; // sepia
 
   const sidebarTitleClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "text-sm font-bold text-[#1F3324] flex items-center gap-1.5"
+      : isLightLike
       ? "text-sm font-bold text-gray-800 flex items-center gap-1.5"
       : noteTheme === "dark"
       ? "text-sm font-bold text-gray-200 flex items-center gap-1.5"
       : "text-sm font-bold text-[#4A3728] flex items-center gap-1.5"; // sepia
 
   const sidebarBtnClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "p-1.5 hover:bg-[#DCE6D9] rounded-lg text-[#3F5B44] transition-all active:scale-95 cursor-pointer border border-[#D2DDD0]"
+      : isLightLike
       ? "p-1.5 hover:bg-gray-200/80 rounded-lg text-gray-600 transition-all active:scale-95 cursor-pointer border border-gray-200"
       : noteTheme === "dark"
       ? "p-1.5 hover:bg-white/10 rounded-lg text-gray-400 transition-all active:scale-95 cursor-pointer border border-white/5"
       : "p-1.5 hover:bg-[#E2D0B6] rounded-lg text-[#4A3728] transition-all active:scale-95 cursor-pointer border border-[#D8C6AC]/50"; // sepia
 
   const searchContainerClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "flex items-center gap-1.5 px-2 py-1.5 bg-[#F4F7F2] border border-[#D2DDD0] focus-within:border-[#3F5B44] rounded-lg transition-all"
+      : isLightLike
       ? "flex items-center gap-1.5 px-2 py-1.5 bg-gray-200/40 border border-gray-250/70 focus-within:border-indigo-500 rounded-lg transition-all"
       : noteTheme === "dark"
       ? "flex items-center gap-1.5 px-2 py-1.5 bg-black/30 border border-[#131315] focus-within:border-surface-700 rounded-lg transition-all"
       : "flex items-center gap-1.5 px-2 py-1.5 bg-[#FBF6EC]/50 border border-[#D8C6AC] focus-within:border-[#7A604D] rounded-lg transition-all"; // sepia
 
   const searchInputClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "bg-transparent text-xs text-[#243828] placeholder-[#465E4B]/50 outline-none w-full"
+      : isLightLike
       ? "bg-transparent text-xs text-gray-800 placeholder-gray-400 outline-none w-full"
       : noteTheme === "dark"
       ? "bg-transparent text-xs text-gray-200 placeholder-gray-500 outline-none w-full"
       : "bg-transparent text-xs text-[#4A3728] placeholder-[#7A604D]/40 outline-none w-full"; // sepia
 
   const searchIconColor = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "text-[#465E4B]"
+      : isLightLike
       ? "text-gray-400"
       : noteTheme === "dark"
       ? "text-gray-500"
       : "text-[#7A604D]/60"; // sepia
 
-
-
   const splitterClass = 
-    noteTheme === "light" || noteTheme === "grid"
+    isSage
+      ? "w-1.5 hover:w-2 bg-[#D2DDD0] hover:bg-[#3F5B44]/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"
+      : isLightLike
       ? "w-1.5 hover:w-2 bg-gray-200 hover:bg-indigo-500/50 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"
       : noteTheme === "dark"
       ? "w-1.5 hover:w-2 bg-[#1A1A1C] hover:bg-amber-500/60 cursor-col-resize shrink-0 transition-all select-none z-40 relative group"
@@ -400,8 +416,8 @@ export default function SpringNoteBoard({
 
   return (
     <WallpaperBackground isDarkMode={theme === "dark"}>
-      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)]">
-        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex-1 flex flex-row overflow-hidden min-h-0">
+      <div className="w-full pb-2 sm:pb-3 pt-1 sm:pt-2 px-1.5 sm:px-4 select-none flex flex-col h-screen">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex-1 flex flex-row overflow-hidden min-h-0">
           {/* Left List Pane */}
           <div 
             style={{ width: `${sidebarWidth}px` }}
@@ -418,7 +434,9 @@ export default function SpringNoteBoard({
               <div className="p-1.5 rounded-lg bg-[#6366f1] text-white shrink-0 shadow-sm flex items-center justify-center mr-2">
                 <BookOpen size={13} strokeWidth={2.2} />
               </div>
-              <h2 className={sidebarTitleClass}>Spring Note</h2>
+              <h2 className={sidebarTitleClass}>
+                {lang === "ko" ? "스프링 노트" : lang === "ja" ? "スプリングノート" : "Spring Note"}
+              </h2>
             </div>
           )}
           <div className={`flex items-center gap-1 ${isCollapsed ? "flex-col w-full justify-center" : ""}`}>
@@ -464,7 +482,9 @@ export default function SpringNoteBoard({
         <div className={`flex-1 overflow-y-auto ${isCollapsed ? "p-1.5 space-y-2" : "p-3 space-y-2.5"} scrollbar-thin scrollbar-thumb-white/10 dark:scrollbar-thumb-surface-800`}>
           {loading ? (
             !isCollapsed ? (
-              <div className="text-xs text-[#EBDCB9]/50 text-center py-4">Loading...</div>
+              <div className="text-xs text-[#EBDCB9]/50 text-center py-4">
+                {lang === "ko" ? "노트 불러오는 중..." : lang === "ja" ? "読み込み中..." : "Loading..."}
+              </div>
             ) : (
               <div className="flex justify-center py-2 animate-pulse">
                 <Book size={14} className="text-gray-500" />
@@ -485,7 +505,11 @@ export default function SpringNoteBoard({
                   key={note.id}
                   onClick={() => setSelectedNoteId(note.id)}
                   className={`flex justify-center items-center p-2.5 rounded-lg cursor-pointer transition-all border duration-200 hover:scale-[1.05] ${
-                    noteTheme === "light" || noteTheme === "grid"
+                    isSage
+                      ? isActive
+                        ? `${c.bgLightActive} border-[#456B4E]`
+                        : "bg-[#F2F5ED]/60 text-[#243828] border-[#D2DDD0] hover:bg-[#F2F5ED]"
+                      : isLightLike
                       ? isActive
                         ? `${c.bgLightActive} ${c.borderLightActive}`
                         : "bg-white/40 text-gray-550 border-gray-105 hover:bg-white hover:border-gray-300"
@@ -506,7 +530,11 @@ export default function SpringNoteBoard({
                   key={note.id}
                   onClick={() => setSelectedNoteId(note.id)}
                   className={`group relative flex items-center justify-between p-2.5 px-3.5 rounded-xl cursor-pointer transition-all border shadow-sm duration-200 hover:-translate-y-[0.5px] hover:scale-[1.005] ${
-                    noteTheme === "light" || noteTheme === "grid"
+                    isSage
+                      ? isActive
+                        ? `${c.bgLightActive} border-[#456B4E] font-extrabold text-[#1F3324]`
+                        : "bg-[#F2F5ED]/50 border-[#D2DDD0] text-[#243828] hover:text-[#1F3324] hover:bg-[#F2F5ED]"
+                      : isLightLike
                       ? isActive
                         ? `${c.bgLightActive} ${c.borderLightActive} font-extrabold text-indigo-950`
                         : `${c.bgLight} ${c.borderLight} text-gray-655 hover:text-gray-900`
@@ -537,7 +565,9 @@ export default function SpringNoteBoard({
 
         {/* Footer for Help/Shortcuts */}
         <div className={
-          noteTheme === "light" || noteTheme === "grid"
+          isSage
+            ? `border-t border-[#D2DDD0] flex items-center justify-between shrink-0 bg-[#EDF2EA] ${isCollapsed ? "p-1.5" : "p-2"}`
+            : isLightLike
             ? `border-t border-gray-250/80 flex items-center justify-between shrink-0 bg-gray-100/30 ${isCollapsed ? "p-1.5" : "p-2"}`
             : noteTheme === "dark"
             ? `border-t border-[#131315] flex items-center justify-between shrink-0 bg-black/10 ${isCollapsed ? "p-1.5" : "p-2"}`
@@ -548,7 +578,9 @@ export default function SpringNoteBoard({
             className={`w-full flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer border ${
               isCollapsed ? "p-1.5 rounded-lg" : "gap-1.5 py-1 px-3 text-xs font-extrabold rounded-lg"
             } ${
-              noteTheme === "light" || noteTheme === "grid"
+              isSage
+                ? "bg-[#F2F5ED] hover:bg-[#DCE6D9] border-[#D2DDD0] text-[#3F5B44] hover:text-[#1F3324] shadow-sm"
+                : isLightLike
                 ? "bg-white hover:bg-gray-50 border-gray-200 text-gray-600 hover:text-gray-955 shadow-sm"
                 : noteTheme === "dark"
                 ? "bg-[#2B2B2E]/30 hover:bg-[#2B2B2E]/70 border-white/5 text-gray-400 hover:text-white shadow-sm"
@@ -574,11 +606,13 @@ export default function SpringNoteBoard({
 
       {/* Right Main Editor Pane */}
       <div 
-        className={`flex-1 h-full overflow-hidden flex flex-col min-w-[360px] transition-colors duration-300 ${
-          noteTheme === "light" || noteTheme === "grid"
+        className={`flex-1 w-full min-w-0 h-full overflow-hidden flex flex-col transition-colors duration-300 ${
+          isSage
+            ? "bg-[#334638] dark:bg-[#1A251D]"
+            : isLightLike
             ? "bg-[#ECEFF1] dark:bg-surface-950/20"
             : noteTheme === "dark"
-            ? "bg-[#1E1E1E] dark:bg-surface-950"
+            ? "bg-[#1E1E1E] dark:bg-[#1E1E1E]"
             : "bg-[#3B281B] dark:bg-[#1E1E20]" // sepia
         }`}
       >
@@ -596,14 +630,18 @@ export default function SpringNoteBoard({
           />
         ) : (
           <div className={`flex-1 flex flex-col items-center justify-center gap-4 text-center p-8 transition-colors duration-300 ${
-            noteTheme === "light" || noteTheme === "grid"
+            isSage
+              ? "bg-[#334638] text-[#EBF3EC]"
+              : isLightLike
               ? "bg-[#ECEFF1] text-gray-800"
               : noteTheme === "dark"
               ? "bg-[#1E1E1E] text-gray-200"
               : "bg-[#3B281B] text-[#EBDCB9]" // sepia
           }`}>
             <div className={`p-4 rounded-2xl shadow-inner animate-pulse ${
-              noteTheme === "light" || noteTheme === "grid"
+              isSage
+                ? "bg-black/20 text-[#719B7B]"
+                : isLightLike
                 ? "bg-gray-200 text-amber-600"
                 : noteTheme === "dark"
                 ? "bg-white/5 text-amber-500"
@@ -613,7 +651,9 @@ export default function SpringNoteBoard({
             </div>
             <div>
               <h3 className={`text-base font-bold ${
-                noteTheme === "light" || noteTheme === "grid"
+                isSage
+                  ? "text-[#F2F5ED]"
+                  : isLightLike
                   ? "text-gray-800"
                   : noteTheme === "dark"
                   ? "text-gray-150"
@@ -622,7 +662,9 @@ export default function SpringNoteBoard({
                 {lang === "ko" ? "스프링 필기장" : lang === "ja" ? "スプリングノート" : "Spring Note Editor"}
               </h3>
               <p className={`text-xs mt-1 max-w-xs leading-normal ${
-                noteTheme === "light" || noteTheme === "grid"
+                isSage
+                  ? "text-[#B2C5B6]"
+                  : isLightLike
                   ? "text-gray-500"
                   : noteTheme === "dark"
                   ? "text-gray-400"
@@ -638,7 +680,9 @@ export default function SpringNoteBoard({
             <button
               onClick={handleCreateNote}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-black/10 active:scale-95 transition-all cursor-pointer ${
-                noteTheme === "light" || noteTheme === "grid"
+                isSage
+                  ? "bg-[#456B4E] hover:bg-[#36573E] text-white"
+                  : isLightLike
                   ? "bg-indigo-600 hover:bg-indigo-700 text-white"
                   : noteTheme === "dark"
                   ? "bg-[#2B2B2E] hover:bg-[#2B2B2E]/90 text-white border border-white/5"

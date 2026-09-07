@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { StickyNote, Loader2, Sparkles, X, Check } from "lucide-react";
-import type { MemoColor, MessageResponse } from "@/shared/types";
+import type { MemoColor } from "@/shared/types";
 import type { Lang } from "@/shared/i18n";
+import { sendMsg } from "@/shared/utils";
 import { MEMO_DOT, ALL_MEMO_COLORS } from "@/shared/colors";
 import { generateMemoDraft } from "@/shared/categorizer";
 
@@ -42,7 +43,7 @@ export default function MemoForm({
     async function loadExistingMemo() {
       if (existingBookmarkId) {
         try {
-          const memosRes = (await chrome.runtime.sendMessage({ type: "GET_MEMOS" })) as MessageResponse;
+          const memosRes = await sendMsg({ type: "GET_MEMOS" });
           if (memosRes.success && memosRes.data) {
             const memos = memosRes.data as Record<string, { content: string; color: string }>;
             const memo = memos[existingBookmarkId];
@@ -52,7 +53,7 @@ export default function MemoForm({
             }
           }
         } catch (err) {
-          console.warn("Failed to load memo content in MemoForm:", err);
+          console.debug("Failed to load memo content in MemoForm:", err);
         }
       }
     }
@@ -75,7 +76,7 @@ export default function MemoForm({
       setDraftAiUsed(result.aiUsed);
       setDraftState("done");
     } catch (err) {
-      console.warn("Popup AI Draft error:", err);
+      console.debug("Popup AI Draft error:", err);
       setDraftState("idle");
     }
   }
@@ -97,7 +98,7 @@ export default function MemoForm({
     }
 
     try {
-      await chrome.runtime.sendMessage({
+      await sendMsg({
         type: "SAVE_MEMO",
         bookmarkId,
         content: memoText.trim(),
@@ -106,7 +107,7 @@ export default function MemoForm({
       setMemoStatus("done");
       setTimeout(() => setMemoStatus("idle"), 1500);
     } catch (err) {
-      console.warn("Failed to save memo:", err);
+      console.debug("Failed to save memo:", err);
       setMemoStatus("idle");
     }
   }

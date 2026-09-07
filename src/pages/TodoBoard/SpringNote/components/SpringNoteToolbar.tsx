@@ -36,6 +36,7 @@ import {
   Share2
 } from "lucide-react";
 import type { SpringNoteToolbarProps } from "../spring-note-types";
+import { useLang } from "@/shared/LanguageContext";
 
 export default function SpringNoteToolbar({
   editor,
@@ -62,6 +63,7 @@ export default function SpringNoteToolbar({
   onToggleImagePopover,
   onOpenExport,
 }: SpringNoteToolbarProps) {
+  const { lang } = useLang();
   // 색상 토글 팝오버 상태
   const [showColorPopover, setShowColorPopover] = useState(false);
   // 헤딩 & 리스트 드롭다운 상태 추가
@@ -144,60 +146,77 @@ export default function SpringNoteToolbar({
     };
   }, []);
 
-  const isLightTheme = theme === "light" || theme === "grid";
+  const isSageTheme = theme === "sage";
+  const isSepiaTheme = theme === "sepia";
+  const isDarkTheme = theme === "dark";
+  const isLightTheme = theme === "light" || theme === "grid" || theme === "dot";
 
   // 테마별 그라데이션 페이드 색상 바인딩
-  const fadeColorClass = isLightTheme
-    ? "from-white"
-    : theme === "sepia"
+  const fadeColorClass = isSageTheme
+    ? "from-[#F2F5ED]"
+    : isSepiaTheme
     ? "from-[#FBF6EC]"
-    : "from-[#2D2D30]";
+    : isDarkTheme
+    ? "from-[#2D2D30]"
+    : "from-white";
 
   // 가로 스크롤바의 thumb 색상 정의 (두드러지게)
-  const scrollbarThumbColor = isLightTheme
-    ? "#d97706" // amber-600
-    : theme === "sepia"
+  const scrollbarThumbColor = isSageTheme
+    ? "#4E6E54" // 차분한 세이지 올리브 그린
+    : isSepiaTheme
     ? "#7A604D" // 짙은 세피아 갈색
-    : "#fbbf24"; // amber-400
+    : isDarkTheme
+    ? "#fbbf24" // amber-400
+    : "#d97706"; // amber-600
 
   // 테마별 컨테이너 스타일 정의
-  const containerClass = isLightTheme
-    ? "bg-[#F3F4F6] text-gray-800 border-b border-gray-250/80"
-    : theme === "sepia"
+  const containerClass = isSageTheme
+    ? "bg-[#E4ECE1] text-[#243828] border-b border-[#CFDCD0]"
+    : isSepiaTheme
     ? "bg-[#EADCC6] text-[#4A3728] border-b border-[#D8C6AC]"
-    : "bg-[#1E1E20] border-b border-[#131315] text-gray-200";
+    : isDarkTheme
+    ? "bg-[#1E1E20] border-b border-[#131315] text-gray-200"
+    : "bg-[#F3F4F6] text-gray-800 border-b border-gray-250/80";
 
   // 테마별 내부 서브 패널 스타일
-  const subPanelClass = isLightTheme
-    ? "bg-white border border-gray-250/80 shadow-sm"
-    : theme === "sepia"
+  const subPanelClass = isSageTheme
+    ? "bg-[#F2F5ED] border border-[#CFDCD0] text-[#243828] shadow-sm"
+    : isSepiaTheme
     ? "bg-[#FBF6EC] border border-[#D8C6AC] text-[#4A3728]"
-    : "bg-[#2D2D30] border border-[#3E3E42]";
+    : isDarkTheme
+    ? "bg-[#2D2D30] border border-[#3E3E42]"
+    : "bg-white border border-gray-250/80 shadow-sm";
 
   // 테마별 일반 버튼 스타일
-  const btnClass = isLightTheme
-    ? "text-gray-655 hover:text-gray-900 hover:bg-gray-150"
-    : theme === "sepia"
+  const btnClass = isSageTheme
+    ? "text-[#465E4B] hover:text-[#1F3324] hover:bg-[#DCE6D9]"
+    : isSepiaTheme
     ? "text-[#7A604D] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
-    : "text-gray-300 hover:text-white hover:bg-white/5";
+    : isDarkTheme
+    ? "text-gray-300 hover:text-white hover:bg-white/5"
+    : "text-gray-655 hover:text-gray-900 hover:bg-gray-150";
 
   // 테마별 세퍼레이터 구분선 스타일
-  const dividerClass = isLightTheme
-    ? "w-px h-4 bg-gray-250/85 shrink-0"
-    : theme === "sepia"
+  const dividerClass = isSageTheme
+    ? "w-px h-4 bg-[#CFDCD0] shrink-0"
+    : isSepiaTheme
     ? "w-px h-4 bg-[#D8C6AC] shrink-0"
-    : "w-px h-4 bg-surface-750 shrink-0";
+    : isDarkTheme
+    ? "w-px h-4 bg-surface-750 shrink-0"
+    : "w-px h-4 bg-gray-250/85 shrink-0";
 
   // Tiptap 에디터의 활성화 여부를 스타일 클래스로 리턴해주는 헬퍼
   const getActiveBtnClass = (name: string, attributes?: Record<string, any>) => {
     if (!editor) return "text-gray-400 opacity-50 pointer-events-none";
     const isActive = editor.isActive(name, attributes);
     if (isActive) {
-      return isLightTheme
-        ? "bg-amber-500/10 text-amber-800 font-extrabold border border-amber-500/25 shadow-inner scale-[0.97]"
-        : theme === "sepia"
+      return isSageTheme
+        ? "bg-[#3F5B44]/20 text-[#1F3324] font-extrabold border border-[#3F5B44]/35 shadow-inner scale-[0.97]"
+        : isSepiaTheme
         ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold border border-[#7A604D]/25 shadow-inner scale-[0.97]"
-        : "bg-amber-500/20 text-[#EBDCB9] font-extrabold border border-amber-500/35 shadow-inner scale-[0.97]";
+        : isDarkTheme
+        ? "bg-amber-500/20 text-[#EBDCB9] font-extrabold border border-amber-500/35 shadow-inner scale-[0.97]"
+        : "bg-amber-500/10 text-amber-800 font-extrabold border border-amber-500/25 shadow-inner scale-[0.97]";
     }
     return btnClass;
   };
@@ -216,9 +235,13 @@ export default function SpringNoteToolbar({
       isActive = editor.isActive({ textAlign: alignment });
     }
     if (isActive) {
-      return isLightTheme
-        ? "bg-amber-500/10 text-amber-800 font-extrabold border border-amber-500/25 shadow-inner scale-[0.97]"
-        : "bg-amber-500/20 text-[#EBDCB9] font-extrabold border border-amber-500/35 shadow-inner scale-[0.97]";
+      return isSageTheme
+        ? "bg-[#3F5B44]/20 text-[#1F3324] font-extrabold border border-[#3F5B44]/35 shadow-inner scale-[0.97]"
+        : isSepiaTheme
+        ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold border border-[#7A604D]/25 shadow-inner scale-[0.97]"
+        : isDarkTheme
+        ? "bg-amber-500/20 text-[#EBDCB9] font-extrabold border border-amber-500/35 shadow-inner scale-[0.97]"
+        : "bg-amber-500/10 text-amber-800 font-extrabold border border-amber-500/25 shadow-inner scale-[0.97]";
     }
     return btnClass;
   };
@@ -236,15 +259,25 @@ export default function SpringNoteToolbar({
         <div className="flex flex-nowrap items-center gap-2">
           {/* Themes */}
           <div className={`flex items-center h-[26px] p-0.5 rounded-lg border transition-all duration-300 ${subPanelClass}`}>
-            {(["light", "sepia", "dark", "grid"] as const).map((t) => {
+            {(["light", "sepia", "dark", "grid", "sage", "dot"] as const).map((t) => {
               const isSelected = theme === t;
               let btnStyle = "";
               if (isSelected) {
-                btnStyle = isLightTheme
-                  ? "bg-amber-500/10 text-amber-800 shadow-sm font-bold border border-amber-500/20"
-                  : "bg-[#EADCC6]/20 dark:bg-white/10 text-white shadow-sm font-bold border border-[#EADCC6]/15";
+                btnStyle = isSageTheme
+                  ? "bg-[#3F5B44]/20 text-[#1F3324] shadow-sm font-bold border border-[#3F5B44]/30"
+                  : isSepiaTheme
+                  ? "bg-[#7A604D]/15 text-[#4A3728] shadow-sm font-bold border border-[#7A604D]/25"
+                  : isDarkTheme
+                  ? "bg-white/10 text-white shadow-sm font-bold border border-white/15"
+                  : "bg-amber-500/10 text-amber-800 shadow-sm font-bold border border-amber-500/20";
               } else {
-                btnStyle = isLightTheme ? "text-gray-500 hover:text-gray-900" : "text-gray-300 hover:text-white";
+                btnStyle = isSageTheme
+                  ? "text-[#465E4B] hover:text-[#1F3324] hover:bg-[#DCE6D9]"
+                  : isSepiaTheme
+                  ? "text-[#8D735E] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
+                  : isDarkTheme
+                  ? "text-gray-300 hover:text-white"
+                  : "text-gray-500 hover:text-gray-900";
               }
               return (
                 <button
@@ -264,11 +297,21 @@ export default function SpringNoteToolbar({
               const isSelected = font === f;
               let btnStyle = "";
               if (isSelected) {
-                btnStyle = isLightTheme
-                  ? "bg-amber-500/10 text-amber-800 shadow-sm font-bold border border-amber-500/20"
-                  : "bg-[#EADCC6]/20 dark:bg-white/10 text-white shadow-sm font-bold border border-[#EADCC6]/15";
+                btnStyle = isSageTheme
+                  ? "bg-[#3F5B44]/20 text-[#1F3324] shadow-sm font-bold border border-[#3F5B44]/30"
+                  : isSepiaTheme
+                  ? "bg-[#7A604D]/15 text-[#4A3728] shadow-sm font-bold border border-[#7A604D]/25"
+                  : isDarkTheme
+                  ? "bg-white/10 text-white shadow-sm font-bold border border-white/15"
+                  : "bg-amber-500/10 text-amber-800 shadow-sm font-bold border border-amber-500/20";
               } else {
-                btnStyle = isLightTheme ? "text-gray-500 hover:text-gray-900" : "text-gray-300 hover:text-white";
+                btnStyle = isSageTheme
+                  ? "text-[#465E4B] hover:text-[#1F3324] hover:bg-[#DCE6D9]"
+                  : isSepiaTheme
+                  ? "text-[#8D735E] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
+                  : isDarkTheme
+                  ? "text-gray-300 hover:text-white"
+                  : "text-gray-500 hover:text-gray-900";
               }
               return (
                 <button
@@ -288,20 +331,34 @@ export default function SpringNoteToolbar({
               type="button"
               onClick={() => onChangeFontSize(Math.max(12, fontSize - 1))}
               className={`w-6 py-0.5 text-xs font-bold rounded transition-all text-center ${
-                isLightTheme ? "text-gray-600 hover:text-gray-900 hover:bg-gray-150" : "text-gray-300 hover:text-white hover:bg-white/10"
+                isSageTheme
+                  ? "text-[#465E4B] hover:text-[#1F3324] hover:bg-[#DCE6D9]"
+                  : isLightTheme 
+                  ? "text-gray-600 hover:text-gray-900 hover:bg-gray-150" 
+                  : isSepiaTheme
+                  ? "text-[#7A604D] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
               }`}
               title="Decrease Font Size"
             >
               A-
             </button>
-            <span className={`px-1 text-[10px] font-mono font-bold select-none ${isLightTheme ? "text-gray-600" : "text-gray-400"}`}>
+            <span className={`px-1 text-[10px] font-mono font-bold select-none ${
+              isSageTheme ? "text-[#243828]" : isLightTheme ? "text-gray-600" : isSepiaTheme ? "text-[#4A3728]" : "text-gray-400"
+            }`}>
               {fontSize}
             </span>
             <button
               type="button"
               onClick={() => onChangeFontSize(Math.min(26, fontSize + 1))}
               className={`w-6 py-0.5 text-xs font-bold rounded transition-all text-center ${
-                isLightTheme ? "text-gray-600 hover:text-gray-900 hover:bg-gray-150" : "text-gray-300 hover:text-white hover:bg-white/10"
+                isSageTheme
+                  ? "text-[#465E4B] hover:text-[#1F3324] hover:bg-[#DCE6D9]"
+                  : isLightTheme 
+                  ? "text-gray-600 hover:text-gray-900 hover:bg-gray-150" 
+                  : isSepiaTheme
+                  ? "text-[#7A604D] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
               }`}
               title="Increase Font Size"
             >
@@ -318,17 +375,25 @@ export default function SpringNoteToolbar({
             onClick={onToggleDrawer}
             className={`flex items-center gap-1 px-2.5 h-[26px] text-xs font-bold rounded-lg border transition-all shrink-0 cursor-pointer ${
               isDrawerOpen
-                ? isLightTheme
+                ? isSageTheme
+                  ? "bg-[#3F5B44]/20 border-[#3F5B44]/35 text-[#1F3324]"
+                  : isLightTheme
                   ? "bg-amber-500/20 border-amber-500/35 text-amber-900"
-                  : "bg-[#EADCC6]/25 border-[#EADCC6]/35 text-white"
+                  : isSepiaTheme
+                  ? "bg-[#D8C6AC]/60 border-[#C4B094] text-[#3B281B]"
+                  : "bg-white/20 border-white/30 text-white"
+                : isSageTheme
+                ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324] hover:border-[#BACAB7]"
                 : isLightTheme
                 ? "bg-white border-gray-250/80 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                : isSepiaTheme
+                ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728] hover:border-[#C4AD90]"
                 : "bg-[#2D1E15]/50 dark:bg-surface-900 border-[#2D1E15] dark:border-surface-700 text-[#EBDCB9]/80 hover:bg-white/10 hover:text-white"
             }`}
             title="Import Bookmark or Memo"
           >
             <FolderOpen size={12} />
-            <span>Library</span>
+            <span>{lang === "ko" ? "라이브러리" : lang === "ja" ? "ライブラリ" : "Library"}</span>
           </button>
 
           {/* Export Button */}
@@ -337,14 +402,18 @@ export default function SpringNoteToolbar({
               type="button"
               onClick={onOpenExport}
               className={`flex items-center gap-1 px-2.5 h-[26px] text-xs font-bold rounded-lg border transition-all shrink-0 cursor-pointer ${
-                isLightTheme
+                isSageTheme
+                  ? "bg-[#456B4E] text-white border-[#37583F] hover:bg-[#37583F] shadow-xs"
+                  : isLightTheme
                   ? "bg-amber-500 text-white border-amber-600 hover:bg-amber-600 shadow-xs"
+                  : isSepiaTheme
+                  ? "bg-[#9E6E38] text-white border-[#8B5E2C] hover:bg-[#8B5E2C] shadow-xs"
                   : "bg-amber-600 text-white border-amber-700 hover:bg-amber-700 shadow-xs"
               }`}
               title="Export Note (Markdown / HTML / TXT / PDF)"
             >
               <Share2 size={12} />
-              <span>Export</span>
+              <span>{lang === "ko" ? "내보내기" : lang === "ja" ? "エクスポート" : "Export"}</span>
             </button>
           )}
 
@@ -383,11 +452,19 @@ export default function SpringNoteToolbar({
                       onClick={() => onChangePageIndex(idx)}
                       className={`px-1.5 py-0.5 text-[10px] font-extrabold rounded transition-all shrink-0 ${
                         isActive
-                          ? isLightTheme
+                          ? isSageTheme
+                            ? "bg-[#3F5B44]/20 text-[#1F3324] font-extrabold shadow-sm border border-[#3F5B44]/30"
+                            : isLightTheme
                             ? "bg-amber-500/10 text-amber-800 font-extrabold shadow-sm border border-amber-500/25"
+                            : isSepiaTheme
+                            ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold shadow-sm border border-[#7A604D]/25"
                             : "bg-[#EADCC6]/25 text-white font-extrabold shadow-sm border border-[#EADCC6]/20"
+                          : isSageTheme
+                          ? "text-[#465E4B] hover:text-[#1F3324] hover:bg-[#DCE6D9]"
                           : isLightTheme
                           ? "text-gray-500 hover:text-gray-800"
+                          : isSepiaTheme
+                          ? "text-[#8D735E] hover:text-[#4A3728] hover:bg-[#EFE7D8]"
                           : "text-gray-300 hover:text-white"
                       }`}
                       title={`Go to Page ${idx + 1}`}
@@ -402,7 +479,7 @@ export default function SpringNoteToolbar({
               <div className={`absolute right-0 top-0 bottom-0 w-2.5 bg-gradient-to-l ${fadeColorClass} to-transparent pointer-events-none z-10`} />
             </div>
             
-            <div className={`w-px h-3 mx-0.5 shrink-0 ${isLightTheme ? "bg-gray-250/80" : "bg-[#231710] dark:bg-surface-750"}`} />
+            <div className={`w-px h-3 mx-0.5 shrink-0 ${isSageTheme ? "bg-[#CFDCD0]" : isLightTheme ? "bg-gray-250/80" : isSepiaTheme ? "bg-[#D8C6AC]" : "bg-[#231710] dark:bg-surface-750"}`} />
 
             {/* 새 페이지 추가 (+) 및 삭제 (-) 버튼 (우측 고정) */}
             <div className="flex items-center gap-0.5 shrink-0 px-0.5">
@@ -410,7 +487,13 @@ export default function SpringNoteToolbar({
                 type="button"
                 onClick={onAddPage}
                 className={`p-1 rounded transition-all shrink-0 ${
-                  isLightTheme ? "text-amber-600 hover:text-amber-700 hover:bg-gray-100" : "text-amber-500 hover:text-amber-400 hover:bg-white/10"
+                  isSageTheme
+                    ? "text-[#456B4E] hover:text-[#2E4A35] hover:bg-[#DCE6D9]"
+                    : isLightTheme 
+                    ? "text-amber-600 hover:text-amber-700 hover:bg-gray-100" 
+                    : isSepiaTheme
+                    ? "text-[#9E6E38] hover:text-[#7A4E1B] hover:bg-[#EFE7D8]"
+                    : "text-amber-500 hover:text-amber-400 hover:bg-white/10"
                 }`}
                 title="Add New Page"
               >
@@ -421,7 +504,13 @@ export default function SpringNoteToolbar({
                 type="button"
                 onClick={onDeletePage}
                 className={`p-1 rounded transition-all shrink-0 ${
-                  isLightTheme ? "text-gray-400 hover:text-red-500 hover:bg-red-50" : "text-gray-400 hover:text-red-400 hover:bg-red-500/20"
+                  isSageTheme
+                    ? "text-[#465E4B]/70 hover:text-red-600 hover:bg-red-100/50"
+                    : isLightTheme 
+                    ? "text-gray-400 hover:text-red-500 hover:bg-red-50" 
+                    : isSepiaTheme
+                    ? "text-[#8D735E] hover:text-red-600 hover:bg-red-100/50"
+                    : "text-gray-400 hover:text-red-400 hover:bg-red-500/20"
                 }`}
                 title="Delete Current Page"
               >
@@ -507,11 +596,21 @@ export default function SpringNoteToolbar({
                 }}
                 className={`p-1 rounded transition-all ${
                   showLinkPopover
-                    ? isLightTheme
+                    ? isSageTheme
+                      ? "bg-[#3F5B44]/20 text-[#1F3324] border border-[#3F5B44]/35"
+                      : isLightTheme
                       ? "bg-amber-500/20 text-amber-900 border border-amber-500/35"
+                      : isSepiaTheme
+                      ? "bg-[#7A604D]/15 text-[#4A3728] border border-[#7A604D]/25"
                       : "bg-amber-500/25 text-white border border-amber-500/35"
                     : editor.isActive("link")
-                    ? "bg-amber-500/10 text-amber-800 dark:text-[#EBDCB9]"
+                    ? isSageTheme
+                      ? "bg-[#3F5B44]/10 text-[#1F3324]"
+                      : isLightTheme
+                      ? "bg-amber-500/10 text-amber-800"
+                      : isSepiaTheme
+                      ? "bg-[#7A604D]/10 text-[#4A3728]"
+                      : "bg-amber-500/10 text-[#EBDCB9]"
                     : btnClass
                 }`}
                 title="Link"
@@ -523,7 +622,13 @@ export default function SpringNoteToolbar({
                 <div
                   onClick={(e) => e.stopPropagation()}
                   className={`absolute top-full left-0 mt-1.5 p-1.5 rounded-lg shadow-2xl flex items-center gap-1 z-50 animate-in fade-in slide-in-from-top-1 duration-100 border ${
-                    isLightTheme ? "bg-white border-gray-200 text-gray-800" : "bg-[#1e1e20] border-white/10 text-gray-200"
+                    isSageTheme
+                      ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#243828] shadow-2xl"
+                      : isLightTheme 
+                      ? "bg-white border-gray-200 text-gray-800" 
+                      : isSepiaTheme
+                      ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#4A3728] shadow-2xl"
+                      : "bg-[#1e1e20] border-white/10 text-gray-200"
                   }`}
                 >
                   <input
@@ -538,8 +643,12 @@ export default function SpringNoteToolbar({
                     }}
                     placeholder="https://..."
                     className={`w-36 rounded px-2 py-0.5 text-[11px] outline-none transition-colors border ${
-                      isLightTheme
+                      isSageTheme
+                        ? "bg-[#E3EBE0] border-[#CFDCD0] text-[#243828] focus:border-[#3F5B44]/50"
+                        : isLightTheme
                         ? "bg-gray-50 border-gray-250 text-gray-800 focus:border-amber-500/50"
+                        : isSepiaTheme
+                        ? "bg-[#EFE7D8] border-[#D8C6AC] text-[#4A3728] focus:border-[#7A604D]/50"
                         : "bg-white/5 border-white/10 text-gray-200 focus:border-amber-500/50"
                     }`}
                   />
@@ -547,7 +656,13 @@ export default function SpringNoteToolbar({
                     type="button"
                     onClick={handleApplyLink}
                     className={`p-1 rounded transition-colors shrink-0 ${
-                      isLightTheme ? "hover:bg-gray-100 text-amber-600" : "hover:bg-white/10 text-amber-400"
+                      isSageTheme
+                        ? "hover:bg-[#DCE6D9] text-[#3F5B44]"
+                        : isLightTheme 
+                        ? "hover:bg-gray-100 text-amber-600" 
+                        : isSepiaTheme
+                        ? "hover:bg-[#E2D2BC] text-[#9E6E38]"
+                        : "hover:bg-white/10 text-amber-400"
                     }`}
                     title="Apply"
                   >
@@ -562,7 +677,13 @@ export default function SpringNoteToolbar({
                           if (href) window.open(href, "_blank", "noopener,noreferrer");
                         }}
                         className={`p-1 rounded transition-colors shrink-0 ${
-                          isLightTheme ? "hover:bg-gray-100 text-gray-600" : "hover:bg-white/10 text-gray-300"
+                          isSageTheme
+                            ? "hover:bg-[#DCE6D9] text-[#465E4B]"
+                            : isLightTheme 
+                            ? "hover:bg-gray-100 text-gray-600" 
+                            : isSepiaTheme
+                            ? "hover:bg-[#E2D2BC] text-[#7A604D]"
+                            : "hover:bg-white/10 text-gray-300"
                         }`}
                         title="Open Link"
                       >
@@ -572,7 +693,13 @@ export default function SpringNoteToolbar({
                         type="button"
                         onClick={handleUnlink}
                         className={`p-1 rounded transition-colors shrink-0 ${
-                          isLightTheme ? "hover:bg-red-50 text-red-500" : "hover:bg-red-500/20 text-red-400"
+                          isSageTheme
+                            ? "hover:bg-red-100/50 text-red-600"
+                            : isLightTheme 
+                            ? "hover:bg-red-50 text-red-500" 
+                            : isSepiaTheme
+                            ? "hover:bg-red-100/50 text-red-600"
+                            : "hover:bg-red-500/20 text-red-400"
                         }`}
                         title="Remove Link"
                       >
@@ -601,8 +728,12 @@ export default function SpringNoteToolbar({
                 setShowListDropdown(false);
               }}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg border shrink-0 active:scale-95 transition-all ${
-                isLightTheme
+                isSageTheme
+                  ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324] hover:border-[#BACAB7]"
+                  : isLightTheme
                   ? "bg-white border-gray-250/80 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  : isSepiaTheme
+                  ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728] hover:border-[#C4AD90]"
                   : "bg-[#2D1E15]/50 dark:bg-surface-900 border-[#2D1E15] dark:border-surface-700 text-[#EBDCB9]/80 hover:bg-white/10 hover:text-white"
               }`}
               title="Attach Image"
@@ -621,12 +752,20 @@ export default function SpringNoteToolbar({
               }}
               className={`p-1 rounded transition-all ${
                 showColorPopover 
-                  ? isLightTheme
+                  ? isSageTheme
+                    ? "bg-[#3F5B44]/20 text-[#1F3324] border border-[#3F5B44]/35"
+                    : isLightTheme
                     ? "bg-amber-500/20 text-amber-900 border border-amber-500/35"
+                    : isSepiaTheme
+                    ? "bg-[#7A604D]/15 text-[#4A3728] border border-[#7A604D]/25"
                     : "bg-amber-500/25 text-white border border-amber-500/35" 
                   : editor.isActive("textStyle") || editor.isActive("highlight")
-                  ? isLightTheme
+                  ? isSageTheme
+                    ? "bg-[#3F5B44]/10 text-[#1F3324]"
+                    : isLightTheme
                     ? "bg-amber-500/10 text-amber-800"
+                    : isSepiaTheme
+                    ? "bg-[#7A604D]/10 text-[#4A3728]"
                     : "bg-amber-500/10 text-[#EBDCB9]"
                   : btnClass
               }`}
@@ -652,7 +791,13 @@ export default function SpringNoteToolbar({
             {showColorPopover && (
               <div 
                 className={`absolute top-full left-0 mt-1.5 flex flex-col p-2.5 rounded-xl shadow-xl border gap-2.5 z-50 animate-in fade-in duration-100 min-w-56 ${
-                  isLightTheme ? "bg-white border-gray-200/80 text-gray-800 shadow-xl" : "bg-slate-900 dark:bg-surface-950 border-white/10 text-gray-200"
+                  isSageTheme
+                    ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#243828] shadow-xl"
+                    : isLightTheme 
+                    ? "bg-white border-gray-200/80 text-gray-800 shadow-xl" 
+                    : isSepiaTheme
+                    ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#4A3728] shadow-xl"
+                    : "bg-slate-900 dark:bg-surface-950 border-white/10 text-gray-200"
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -660,7 +805,9 @@ export default function SpringNoteToolbar({
               >
                 {/* 1) Text Color Section */}
                 <div className="flex flex-col gap-1">
-                  <span className={`text-[9px] font-bold uppercase tracking-wide ${isLightTheme ? "text-gray-500" : "text-gray-400"}`}>Text Color</span>
+                  <span className={`text-[9px] font-bold uppercase tracking-wide ${
+                    isSageTheme ? "text-[#465E4B]" : isLightTheme ? "text-gray-500" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-400"
+                  }`}>Text Color</span>
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       { key: "default", val: "#374151", desc: "Default" },
@@ -694,11 +841,15 @@ export default function SpringNoteToolbar({
                   </div>
                 </div>
 
-                <div className={`w-full h-px ${isLightTheme ? "bg-gray-150" : "bg-white/10"}`} />
+                <div className={`w-full h-px ${
+                  isSageTheme ? "bg-[#CFDCD0]" : isLightTheme ? "bg-gray-150" : isSepiaTheme ? "bg-[#D8C6AC]" : "bg-white/10"
+                }`} />
 
                 {/* 2) Highlight Color Section */}
                 <div className="flex flex-col gap-1">
-                  <span className={`text-[9px] font-bold uppercase tracking-wide ${isLightTheme ? "text-gray-500" : "text-gray-400"}`}>Highlight Color</span>
+                  <span className={`text-[9px] font-bold uppercase tracking-wide ${
+                    isSageTheme ? "text-[#465E4B]" : isLightTheme ? "text-gray-500" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-400"
+                  }`}>Highlight Color</span>
                   <div className="flex flex-wrap gap-1.5">
                     {[
                       { key: "default", val: "transparent", desc: "Clear" },
@@ -724,7 +875,7 @@ export default function SpringNoteToolbar({
                           }
                           setShowColorPopover(false);
                         }}
-                        style={{ backgroundColor: c.val === "transparent" ? (isLightTheme ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.15)") : c.val }}
+                        style={{ backgroundColor: c.val === "transparent" ? (isLightTheme || isSepiaTheme || isSageTheme ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.15)") : c.val }}
                         className="w-4 h-4 rounded-full hover:scale-125 transition-transform border border-white/20 active:scale-90"
                         title={c.desc}
                       />
@@ -750,11 +901,19 @@ export default function SpringNoteToolbar({
               }}
               className={`flex items-center gap-0.5 px-2.5 py-1 text-xs font-bold rounded-lg border transition-all shrink-0 active:scale-95 ${
                 editor.isActive("heading")
-                  ? isLightTheme
+                  ? isSageTheme
+                    ? "bg-[#3F5B44]/20 border-[#3F5B44]/35 text-[#1F3324] font-extrabold"
+                    : isLightTheme
                     ? "bg-amber-500/20 border-amber-500/35 text-amber-900 font-extrabold"
+                    : isSepiaTheme
+                    ? "bg-[#7A604D]/15 border-[#7A604D]/30 text-[#4A3728] font-extrabold"
                     : "bg-[#EADCC6]/25 border-[#EADCC6]/35 text-white"
+                  : isSageTheme
+                  ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324] hover:border-[#BACAB7]"
                   : isLightTheme
                   ? "bg-white border-gray-250/80 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  : isSepiaTheme
+                  ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728] hover:border-[#C4AD90]"
                   : "bg-[#2D1E15]/50 dark:bg-surface-900 border-[#2D1E15] dark:border-surface-700 text-[#EBDCB9]/80 hover:bg-white/10 hover:text-white"
               }`}
               title="Heading Styles"
@@ -771,7 +930,13 @@ export default function SpringNoteToolbar({
             {showHeadingDropdown && (
               <div
                 className={`absolute top-full left-0 mt-1.5 flex flex-col p-1.5 rounded-xl shadow-xl border gap-0.5 z-50 animate-in fade-in duration-100 min-w-[140px] ${
-                  isLightTheme ? "bg-white border-gray-200 text-gray-800" : "bg-slate-900 dark:bg-surface-950 border-white/10"
+                  isSageTheme
+                    ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#243828] shadow-xl"
+                    : isLightTheme 
+                    ? "bg-white border-gray-200 text-gray-800" 
+                    : isSepiaTheme
+                    ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#4A3728] shadow-xl"
+                    : "bg-slate-900 dark:bg-surface-950 border-white/10"
                 }`}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -788,15 +953,25 @@ export default function SpringNoteToolbar({
                       }}
                       className={`flex items-center gap-2.5 px-2.5 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all ${
                         isActive
-                          ? isLightTheme
+                          ? isSageTheme
+                            ? "bg-[#3F5B44]/15 text-[#1F3324] font-extrabold"
+                            : isLightTheme
                             ? "bg-amber-500/15 text-amber-900 font-extrabold"
+                            : isSepiaTheme
+                            ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold"
                             : "bg-amber-500/20 text-white font-extrabold"
+                          : isSageTheme
+                          ? "text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324]"
                           : isLightTheme
                           ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                          : isSepiaTheme
+                          ? "text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728]"
                           : "text-gray-300 hover:bg-white/5 hover:text-white"
                       }`}
                     >
-                      <span className="text-[10px] text-gray-500 font-extrabold min-w-[15px] uppercase">H{level}</span>
+                      <span className={`text-[10px] font-extrabold min-w-[15px] uppercase ${
+                        isSageTheme ? "text-[#465E4B]" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-500"
+                      }`}>H{level}</span>
                       <span>Heading {level}</span>
                     </button>
                   );
@@ -810,22 +985,32 @@ export default function SpringNoteToolbar({
                   }}
                   className={`flex items-center gap-2.5 px-2.5 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all ${
                     editor.isActive("paragraph") && !editor.isActive("heading")
-                      ? isLightTheme
+                      ? isSageTheme
+                        ? "bg-[#3F5B44]/15 text-[#1F3324] font-extrabold"
+                        : isLightTheme
                         ? "bg-amber-500/15 text-amber-900 font-extrabold"
+                        : isSepiaTheme
+                        ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold"
                         : "bg-amber-500/20 text-white font-extrabold"
+                      : isSageTheme
+                      ? "text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324]"
                       : isLightTheme
                       ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      : isSepiaTheme
+                      ? "text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728]"
                       : "text-gray-300 hover:bg-white/5 hover:text-white"
                   }`}
                 >
-                  <span className="text-[10px] text-gray-500 font-extrabold min-w-[15px] uppercase">¶</span>
+                  <span className={`text-[10px] font-extrabold min-w-[15px] uppercase ${
+                    isSageTheme ? "text-[#465E4B]" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-500"
+                  }`}>¶</span>
                   <span>Paragraph</span>
                 </button>
               </div>
             )}
           </div>
 
-          <div className="w-px h-4 bg-[#231710] dark:bg-surface-750 shrink-0" />
+          <div className={dividerClass} />
 
           {/* 그룹 4: 리스트 스타일 드롭다운 및 코드블록 단독 버튼 */}
           <div className="flex items-center gap-1.5 shrink-0">
@@ -841,11 +1026,19 @@ export default function SpringNoteToolbar({
                 }}
                 className={`flex items-center gap-0.5 px-2.5 py-1 text-xs font-bold rounded-lg border transition-all shrink-0 active:scale-95 ${
                   editor.isActive("bulletList") || editor.isActive("orderedList") || editor.isActive("taskList")
-                    ? isLightTheme
+                    ? isSageTheme
+                      ? "bg-[#3F5B44]/20 border-[#3F5B44]/35 text-[#1F3324] font-extrabold"
+                      : isLightTheme
                       ? "bg-amber-500/20 border-amber-500/35 text-amber-900 font-extrabold"
+                      : isSepiaTheme
+                      ? "bg-[#7A604D]/15 border-[#7A604D]/30 text-[#4A3728] font-extrabold"
                       : "bg-[#EADCC6]/25 border-[#EADCC6]/35 text-white"
+                    : isSageTheme
+                    ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324] hover:border-[#BACAB7]"
                     : isLightTheme
                     ? "bg-white border-gray-250/80 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                    : isSepiaTheme
+                    ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728] hover:border-[#C4AD90]"
                     : "bg-[#2D1E15]/50 dark:bg-surface-900 border-[#2D1E15] dark:border-surface-700 text-[#EBDCB9]/80 hover:bg-white/10 hover:text-white"
                 }`}
                 title="List Styles"
@@ -863,7 +1056,13 @@ export default function SpringNoteToolbar({
               {showListDropdown && (
                 <div
                   className={`absolute top-full left-0 mt-1.5 flex flex-col p-1.5 rounded-xl shadow-xl border gap-0.5 z-50 animate-in fade-in duration-100 min-w-[140px] ${
-                    isLightTheme ? "bg-white border-gray-200 text-gray-800" : "bg-slate-900 dark:bg-surface-950 border-white/10"
+                    isSageTheme
+                      ? "bg-[#F2F5ED] border-[#CFDCD0] text-[#243828] shadow-xl"
+                      : isLightTheme 
+                      ? "bg-white border-gray-200 text-gray-800" 
+                      : isSepiaTheme
+                      ? "bg-[#FBF6EC] border-[#D8C6AC] text-[#4A3728] shadow-xl"
+                      : "bg-slate-900 dark:bg-surface-950 border-white/10"
                   }`}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -876,15 +1075,23 @@ export default function SpringNoteToolbar({
                     }}
                     className={`flex items-center gap-2.5 px-2.5 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all ${
                       editor.isActive("bulletList")
-                        ? isLightTheme
+                        ? isSageTheme
+                          ? "bg-[#3F5B44]/15 text-[#1F3324] font-extrabold"
+                          : isLightTheme
                           ? "bg-amber-500/15 text-amber-900 font-extrabold"
+                          : isSepiaTheme
+                          ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold"
                           : "bg-amber-500/20 text-white font-extrabold"
+                        : isSageTheme
+                        ? "text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324]"
                         : isLightTheme
                         ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        : isSepiaTheme
+                        ? "text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728]"
                         : "text-gray-300 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <List size={13} className="text-gray-400" />
+                    <List size={13} className={isSageTheme ? "text-[#465E4B]" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-400"} />
                     <span>Bullet List</span>
                   </button>
 
@@ -897,15 +1104,23 @@ export default function SpringNoteToolbar({
                     }}
                     className={`flex items-center gap-2.5 px-2.5 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all ${
                       editor.isActive("orderedList")
-                        ? isLightTheme
+                        ? isSageTheme
+                          ? "bg-[#3F5B44]/15 text-[#1F3324] font-extrabold"
+                          : isLightTheme
                           ? "bg-amber-500/15 text-amber-900 font-extrabold"
+                          : isSepiaTheme
+                          ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold"
                           : "bg-amber-500/20 text-white font-extrabold"
+                        : isSageTheme
+                        ? "text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324]"
                         : isLightTheme
                         ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        : isSepiaTheme
+                        ? "text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728]"
                         : "text-gray-300 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <ListOrdered size={13} className="text-gray-400" />
+                    <ListOrdered size={13} className={isSageTheme ? "text-[#465E4B]" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-400"} />
                     <span>Ordered List</span>
                   </button>
 
@@ -918,15 +1133,23 @@ export default function SpringNoteToolbar({
                     }}
                     className={`flex items-center gap-2.5 px-2.5 py-1.5 text-left text-[11px] font-bold rounded-lg transition-all ${
                       editor.isActive("taskList")
-                        ? isLightTheme
+                        ? isSageTheme
+                          ? "bg-[#3F5B44]/15 text-[#1F3324] font-extrabold"
+                          : isLightTheme
                           ? "bg-amber-500/15 text-amber-900 font-extrabold"
+                          : isSepiaTheme
+                          ? "bg-[#7A604D]/15 text-[#4A3728] font-extrabold"
                           : "bg-amber-500/20 text-white font-extrabold"
+                        : isSageTheme
+                        ? "text-[#465E4B] hover:bg-[#DCE6D9] hover:text-[#1F3324]"
                         : isLightTheme
                         ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        : isSepiaTheme
+                        ? "text-[#7A604D] hover:bg-[#EFE7D8] hover:text-[#4A3728]"
                         : "text-gray-300 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <ListTodo size={13} className="text-gray-400" />
+                    <ListTodo size={13} className={isSageTheme ? "text-[#465E4B]" : isSepiaTheme ? "text-[#8D735E]" : "text-gray-400"} />
                     <span>Task List</span>
                   </button>
                 </div>
@@ -961,7 +1184,7 @@ export default function SpringNoteToolbar({
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              className="p-1 rounded transition-all text-gray-300 hover:text-white hover:bg-white/5"
+              className={`p-1 rounded transition-all ${btnClass}`}
               title="Horizontal Divider"
             >
               <Minus size={13} />

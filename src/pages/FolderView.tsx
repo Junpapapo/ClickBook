@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { ChevronLeft, FolderOpen, FolderPlus, MoveRight, Check, X, Plus, ChevronsUp, ChevronsDown, Pencil, Trash2, Sparkles, Shield, Layers } from "lucide-react";
 import BookmarkCard from "@/components/BookmarkCard";
 import { EditModal } from "@/components/BookmarkEditPanel";
@@ -215,13 +215,13 @@ export default function FolderView({
     return { directBookmarks: direct, descendantBookmarks: descendant };
   }, [bookmarks, folderId, descendantFolderIds, sortKey, jaCollator]);
 
-  async function handleDelete(id: string) {
+  const handleDelete = useCallback(async (id: string) => {
     const response = (await sendMsg({
       type: "DELETE_BOOKMARK",
       id,
     })) as MessageResponse;
     if (response && response.success) onRefresh();
-  }
+  }, [onRefresh]);
 
   function startEditName() {
     setNameValue(folder.name);
@@ -306,7 +306,7 @@ export default function FolderView({
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
-      <div className="flex flex-col gap-5 max-w-[1440px] w-full mx-auto pb-12 px-2 sm:px-6 select-none">
+      <div className="flex flex-col gap-5 w-full pb-12 px-2 sm:px-6 select-none">
         {DialogEl}
 
         {/* ── 1. 상단 히어로 & 통합 검색창 & 유틸리티 툴바 (대시보드와 100% 동일) ── */}

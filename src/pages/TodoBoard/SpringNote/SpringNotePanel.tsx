@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "@/shared/ThemeContext";
 import { ListTodo } from "lucide-react";
 import type { NotePage, NoteObject, SpringNote } from "@/shared/types";
-import type { SpringNotePanelProps } from "./spring-note-types";
+import type { SpringNotePanelProps, SpringNoteTheme } from "./spring-note-types";
 import SpringNoteToolbar from "./components/SpringNoteToolbar";
 import SpringNoteBook from "./components/SpringNoteBook";
 import SpringNoteCanvas from "./components/SpringNoteCanvas";
@@ -166,7 +166,7 @@ export default function SpringNotePanel({
   const { showAlert, DialogEl } = useDialog();
   const [pages, setPages] = useState<NotePage[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [theme, setTheme] = useState<"light" | "sepia" | "dark" | "grid">("sepia");
+  const [theme, setTheme] = useState<SpringNoteTheme>("sepia");
   const [font, setFont] = useState<"serif" | "sans" | "mono" | "pretendard">("pretendard");
   const [fontSize, setFontSize] = useState<number>(16);
   const [noteTitle, setNoteTitle] = useState("");
@@ -271,6 +271,14 @@ export default function SpringNotePanel({
       setTheme(targetTheme);
     }
   }, [systemTheme, loading]);
+
+  // 노트를 불러올 때(마운트 및 taskId 전환 시) 브라우저 레이아웃을 전체 너비로 즉시 동기화
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [taskId]);
 
 
 
@@ -464,16 +472,18 @@ export default function SpringNotePanel({
     return () => clearTimeout(timer);
   }, [pages, currentPageIndex, editor?.getHTML()]);
 
-  // 밝은 배경(라이트/세피아)에서 어두운 글자색을 엄격히 고정하기 위한 헬퍼
+  // 밝은 배경(라이트/세피아/세이지/도트)에서 어두운 글자색을 엄격히 고정하기 위한 헬퍼
   const getThemeTextClass = () => {
-    if (theme === "light" || theme === "grid") return "!text-black";
+    if (theme === "light" || theme === "grid" || theme === "dot") return "!text-black";
+    if (theme === "sage") return "!text-[#243828]";
     if (theme === "sepia") return "!text-[#4A3728]";
     return "!text-gray-200"; // dark
   };
 
   // 종이 테마에 상응하는 날짜용 차분한 전용 글자색 획득
   const getDateColorClass = () => {
-    if (theme === "light" || theme === "grid") return "text-gray-400 dark:text-gray-500";
+    if (theme === "light" || theme === "grid" || theme === "dot") return "text-gray-400 dark:text-gray-500";
+    if (theme === "sage") return "text-[#465E4B]";
     if (theme === "sepia") return "text-[#7A604D]"; // 세피아 전용 어두운 브라운
     return "text-gray-500"; // dark 테마
   };
@@ -1058,7 +1068,7 @@ export default function SpringNotePanel({
   };
 
   return (
-    <div className="flex-grow flex flex-col h-full bg-gray-55/10 dark:bg-surface-900/10 border-l border-gray-150 dark:border-white/5 overflow-hidden animate-in fade-in duration-300">
+    <div className="flex-grow flex flex-col h-full w-full min-w-0 bg-gray-55/10 dark:bg-surface-900/10 border-l border-gray-150 dark:border-white/5 overflow-hidden animate-in fade-in duration-300">
       {DialogEl}
       {/* 슬래시(/) 커맨드 메뉴 — Portal로 body에 렌더링 */}
       {editor && slashState.active && (
@@ -1097,7 +1107,7 @@ export default function SpringNotePanel({
         onOpenExport={() => setExportModalOpen(true)}
       />
 
-      <div className="flex-grow flex w-full overflow-hidden relative">
+      <div className="flex-grow flex w-full min-w-0 overflow-hidden relative">
         {/* 2. 메인 바인더 제본 래퍼 */}
         <SpringNoteBook theme={theme} font={font} fontSize={fontSize}>
           <div 
@@ -1113,7 +1123,7 @@ export default function SpringNotePanel({
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
               onClick={() => setSelectedObjId(null)}
-              placeholder="Untitled Notebook"
+              placeholder={lang === "ko" ? "제목 없는 노트" : lang === "ja" ? "無題のノート" : "Untitled Notebook"}
               className={`w-full bg-transparent border-none outline-none font-bold text-2xl ${getThemeTextClass()} placeholder-gray-350 dark:placeholder-gray-600 mb-1 focus:ring-0 z-20 focus:outline-none pl-10 pr-2`}
             />
 

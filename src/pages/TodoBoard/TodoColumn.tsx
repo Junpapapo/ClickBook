@@ -3,14 +3,25 @@ import { Draggable, Droppable, DraggableProvided, DroppableProvided } from "@hel
 import { Check, Palette, Trash2, Plus } from "lucide-react";
 import type { TodoColumn, TodoTask } from "@/shared/types";
 import TodoCard from "./TodoCard";
+import type { TodoThemeMeta } from "./todo-themes";
+import { getTodoThemeConfig } from "./todo-themes";
 
-const COLUMN_BG_COLORS: Record<string, string> = {
-  default: "bg-slate-100/80 dark:bg-slate-900/70 border-slate-200/80 dark:border-slate-800/80",
-  blue: "bg-blue-50/50 dark:bg-slate-900/70 border-blue-200/70 dark:border-blue-900/40",
-  emerald: "bg-emerald-50/50 dark:bg-slate-900/70 border-emerald-200/70 dark:border-emerald-900/40",
-  amber: "bg-amber-50/50 dark:bg-slate-900/70 border-amber-200/70 dark:border-amber-900/40",
-  rose: "bg-rose-50/50 dark:bg-slate-900/70 border-rose-200/70 dark:border-rose-900/40",
-  purple: "bg-purple-50/50 dark:bg-slate-900/70 border-purple-200/70 dark:border-purple-900/40",
+const getColumnColorClass = (color: string | undefined, cfg: TodoThemeMeta) => {
+  switch (color) {
+    case "blue":
+      return "bg-blue-50/50 dark:bg-blue-950/30 border-blue-200/70 dark:border-blue-900/40 backdrop-blur-xl";
+    case "emerald":
+      return "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200/70 dark:border-emerald-900/40 backdrop-blur-xl";
+    case "amber":
+      return "bg-amber-50/50 dark:bg-amber-950/30 border-amber-200/70 dark:border-amber-900/40 backdrop-blur-xl";
+    case "rose":
+      return "bg-rose-50/50 dark:bg-rose-950/30 border-rose-200/70 dark:border-rose-900/40 backdrop-blur-xl";
+    case "purple":
+      return "bg-purple-50/50 dark:bg-purple-950/30 border-purple-200/70 dark:border-purple-900/40 backdrop-blur-xl";
+    case "default":
+    default:
+      return `${cfg.columnBgDefault} ${cfg.columnBorder}`;
+  }
 };
 
 const COLOR_BTN_BG: Record<string, string> = {
@@ -26,6 +37,7 @@ interface TodoColumnViewProps {
   column: TodoColumn;
   index: number;
   tasks: TodoTask[];
+  themeConfig?: TodoThemeMeta;
   editingColumnId: string | null;
   editColumnTitle: string;
   setEditColumnTitle: (val: string) => void;
@@ -51,6 +63,7 @@ export default React.memo(function TodoColumn({
   column,
   index,
   tasks,
+  themeConfig,
   editingColumnId,
   editColumnTitle,
   setEditColumnTitle,
@@ -71,7 +84,8 @@ export default React.memo(function TodoColumn({
   onOpenSpringNote,
   t,
 }: TodoColumnViewProps) {
-  const currentBgClass = COLUMN_BG_COLORS[column.color || "default"];
+  const cfg = themeConfig || getTodoThemeConfig();
+  const currentBgClass = getColumnColorClass(column.color, cfg);
 
   return (
     <Draggable key={column.id} draggableId={column.id} index={index}>
@@ -79,14 +93,14 @@ export default React.memo(function TodoColumn({
         <div
           {...provided.draggableProps}
           ref={provided.innerRef}
-          className={`${currentBgClass} rounded-xl w-[85vw] sm:w-[320px] shrink-0 flex flex-col max-h-full border shadow-xs relative overflow-hidden transition-all duration-150 backdrop-blur-xs`}
+          className={`${currentBgClass} rounded-2xl w-[85vw] sm:w-[320px] shrink-0 flex flex-col max-h-full border shadow-xs relative overflow-hidden transition-all duration-200`}
         >
           <div
             {...provided.dragHandleProps}
             className="px-3.5 pt-3.5 pb-2.5 flex items-center justify-between group/col"
           >
             {editingColumnId === column.id ? (
-              <div className="flex items-center gap-1.5 w-full bg-white dark:bg-slate-800 rounded-lg border border-indigo-500 px-2.5 py-1 shadow-xs">
+              <div className="flex items-center gap-1.5 w-full bg-white/80 dark:bg-slate-900/80 rounded-lg border border-indigo-500 px-2.5 py-1 shadow-xs backdrop-blur-md">
                 <input
                   autoFocus
                   value={editColumnTitle}
@@ -117,21 +131,21 @@ export default React.memo(function TodoColumn({
                   >
                     {column.title}
                   </h3>
-                  <span className="bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0">
+                  <span className={`${cfg.headerBadgeBg} text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 shadow-2xs`}>
                     {tasks.length}
                   </span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   <button
                     onClick={() => setShowColorPickerForCol(showColorPickerForCol === column.id ? null : column.id)}
-                    className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-md transition-colors"
+                    className={`p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 ${cfg.headerBtnHover} rounded-md transition-colors`}
                     title={t("changeColor") || "Change Color"}
                   >
                     <Palette size={13} />
                   </button>
                   <button
                     onClick={() => deleteColumn(column.id)}
-                    className="p-1 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-md transition-colors"
+                    className="p-1 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 rounded-md transition-colors"
                     title={t("delete") || "Delete"}
                   >
                     <Trash2 size={13} />
@@ -143,7 +157,7 @@ export default React.memo(function TodoColumn({
 
           {showColorPickerForCol === column.id && (
             <div className="px-3.5 pb-2.5 flex gap-1.5 justify-end animate-in fade-in slide-in-from-top-1 duration-150">
-              {Object.keys(COLUMN_BG_COLORS).map((colorKey) => {
+              {["default", "blue", "emerald", "amber", "rose", "purple"].map((colorKey) => {
                 const isActive = column.color === colorKey || (!column.color && colorKey === "default");
                 return (
                   <button
@@ -166,7 +180,7 @@ export default React.memo(function TodoColumn({
                 {...provided.droppableProps}
                 ref={provided.innerRef}
                 className={`flex-1 overflow-y-auto px-2.5 pb-2 min-h-[40px] space-y-2 transition-colors scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 ${
-                  snapshot.isDraggingOver ? "bg-indigo-50/40 dark:bg-indigo-950/20 rounded-lg" : ""
+                  snapshot.isDraggingOver ? "bg-indigo-50/30 dark:bg-indigo-950/20 rounded-lg" : ""
                 }`}
               >
                 {tasks.map((task, index) => (
@@ -175,6 +189,7 @@ export default React.memo(function TodoColumn({
                     task={task}
                     index={index}
                     columnId={column.id}
+                    themeConfig={cfg}
                     onToggleComplete={onToggleComplete}
                     onOpenModal={onOpenModal}
                     onDeleteTask={onDeleteTask}
@@ -184,7 +199,7 @@ export default React.memo(function TodoColumn({
                 {provided.placeholder}
 
                 {addingTaskToCol === column.id && (
-                  <div className="bg-white dark:bg-slate-800/95 p-2.5 rounded-lg shadow-sm border border-indigo-500/80 dark:border-indigo-500 ring-2 ring-indigo-500/10 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-150">
+                  <div className={`${cfg.formBg} p-2.5 rounded-xl shadow-md border border-indigo-500/60 dark:border-indigo-500 ring-2 ring-indigo-500/10 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-150`}>
                     <textarea
                       autoFocus
                       value={newTaskContent}
@@ -199,10 +214,10 @@ export default React.memo(function TodoColumn({
                       placeholder={t("taskContentPlaceholder") || "Enter task..."}
                       className="w-full text-xs bg-transparent outline-none resize-none text-slate-800 dark:text-slate-100 min-h-[64px] placeholder:text-slate-400 font-medium leading-relaxed"
                     />
-                    <div className="flex gap-1.5 justify-end items-center pt-1.5 border-t border-slate-100 dark:border-slate-700/50">
+                    <div className="flex gap-1.5 justify-end items-center pt-1.5 border-t border-black/5 dark:border-white/10">
                       <button
                         onClick={() => setAddingTaskToCol(null)}
-                        className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium rounded-md hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-medium rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                       >
                         {t("cancelBtn")}
                       </button>
@@ -227,7 +242,7 @@ export default React.memo(function TodoColumn({
                   setAddingTaskToCol(column.id);
                   setNewTaskContent("");
                 }}
-                className="w-full flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:text-slate-800 dark:hover:text-slate-200 border border-transparent hover:border-slate-200/80 dark:hover:border-slate-700/60 hover:shadow-xs transition-all cursor-pointer"
+                className={`w-full flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 ${cfg.addBtnHover} border border-transparent transition-all cursor-pointer`}
               >
                 <Plus size={14} />
                 {t("addTodoTask")}

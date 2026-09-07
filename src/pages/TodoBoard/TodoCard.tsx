@@ -6,14 +6,27 @@ import { FolderIcon } from "@/components/DynamicIcon";
 import { checkSpringNoteExists } from "@/utils/springNoteDb";
 import { useLang } from "@/shared/LanguageContext";
 import type { TFunction, Lang } from "@/shared/i18n";
+import type { TodoThemeMeta } from "./todo-themes";
+import { getTodoThemeConfig } from "./todo-themes";
 
-const TASK_BG_COLORS: Record<string, string> = {
-  default: "bg-white dark:bg-slate-800/95 border-slate-200/90 dark:border-slate-700/70",
-  blue: "bg-blue-50/50 dark:bg-slate-800/95 border-blue-200/90 dark:border-blue-800/60 border-l-[3px] border-l-blue-500",
-  emerald: "bg-emerald-50/50 dark:bg-slate-800/95 border-emerald-200/90 dark:border-emerald-800/60 border-l-[3px] border-l-emerald-500",
-  amber: "bg-amber-50/50 dark:bg-slate-800/95 border-amber-200/90 dark:border-amber-800/60 border-l-[3px] border-l-amber-500",
-  rose: "bg-rose-50/50 dark:bg-slate-800/95 border-rose-200/90 dark:border-rose-800/60 border-l-[3px] border-l-rose-500",
-  purple: "bg-purple-50/50 dark:bg-slate-800/95 border-purple-200/90 dark:border-purple-800/60 border-l-[3px] border-l-purple-500",
+const getCardColorClass = (color: string | undefined, cfg: TodoThemeMeta) => {
+  if (!color || color === "default") {
+    return `${cfg.cardBg} ${cfg.cardBorder} ${cfg.cardHover}`;
+  }
+  switch (color) {
+    case "blue":
+      return "bg-blue-50/50 dark:bg-blue-950/30 backdrop-blur-md border-blue-200/80 dark:border-blue-900/50 border-l-[3px] border-l-blue-500 hover:border-blue-400/80 hover:shadow-xs";
+    case "emerald":
+      return "bg-emerald-50/50 dark:bg-emerald-950/30 backdrop-blur-md border-emerald-200/80 dark:border-emerald-900/50 border-l-[3px] border-l-emerald-500 hover:border-emerald-400/80 hover:shadow-xs";
+    case "amber":
+      return "bg-amber-50/50 dark:bg-amber-950/30 backdrop-blur-md border-amber-200/80 dark:border-amber-900/50 border-l-[3px] border-l-amber-500 hover:border-amber-400/80 hover:shadow-xs";
+    case "rose":
+      return "bg-rose-50/50 dark:bg-rose-950/30 backdrop-blur-md border-rose-200/80 dark:border-rose-900/50 border-l-[3px] border-l-rose-500 hover:border-rose-400/80 hover:shadow-xs";
+    case "purple":
+      return "bg-purple-50/50 dark:bg-purple-950/30 backdrop-blur-md border-purple-200/80 dark:border-purple-900/50 border-l-[3px] border-l-purple-500 hover:border-purple-400/80 hover:shadow-xs";
+    default:
+      return `${cfg.cardBg} ${cfg.cardBorder} ${cfg.cardHover}`;
+  }
 };
 
 const formatDateByLang = (dateStr?: string, lang: Lang = "en") => {
@@ -81,6 +94,7 @@ interface TodoTaskCardProps {
   task: TodoTask;
   index: number;
   columnId: string;
+  themeConfig?: TodoThemeMeta;
   onToggleComplete: (taskId: string, e: React.MouseEvent) => void;
   onOpenModal: (task: TodoTask) => void;
   onDeleteTask: (taskId: string, colId: string, e?: React.MouseEvent) => void;
@@ -91,6 +105,7 @@ export default React.memo(function TodoCard({
   task,
   index,
   columnId,
+  themeConfig,
   onToggleComplete,
   onOpenModal,
   onDeleteTask,
@@ -103,7 +118,8 @@ export default React.memo(function TodoCard({
     checkSpringNoteExists(task.id).then(setHasNote);
   }, [task.id]);
 
-  const cardColorClass = TASK_BG_COLORS[task.color || "default"] || TASK_BG_COLORS.default;
+  const cfg = themeConfig || getTodoThemeConfig();
+  const cardColorClass = getCardColorClass(task.color, cfg);
 
   return (
     <Draggable key={task.id} draggableId={task.id} index={index}>
@@ -115,8 +131,8 @@ export default React.memo(function TodoCard({
           onClick={() => onOpenModal(task)}
           className={`group/task relative ${cardColorClass} p-3 rounded-lg shadow-2xs border
             ${snapshot.isDragging
-              ? "shadow-lg ring-2 ring-indigo-500/40 rotate-1 scale-[1.01] z-50 cursor-grabbing bg-white dark:bg-slate-800"
-              : "hover:border-indigo-400/70 dark:hover:border-indigo-500/60 hover:shadow-xs cursor-pointer transition-all duration-150"
+              ? "shadow-lg ring-2 ring-indigo-500/40 rotate-1 scale-[1.01] z-50 cursor-grabbing bg-white/90 dark:bg-slate-800/90"
+              : "cursor-pointer transition-all duration-150"
             }
           `}
         >

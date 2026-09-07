@@ -48,26 +48,39 @@ import type { Message, MessageResponse } from "@/shared/types";
  * Type-safe wrapper for chrome.runtime.sendMessage with robust error handling and automatic retry.
  * Prevents "Could not establish connection. Receiving end does not exist" on startup or wake-up.
  */
-export async function sendMsg(message: Message, retries = 3, initialDelay = 150): Promise<MessageResponse> {
+export async function sendMsg(message: Message, retries = 5, initialDelay = 200): Promise<MessageResponse> {
+  // Check if Chrome extension runtime context is valid
+  if (typeof chrome === "undefined" || !chrome.runtime?.id) {
+    return { success: false, error: "Extension context invalidated or unavailable" };
+  }
+
   let delay = initialDelay;
   for (let i = 0; i < retries; i++) {
     try {
       return await (chrome.runtime.sendMessage(message) as Promise<MessageResponse>);
     } catch (err: any) {
       const errMsg = err?.message || String(err);
+
+      // If context was invalidated (e.g., extension updated/reloaded), stop retrying immediately
+      if (errMsg.includes("Extension context invalidated") || !chrome.runtime?.id) {
+        return { success: false, error: "Extension context invalidated" };
+      }
+
       const isConnectionError = 
         errMsg.includes("Could not establish connection") ||
         errMsg.includes("Receiving end does not exist") ||
         errMsg.includes("message port closed");
       
       if (isConnectionError && i < retries - 1) {
-        console.warn(`[ClickBook] sendMsg failed (${errMsg}). Retrying in ${delay}ms... (${i + 1}/${retries})`);
+        // Use console.debug instead of console.warn to avoid cluttering chrome://extensions error UI
+        console.debug(`[ClickBook] Service worker waking up... retrying in ${delay}ms (${i + 1}/${retries})`);
         await new Promise((resolve) => setTimeout(resolve, delay));
-        delay *= 2;
+        delay = Math.min(delay * 2, 1600);
         continue;
       }
       
-      console.error(`[ClickBook] sendMsg failed permanently after ${i + 1} attempts:`, err);
+      // Log final failure only when all retries are exhausted
+      console.warn(`[ClickBook] sendMsg failed after ${i + 1} attempts:`, errMsg);
       return { success: false, error: errMsg };
     }
   }

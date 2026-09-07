@@ -214,7 +214,7 @@ export default function TagBoard({
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
       {DialogEl}
-      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col font-sans relative">
+      <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col font-sans relative">
         {/* Toast Notification */}
         {toastMessage && (
           <div

@@ -335,7 +335,7 @@ function BookmarkMapContent({ bookmarks, folders, memos, onRefresh }: Props) {
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
-      <div className="max-w-[1440px] w-full mx-auto pb-3 pt-2 sm:pt-3 px-2 sm:px-4 select-none flex flex-col h-[calc(100vh-1rem)] space-y-2">
+      <div className="w-full pb-3 pt-2 sm:pt-3 px-2 sm:px-4 select-none flex flex-col h-[calc(100vh-1rem)] space-y-2">
         <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-xl rounded-3xl border border-white/60 dark:border-white/10 shadow-figma-lg flex-1 flex flex-col min-w-0 overflow-hidden relative min-h-0">
           <ReactFlow
             nodes={nodes}

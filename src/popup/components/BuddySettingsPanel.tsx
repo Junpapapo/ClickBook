@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { BuddySelector } from "./BuddySelector";
-import type { BuddyConfig, MessageResponse } from "@/shared/types";
+import type { BuddyConfig } from "@/shared/types";
+import { sendMsg } from "@/shared/utils";
 import { t, setLang } from "@/buddy/i18n";
 import { useLang } from "@/shared/LanguageContext";
 
@@ -59,10 +60,10 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
 
   const handleRemoveHiddenSite = async (domain: string) => {
     try {
-      const res = (await chrome.runtime.sendMessage({
+      const res = await sendMsg({
         type: "BUDDY_UNHIDE_SITE",
         domain,
-      })) as MessageResponse;
+      });
 
       if (res.success) {
         const nextSites = hiddenSites.filter((d) => d !== domain);
@@ -70,7 +71,7 @@ export const BuddySettingsPanel: React.FC<BuddySettingsPanelProps> = ({ config, 
         handleUpdate({ hiddenSites: nextSites });
       }
     } catch (e) {
-      console.warn("Failed to unhide domain:", e);
+      console.debug("Failed to unhide domain:", e);
     }
   };
 

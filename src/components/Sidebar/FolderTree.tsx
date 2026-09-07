@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, memo } from "react";
+import React, { useState, useRef, useMemo, useCallback, memo, useEffect } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -6,7 +6,6 @@ import {
   Plus,
   Trash2,
   Pencil,
-  GripVertical,
   FolderPlus,
   Check,
   X,
@@ -14,6 +13,7 @@ import {
   LockOpen,
   Shield,
   Layers,
+  MoreHorizontal,
 } from "lucide-react";
 import { buildFolderTree, getLocalizedFolderName } from "@/shared/categories";
 import type { FolderTreeNode } from "@/shared/categories";
@@ -31,6 +31,18 @@ const COLOR_DOT: Record<string, string> = {
   sky: "bg-sky-400",
   gray: "bg-gray-400",
   indigo: "bg-indigo-400",
+};
+
+const FOLDER_ICON_COLOR: Record<string, string> = {
+  blue: "text-blue-500 dark:text-blue-400",
+  purple: "text-purple-500 dark:text-purple-400",
+  amber: "text-amber-500 dark:text-amber-400",
+  rose: "text-rose-500 dark:text-rose-400",
+  cyan: "text-cyan-500 dark:text-cyan-400",
+  green: "text-emerald-500 dark:text-emerald-400",
+  sky: "text-sky-500 dark:text-sky-400",
+  gray: "text-gray-400 dark:text-gray-500",
+  indigo: "text-indigo-500 dark:text-indigo-400",
 };
 
 interface FolderTreeProps {
@@ -73,6 +85,26 @@ export default function FolderTree({
   const [newFolderIcon, setNewFolderIcon] = useState("📁");
   const [renameIcon, setRenameIcon] = useState("📁");
   const [showPicker, setShowPicker] = useState<"create" | "rename" | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeMenuId) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setActiveMenuId(null);
+    }
+    function handleMouseDown(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-folder-menu]")) {
+        setActiveMenuId(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("mousedown", handleMouseDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("mousedown", handleMouseDown);
+    };
+  }, [activeMenuId]);
 
   const counts = useMemo(() => {
     return bookmarks.reduce<Record<string, number>>((acc, b) => {
@@ -365,6 +397,8 @@ export default function FolderTree({
             depth={0}
             activePage={activePage}
             selectedFolderId={selectedFolderId}
+            activeMenuId={activeMenuId}
+            setActiveMenuId={setActiveMenuId}
             renamingId={renamingId}
             setRenamingId={setRenamingId}
             renameValue={renameValue}
@@ -407,6 +441,8 @@ interface SidebarFolderNodeProps {
   depth: number;
   activePage: PageId;
   selectedFolderId: string | null;
+  activeMenuId: string | null;
+  setActiveMenuId: (id: string | null) => void;
   renamingId: string | null;
   setRenamingId: (id: string | null) => void;
   renameValue: string;
@@ -445,6 +481,8 @@ const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(
     depth,
     activePage,
     selectedFolderId,
+    activeMenuId,
+    setActiveMenuId,
     renamingId,
     setRenamingId,
     renameValue,
@@ -501,42 +539,41 @@ const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(
             if (hasChildren) handleToggle(f.id);
           }}
           className={`
-            group flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer
-            transition-all duration-150 rounded-lg mx-1.5
+            group relative flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer
+            transition-all duration-150 rounded-lg mx-1
             ${
               isActive
-                ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-surface-800"
+                ? "bg-indigo-500/12 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-semibold border-l-[3px] border-indigo-500 shadow-2xs"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/[0.06]"
             }
             ${isDragOverInfo?.position === "inside" ? "ring-2 ring-indigo-500/50 bg-indigo-500/10" : ""}
           `}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          style={{ paddingLeft: `${depth * 12 + 6}px` }}
         >
-          <GripVertical
-            size={12}
-            className="opacity-0 group-hover:opacity-40 shrink-0 cursor-grab"
-          />
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (hasChildren) handleToggle(f.id);
-            }}
-            className="w-4 h-4 flex items-center justify-center shrink-0"
-          >
-            {hasChildren ? (
-              f.collapsed ? (
-                <ChevronRight size={13} className="text-gray-400 dark:text-gray-600" />
+          {hasChildren ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggle(f.id);
+              }}
+              className="w-3.5 h-3.5 flex items-center justify-center shrink-0 hover:bg-slate-300/40 dark:hover:bg-white/10 rounded transition-colors"
+            >
+              {f.collapsed ? (
+                <ChevronRight size={12} className="text-gray-400 dark:text-gray-500" />
               ) : (
-                <ChevronDown size={13} className="text-gray-400 dark:text-gray-600" />
-              )
-            ) : (
-              <span className="w-[5px] h-[5px] rounded-full block" />
-            )}
-          </button>
+                <ChevronDown size={12} className="text-gray-400 dark:text-gray-500" />
+              )}
+            </button>
+          ) : (
+            <span className="w-1 shrink-0" />
+          )}
 
           {!isRenaming && (
-            <FolderIcon iconName={f.icon} fallbackColorClass={dotColor} />
+            <FolderIcon
+              iconName={f.icon}
+              fallbackColorClass={dotColor}
+              className={f.color && FOLDER_ICON_COLOR[f.color] ? FOLDER_ICON_COLOR[f.color] : "text-gray-400 dark:text-gray-400"}
+            />
           )}
 
           {isRenaming ? (
@@ -608,18 +645,24 @@ const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(
           )}
 
           {!isRenaming && node.bookmarkCount > 0 && (
-            <span className="text-[10px] bg-gray-100 dark:bg-surface-700 text-gray-500 rounded-full px-1.5 py-0.5 min-w-[18px] text-center shrink-0">
+            <span
+              className={`text-[10px] font-medium tracking-tight rounded-full px-1.5 py-0.2 min-w-[18px] text-center shrink-0 border transition-all ${
+                isActive
+                  ? "bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border-indigo-500/30"
+                  : "bg-slate-200/60 dark:bg-white/5 border-slate-300/40 dark:border-white/10 text-slate-500 dark:text-slate-400"
+              } ${activeMenuId === f.id ? "hidden" : "group-hover:hidden"}`}
+            >
               {node.bookmarkCount}
             </span>
           )}
 
           {(f.locked || f.id === "other") && !isRenaming && (
-            <Lock size={10} className="text-amber-500 shrink-0 group-hover:hidden" />
+            <Lock size={10} className={`text-amber-500 shrink-0 ${activeMenuId === f.id ? "hidden" : "group-hover:hidden"}`} />
           )}
 
           {f.secure && !isRenaming && (
             <span
-              className="shrink-0 group-hover:hidden"
+              className={`shrink-0 ${activeMenuId === f.id ? "hidden" : "group-hover:hidden"}`}
               title={t("secureFolderTooltip")}
             >
               <Shield
@@ -630,69 +673,11 @@ const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(
           )}
 
           {!isRenaming && (
-            <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
-              {f.id !== "other" && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    chrome.runtime
-                      .sendMessage({ type: "TOGGLE_FOLDER_SECURE", id: f.id })
-                      .then(() => onRefresh());
-                  }}
-                  title={f.secure ? t("secureToggleOff") : t("secureToggleOn")}
-                  className={`p-0.5 transition-colors ${
-                    f.secure
-                      ? "text-emerald-500 hover:text-emerald-400"
-                      : "text-gray-400 dark:text-gray-600 hover:text-emerald-500 dark:hover:text-emerald-400"
-                  }`}
-                >
-                  <Shield size={11} className={f.secure ? "fill-current" : ""} />
-                </button>
-              )}
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  chrome.runtime.sendMessage({
-                    type: "OPEN_FOLDER_AS_TAB_GROUP",
-                    folderId: f.id,
-                  });
-                }}
-                title={t("openAsTabGroup")}
-                className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-              >
-                <Layers size={11} />
-              </button>
-
-              {f.id !== "other" ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleToggleLock(f.id);
-                  }}
-                  title={f.locked ? t("unlockTooltip") : t("lockTooltip")}
-                  className={`p-0.5 transition-colors ${
-                    f.locked
-                      ? "text-amber-500 hover:text-amber-400"
-                      : "text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400"
-                  }`}
-                >
-                  {f.locked ? <Lock size={11} /> : <LockOpen size={11} />}
-                </button>
-              ) : (
-                <div
-                  className="p-0.5 text-amber-500 cursor-not-allowed"
-                  title={
-                    lang === "ko"
-                      ? "기본 폴더는 이름 변경이나 삭제가 불가능합니다."
-                      : lang === "ja"
-                      ? "デフォルトフォルダーの名前変更や削除はできません。"
-                      : "Default folders cannot be renamed or deleted."
-                  }
-                >
-                  <Lock size={11} />
-                </div>
-              )}
+            <div
+              className={`items-center gap-0.5 shrink-0 ${
+                activeMenuId === f.id ? "flex" : "hidden group-hover:flex"
+              }`}
+            >
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -705,38 +690,145 @@ const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(
                     : t("addSubfolderTooltip")
                 }
                 disabled={getFolderDepth(f.id) >= maxFolderDepth}
-                className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-slate-300/40 dark:hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <FolderPlus size={12} />
               </button>
-              {f.id !== "other" && (
-                <>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setRenamingId(f.id);
-                      setRenameValue(f.name);
-                    }}
-                    title={t("renameTooltip")}
-                    className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
-                  >
-                    <Pencil size={11} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(f.id);
-                    }}
-                    title={t("deleteTooltip")}
-                    className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={11} />
-                  </button>
-                </>
-              )}
+
+              <button
+                data-folder-menu
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMenuId(activeMenuId === f.id ? null : f.id);
+                }}
+                title={lang === "ko" ? "더보기" : lang === "ja" ? "その他" : "More"}
+                className={`p-1 rounded transition-colors ${
+                  activeMenuId === f.id
+                    ? "text-indigo-600 dark:text-indigo-300 bg-slate-200/80 dark:bg-white/15"
+                    : "text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-slate-300/40 dark:hover:bg-white/10"
+                }`}
+              >
+                <MoreHorizontal size={12} />
+              </button>
             </div>
           )}
         </div>
+
+        {/* 더보기 (...) 컨텍스트 팝오버 메뉴 */}
+        {activeMenuId === f.id && (
+          <div
+            data-folder-menu
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-2 top-8 z-50 w-44 py-1 px-1 bg-white/95 dark:bg-[#0e1526]/95 backdrop-blur-md rounded-xl shadow-2xl border border-slate-200/80 dark:border-white/10 flex flex-col gap-0.5 text-xs select-none animate-in fade-in duration-100"
+          >
+            {/* 1. 이름 변경 (Other 제외) */}
+            {f.id !== "other" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMenuId(null);
+                  setRenamingId(f.id);
+                  setRenameValue(f.name);
+                  setRenameIcon(!/^[A-Za-z0-9_]+$/.test(f.icon ?? "") ? (f.icon ?? "📁") : "📁");
+                }}
+                className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Pencil size={13} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                <span className="truncate">{t("renameTooltip")}</span>
+              </button>
+            )}
+
+            {/* 2. 하위 폴더 추가 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveMenuId(null);
+                setCreatingUnder(f.id);
+                setNewFolderName("");
+              }}
+              disabled={getFolderDepth(f.id) >= maxFolderDepth}
+              className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <FolderPlus size={13} className="text-slate-400 dark:text-slate-400 shrink-0" />
+              <span className="truncate">{t("addSubfolderTooltip")}</span>
+            </button>
+
+            {/* 3. 탭 그룹으로 열기 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveMenuId(null);
+                chrome.runtime.sendMessage({
+                  type: "OPEN_FOLDER_AS_TAB_GROUP",
+                  folderId: f.id,
+                });
+              }}
+              className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <Layers size={13} className="text-slate-400 dark:text-slate-400 shrink-0" />
+              <span className="truncate">{t("openAsTabGroup")}</span>
+            </button>
+
+            {/* 4. 폴더 잠금 / 해제 (Other 제외) */}
+            {f.id !== "other" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMenuId(null);
+                  handleToggleLock(f.id);
+                }}
+                className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                {f.locked ? (
+                  <>
+                    <Lock size={13} className="text-amber-500 shrink-0" />
+                    <span className="truncate text-amber-600 dark:text-amber-400">{t("unlockTooltip")}</span>
+                  </>
+                ) : (
+                  <>
+                    <LockOpen size={13} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                    <span className="truncate">{t("lockTooltip")}</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* 5. 시크릿 폴더 전환 (Other 제외) */}
+            {f.id !== "other" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMenuId(null);
+                  chrome.runtime
+                    .sendMessage({ type: "TOGGLE_FOLDER_SECURE", id: f.id })
+                    .then(() => onRefresh());
+                }}
+                className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Shield size={13} className={`shrink-0 ${f.secure ? "text-emerald-500 fill-current" : "text-slate-400 dark:text-slate-400"}`} />
+                <span className="truncate">{f.secure ? t("secureToggleOff") : t("secureToggleOn")}</span>
+              </button>
+            )}
+
+            {/* 6. 폴더 삭제 (Other 제외) */}
+            {f.id !== "other" && (
+              <>
+                <div className="my-1 border-t border-slate-200/60 dark:border-white/10" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMenuId(null);
+                    handleDelete(f.id);
+                  }}
+                  className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                >
+                  <Trash2 size={13} className="shrink-0" />
+                  <span className="truncate">{t("deleteTooltip")}</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {creatingUnder === f.id && (
           <div
@@ -803,6 +895,8 @@ const SidebarFolderNode: React.FC<SidebarFolderNodeProps> = memo(
               depth={depth + 1}
               activePage={activePage}
               selectedFolderId={selectedFolderId}
+              activeMenuId={activeMenuId}
+              setActiveMenuId={setActiveMenuId}
               renamingId={renamingId}
               setRenamingId={setRenamingId}
               renameValue={renameValue}

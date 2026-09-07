@@ -654,7 +654,7 @@ export default function MemoBoard({ memos, bookmarks, onRefresh }: Props) {
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
-      <div className="max-w-[1440px] w-full mx-auto pb-12 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
+      <div className="w-full pb-12 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
         {/* ── 타이틀 & 컨트롤 헤더 (피그마 스타일 고품격 툴바) ── */}
         <div className="flex items-center gap-2.5 flex-wrap px-1">
           {/* 타이틀 & 배지 */}

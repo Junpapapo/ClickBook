@@ -300,7 +300,7 @@ export default function TaskControlPage({
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
-      <div className="max-w-[1440px] w-full mx-auto pb-6 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
+      <div className="w-full pb-6 pt-2 sm:pt-4 px-2 sm:px-6 select-none space-y-4">
         {/* Page Header */}
         <div className="flex items-center gap-3 px-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 shadow-md shadow-violet-500/25">

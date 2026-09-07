@@ -687,7 +687,7 @@ export default function SettingsModal({
                     {/* Local */}
                     <button
                       type="button"
-                      onClick={() => updateWallpaper({ source: "local" })}
+                      onClick={() => updateWallpaper({ source: "local", customUrl: undefined })}
                       className={`flex flex-col items-center text-center p-2 rounded-lg border transition-all cursor-pointer ${
                         wpDraft.source === "local"
                           ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-2xs font-semibold"
@@ -704,7 +704,7 @@ export default function SettingsModal({
                     {/* Gradient */}
                     <button
                       type="button"
-                      onClick={() => updateWallpaper({ source: "gradient" })}
+                      onClick={() => updateWallpaper({ source: "gradient", customUrl: undefined })}
                       className={`flex flex-col items-center text-center p-2 rounded-lg border transition-all cursor-pointer ${
                         wpDraft.source === "gradient"
                           ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-2xs font-semibold"
@@ -740,7 +740,7 @@ export default function SettingsModal({
                       {/* Random Auto Cycle Button */}
                       <button
                         type="button"
-                        onClick={() => updateWallpaper({ localId: undefined })}
+                        onClick={() => updateWallpaper({ localId: undefined, customUrl: undefined })}
                         className={`p-2 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between col-span-2 ${
                           !wpDraft.localId
                             ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-semibold shadow-2xs"
@@ -759,7 +759,7 @@ export default function SettingsModal({
                         <button
                           key={item.id}
                           type="button"
-                          onClick={() => updateWallpaper({ localId: item.id })}
+                          onClick={() => updateWallpaper({ localId: item.id, customUrl: undefined })}
                           className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-2 ${
                             wpDraft.localId === item.id
                               ? "bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-700 dark:text-indigo-300 font-semibold shadow-2xs"

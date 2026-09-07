@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { Check, X, Pencil, Trash2, AlertOctagon, Sparkles, FolderTree } from "lucide-react";
 import RecentWidget from "@/components/RecentWidget";
 import RankingWidget from "@/components/RankingWidget";
@@ -119,7 +119,7 @@ export default function Dashboard({
     setIsZenMode((prev) => !prev);
   };
 
-  async function handleDelete(id: string) {
+  const handleDelete = useCallback(async (id: string) => {
     try {
       const response = (await sendMsg({
         type: "DELETE_BOOKMARK",
@@ -134,7 +134,7 @@ export default function Dashboard({
       console.error(err);
       await showAlert("Error deleting bookmark", "warn");
     }
-  }
+  }, [onRefresh, showAlert, t]);
 
   async function handleDeleteFolder(id: string, _name: string) {
     const count = countByFolder[id] ?? 0;
@@ -224,7 +224,7 @@ export default function Dashboard({
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode} onClick={handleBackgroundClick}>
-      <div className="flex flex-col gap-5 max-w-[1440px] w-full mx-auto pb-12 px-2 sm:px-6 select-none min-h-[calc(100vh-2rem)] cursor-default">
+      <div className="flex flex-col gap-5 w-full pb-12 px-2 sm:px-6 select-none min-h-[calc(100vh-2rem)] cursor-default">
         {DialogEl}
 
         {/* ── 1. 상단 히어로 & 통합 검색창 & 유틸리티 툴바 (항상 유지) ── */}

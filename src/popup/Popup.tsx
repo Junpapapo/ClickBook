@@ -7,9 +7,10 @@ import {
   Calendar, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Target, Star
 } from "lucide-react";
 import ChromeBookmarkPanel from "@/components/ChromeBookmarkPanel";
-import type { MessageResponse, TodoBoardData, TodoTask } from "@/shared/types";
+import type { TodoBoardData, TodoTask } from "@/shared/types";
 import { useLang } from "@/shared/LanguageContext";
 import { isAIAvailable, setAIEnabled, verifyAISession } from "@/shared/categorizer";
+import { sendMsg } from "@/shared/utils";
 import MemoForm from "./components/MemoForm";
 import BulkImportForm from "./components/BulkImportForm";
 import { BuddySettingsPanel } from "./components/BuddySettingsPanel";
@@ -133,12 +134,12 @@ export default function Popup() {
 
   async function loadTodoBoard() {
     try {
-      const res = (await chrome.runtime.sendMessage({ type: "GET_TODO_BOARD" })) as MessageResponse;
+      const res = await sendMsg({ type: "GET_TODO_BOARD" });
       if (res.success && res.data) {
         setTodoBoard(res.data as TodoBoardData);
       }
     } catch (err) {
-      console.warn("Failed to load TODO board:", err);
+      console.debug("Failed to load TODO board:", err);
     }
   }
 
@@ -261,10 +262,10 @@ export default function Popup() {
     updatedBoard.columns[targetColumnId].taskIds.push(newTaskId);
 
     try {
-      const saveRes = (await chrome.runtime.sendMessage({
+      const saveRes = await sendMsg({
         type: "SAVE_TODO_BOARD",
         data: updatedBoard,
-      })) as MessageResponse;
+      });
 
       if (saveRes.success) {
         setTodoBoard(updatedBoard);
@@ -275,7 +276,7 @@ export default function Popup() {
         setTodoStatus("idle");
       }
     } catch (err) {
-      console.warn("Failed to save TODO task:", err);
+      console.debug("Failed to save TODO task:", err);
       setTodoStatus("idle");
     }
   }
@@ -286,13 +287,13 @@ export default function Popup() {
     if (updatedBoard.tasks[taskId]) {
       updatedBoard.tasks[taskId].completed = !updatedBoard.tasks[taskId].completed;
       try {
-        await chrome.runtime.sendMessage({
+        await sendMsg({
           type: "SAVE_TODO_BOARD",
           data: updatedBoard,
         });
         setTodoBoard(updatedBoard);
       } catch (err) {
-        console.warn("Failed to update todo status:", err);
+        console.debug("Failed to update todo status:", err);
       }
     }
   }
@@ -309,13 +310,13 @@ export default function Popup() {
     });
 
     try {
-      await chrome.runtime.sendMessage({
+      await sendMsg({
         type: "SAVE_TODO_BOARD",
         data: updatedBoard,
       });
       setTodoBoard(updatedBoard);
     } catch (err) {
-      console.warn("Failed to delete todo task:", err);
+      console.debug("Failed to delete todo task:", err);
     }
   }
 
@@ -327,12 +328,50 @@ export default function Popup() {
   function applyTheme(t: "light" | "dark") {
     setPopupThemeState(t);
     localStorage.setItem("clickbook_theme", t);
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clickbook_theme: t }).catch(() => {});
+    }
     document.documentElement.classList.toggle("dark", t === "dark");
   }
   const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", popupTheme === "dark");
+    // 1. Initial DOM theme sync and chrome.storage verification
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["clickbook_theme"], (r) => {
+        if (r && (r.clickbook_theme === "light" || r.clickbook_theme === "dark")) {
+          setPopupThemeState(r.clickbook_theme);
+          document.documentElement.classList.toggle("dark", r.clickbook_theme === "dark");
+          localStorage.setItem("clickbook_theme", r.clickbook_theme);
+        } else {
+          document.documentElement.classList.toggle("dark", popupTheme === "dark");
+        }
+      });
+    } else {
+      document.documentElement.classList.toggle("dark", popupTheme === "dark");
+    }
+
+    // 2. Real-time sync if theme is changed in newtab page
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === "local" && changes["clickbook_theme"]) {
+        const next = changes["clickbook_theme"].newValue as "light" | "dark";
+        if (next === "light" || next === "dark") {
+          setPopupThemeState(next);
+          document.documentElement.classList.toggle("dark", next === "dark");
+          localStorage.setItem("clickbook_theme", next);
+        }
+      }
+    };
+
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener(handleStorageChange);
+      return () => {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -375,41 +414,49 @@ export default function Popup() {
 
   useEffect(() => {
     async function init() {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.url) {
-        setTabUrl(tab.url);
-
-        // Check if current tab is secure
-        try {
-          const secRes = await chrome.runtime.sendMessage({ type: "CHECK_DOMAIN_SECURE", url: tab.url }) as MessageResponse;
-          if (secRes.success && secRes.isSecure) {
-            setIsCurrentTabSecure(true);
-          }
-        } catch (err) {
-          console.warn("Failed to check if domain is secure:", err);
-        }
-
-        const res = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
-        if (res.success && res.data) {
-          const data = res.data as { bookmarks: Array<{ id: string; url: string; summary?: string; tags?: string[] }> };
-          const bm = data.bookmarks.find((b) => b.url === tab.url);
-          if (bm) {
-            setExistingBookmarkId(bm.id);
-            setTabSummary(bm.summary);
-            setTabTags(bm.tags);
-          }
-        }
-      }
-      if (tab?.title) setTabTitle(tab.title);
-
-      // Get tab groups
       try {
-        const groupsRes = await chrome.runtime.sendMessage({ type: "GET_CHROME_TAB_GROUPS" }) as MessageResponse;
-        if (groupsRes.success && Array.isArray(groupsRes.data)) {
-          setTabGroups(groupsRes.data as chrome.tabGroups.TabGroup[]);
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab?.url) {
+          setTabUrl(tab.url);
+
+          // Check if current tab is secure
+          try {
+            const secRes = await sendMsg({ type: "CHECK_DOMAIN_SECURE", url: tab.url });
+            if (secRes.success && secRes.isSecure) {
+              setIsCurrentTabSecure(true);
+            }
+          } catch (err) {
+            console.debug("Check domain secure fallback:", err);
+          }
+
+          try {
+            const res = await sendMsg({ type: "GET_ALL_DATA" });
+            if (res.success && res.data) {
+              const data = res.data as { bookmarks: Array<{ id: string; url: string; summary?: string; tags?: string[] }> };
+              const bm = data.bookmarks.find((b) => b.url === tab.url);
+              if (bm) {
+                setExistingBookmarkId(bm.id);
+                setTabSummary(bm.summary);
+                setTabTags(bm.tags);
+              }
+            }
+          } catch (err) {
+            console.debug("Failed to get all data in popup init:", err);
+          }
         }
-      } catch (e) {
-        console.warn("Failed to get tab groups:", e);
+        if (tab?.title) setTabTitle(tab.title);
+
+        // Get tab groups
+        try {
+          const groupsRes = await sendMsg({ type: "GET_CHROME_TAB_GROUPS" });
+          if (groupsRes.success && Array.isArray(groupsRes.data)) {
+            setTabGroups(groupsRes.data as chrome.tabGroups.TabGroup[]);
+          }
+        } catch (e) {
+          console.debug("Failed to get tab groups:", e);
+        }
+      } catch (err) {
+        console.debug("Popup init general error:", err);
       }
     }
     init();
@@ -447,7 +494,7 @@ export default function Popup() {
     setStatus("loading");
     setSaveResult(null);
     try {
-      const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
+      const res = await sendMsg({ type: "SAVE_TAB" });
       if (res.success) {
         setStatus("success");
         setMessage(t("popupSaved"));
@@ -463,14 +510,14 @@ export default function Popup() {
         setStatus("error");
         setMessage(res.error ?? t("popupSaveFailed"));
       }
-    } catch (err) { console.warn("Operation failed:", err); setStatus("error"); setMessage(t("popupError")); }
+    } catch (err) { console.debug("Operation failed:", err); setStatus("error"); setMessage(t("popupError")); }
   }
 
   async function handleRegisterReader() {
     setIsReaderLoading(true);
     setSaveResult(null);
     try {
-      const res = await chrome.runtime.sendMessage({ type: "SAVE_TAB" }) as MessageResponse;
+      const res = await sendMsg({ type: "SAVE_TAB" });
       if (res.success) {
         setStatus("success");
         setMessage(t("popupReaderRegistered"));
@@ -480,7 +527,7 @@ export default function Popup() {
         if (d?.folderName && d?.method) setSaveResult({ folderName: d.folderName, method: d.method });
 
       } else if (res.isDuplicate) {
-        const dataRes = await chrome.runtime.sendMessage({ type: "GET_ALL_DATA" }) as MessageResponse;
+        const dataRes = await sendMsg({ type: "GET_ALL_DATA" });
         if (dataRes.success && dataRes.data) {
           const data = dataRes.data as { bookmarks: Array<{ id: string; url: string }> };
           const bm = data.bookmarks.find((b) => b.url === tabUrl);
@@ -497,7 +544,7 @@ export default function Popup() {
         setMessage(res.error ?? t("popupReaderRegisterFailed"));
       }
     } catch (err) {
-      console.warn("Offline reader registration failed:", err);
+      console.debug("Offline reader registration failed:", err);
       setStatus("error");
       setMessage(t("popupError"));
     } finally {
@@ -508,26 +555,31 @@ export default function Popup() {
   async function handleBulkSave() {
     setBulkStatus("loading");
     setBulkResult(null);
-    const tabs = await chrome.tabs.query({});
-    const validTabs = tabs
-      .filter((t) => t.url && (t.url.startsWith("http://") || t.url.startsWith("https://")) && t.title)
-      .map((t) => ({ url: t.url!, title: t.title ?? t.url! }));
-    if (validTabs.length === 0) { setBulkStatus("idle"); return; }
-    const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items: validTabs }) as MessageResponse;
-    const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
-    
-    setBulkStatus("done");
-    setBulkResult({ saved, skipped: validTabs.length - saved });
-    setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
+    try {
+      const tabs = await chrome.tabs.query({});
+      const validTabs = tabs
+        .filter((t) => t.url && (t.url.startsWith("http://") || t.url.startsWith("https://")) && t.title)
+        .map((t) => ({ url: t.url!, title: t.title ?? t.url! }));
+      if (validTabs.length === 0) { setBulkStatus("idle"); return; }
+      const res = await sendMsg({ type: "BULK_IMPORT_CHROME", items: validTabs });
+      const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
+      
+      setBulkStatus("done");
+      setBulkResult({ saved, skipped: validTabs.length - saved });
+      setTimeout(() => { setBulkStatus("idle"); setBulkResult(null); }, 3000);
+    } catch (err) {
+      console.debug("Bulk save error:", err);
+      setBulkStatus("idle");
+    }
   }
 
   async function handleSaveTabGroup(groupId: number, name: string) {
     try {
-      const res = await chrome.runtime.sendMessage({
+      const res = await sendMsg({
         type: "SAVE_TAB_GROUP_AS_FOLDER",
         groupId,
         name
-      }) as MessageResponse;
+      });
       if (res.success) {
         setStatus("success");
         setTabGroups(prev => prev.filter(g => g.id !== groupId));
@@ -1315,7 +1367,7 @@ export default function Popup() {
                 if (!nextEnabled) {
                   setBuddySelectorExpanded(false);
                 }
-                await chrome.runtime.sendMessage({
+                await sendMsg({
                   type: "SAVE_BUDDY_CONFIG",
                   config: next,
                 });
@@ -1338,7 +1390,7 @@ export default function Popup() {
                   const isSuperAdmin = nextName === "superadmin";
                   const next = { ...buddyConfig, buddyName: nextName, revealHidden: isSuperAdmin };
                   setBuddyConfig(next);
-                  await chrome.runtime.sendMessage({
+                  await sendMsg({
                     type: "SAVE_BUDDY_CONFIG",
                     config: next,
                   });
@@ -1355,7 +1407,7 @@ export default function Popup() {
                   const random = names[Math.floor(Math.random() * names.length)];
                   const next = { ...buddyConfig, buddyName: random, revealHidden: random === "superadmin" };
                   setBuddyConfig(next);
-                  await chrome.runtime.sendMessage({
+                  await sendMsg({
                     type: "SAVE_BUDDY_CONFIG",
                     config: next,
                   });
@@ -1403,7 +1455,7 @@ export default function Popup() {
                 onSelect={async (id, type) => {
                   const next = { ...buddyConfig, buddyId: id, buddyType: type };
                   setBuddyConfig(next);
-                  await chrome.runtime.sendMessage({
+                  await sendMsg({
                     type: "SAVE_BUDDY_CONFIG",
                     config: next,
                   });
@@ -1420,7 +1472,7 @@ export default function Popup() {
           config={buddyConfig}
           onChange={async (newConfig) => {
             setBuddyConfig(newConfig);
-            await chrome.runtime.sendMessage({
+            await sendMsg({
               type: "SAVE_BUDDY_CONFIG",
               config: newConfig,
             });

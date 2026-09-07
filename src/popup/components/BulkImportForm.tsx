@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ClipboardList, X, Loader2, BookmarkCheck, CheckCircle2 } from "lucide-react";
 import { useLang } from "@/shared/LanguageContext";
-import { extractUrls } from "@/shared/utils";
-import type { MessageResponse } from "@/shared/types";
+import { extractUrls, sendMsg } from "@/shared/utils";
 
 interface BulkImportFormProps {
   onClose: () => void;
@@ -27,7 +26,7 @@ export default function BulkImportForm({ onClose }: BulkImportFormProps) {
     setTextImportResult(null);
     const items = urls.map(u => ({ url: u, title: u }));
     try {
-      const res = await chrome.runtime.sendMessage({ type: "BULK_IMPORT_CHROME", items }) as MessageResponse;
+      const res = await sendMsg({ type: "BULK_IMPORT_CHROME", items });
       const saved = (res.success && res.data) ? ((res.data as { count: number }).count ?? 0) : 0;
       
       setTextImportStatus("done");
@@ -38,7 +37,7 @@ export default function BulkImportForm({ onClose }: BulkImportFormProps) {
         setTextImportResult(null);
       }, 4000);
     } catch (err) {
-      console.warn("Failed to import texts:", err);
+      console.debug("Failed to import texts:", err);
       setTextImportStatus("idle");
     }
   }

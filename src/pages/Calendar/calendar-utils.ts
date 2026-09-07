@@ -125,3 +125,139 @@ export const getCalendarGrid = (year: number, month: number) => {
 
   return grid;
 };
+
+export type CalendarTheme = "glass" | "sepia" | "sage" | "midnight" | "lavender";
+
+export interface CalendarThemeMeta {
+  id: CalendarTheme;
+  name: string;
+  nameKo: string;
+  dotColor: string;
+  panelBg: string;
+  panelBorder: string;
+  weekdayBorder: string;
+  weekdayText: string;
+  satHeader: string;
+  sunHeader: string;
+  cellBgCurrent: string;
+  cellBgOther: string;
+  cellBorder: string;
+  cellHover: string;
+  cellSelected: string;
+  cellTodayRing: string;
+  todayBadge: string;
+  detailHeaderBorder: string;
+  detailItemBg: string;
+}
+
+export const CALENDAR_THEMES: CalendarThemeMeta[] = [
+  {
+    id: "glass",
+    name: "Modern",
+    nameKo: "모던",
+    dotColor: "bg-indigo-500",
+    panelBg: "bg-white/45 dark:bg-slate-950/45 backdrop-blur-xl",
+    panelBorder: "border-white/50 dark:border-white/10",
+    weekdayBorder: "border-slate-200/50 dark:border-slate-800/50",
+    weekdayText: "text-slate-500 dark:text-slate-400",
+    satHeader: "text-blue-500",
+    sunHeader: "text-rose-500",
+    cellBgCurrent: "bg-white/35 dark:bg-slate-800/25",
+    cellBgOther: "bg-white/10 dark:bg-slate-900/15 opacity-40",
+    cellBorder: "border-slate-200/60 dark:border-slate-800/60",
+    cellHover: "hover:border-indigo-400/60 hover:bg-white/60 dark:hover:bg-slate-800/60",
+    cellSelected: "border-indigo-500 dark:border-indigo-500 ring-1 ring-indigo-500/30 bg-indigo-50/40 dark:bg-indigo-950/30",
+    cellTodayRing: "ring-2 ring-indigo-500/60 bg-indigo-50/30 dark:bg-indigo-950/25",
+    todayBadge: "text-white dark:text-white bg-indigo-600 dark:bg-indigo-500",
+    detailHeaderBorder: "border-slate-200/50 dark:border-slate-800/50",
+    detailItemBg: "bg-white/40 dark:bg-slate-800/30 border-slate-200/50 dark:border-slate-700/40",
+  },
+  {
+    id: "sepia",
+    name: "Sepia",
+    nameKo: "세피아",
+    dotColor: "bg-[#8C6D4F]",
+    panelBg: "bg-[#FBF8F2]/50 dark:bg-[#1E1813]/50 backdrop-blur-xl",
+    panelBorder: "border-[#EADBCE]/70 dark:border-[#382C24]/70",
+    weekdayBorder: "border-[#EADBCE]/60 dark:border-[#382C24]/60",
+    weekdayText: "text-[#8C7462] dark:text-[#A89482]",
+    satHeader: "text-[#3B6682] dark:text-[#689AB8]",
+    sunHeader: "text-[#B34336] dark:text-[#D46559]",
+    cellBgCurrent: "bg-[#F5EFE6]/35 dark:bg-[#251F19]/30",
+    cellBgOther: "bg-[#ECE5DC]/15 dark:bg-[#1A1511]/15 opacity-45",
+    cellBorder: "border-[#E8DFD3]/60 dark:border-[#3D3229]/60",
+    cellHover: "hover:border-[#9E7A5A] hover:bg-[#FFFDF9]/60 dark:hover:bg-[#2E261F]/60",
+    cellSelected: "border-[#8C6D4F] dark:border-[#A88665] ring-1 ring-[#8C6D4F]/30 bg-[#8C6D4F]/15 dark:bg-[#8C6D4F]/25",
+    cellTodayRing: "ring-2 ring-[#8C6D4F] dark:ring-[#A88665] bg-[#8C6D4F]/15 dark:bg-[#8C6D4F]/25",
+    todayBadge: "text-[#FFFBF5] bg-[#8C6D4F] dark:bg-[#A88665] shadow-xs",
+    detailHeaderBorder: "border-[#EADBCE]/60 dark:border-[#382C24]/60",
+    detailItemBg: "bg-[#F5EFE6]/40 dark:bg-[#251F19]/35 border-[#E8DFD3]/60 dark:border-[#3D3229]/60",
+  },
+  {
+    id: "sage",
+    name: "Sage",
+    nameKo: "세이지",
+    dotColor: "bg-[#3E6B48]",
+    panelBg: "bg-[#F4F8F5]/50 dark:bg-[#131D16]/50 backdrop-blur-xl",
+    panelBorder: "border-[#D5E3D8]/70 dark:border-[#223627]/70",
+    weekdayBorder: "border-[#D5E3D8]/60 dark:border-[#223627]/60",
+    weekdayText: "text-[#55755B] dark:text-[#88A88F]",
+    satHeader: "text-[#2E7275] dark:text-[#529E9F]",
+    sunHeader: "text-[#B54A44] dark:text-[#DE6862]",
+    cellBgCurrent: "bg-[#EAF1EC]/35 dark:bg-[#1A261E]/30",
+    cellBgOther: "bg-[#DFEAE1]/15 dark:bg-[#111A13]/15 opacity-45",
+    cellBorder: "border-[#D3E2D6]/60 dark:border-[#273B2C]/60",
+    cellHover: "hover:border-[#3E7D4E] hover:bg-[#FAFDFB]/60 dark:hover:bg-[#223327]/60",
+    cellSelected: "border-[#3E6B48] dark:border-[#4E855A] ring-1 ring-[#3E6B48]/30 bg-[#3E6B48]/15 dark:bg-[#3E6B48]/25",
+    cellTodayRing: "ring-2 ring-[#3E6B48] dark:ring-[#4E855A] bg-[#3E6B48]/15 dark:bg-[#3E6B48]/25",
+    todayBadge: "text-white bg-[#3E6B48] dark:bg-[#4E855A] shadow-xs",
+    detailHeaderBorder: "border-[#D5E3D8]/60 dark:border-[#223627]/60",
+    detailItemBg: "bg-[#EAF1EC]/40 dark:bg-[#1A261E]/35 border-[#D3E2D6]/60 dark:border-[#273B2C]/60",
+  },
+  {
+    id: "midnight",
+    name: "Midnight",
+    nameKo: "미드나잇",
+    dotColor: "bg-neutral-800 dark:bg-neutral-200",
+    panelBg: "bg-white/45 dark:bg-[#0B0B0C]/50 backdrop-blur-xl",
+    panelBorder: "border-slate-300/60 dark:border-neutral-800/60",
+    weekdayBorder: "border-slate-200/50 dark:border-neutral-800/50",
+    weekdayText: "text-slate-500 dark:text-neutral-400",
+    satHeader: "text-sky-600 dark:text-sky-400",
+    sunHeader: "text-rose-600 dark:text-rose-400",
+    cellBgCurrent: "bg-white/35 dark:bg-white/[0.04]",
+    cellBgOther: "bg-white/10 dark:bg-white/[0.015] opacity-40",
+    cellBorder: "border-slate-200/60 dark:border-neutral-800/60",
+    cellHover: "hover:border-slate-500 hover:bg-white/60 dark:hover:bg-white/[0.08]",
+    cellSelected: "border-slate-900 dark:border-white ring-1 ring-slate-900/20 dark:ring-white/20 bg-slate-100/50 dark:bg-white/10",
+    cellTodayRing: "ring-2 ring-slate-800 dark:ring-neutral-200 bg-slate-100/40 dark:bg-white/5",
+    todayBadge: "text-white bg-slate-900 dark:text-black dark:bg-white font-bold shadow-xs",
+    detailHeaderBorder: "border-slate-200/50 dark:border-neutral-800/50",
+    detailItemBg: "bg-white/35 dark:bg-white/[0.04] border-slate-200/60 dark:border-neutral-800/60",
+  },
+  {
+    id: "lavender",
+    name: "Lavender",
+    nameKo: "라벤더",
+    dotColor: "bg-[#8247B5]",
+    panelBg: "bg-[#FAF7FD]/50 dark:bg-[#181321]/50 backdrop-blur-xl",
+    panelBorder: "border-[#E9DDF5]/70 dark:border-[#35254A]/70",
+    weekdayBorder: "border-[#E9DDF5]/60 dark:border-[#35254A]/60",
+    weekdayText: "text-[#785994] dark:text-[#A788C4]",
+    satHeader: "text-[#5163A8] dark:text-[#7D8EC9]",
+    sunHeader: "text-[#BA416E] dark:text-[#E06493]",
+    cellBgCurrent: "bg-[#F3EDFA]/35 dark:bg-[#20182D]/30",
+    cellBgOther: "bg-[#ECE2F5]/15 dark:bg-[#140F1C]/15 opacity-45",
+    cellBorder: "border-[#E6D9F2]/60 dark:border-[#392950]/60",
+    cellHover: "hover:border-[#9663C2] hover:bg-[#FDFCFF]/60 dark:hover:bg-[#2A203A]/60",
+    cellSelected: "border-[#8247B5] dark:border-[#9B5FD1] ring-1 ring-[#8247B5]/30 bg-[#8247B5]/15 dark:bg-[#8247B5]/25",
+    cellTodayRing: "ring-2 ring-[#8247B5] dark:ring-[#9B5FD1] bg-[#8247B5]/15 dark:bg-[#8247B5]/25",
+    todayBadge: "text-white bg-[#8247B5] dark:bg-[#9B5FD1] shadow-xs",
+    detailHeaderBorder: "border-[#E9DDF5]/60 dark:border-[#35254A]/60",
+    detailItemBg: "bg-[#F3EDFA]/40 dark:bg-[#20182D]/35 border-[#E6D9F2]/60 dark:border-[#392950]/60",
+  },
+];
+
+export function getCalendarThemeConfig(themeId?: string): CalendarThemeMeta {
+  return CALENDAR_THEMES.find((t) => t.id === themeId) || CALENDAR_THEMES[0];
+}

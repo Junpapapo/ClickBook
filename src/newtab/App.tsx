@@ -32,8 +32,10 @@ import {
   DEFAULT_SETTINGS, 
   trackNewTabOpen, 
   shouldShowReviewPrompt, 
-  incrementReviewPromptShown 
+  incrementReviewPromptShown,
+  getAllData,
 } from "@/shared/storage";
+import { DEFAULT_FOLDERS } from "@/shared/categories";
 import { ThemeProvider } from "@/shared/ThemeContext";
 import { LanguageProvider, useLang } from "@/shared/LanguageContext";
 import { useDialog } from "@/shared/useDialog";
@@ -86,22 +88,38 @@ function AppContent() {
   const taskQueue = useTaskQueue();
 
   const loadData = useCallback(async () => {
-    const response = await sendMsg({
-      type: "GET_ALL_DATA",
-    });
-    if (response.success && response.data) {
-      const data = response.data as StorageData;
-      setBookmarks(data.bookmarks);
-      setFolders(data.folders);
-    }
-    const memosRes = await sendMsg({ type: "GET_MEMOS" });
-    if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
-    const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
-    if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
-    
-    const todoBoardRes = await sendMsg({ type: "GET_TODO_BOARD" });
-    if (todoBoardRes.success && todoBoardRes.data) {
-      setTodoBoard(todoBoardRes.data as TodoBoardData);
+    try {
+      // 1. Direct storage fast path: SW가 절전(dormant) 상태여도 즉시 1~5ms 내에 데이터와 폴더를 로드
+      try {
+        const directData = await getAllData();
+        if (directData) {
+          if (Array.isArray(directData.bookmarks)) setBookmarks(directData.bookmarks);
+          setFolders(Array.isArray(directData.folders) && directData.folders.length > 0 ? directData.folders : [...DEFAULT_FOLDERS]);
+        }
+      } catch (e) {
+        console.debug("[ClickBook] Direct storage read fallback:", e);
+      }
+
+      // 2. Service Worker IPC 동기화 (백그라운드 최신 상태 동기화)
+      const response = await sendMsg({
+        type: "GET_ALL_DATA",
+      });
+      if (response.success && response.data) {
+        const data = response.data as StorageData;
+        setBookmarks(data.bookmarks);
+        setFolders(Array.isArray(data.folders) && data.folders.length > 0 ? data.folders : [...DEFAULT_FOLDERS]);
+      }
+      const memosRes = await sendMsg({ type: "GET_MEMOS" });
+      if (memosRes.success) setMemos((memosRes.data as MemoMap) ?? {});
+      const settingsRes = await sendMsg({ type: "GET_SETTINGS" });
+      if (settingsRes.success && settingsRes.data) setSettings(settingsRes.data as AppSettings);
+      
+      const todoBoardRes = await sendMsg({ type: "GET_TODO_BOARD" });
+      if (todoBoardRes.success && todoBoardRes.data) {
+        setTodoBoard(todoBoardRes.data as TodoBoardData);
+      }
+    } catch (err) {
+      console.debug("Failed to load initial newtab data:", err);
     }
   }, []);
 
@@ -241,21 +259,41 @@ function AppContent() {
     }
   }, [taskQueue, loadData]);
 
-  // Sync todo board from other pages or background via storage changes
+  // Sync storage changes across tabs and auto-rehydrate on window focus/visibility
   useEffect(() => {
     const handleStorageChange = (changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
-      if (areaName === "local" && changes["clickbook_todo_board"]) {
-        const nextVal = changes["clickbook_todo_board"].newValue;
-        if (nextVal) {
-          setTodoBoard(nextVal);
+      if (areaName === "local") {
+        if (changes["clickbook_todo_board"]?.newValue) {
+          setTodoBoard(changes["clickbook_todo_board"].newValue);
+        }
+        if (changes["clickbook_data"]?.newValue) {
+          const nextData = changes["clickbook_data"].newValue as StorageData;
+          if (Array.isArray(nextData.bookmarks)) setBookmarks(nextData.bookmarks);
+          if (Array.isArray(nextData.folders) && nextData.folders.length > 0) setFolders(nextData.folders);
         }
       }
     };
-    chrome.storage.onChanged.addListener(handleStorageChange);
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener(handleStorageChange);
+    }
+
+    // 절전 모드 복귀 또는 오랜 시간 후 탭 활성화 시 자동 재검증 및 데이터 복구
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        loadData();
+      }
     };
-  }, []);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleVisibilityChange);
+
+    return () => {
+      if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
+    };
+  }, [loadData]);
 
   const todayStr = useMemo(() => {
     const today = new Date();

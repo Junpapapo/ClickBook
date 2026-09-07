@@ -15,6 +15,39 @@ import { syncDeclarativeRules, setupAdBlockRulesSyncAlarm, updateEasyListRules }
 // Service Worker — Chrome MV3 Background (Entry & Router)
 // ============================================================
 
+// [MV3 Core] Synchronously register onMessage listener at top level
+// to prevent "Could not establish connection. Receiving end does not exist" when waking up.
+chrome.runtime.onMessage.addListener(
+  (message: Message, sender, sendResponse) => {
+    handleMessage(message, sender)
+      .then(async (response) => {
+        if (response.success && (response as any)._shouldReinit) {
+          try {
+            await initializeBackground();
+          } catch (e) {
+            console.warn("Failed to reinitialize background after factory reset:", e);
+          }
+        }
+        sendResponse(response);
+      })
+      .catch((err) =>
+        sendResponse({ success: false, error: String(err) } satisfies MessageResponse)
+      );
+    return true;
+  }
+);
+
+// [MV3 Core] Synchronously register onConnect listener at top level
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === "ai-reorganize") {
+    runAIReorganizeViaPort(port);
+  } else if (port.name === "ai-reorganize-other") {
+    runAIReorganizeOtherViaPort(port);
+  } else if (port.name === "auto-tag") {
+    runAutoTagViaPort(port);
+  }
+});
+
 // 키보드숏컷: Alt+S 로 현재 활성 탭 저장
 chrome.commands.onCommand.addListener(async (command) => {
   if (command === "save-current-tab") {
@@ -201,35 +234,3 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     console.warn("Failed to update secure badge or auto-resume on tab activate:", e);
   }
 });
-
-// 포트 기반 장기 연결 리스너
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === "ai-reorganize") {
-    runAIReorganizeViaPort(port);
-  } else if (port.name === "ai-reorganize-other") {
-    runAIReorganizeOtherViaPort(port);
-  } else if (port.name === "auto-tag") {
-    runAutoTagViaPort(port);
-  }
-});
-
-// 메시지 핸들러
-chrome.runtime.onMessage.addListener(
-  (message: Message, sender, sendResponse) => {
-    handleMessage(message, sender)
-      .then(async (response) => {
-        if (response.success && (response as any)._shouldReinit) {
-          try {
-            await initializeBackground();
-          } catch (e) {
-            console.warn("Failed to reinitialize background after factory reset:", e);
-          }
-        }
-        sendResponse(response);
-      })
-      .catch((err) =>
-        sendResponse({ success: false, error: String(err) } satisfies MessageResponse)
-      );
-    return true;
-  }
-);

@@ -396,7 +396,7 @@ export interface SpringNote {
   id: string;
   title: string;
   pages: NotePage[];
-  theme: "light" | "sepia" | "dark" | "grid";
+  theme: "light" | "sepia" | "dark" | "grid" | "sage" | "dot";
   font: "serif" | "sans" | "mono" | "pretendard";
   fontSize: number;
   createdAt: number;

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { DragDropContext, Droppable, DroppableProvided } from "@hello-pangea/dnd";
 import { Plus, ListTodo, Loader2 } from "lucide-react";
 import type { AppSettings } from "@/shared/types";
@@ -9,10 +10,64 @@ import TodoColumn from "./TodoBoard/TodoColumn";
 import TaskDetailsModal from "./TodoBoard/TaskDetailsModal";
 import { useTodoState } from "./TodoBoard/hooks/useTodoState";
 import { getSpringNote, saveSpringNote } from "@/utils/springNoteDb";
+import type { TodoTheme } from "./TodoBoard/todo-themes";
+import { TODO_THEMES, getTodoThemeConfig } from "./TodoBoard/todo-themes";
 
 export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   const { t, lang } = useLang();
   const { showConfirm, DialogEl } = useDialog();
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+
+  const [todoTheme, setTodoTheme] = useState<TodoTheme>("modern");
+
+  useEffect(() => {
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["clickbook_todo_theme"], (res) => {
+        if (res && res.clickbook_todo_theme) {
+          setTodoTheme(res.clickbook_todo_theme as TodoTheme);
+        }
+      });
+    }
+  }, []);
+
+  const handleThemeChange = (newTheme: TodoTheme) => {
+    setTodoTheme(newTheme);
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ clickbook_todo_theme: newTheme });
+    }
+  };
+
+  const themeConfig = getTodoThemeConfig(todoTheme);
+
+  const {
+    data,
+    loading,
+    activeSettings,
+    editingColumnId,
+    setEditingColumnId,
+    editColumnTitle,
+    setEditColumnTitle,
+    addingTaskToCol,
+    setAddingTaskToCol,
+    newTaskContent,
+    setNewTaskContent,
+    showColorPickerForCol,
+    setShowColorPickerForCol,
+    editingTask,
+    setEditingTask,
+    handleDragEnd,
+    addColumn,
+    deleteColumn,
+    saveColumnTitle,
+    changeColumnColor,
+    addTask,
+    deleteTask,
+    toggleTaskCompletion,
+    openTaskModal,
+    saveTaskModal,
+  } = useTodoState(settings, t);
+
   // TODO 카드에서 노트 클릭 시, 해당 태스크명으로 연동 노트를 자동생성/선택하고 스프링 노트 전용 화면으로 탭 이동
   const handleOpenSpringNoteAndRedirect = async (taskId: string) => {
     try {
@@ -73,34 +128,6 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
     }
   };
 
-  const {
-    data,
-    loading,
-    activeSettings,
-    editingColumnId,
-    setEditingColumnId,
-    editColumnTitle,
-    setEditColumnTitle,
-    addingTaskToCol,
-    setAddingTaskToCol,
-    newTaskContent,
-    setNewTaskContent,
-    showColorPickerForCol,
-    setShowColorPickerForCol,
-    editingTask,
-    setEditingTask,
-    handleDragEnd,
-    addColumn,
-    deleteColumn,
-    saveColumnTitle,
-    changeColumnColor,
-    addTask,
-    deleteTask,
-    toggleTaskCompletion,
-    openTaskModal,
-    saveTaskModal,
-  } = useTodoState(settings, t);
-
   if (loading || !data) {
     return (
       <div className="w-full h-full flex items-center justify-center">
@@ -116,15 +143,12 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
       ]?.title || ""
     : "";
 
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
-
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
       {DialogEl}
-      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
-        {/* ── 타이틀 & 컨트롤 헤더 (박스 없이 시원하게 노출) ── */}
-        <div className="shrink-0 flex items-center justify-between px-1">
+      <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
+        {/* ── 타이틀 & 컨트롤 헤더 (반투명 글래스모피즘 & 슬림 알약 세그먼트) ── */}
+        <div className="shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
           <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
             <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white shadow-sm shadow-emerald-500/20">
               <ListTodo size={16} strokeWidth={2.2} />
@@ -133,9 +157,32 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
               {t("todoBoardTitle") || "TODO Board"}
             </span>
           </h1>
+
+          {/* Theme Selector (SpringNote Style Slim Pill Segmented Control - Unified in English) */}
+          <div className="flex items-center h-[32px] p-0.5 rounded-xl border transition-all duration-300 backdrop-blur-xl bg-white/45 dark:bg-slate-900/45 border-white/50 dark:border-white/10 shadow-figma-xs">
+            {TODO_THEMES.map((tItem) => {
+              const isSelected = todoTheme === tItem.id;
+              return (
+                <button
+                  key={tItem.id}
+                  onClick={() => handleThemeChange(tItem.id)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold scale-[0.98]"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-white/5"
+                  }`}
+                  title={tItem.name}
+                >
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${tItem.dotColor}`} />
+                  <span className="text-[11px]">{tItem.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
           <button
             onClick={addColumn}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-figma-xs transition-all active:scale-98 cursor-pointer"
+            className="flex items-center gap-1.5 bg-emerald-600/90 hover:bg-emerald-600 active:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-figma-xs transition-all active:scale-98 cursor-pointer backdrop-blur-md"
           >
             <Plus size={13} strokeWidth={2.5} />
             {t("addTodoColumn") || "Add List"}
@@ -163,6 +210,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                         column={column}
                         index={index}
                         tasks={tasks}
+                        themeConfig={themeConfig}
                         editingColumnId={editingColumnId}
                         editColumnTitle={editColumnTitle}
                         setEditColumnTitle={setEditColumnTitle}

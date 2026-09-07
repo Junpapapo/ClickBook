@@ -2,19 +2,21 @@ import type { NotePage, NoteObject } from "@/shared/types";
 
 export type { NoteObject, NotePage };
 
+export type SpringNoteTheme = "light" | "sepia" | "dark" | "grid" | "sage" | "dot";
+
 export interface SpringNotePanelProps {
   taskId: string;
   onClose: () => void;
   t: any;
   lang: string;
   isMiniMode?: boolean;
-  onThemeChange?: (theme: "light" | "sepia" | "dark" | "grid") => void;
+  onThemeChange?: (theme: SpringNoteTheme) => void;
 }
 
 export interface SpringNoteToolbarProps {
   editor?: any;
-  theme: "light" | "sepia" | "dark" | "grid";
-  onChangeTheme: (theme: "light" | "sepia" | "dark" | "grid") => void;
+  theme: SpringNoteTheme;
+  onChangeTheme: (theme: SpringNoteTheme) => void;
   font: "serif" | "sans" | "mono" | "pretendard";
   onChangeFont: (font: "serif" | "sans" | "mono" | "pretendard") => void;
   fontSize: number;
@@ -40,7 +42,7 @@ export interface SpringNoteToolbarProps {
 }
 
 export interface SpringNoteBookProps {
-  theme: "light" | "sepia" | "dark" | "grid";
+  theme: SpringNoteTheme;
   font: "serif" | "sans" | "mono" | "pretendard";
   fontSize: number;
   children: React.ReactNode;
@@ -53,7 +55,7 @@ export interface SpringNoteCanvasProps {
   onUpdateObjects: (objects: NoteObject[]) => void;
   scale?: number;
   t: any;
-  theme: "light" | "sepia" | "dark" | "grid";
+  theme: SpringNoteTheme;
   selectedObjId: string | null;
   setSelectedObjId: (id: string | null) => void;
   scrollHeight?: number;

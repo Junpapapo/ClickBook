@@ -19,7 +19,8 @@ export default function SpringNoteCanvas({
 
   // 테이블 셀 글자색을 지면 테마에 확실히 맞추기 위한 전용 헬퍼
   const getTableTextColorClass = () => {
-    if (theme === "light" || theme === "grid") return "!text-black";
+    if (theme === "light" || theme === "grid" || theme === "dot") return "!text-black";
+    if (theme === "sage") return "!text-[#243828]";
     if (theme === "sepia") return "!text-[#4A3728]";
     return "!text-gray-200"; // dark 테마
   };

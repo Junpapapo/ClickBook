@@ -1,17 +1,50 @@
-// =============================
-// GitHubランキングキャッシュ
-// =============================
 import type { GitHubRankingCache } from "./types";
 
 const GITHUB_RANKING_KEY = "github_ranking_cache";
 
+// 안전한 스토리지 접근 헬퍼 (비크롬/스탠드얼론 환경 호환성 보장)
+export async function safeStorageGet(key: string | string[] | null): Promise<Record<string, any>> {
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    try {
+      return await chrome.storage.local.get(key);
+    } catch (err) {
+      console.warn("[ClickBook Storage] Chrome storage get failed, falling back:", err);
+    }
+  }
+  try {
+    if (typeof localStorage !== "undefined" && typeof key === "string") {
+      const val = localStorage.getItem(key);
+      return val ? { [key]: JSON.parse(val) } : {};
+    }
+  } catch (_) {}
+  return {};
+}
+
+export async function safeStorageSet(items: Record<string, any>): Promise<void> {
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    try {
+      await chrome.storage.local.set(items);
+      return;
+    } catch (err) {
+      console.warn("[ClickBook Storage] Chrome storage set failed, falling back:", err);
+    }
+  }
+  try {
+    if (typeof localStorage !== "undefined") {
+      for (const [k, v] of Object.entries(items)) {
+        localStorage.setItem(k, JSON.stringify(v));
+      }
+    }
+  } catch (_) {}
+}
+
 export async function getGitHubRankingCache(): Promise<GitHubRankingCache | null> {
-  const result = await chrome.storage.local.get(GITHUB_RANKING_KEY);
+  const result = await safeStorageGet(GITHUB_RANKING_KEY);
   return result[GITHUB_RANKING_KEY] ?? null;
 }
 
 export async function setGitHubRankingCache(cache: GitHubRankingCache): Promise<void> {
-  await chrome.storage.local.set({ [GITHUB_RANKING_KEY]: cache });
+  await safeStorageSet({ [GITHUB_RANKING_KEY]: cache });
 }
 import type { Bookmark, Folder, StorageData, ClickBookBackupData, AppSettings, ReviewPromptState } from "./types";
 import { DEFAULT_FOLDERS, DEFAULT_FOLDER_ID } from "./categories";
@@ -24,19 +57,19 @@ const STORAGE_KEY = "clickbook_data";
 // ============================================================
 
 async function readStorage(): Promise<StorageData> {
-  const result = await chrome.storage.local.get(STORAGE_KEY);
+  const result = await safeStorageGet(STORAGE_KEY);
   const data = result[STORAGE_KEY];
   if (data && typeof data === "object" && Array.isArray(data.bookmarks)) {
     return {
       bookmarks: data.bookmarks,
-      folders: Array.isArray(data.folders) ? data.folders : [...DEFAULT_FOLDERS],
+      folders: Array.isArray(data.folders) && data.folders.length > 0 ? data.folders : [...DEFAULT_FOLDERS],
     };
   }
   return { bookmarks: [], folders: [...DEFAULT_FOLDERS] };
 }
 
 async function writeStorage(data: StorageData): Promise<void> {
-  await chrome.storage.local.set({ [STORAGE_KEY]: data });
+  await safeStorageSet({ [STORAGE_KEY]: data });
 }
 
 async function withStorageLock<T>(fn: (data: StorageData) => Promise<T>): Promise<T> {

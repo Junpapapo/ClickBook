@@ -9,6 +9,8 @@ import {
   TASK_TEXT_COLORS,
   MEMO_COLORS,
   formatDateStr,
+  CalendarThemeMeta,
+  getCalendarThemeConfig,
 } from "../calendar-utils";
 
 interface WeekViewProps {
@@ -19,6 +21,7 @@ interface WeekViewProps {
   holidayMap: Record<string, string>;
   manualHolidays: Record<string, TodoTask>;
   getSelectedWeekDays: () => Date[];
+  themeConfig?: CalendarThemeMeta;
   onTaskDrop: (e: React.DragEvent, targetDate: Date) => void;
   onOpenTaskEditor: (task: TodoTask) => void;
   onOpenMemoEditor: (item: { bookmark: Bookmark | null; memo: BookmarkMemo }) => void;
@@ -32,12 +35,15 @@ export default function WeekView({
   holidayMap,
   manualHolidays,
   getSelectedWeekDays,
+  themeConfig,
   onTaskDrop,
   onOpenTaskEditor,
   onOpenMemoEditor,
 }: WeekViewProps) {
   const { t } = useLang();
+  const cfg = themeConfig || getCalendarThemeConfig();
   const weekDays = getSelectedWeekDays();
+
   return (
     <div className="grid grid-cols-7 gap-2 h-full min-h-[480px] select-none">
       {weekDays.map((day) => {
@@ -54,24 +60,24 @@ export default function WeekView({
 
         let cellBgClass = "";
         if (isTodayCell) {
-          cellBgClass = "ring-2 ring-indigo-500/60 bg-indigo-50/20 dark:bg-indigo-950/20";
+          cellBgClass = cfg.cellTodayRing;
         } else if (manualHoliday) {
           cellBgClass = TASK_CELL_BG_COLORS[manualHoliday.color || "rose"] || TASK_CELL_BG_COLORS.default;
         } else if (holidayName) {
           cellBgClass = "bg-rose-50/40 dark:bg-rose-950/20";
         } else {
-          cellBgClass = "bg-slate-50/60 dark:bg-slate-800/40";
+          cellBgClass = cfg.cellBgCurrent;
         }
 
         let borderClass = "";
         if (isSelected) {
-          borderClass = "border-indigo-500 dark:border-indigo-500 ring-1 ring-indigo-500/30";
+          borderClass = cfg.cellSelected;
         } else if (manualHoliday) {
           borderClass = "border-indigo-200/70 dark:border-indigo-900/40 hover:border-indigo-400/60";
         } else if (holidayName) {
           borderClass = "border-rose-200/70 dark:border-rose-900/40 hover:border-rose-400/60";
         } else {
-          borderClass = "border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-400/60";
+          borderClass = `${cfg.cellBorder} ${cfg.cellHover}`;
         }
 
         return (
@@ -86,10 +92,10 @@ export default function WeekView({
             `}
           >
             {/* Day Header */}
-            <div className="pb-1.5 border-b border-slate-200/60 dark:border-slate-800 flex flex-col items-center">
+            <div className={`pb-1.5 border-b ${cfg.weekdayBorder} flex flex-col items-center`}>
               <span
                 className={`text-[9.5px] font-bold tracking-wider ${
-                  day.getDay() === 0 ? "text-rose-500" : day.getDay() === 6 ? "text-blue-500" : "text-slate-400 dark:text-slate-500"
+                  day.getDay() === 0 ? cfg.sunHeader : day.getDay() === 6 ? cfg.satHeader : cfg.weekdayText
                 }`}
               >
                 {dayName}
@@ -97,15 +103,15 @@ export default function WeekView({
               <span
                 className={`text-xs font-semibold mt-0.5 ${
                   day.getDay() === 0 || holidayName
-                    ? "text-rose-500"
+                    ? cfg.sunHeader
                     : manualHoliday
                     ? TASK_TEXT_COLORS[manualHoliday.color || "rose"] || "text-indigo-600 dark:text-indigo-400"
                     : day.getDay() === 6
-                    ? "text-blue-500"
+                    ? cfg.satHeader
                     : "text-slate-700 dark:text-slate-300"
                 } ${
                   isTodayCell
-                    ? "text-white dark:text-white bg-indigo-600 dark:bg-indigo-500 rounded-full h-5 w-5 flex items-center justify-center font-bold text-[11px] shadow-2xs"
+                    ? `${cfg.todayBadge} rounded-full h-5 w-5 flex items-center justify-center font-bold text-[11px] shadow-2xs`
                     : ""
                 }`}
               >

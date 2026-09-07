@@ -19,7 +19,7 @@ export default function MindMapBoard({ onRefresh: _onRefresh }: Props) {
 
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
-      <div className="max-w-[1440px] w-full mx-auto pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
+      <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
         {/* ── 타이틀 헤더 ── */}
         <div className="shrink-0 flex items-center justify-between px-1">
           <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
