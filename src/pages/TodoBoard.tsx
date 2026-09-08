@@ -128,16 +128,8 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
     }
   };
 
-  if (loading || !data) {
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        <Loader2 className="animate-spin text-gray-400" size={32} />
-      </div>
-    );
-  }
-
   // Find the column title of the editing task
-  const editingTaskColumnTitle = editingTask
+  const editingTaskColumnTitle = editingTask && data
     ? data.columns[
         Object.keys(data.columns).find((colId) => data.columns[colId].taskIds.includes(editingTask.id)) || ""
       ]?.title || ""
@@ -146,7 +138,15 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
   return (
     <WallpaperBackground isDarkMode={isDarkMode}>
       {DialogEl}
-      <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
+      {loading || !data ? (
+        <div className="w-full flex-1 min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center">
+          <Loader2 className="animate-spin text-indigo-500 mb-2" size={32} />
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {t("chromeLoading") || "Loading..."}
+          </span>
+        </div>
+      ) : (
+        <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
         {/* ── 타이틀 & 컨트롤 헤더 (피그마/Linear 스타일 슬림 세그먼트 & 시그니처 톤) ── */}
         <div className="shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
           <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
@@ -240,6 +240,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
           </DragDropContext>
         </div>
       </div>
+      )}
 
       {/* Task Details Modal Component */}
       {editingTask && (
