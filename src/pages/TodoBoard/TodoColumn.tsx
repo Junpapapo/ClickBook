@@ -9,15 +9,15 @@ import { getTodoThemeConfig } from "./todo-themes";
 const getColumnColorClass = (color: string | undefined, cfg: TodoThemeMeta) => {
   switch (color) {
     case "blue":
-      return "bg-blue-50/50 dark:bg-blue-950/30 border-blue-200/70 dark:border-blue-900/40 backdrop-blur-xl";
+      return "bg-blue-50/90 dark:bg-blue-950/70 border-blue-200/90 dark:border-blue-900/60 backdrop-blur-2xl";
     case "emerald":
-      return "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200/70 dark:border-emerald-900/40 backdrop-blur-xl";
+      return "bg-emerald-50/90 dark:bg-emerald-950/70 border-emerald-200/90 dark:border-emerald-900/60 backdrop-blur-2xl";
     case "amber":
-      return "bg-amber-50/50 dark:bg-amber-950/30 border-amber-200/70 dark:border-amber-900/40 backdrop-blur-xl";
+      return "bg-amber-50/90 dark:bg-amber-950/70 border-amber-200/90 dark:border-amber-900/60 backdrop-blur-2xl";
     case "rose":
-      return "bg-rose-50/50 dark:bg-rose-950/30 border-rose-200/70 dark:border-rose-900/40 backdrop-blur-xl";
+      return "bg-rose-50/90 dark:bg-rose-950/70 border-rose-200/90 dark:border-rose-900/60 backdrop-blur-2xl";
     case "purple":
-      return "bg-purple-50/50 dark:bg-purple-950/30 border-purple-200/70 dark:border-purple-900/40 backdrop-blur-xl";
+      return "bg-purple-50/90 dark:bg-purple-950/70 border-purple-200/90 dark:border-purple-900/60 backdrop-blur-2xl";
     case "default":
     default:
       return `${cfg.columnBgDefault} ${cfg.columnBorder}`;
@@ -93,7 +93,7 @@ export default React.memo(function TodoColumn({
         <div
           {...provided.draggableProps}
           ref={provided.innerRef}
-          className={`${currentBgClass} rounded-2xl w-[85vw] sm:w-[320px] shrink-0 flex flex-col max-h-full border shadow-xs relative overflow-hidden transition-all duration-200`}
+          className={`${currentBgClass} rounded-2xl w-[85vw] sm:w-[320px] shrink-0 flex flex-col max-h-full border shadow-figma-sm relative overflow-hidden transition-all duration-200`}
         >
           <div
             {...provided.dragHandleProps}
@@ -179,8 +179,8 @@ export default React.memo(function TodoColumn({
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className={`flex-1 overflow-y-auto px-2.5 pb-2 min-h-[40px] space-y-2 transition-colors scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 ${
-                  snapshot.isDraggingOver ? "bg-indigo-50/30 dark:bg-indigo-950/20 rounded-lg" : ""
+                className={`flex-1 overflow-y-auto px-2.5 pb-2 min-h-[40px] space-y-2 transition-colors custom-scrollbar ${
+                  snapshot.isDraggingOver ? "bg-indigo-50/40 dark:bg-indigo-950/30 rounded-lg" : ""
                 }`}
               >
                 {tasks.map((task, index) => (

@@ -15,15 +15,15 @@ const getCardColorClass = (color: string | undefined, cfg: TodoThemeMeta) => {
   }
   switch (color) {
     case "blue":
-      return "bg-blue-50/50 dark:bg-blue-950/30 backdrop-blur-md border-blue-200/80 dark:border-blue-900/50 border-l-[3px] border-l-blue-500 hover:border-blue-400/80 hover:shadow-xs";
+      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-blue-500 hover:border-blue-400 hover:shadow-figma-sm";
     case "emerald":
-      return "bg-emerald-50/50 dark:bg-emerald-950/30 backdrop-blur-md border-emerald-200/80 dark:border-emerald-900/50 border-l-[3px] border-l-emerald-500 hover:border-emerald-400/80 hover:shadow-xs";
+      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-emerald-500 hover:border-emerald-400 hover:shadow-figma-sm";
     case "amber":
-      return "bg-amber-50/50 dark:bg-amber-950/30 backdrop-blur-md border-amber-200/80 dark:border-amber-900/50 border-l-[3px] border-l-amber-500 hover:border-amber-400/80 hover:shadow-xs";
+      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-amber-500 hover:border-amber-400 hover:shadow-figma-sm";
     case "rose":
-      return "bg-rose-50/50 dark:bg-rose-950/30 backdrop-blur-md border-rose-200/80 dark:border-rose-900/50 border-l-[3px] border-l-rose-500 hover:border-rose-400/80 hover:shadow-xs";
+      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-rose-500 hover:border-rose-400 hover:shadow-figma-sm";
     case "purple":
-      return "bg-purple-50/50 dark:bg-purple-950/30 backdrop-blur-md border-purple-200/80 dark:border-purple-900/50 border-l-[3px] border-l-purple-500 hover:border-purple-400/80 hover:shadow-xs";
+      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-purple-500 hover:border-purple-400 hover:shadow-figma-sm";
     default:
       return `${cfg.cardBg} ${cfg.cardBorder} ${cfg.cardHover}`;
   }
@@ -129,9 +129,9 @@ export default React.memo(function TodoCard({
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onOpenModal(task)}
-          className={`group/task relative ${cardColorClass} p-3 rounded-lg shadow-2xs border
+          className={`group/task relative ${cardColorClass} p-2.5 sm:p-3 rounded-xl shadow-figma-xs border
             ${snapshot.isDragging
-              ? "shadow-lg ring-2 ring-indigo-500/40 rotate-1 scale-[1.01] z-50 cursor-grabbing bg-white/90 dark:bg-slate-800/90"
+              ? "shadow-figma-lg ring-2 ring-indigo-500/50 rotate-1 scale-[1.02] z-50 cursor-grabbing bg-white dark:bg-slate-800"
               : "cursor-pointer transition-all duration-150"
             }
           `}

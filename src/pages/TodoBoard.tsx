@@ -147,10 +147,10 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
     <WallpaperBackground isDarkMode={isDarkMode}>
       {DialogEl}
       <div className="w-full pb-4 pt-2 sm:pt-4 px-2 sm:px-6 select-none flex flex-col h-[calc(100vh-2rem)] space-y-3">
-        {/* ── 타이틀 & 컨트롤 헤더 (반투명 글래스모피즘 & 슬림 알약 세그먼트) ── */}
+        {/* ── 타이틀 & 컨트롤 헤더 (피그마/Linear 스타일 슬림 세그먼트 & 시그니처 톤) ── */}
         <div className="shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 px-1">
           <h1 className="text-xl font-extrabold flex items-center gap-2.5 tracking-tight text-slate-800 dark:text-slate-100">
-            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white shadow-sm shadow-emerald-500/20">
+            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-600/25">
               <ListTodo size={16} strokeWidth={2.2} />
             </span>
             <span>
@@ -159,7 +159,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
           </h1>
 
           {/* Theme Selector (SpringNote Style Slim Pill Segmented Control - Unified in English) */}
-          <div className="flex items-center h-[32px] p-0.5 rounded-xl border transition-all duration-300 backdrop-blur-xl bg-white/45 dark:bg-slate-900/45 border-white/50 dark:border-white/10 shadow-figma-xs">
+          <div className="flex items-center h-[32px] p-0.5 rounded-xl border transition-all duration-300 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-slate-200/80 dark:border-white/10 shadow-figma-xs">
             {TODO_THEMES.map((tItem) => {
               const isSelected = todoTheme === tItem.id;
               return (
@@ -168,7 +168,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                   onClick={() => handleThemeChange(tItem.id)}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                     isSelected
-                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs font-bold scale-[0.98]"
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-figma-xs font-bold scale-[0.98]"
                       : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-white/5"
                   }`}
                   title={tItem.name}
@@ -182,7 +182,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
 
           <button
             onClick={addColumn}
-            className="flex items-center gap-1.5 bg-emerald-600/90 hover:bg-emerald-600 active:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-figma-xs transition-all active:scale-98 cursor-pointer backdrop-blur-md"
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-figma-xs transition-all active:scale-98 cursor-pointer"
           >
             <Plus size={13} strokeWidth={2.5} />
             {t("addTodoColumn") || "Add List"}
