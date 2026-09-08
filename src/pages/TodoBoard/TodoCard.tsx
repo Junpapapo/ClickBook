@@ -15,15 +15,15 @@ const getCardColorClass = (color: string | undefined, cfg: TodoThemeMeta) => {
   }
   switch (color) {
     case "blue":
-      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-blue-500 hover:border-blue-400 hover:shadow-figma-sm";
+      return "bg-white dark:bg-[#1d232e] border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-blue-500 hover:border-blue-400 hover:shadow-figma-sm";
     case "emerald":
-      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-emerald-500 hover:border-emerald-400 hover:shadow-figma-sm";
+      return "bg-white dark:bg-[#1d232e] border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-emerald-500 hover:border-emerald-400 hover:shadow-figma-sm";
     case "amber":
-      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-amber-500 hover:border-amber-400 hover:shadow-figma-sm";
+      return "bg-white dark:bg-[#1d232e] border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-amber-500 hover:border-amber-400 hover:shadow-figma-sm";
     case "rose":
-      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-rose-500 hover:border-rose-400 hover:shadow-figma-sm";
+      return "bg-white dark:bg-[#1d232e] border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-rose-500 hover:border-rose-400 hover:shadow-figma-sm";
     case "purple":
-      return "bg-white dark:bg-slate-800 border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-purple-500 hover:border-purple-400 hover:shadow-figma-sm";
+      return "bg-white dark:bg-[#1d232e] border-slate-200/80 dark:border-slate-700/80 border-l-[3.5px] border-l-purple-500 hover:border-purple-400 hover:shadow-figma-sm";
     default:
       return `${cfg.cardBg} ${cfg.cardBorder} ${cfg.cardHover}`;
   }
@@ -156,14 +156,14 @@ export default React.memo(function TodoCard({
                   {task.completed ? (
                     <CheckCircle2 size={15} className="text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
                   ) : (
-                    <Circle size={15} />
+                    <Circle size={15} className="text-slate-400 dark:text-slate-400 group-hover/task:text-indigo-600 dark:group-hover/task:text-indigo-400 transition-colors" />
                   )}
                 </button>
 
                 {/* Task Title */}
                 <div
                   className={`text-xs sm:text-[13px] font-medium leading-snug break-words flex items-center gap-1.5 flex-1 min-w-0 ${
-                    task.completed ? "text-slate-400 dark:text-slate-500 line-through font-normal" : "text-slate-800 dark:text-slate-100"
+                    task.completed ? "text-slate-400 dark:text-slate-500 line-through font-normal" : "text-slate-800 dark:text-white"
                   }`}
                 >
                   {task.icon && <FolderIcon iconName={task.icon} size={13} className="shrink-0" />}

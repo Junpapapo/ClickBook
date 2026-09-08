@@ -197,7 +197,7 @@ export default function TodoBoard({ settings }: { settings?: AppSettings }) {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="flex gap-4 h-full items-start"
+                  className="flex gap-4 h-full items-stretch"
                 >
                   {data.columnOrder.map((columnId, index) => {
                     const column = data.columns[columnId];

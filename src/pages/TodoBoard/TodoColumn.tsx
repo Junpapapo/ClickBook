@@ -93,7 +93,7 @@ export default React.memo(function TodoColumn({
         <div
           {...provided.draggableProps}
           ref={provided.innerRef}
-          className={`${currentBgClass} rounded-2xl w-[85vw] sm:w-[320px] shrink-0 flex flex-col max-h-full border shadow-figma-sm relative overflow-hidden transition-all duration-200`}
+          className={`${currentBgClass} rounded-2xl w-[85vw] sm:w-[320px] shrink-0 flex flex-col h-full border shadow-figma-sm relative overflow-hidden transition-all duration-200`}
         >
           <div
             {...provided.dragHandleProps}
@@ -179,7 +179,7 @@ export default React.memo(function TodoColumn({
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className={`flex-1 overflow-y-auto px-2.5 pb-2 min-h-[40px] space-y-2 transition-colors custom-scrollbar ${
+                className={`flex-1 overflow-y-auto px-2.5 pb-2 min-h-0 space-y-2 transition-colors custom-scrollbar ${
                   snapshot.isDraggingOver ? "bg-indigo-50/40 dark:bg-indigo-950/30 rounded-lg" : ""
                 }`}
               >
@@ -236,7 +236,7 @@ export default React.memo(function TodoColumn({
           </Droppable>
 
           {addingTaskToCol !== column.id && (
-            <div className="p-2 shrink-0 pt-0.5">
+            <div className="p-2 shrink-0 pt-1.5 border-t border-black/5 dark:border-white/5 mt-auto">
               <button
                 onClick={() => {
                   setAddingTaskToCol(column.id);
